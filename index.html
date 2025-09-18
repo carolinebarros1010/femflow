@@ -1,1 +1,365 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FemFlow | Treino alinhado ao ciclo menstrual</title>
+  <meta name="description" content="Treinos femininos alinhados às fases do ciclo menstrual: 7 dias grátis, Programa de 15 dias + eBook de Nutrição, Plano de 12 semanas e Consultoria Premium." />
+  <meta property="og:title" content="FemFlow | Treino alinhado ao ciclo menstrual" />
+  <meta property="og:description" content="Escolha seu plano e treine a favor da sua biologia: 7 dias grátis, 15 dias + eBook, 12 semanas, ou Consultoria Premium." />
+  <meta property="og:type" content="website" />
+  <meta name="theme-color" content="#CC6A5A" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
+  <style>
+    :root{--creme:#F4E1D7;--pessego:#EFBDA6;--terracota:#CC6A5A;--teal:#335953;--grafite:#1f2937;--fundo:#fffaf7;--borda:#f1d9cf;}
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:var(--fundo);color:var(--grafite);font-family:Lato,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Helvetica,Arial}
+    a{color:var(--teal);text-decoration:none}
+    .container{width:min(1120px,92vw);margin-inline:auto}
+    .topbar{background:linear-gradient(90deg,var(--pessego),var(--terracota));color:#fff;padding:.5rem 0;font-size:.95rem}
+    .topbar .container{display:flex;justify-content:center;gap:.75rem;flex-wrap:wrap}
+    header{position:sticky;top:0;z-index:50;background:rgba(255,250,247,.85);backdrop-filter:saturate(180%) blur(10px);border-bottom:1px solid var(--borda)}
+    .nav{display:flex;align-items:center;justify-content:space-between;padding:1rem 0}
+    .brand{display:flex;align-items:center;gap:.75rem;font-weight:900}
+    .logo-img {height: 189px; width: auto;display: block;}
+    .cta-header{padding:.7rem 1.1rem;background:var(--terracota);color:#fff;border-radius:999px;font-weight:800;box-shadow:0 6px 16px rgba(204,106,90,.25)}
+    .hero{display:grid;grid-template-columns:1.1fr .9fr;gap:2rem;align-items:center;padding:3rem 0}
+    .kicker{letter-spacing:.1em;text-transform:uppercase;color:var(--teal);font-weight:900;font-size:.85rem}
+    h1{font-family:"Playfair Display",serif;line-height:1.05;margin:.4rem 0 1rem;font-size:clamp(1.9rem,3.2vw + 1rem,3.4rem)}
+    .sub{font-size:1.1rem;color:#4b5563}
+    .hero-cta{display:flex;gap:1rem;flex-wrap:wrap;margin-top:1.25rem}
+    .btn{display:inline-flex;align-items:center;justify-content:center;gap:.5rem;padding:1rem 1.25rem;border-radius:14px;font-weight:900;border:2px solid transparent;transition:.2s ease;cursor:pointer}
+    .btn-primary{background:var(--terracota);color:#fff;box-shadow:0 12px 24px rgba(204,106,90,.25)}
+    .btn-primary:hover{transform:translateY(-1px);box-shadow:0 16px 28px rgba(204,106,90,.28)}
+    .btn-ghost{background:#fff;border-color:var(--borda);color:var(--grafite)}
+    .hero-media{border-radius:18px;overflow:hidden;box-shadow:0 20px 40px rgba(51,89,83,.18)}
+    .section{padding:2.5rem 0}
+    .section h2{font-family:"Playfair Display",serif;font-size:clamp(1.4rem,2vw + .8rem,2.2rem);margin:0 0 .75rem}
+    .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
+    .card{background:#fff;border:1px solid var(--borda);border-radius:18px;padding:1.2rem;box-shadow:0 10px 24px rgba(204,106,90,.08)}
+    .offers{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}
+    .offer{position:relative;background:linear-gradient(180deg,#fff, #fff 60%, #fff4f0);border:1px solid var(--borda);border-radius:22px;padding:1.25rem;box-shadow:0 16px 30px rgba(204,106,90,.10)}
+    .badge{position:absolute;top:12px;right:12px;background:var(--teal);color:#fff;font-weight:900;font-size:.75rem;padding:.3rem .6rem;border-radius:999px}
+    .price{font-size:1.4rem;font-weight:900;color:var(--teal)}
+    .features{margin:.6rem 0 1rem;padding:0 0 0 1rem}.features li{margin:.3rem 0}
+    .offer .btn{width:100%}
+    .benefits{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
+    .bio{display:grid;grid-template-columns:160px 1fr;gap:1rem;align-items:center;background:#fff;border:1px solid var(--borda);border-radius:18px;padding:1rem}
+    .bio img{width:160px;height:160px;object-fit:cover;border-radius:16px;box-shadow:0 10px 24px rgba(51,89,83,.12)}
+    .bio .who{font-weight:900}
+    .day{margin-bottom:1rem}
+    .day .btn{margin-right:.5rem;margin-bottom:.5rem}
+    details{background:#fff;border:1px solid var(--borda);border-radius:14px;padding:1rem}
+    summary{font-weight:800;cursor:pointer}
+    footer{padding:3rem 0 4rem;background:linear-gradient(180deg, #fff4f0, #fff)}
+    .footgrid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:1rem}
+    .small{font-size:.9rem;color:#6b7280}
+    .footnote{margin-top:1rem;font-size:.85rem;color:#6b7280}
+    @media (max-width:980px){.hero{grid-template-columns:1fr}.offers{grid-template-columns:1fr 1fr}.grid-3,.benefits{grid-template-columns:1fr 1fr}.footgrid{grid-template-columns:1fr 1fr}.bio{grid-template-columns:1fr}}
+    @media (max-width:640px){.offers,.grid-3,.benefits{grid-template-columns:1fr}.footgrid{grid-template-columns:1fr}}
+  </style>
+</head>
+<body>
+  <div class="topbar">
+    <div class="container">
+      <span>🎁 <b>7 dias grátis</b> para sentir o método • </span>
+      <span>💬 Suporte humano • </span>
+      <span>🔒 Pagamento 100% seguro</span>
+    </div>
+  </div>
+
+  <header>
+    <div class="container nav">
+     <div class="brand">
+        <img src="./assets/logo femflow verde.png" alt="Logo FemFlow" class="logo-img" />
+       </div>
+      <a class="cta-header" href="#ofertas">Começar agora</a>
+    </div>
+  </header>
+
+  <main class="container">
+    <section class="hero" id="inicio">
+      <div>
+        <div class="kicker">Método feminino • ciclo como guia</div>
+        <h1>Transforme sua energia em performance com treinos alinhados ao ciclo menstrual.</h1>
+        <p class="sub">Periodização que respeita sintomas, hormônios e rotina — para mais energia, menos lesão e resultados consistentes.</p>
+        <div class="hero-cta">
+          <a class="btn btn-primary" href="#ofertas">Ver planos</a>
+          <a class="btn btn-ghost" href="#como-funciona">Como funciona</a>
+        </div>
+      </div>
+      <div class="hero-media">
+        <picture>
+  <source srcset="./assets/hero.webp" type="image/webp">
+  <picture>
+  <img alt="Treino feminino alinhado ao ciclo" src="./assets/imagem-mulher-treino.jpg" loading="eager" />
+</picture>
+      </div>
+    </section>
+
+    <section class="section" id="como-funciona">
+      <h2>Como o FemFlow entrega resultado sem brigar com sua biologia</h2>
+      <div class="grid-3">
+        <div class="card">
+          <h3>1) Leitura do ciclo</h3>
+          <p>Você indica fase atual e sintomas. O plano ajusta volume e intensidade para menstrual, folicular, ovulatória e lútea.</p>
+        </div>
+        <div class="card">
+          <h3>2) Treinos inteligentes</h3>
+          <p>Força e cardio estruturados por percepção de esforço (PSE), com ênfase em glúteos, costas e abdômen — postura, potência e proteção articular.</p>
+        </div>
+        <div class="card">
+          <h3>3) Nutrição alinhada</h3>
+          <p>Estratégias simples de macro e micronutrientes em cada fase: energia estável, menos inchaço, melhor recuperação.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="responsavel">
+      <h2>Responsável pelo Método</h2>
+      <div class="bio">
+        <picture>
+         <img src="./assets/Blank-Template-Instagram.jpg" alt="Responsável pelo Método FemFlow" loading="lazy" />
+        </picture>
+
+        <div>
+          <div class="who">Ricardo — CREF-208228</div>
+          <p>Educador físico e treinador responsável pelo FemFlow. Metodologia com foco em treino feminino alinhado às fases do ciclo, saúde hormonal e consistência sustentável.</p>
+          <p class="small">Atendimento online e programas estruturados. Dúvidas? <a href="https://wa.me/551151942268" target="_blank" rel="noopener">Fale no WhatsApp</a>.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="ofertas">
+      <h2>Escolha seu caminho</h2>
+      <div class="offers">
+        <article class="offer">
+          <div class="badge">Gratuito</div>
+          <h3>7 dias de adaptação</h3>
+          <p>Experimente o método e sinta a diferença em uma semana guiada.</p>
+          <p class="price">R$ 0</p>
+          <ul class="features">
+            <li>Plano de 7 dias com foco em hábito e técnica</li>
+            <li>Aquecimento, principal e resfriamento (tempo em minutos)</li>
+            <li>Respiração e mobilidade para reduzir tensão</li>
+            <li>Acesso ao Typebot para onboarding</li>
+          </ul>
+         <a class="btn btn-primary" href="#plano-7-dias">Começar grátis</a>
+        </article>
+
+        <article class="offer">
+          <div class="badge">Iniciante</div>
+          <h3>15 dias do zero + eBook de Nutrição</h3>
+          <p>Evolução segura + guia prático de nutrição por fases menstruais.</p>
+          <p class="price"> <del>R$ 80,00</del> agora <span class="price">R$ 49,90</span>
+          <ul class="features">
+            <li>2 semanas com progressão de volume e intensidade</li>
+            <li>Treinos funcionais em casa ou academia (45 min)</li>
+            <li>eBook Nutrição por Fases (PDF)</li>
+            <li>Bônus: checklists e protocolo de hidratação</li>
+          </ul>
+            </ul>
+          <a class="btn btn-primary" href="#" data-link="CHECKOUT_15_DIAS">Quero começar</a>
+        </article>
+
+        <article class="offer">
+          <div class="badge">Completo</div>
+          <h3>12 semanas de treinamento</h3>
+          <p>Periodização completa (3 meses) alinhada às fases do ciclo.</p>
+          <p class="price"> <del>R$ 160,00</del> agora <span class="price">R$ 119,90</span>
+          <ul class="features">
+            <li>Estrutura por PSE (sub, limiar, VO₂)</li>
+            <li>Planilhas semanais + ajustes por sintomas</li>
+            <li>Força glúteo–costas–abdômen integrada</li>
+            <li>Suporte por e-mail/WhatsApp</li>
+          </ul>
+          <a class="btn btn-primary" href="#" data-link="CHECKOUT_12_SEMANAS">Garantir meu plano</a>
+        </article>
+
+        <article class="offer">
+          <div class="badge">Premium</div>
+          <h3>Consultoria Online Completa</h3>
+          <p>Acompanhamento pessoal, feedbacks semanais e ajustes contínuos.</p>
+          <p class="price"> <del>R$ 300,00</del> agora <span class="price">R$ 259,90</span>
+          <ul class="features">
+            <li>Treino individualizado (musculação + endurance)</li>
+            <li>Revisões semanais + adaptação por sintomas/hormônios</li>
+            <li>Canal direto para dúvidas e relatórios mensais</li>
+            <li>Onboarding via app + Typebot</li>
+          </ul>
+          <a class="btn btn-primary" href="https://wa.me/551151942268?text=Quero%20a%20Consultoria%20Premium%20FemFlow" data-link="WHATS_PREMIUM">Falar com a consultora</a>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="beneficios">
+      <h2>Benefícios que as alunas relatam</h2>
+      <div class="benefits">
+        <div class="card"><h3>Mais energia</h3><p>Ajuste de carga por fase = menos fadiga acumulada e mais disposição diária.</p></div>
+        <div class="card"><h3>Menos dor</h3><p>Ê nfase técnica em glúteos, costas e abdômen melhora postura e protege joelhos/lombar.</p></div>
+        <div class="card"><h3>Resultado consistente</h3><p>Ciclos não são obstáculos — são mapas. Seguindo o mapa, você chega lá.</p></div>
+      </div>
+    </section>
+
+    <section class="section" id="plano-7-dias">
+      <h2>Seu Plano de 7 Dias</h2>
+
+      <article class="card day">
+        <h3>Dia 1 — Mobilidade total + respiração</h3>
+        <ul>
+          <li>6–8 min mobilidade torácica (parede/rotação/rolo)</li>
+          <li>2 blocos × 8 min (PSE 4/10): agachamento com apoio, ponte de glúteo, remada com elástico, prancha curta (20–25s)</li>
+          <li>5 min respiração coerente (5–6s inspirar/expirar)</li>
+        </ul>
+        <a class="btn btn-ghost" href="https://www.youtube.com/shorts/w0MfiVldR34" target="_blank" rel="noopener">📹 Mobilidade torácica (Isabella Campos)</a>
+        <a class="btn btn-ghost" href="https://www.youtube.com/shorts/gHVvqDRpqX4" target="_blank" rel="noopener">📹 Agachamento com apoio (Carol Borba)</a>
+        <a class="btn btn-ghost" href="https://www.youtube.com/shorts/1satDE63Bwc" target="_blank" rel="noopener">📹 Ponte de glúteo</a>
+        <a class="btn btn-ghost" href="https://www.youtube.com/shorts/ydJM8flEHrs" target="_blank" rel="noopener">📹 Remada com elástico</a>
+        <a class="btn btn-ghost" href="https://www.youtube.com/shorts/sEw8EGZBC1w" target="_blank" rel="noopener">📹 Prancha isométrica</a>
+        <a class="btn btn-ghost" href="https://www.youtube.com/shorts/B7oThbNlTG0" target="_blank" rel="noopener">📹 Respiração coerente guiada</a>
+      </article>
+
+      <article class="card day">
+        <h3>Dia 2 — Técnica: glúteo • costas • abdômen</h3>
+        <ul>
+          <li>Ponte de glúteo 3×10–12 (ênfase técnica)</li>
+          <li>Remada com elástico 3×12–15 (escápulas ativas)</li>
+          <li>Prancha isométrica 3×20–30s</li>
+          <li>Abdução de quadril lateral (“concha”) 2×12–15</li>
+        </ul>
+        <a class="btn btn-ghost" href="https://www.youtube.com/shorts/1satDE63Bwc" target="_blank" rel="noopener">📹 Ponte de glúteo — variações</a>
+        <a class="btn btn-ghost" href="https://www.youtube.com/shorts/ydJM8flEHrs" target="_blank" rel="noopener">📹 Remada com elástico</a>
+        <a class="btn btn-ghost" href="https://www.youtube.com/shorts/sEw8EGZBC1w" target="_blank" rel="noopener">📹 Prancha </a>
+        <a class="btn btn-ghost" href="https://www.youtube.com/shorts/NykPOcQj6bA" target="_blank" rel="noopener">📹 “Concha/ostra” </a>
+      </article>
+
+      <article class="card day">
+        <h3>Dia 3 — Caminhada leve + mobilidade</h3>
+        <ul>
+          <li>20–30 min caminhada ou pedal leve (PSE 3–4)</li>
+          <li>5–8 min mobilidade torácica + quadril</li>
+          <li>Respiração em caixa 4–4–4–4 por 3–5 min</li>
+        </ul>
+        <a class="btn btn-ghost" href="https://www.youtube.com/shorts/2QJR9vJZwrI" target="_blank" rel="noopener">📹 Dicas de caminhada </a>
+        <a class="btn btn-ghost" href="https://www.youtube.com/shorts/ItUNZR8I3bg" target="_blank" rel="noopener">📹 Mobilidade torácica </a>
+        <a class="btn btn-ghost" href="https://www.youtube.com/shorts/E9Pz3vpzp6c" target="_blank" rel="noopener">📹 Respiração em Box</a>
+      </article>
+
+      <article class="card day">
+        <h3>Dia 4 — Força leve técnica</h3>
+        <ul>
+          <li>Agachamento com apoio 3×10–12</li>
+          <li>Puxada de elástico na altura do rosto (face pull) 3×12–15</li>
+          <li>Quatro apoios alternado (bird‭dog) 3×8–10/lado</li>
+          <li>Abdutor“Concha” 2×12–15</li>
+        </ul>
+        <a class="btn btn-ghost" href="https://www.youtube.com/shorts/gHVvqDRpqX4" target="_blank" rel="noopener">📹 Agachamento — execução</a>
+        <a class="btn btn-ghost" href="https://www.youtube.com/shorts/enL0z76j0xA" target="_blank" rel="noopener">📹 Face pull com elástico</a>
+        <a class="btn btn-ghost" href="https://www.youtube.com/shorts/6Ez5m41UnPo" target="_blank" rel="noopener">📹 Quatro apoios alternado</a>
+        <a class="btn btn-ghost" href="https://www.youtube.com/shorts/NykPOcQj6bA" target="_blank" rel="noopener">📹 Abdutor “Concha” </a>
+      </article>
+
+      <article class="card day">
+        <h3>Dia 5 — Abdômen + mobilidade</h3>
+        <ul>
+          <li>“Inseto morto” (dead bug) 3×8–10/lado</li>
+          <li>Prancha isométrica 3×25–35s</li>
+          <li>Mobilidade torácica + quadril 6–8 min</li>
+        </ul>
+        <a class="btn btn-ghost" href="https://www.youtube.com/shorts/DqLL45uk2Tk" target="_blank" rel="noopener">📹 Dead bug </a>
+        <a class="btn btn-ghost" href="https://www.youtube.com/shorts/sEw8EGZBC1w" target="_blank" rel="noopener">📹 Prancha </a>
+        <a class="btn btn-ghost" href="https://www.youtube.com/shorts/w0MfiVldR34" target="_blank" rel="noopener">📹 Mobilidade torácica</a>
+      </article>
+
+      <article class="card day">
+        <h3>Dia 6 — Caminhada ou corrida progressiva</h3>
+        <ul>
+          <li>25–35 min com progressão leve (terminar em PSE 6)</li>
+          <li>5 min mobilidade suave</li>
+        </ul>
+        <a class="btn btn-ghost" href="https://www.youtube.com/shorts/0ydzyeQ11ME" target="_blank" rel="noopener">📹 Corrida leve </a>
+        <a class="btn btn-ghost" href="https://www.youtube.com/shorts/UH3fk1OS1ms" target="_blank" rel="noopener">📹 Alongar e soltar o corpo</a>
+      </article>
+
+      <article class="card day">
+        <h3>Dia 7 — Recuperação ativa + respiração</h3>
+        <ul>
+          <li>Caminhada leve 20–30 min</li>
+          <li>Respiração coerente 5–6 min</li>
+          <li>Alongamentos leves</li>
+        </ul>
+        <a class="btn btn-ghost" href="https://www.youtube.com/shorts/2QJR9vJZwrI" target="_blank" rel="noopener">📹 Caminhada leve/moderada</a>
+        <a class="btn btn-ghost" href="https://www.youtube.com/shorts/B7oThbNlTG0" target="_blank" rel="noopener">📹 Respiração coerente guiada</a>
+        <a class="btn btn-ghost" href="https://www.youtube.com/watch?v=UJN1cljyhVg" target="_blank" rel="noopener">📹 Alongamento básico </a>
+      </article>
+    </section>
+
+    <section class="section" id="faq">
+      <h2>Perguntas frequentes</h2>
+      <div class="grid-3">
+        <details class="card">
+          <summary>Tenho TPM forte. Consigo treinar?</summary>
+          <p>Sim. O plano prevê semanas de descarga e protocolos leves (mobilidade/respiração) na lútea tardia e menstrual para reduzir sintomas e manter consistência.</p>
+        </details>
+        <details class="card">
+          <summary>Não tenho academia. Funciona em casa?</summary>
+          <p>Claro. Os treinos têm alternativas com peso do corpo e elásticos, mantendo estímulos de força e estabilidade.</p>
+        </details>
+        <details class="card">
+          <summary>Uso anticoncepcional. Faz diferença?</summary>
+          <p>Você pode seguir os planos, observando sintomas. Na consultoria Premium, o ajuste é mais fino e individual.</p>
+        </details>
+      </div>
+    </section>
+  </main>
+
+  <footer>
+    <div class="container footgrid">
+      <div>
+        <div class="brand">
+           <img src="./assets/logo femflow verde.png" alt="Logo FemFlow" class="logo-img" />
+         </div>
+        <p class="small">© 2025 FemFlow / MyFlowLife. Conteúdo educativo; não substitui aconselhamento médico. Consulte sua médica(o) antes de iniciar treino.</p>
+        <p class="footnote">LGPD: coletamos dados apenas para entrega do plano e comunicações relacionadas. Você pode solicitar exclusão a qualquer momento.</p>
+      </div>
+      <div>
+        <h4>Planos</h4>
+        <ul class="small">
+          <li><a href="#ofertas">7 dias grátis</a></li>
+          <li><a href="#ofertas">15 dias + eBook</a></li>
+          <li><a href="#ofertas">12 semanas</a></li>
+          <li><a href="#ofertas">Premium</a></li>
+        </ul>
+      </div>
+      <div>
+        <h4>Contato</h4>
+        <ul class="small">
+          <li><a href="mailto:contato@myflowlife.com.br">contato@myflowlife.com.br</a></li>
+          <li><a href="https://wa.me/551151942268">WhatsApp</a></li>
+        </ul>
+      </div>
+    </div>
+  </footer>
+
+  <script>
+    // Mapeie seus links reais aqui quando tiver
+    const MAP = {
+      TYPEBOT_7_DIAS: href="#plano-7-dias">Começar grátis</a>,
+      CHECKOUT_15_DIAS: '#', // troque pelo seu checkout real
+      CHECKOUT_12_SEMANAS: '#', // troque pelo seu checkout real
+      WHATS_PREMIUM: 'https://wa.me/551151942268?text=Quero%20a%20Consultoria%20Premium%20FemFlow'
+    };
+    document.querySelectorAll('[data-link]').forEach(a => {
+      a.addEventListener('click', () => {
+        const key = a.getAttribute('data-link');
+        if (MAP[key] && MAP[key] !== '#') a.setAttribute('href', MAP[key]);
+      }, { once:true });
+    });
+  </script>
+
+  <!-- (Opcional) Insira aqui seus pixels/analytics -->
+</body>
+</html>
 
