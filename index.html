@@ -44,8 +44,22 @@
   padding: 3rem 0;
 }
 .hero-text{ grid-area: text; }
-.hero-media{ grid-area: image; border-radius:18px; overflow:hidden; box-shadow:0 20px 40px rgba(51,89,83,.18); }
-.hero-media img{ width:100%; height:auto; display:block; }
+/* Hero 50/50 já está no seu CSS novo; aqui reforço mídia */
+.hero-media{
+  grid-area:image;
+  border-radius:18px;
+  overflow:hidden;
+  box-shadow:0 20px 40px rgba(51,89,83,.18);
+  aspect-ratio: 4 / 3;            /* reserva espaço mesmo antes da imagem carregar */
+}
+
+.hero-media picture,
+.hero-media img{
+  width:100%;
+  height:100%;
+  display:block;
+  object-fit:cover;               /* cobre o card sem distorcer */
+}
 
 /* Seções e cards */
 .section{ padding:2.5rem 0; }
@@ -133,6 +147,36 @@ footer{ padding:3rem 0 4rem; background:linear-gradient(180deg, #fff4f0, #fff); 
   transform: scale(1.2);
   filter: drop-shadow(0 0 6px var(--terracota));
 }
+    /* Header: responsivo e sem quebra feia */
+.nav{
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  gap:1rem;
+  flex-wrap:wrap;              /* permite quebrar para 2 linhas quando apertar */
+  padding:.5rem 0;             /* um pouco mais de ar */
+}
+
+.logo-img{
+  height:auto;
+  max-height:72px;             /* em desktop não passa disso */
+  width:auto;
+  display:block;
+}
+
+@media (max-width:980px){
+  .logo-img{ max-height:56px; }/* reduz a logo */
+  .cta-header{
+    padding:.55rem .95rem;
+    font-weight:800;
+  }
+}
+
+@media (max-width:640px){
+  .nav{ justify-content:center; } /* centraliza tudo */
+  .cta-header{ width:100%; text-align:center; margin-top:.25rem; } /* botão desce e ocupa a largura */
+}
+
   </style>
 </head>
 <body>
@@ -165,14 +209,17 @@ footer{ padding:3rem 0 4rem; background:linear-gradient(180deg, #fff4f0, #fff); 
       </div>
     </div> <!-- FECHA hero-text -->
 
-    <div class="hero-media">
-      <picture>
-        <source srcset="./assets/hero.webp" type="image/webp">
-        <img src="./assets/imagem-mulher-treino.jpg"
-             alt="Treino feminino alinhado ao ciclo"
-             loading="eager" />
-      </picture>
-    </div>
+   <div class="hero-media">
+  <picture>
+    <!-- WebP (se existir) -->
+    <source srcset="./assets/hero.webp" type="image/webp">
+    <!-- JPG/PNG de fallback -->
+    <img src="./assets/hero.jpg"
+         alt="Treino feminino alinhado ao ciclo"
+         loading="eager" />
+  </picture>
+</div>
+
   </section>
 </main>
 <section class="section" id="como-funciona">
