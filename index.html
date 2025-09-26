@@ -46,19 +46,19 @@
 .hero-text{ grid-area: text; }
 /* Hero 50/50 já está no seu CSS novo; aqui reforço mídia */
 .hero-media{
-  grid-area:image;
-  border-radius:18px;
-  overflow:hidden;
-  box-shadow:0 20px 40px rgba(51,89,83,.18);
-  aspect-ratio: 4 / 3;            /* reserva espaço mesmo antes da imagem carregar */
+  grid-area: image;
+  border-radius: 18px;
+  overflow: hidden;
+  box-shadow: 0 20px 40px rgba(51,89,83,.18);
+  aspect-ratio: 4 / 3;        /* reserva espaço mesmo se a imagem ainda não carregou */
+  background: #fff;           /* evita parecer “vazio” */
 }
-
 .hero-media picture,
 .hero-media img{
-  width:100%;
-  height:100%;
-  display:block;
-  object-fit:cover;               /* cobre o card sem distorcer */
+  width: 100%;
+  height: 100%;
+  display: block;
+  object-fit: cover;          /* cobre o card sem distorcer */
 }
 
 /* Seções e cards */
@@ -208,18 +208,16 @@ footer{ padding:3rem 0 4rem; background:linear-gradient(180deg, #fff4f0, #fff); 
         <a class="btn btn-ghost" href="#como-funciona">Como funciona</a>
       </div>
     </div> <!-- FECHA hero-text -->
-
-   <div class="hero-media">
+<div class="hero-media">
   <picture>
-    <!-- WebP (se existir) -->
     <source srcset="./assets/hero.webp" type="image/webp">
-    <!-- JPG/PNG de fallback -->
-    <img src="./assets/hero.jpg"
-         alt="Treino feminino alinhado ao ciclo"
-         loading="eager" />
+    <img
+      src="./assets/imagem-mulher-treino.jpg"
+      alt="Treino feminino alinhado ao ciclo"
+      loading="eager"
+      width="960" height="720" />
   </picture>
 </div>
-
   </section>
 </main>
 <section class="section" id="como-funciona">
