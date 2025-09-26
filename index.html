@@ -34,32 +34,78 @@
     .btn-primary{background:var(--terracota);color:#fff;box-shadow:0 12px 24px rgba(204,106,90,.25)}
     .btn-primary:hover{transform:translateY(-1px);box-shadow:0 16px 28px rgba(204,106,90,.28)}
     .btn-ghost{background:#fff;border-color:var(--borda);color:var(--grafite)}
-    .hero-media{border-radius:18px;overflow:hidden;box-shadow:0 20px 40px rgba(51,89,83,.18)}
-    .section{padding:2.5rem 0}
-    .section h2{font-family:"Playfair Display",serif;font-size:clamp(1.4rem,2vw + .8rem,2.2rem);margin:0 0 .75rem}
-    .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
-    .card{background:#fff;border:1px solid var(--borda);border-radius:18px;padding:1.2rem;box-shadow:0 10px 24px rgba(204,106,90,.08)}
-    .offers{display:grid;grid-template-columns:repeat(4,1fr);gap:1rem}
-    .offer{position:relative;background:linear-gradient(180deg,#fff, #fff 60%, #fff4f0);border:1px solid var(--borda);border-radius:22px;padding:1.25rem;box-shadow:0 16px 30px rgba(204,106,90,.10)}
-    .badge{position:absolute;top:12px;right:12px;background:var(--teal);color:#fff;font-weight:900;font-size:.75rem;padding:.3rem .6rem;border-radius:999px}
-    .price{font-size:1.4rem;font-weight:900;color:var(--teal)}
-    .features{margin:.6rem 0 1rem;padding:0 0 0 1rem}.features li{margin:.3rem 0}
-    .offer .btn{width:100%}
-    .benefits{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
-    .bio{display:grid;grid-template-columns:160px 1fr;gap:1rem;align-items:center;background:#fff;border:1px solid var(--borda);border-radius:18px;padding:1rem}
-    .bio img{width:160px;height:160px;object-fit:cover;border-radius:16px;box-shadow:0 10px 24px rgba(51,89,83,.12)}
-    .bio .who{font-weight:900}
-    .day{margin-bottom:1rem}
-    .day .btn{margin-right:.5rem;margin-bottom:.5rem}
-    details{background:#fff;border:1px solid var(--borda);border-radius:14px;padding:1rem}
-    summary{font-weight:800;cursor:pointer}
-    footer{padding:3rem 0 4rem;background:linear-gradient(180deg, #fff4f0, #fff)}
-    .footgrid{display:grid;grid-template-columns:2fr 1fr 1fr;gap:1rem}
-    .small{font-size:.9rem;color:#6b7280}
-    .footnote{margin-top:1rem;font-size:.85rem;color:#6b7280}
-    @media (max-width:980px){.hero{grid-template-columns:1fr}.offers{grid-template-columns:1fr 1fr}.grid-3,.benefits{grid-template-columns:1fr 1fr}.footgrid{grid-template-columns:1fr 1fr}.bio{grid-template-columns:1fr}}
-    @media (max-width:640px){.offers,.grid-3,.benefits{grid-template-columns:1fr}.footgrid{grid-template-columns:1fr}}
-    /* --- Botão Instagram na bio --- */
+    /* Hero 50/50 + mídia responsiva */
+.hero{
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  grid-template-areas: "text image";
+  gap: 2rem;
+  align-items: center;
+  padding: 3rem 0;
+}
+.hero-text{ grid-area: text; }
+.hero-media{ grid-area: image; border-radius:18px; overflow:hidden; box-shadow:0 20px 40px rgba(51,89,83,.18); }
+.hero-media img{ width:100%; height:auto; display:block; }
+
+/* Seções e cards */
+.section{ padding:2.5rem 0; }
+.section h2{ font-family:"Playfair Display",serif; font-size:clamp(1.4rem,2vw + .8rem,2.2rem); margin:0 0 .75rem; }
+.grid-3{ display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; }
+.card{ background:#fff; border:1px solid var(--borda); border-radius:18px; padding:1.2rem; box-shadow:0 10px 24px rgba(204,106,90,.08); }
+
+/* Ofertas */
+.offers{ display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; }
+.offer{ position:relative; background:linear-gradient(180deg,#fff, #fff 60%, #fff4f0); border:1px solid var(--borda); border-radius:22px; padding:1.25rem; box-shadow:0 16px 30px rgba(204,106,90,.10); }
+.badge{ position:absolute; top:12px; right:12px; background:var(--teal); color:#fff; font-weight:900; font-size:.75rem; padding:.3rem .6rem; border-radius:999px; }
+.price{ font-size:1.4rem; font-weight:900; color:var(--teal); }
+.features{ margin:.6rem 0 1rem; padding:0 0 0 1rem; }
+.features li{ margin:.3rem 0; }
+.offer .btn{ width:100%; }
+
+/* Benefícios */
+.benefits{ display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; }
+
+/* Bio */
+.bio{ display:grid; grid-template-columns:160px 1fr; gap:1rem; align-items:center; background:#fff; border:1px solid var(--borda); border-radius:18px; padding:1rem; }
+.bio img{ width:160px; height:160px; object-fit:cover; border-radius:16px; box-shadow:0 10px 24px rgba(51,89,83,.12); }
+.bio .who{ font-weight:900; }
+
+/* Dias */
+.day{ margin-bottom:1rem; }
+.day .btn{ margin-right:.5rem; margin-bottom:.5rem; }
+
+/* Details/summary */
+details{ background:#fff; border:1px solid var(--borda); border-radius:14px; padding:1rem; }
+summary{ font-weight:800; cursor:pointer; }
+
+/* Rodapé */
+footer{ padding:3rem 0 4rem; background:linear-gradient(180deg, #fff4f0, #fff); }
+.footgrid{ display:grid; grid-template-columns:2fr 1fr 1fr; gap:1rem; }
+.small{ font-size:.9rem; color:#6b7280; }
+.footnote{ margin-top:1rem; font-size:.85rem; color:#6b7280; }
+
+/* Responsivo */
+@media (max-width:980px){
+  .hero{
+    grid-template-columns:1fr;
+    grid-template-areas:
+      "image"
+      "text";   /* imagem em cima, texto embaixo */
+  }
+  .offers{ grid-template-columns:1fr 1fr; }
+  .grid-3, .benefits{ grid-template-columns:1fr 1fr; }
+  .footgrid{ grid-template-columns:1fr 1fr; }
+  .bio{ grid-template-columns:1fr; }
+}
+
+@media (max-width:640px){
+  .offers, .grid-3, .benefits{ grid-template-columns:1fr; }
+  .footgrid{ grid-template-columns:1fr; }
+}
+
+/* --- Botão Instagram na bio (mantido) --- */
+/* sua regra/análogos entram aqui */
+
 .bio-texto {
   display: flex;
   flex-direction: column;
@@ -107,26 +153,28 @@
     </div>
   </header>
 
-  <main class="container">
-    <section class="hero" id="inicio">
-      <div>
-        <div class="kicker">Método feminino • ciclo como guia</div>
-        <h1>Transforme sua energia em performance com treinos alinhados ao ciclo menstrual.</h1>
-        <p class="sub">Periodização que respeita sintomas, hormônios e rotina — para mais energia, menos lesão e resultados consistentes.</p>
-        <div class="hero-cta">
-          <a class="btn btn-primary" href="#ofertas">Ver planos</a>
-          <a class="btn btn-ghost" href="#como-funciona">Como funciona</a>
-        </div>
+<main class="container">
+  <section class="hero" id="inicio">
+    <div class="hero-text">
+      <div class="kicker">Método feminino • ciclo como guia</div>
+      <h1>Transforme sua energia em performance com treinos alinhados ao ciclo menstrual.</h1>
+      <p class="sub">Periodização que respeita sintomas, hormônios e rotina — para mais energia, menos lesão e resultados consistentes.</p>
+      <div class="hero-cta">
+        <a class="btn btn-primary" href="#ofertas">Ver planos</a>
+        <a class="btn btn-ghost" href="#como-funciona">Como funciona</a>
       </div>
-     <div class="hero-media">
-  <picture>
-    <source srcset="./assets/hero.webp" type="image/webp">
-    <img alt="Treino feminino alinhado ao ciclo"
-         src="./assets/imagem-mulher-treino.jpg"
-         loading="eager" />
-  </picture>
-</div>
-    </section>
+    </div> <!-- FECHA hero-text -->
+
+    <div class="hero-media">
+      <picture>
+        <source srcset="./assets/hero.webp" type="image/webp">
+        <img src="./assets/imagem-mulher-treino.jpg"
+             alt="Treino feminino alinhado ao ciclo"
+             loading="eager" />
+      </picture>
+    </div>
+  </section>
+</main>
 <section class="section" id="como-funciona">
   <h2>Como o FemFlow entrega resultado sem brigar com sua biologia</h2>
   <div class="grid-3">
