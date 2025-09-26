@@ -59,6 +59,35 @@
     .footnote{margin-top:1rem;font-size:.85rem;color:#6b7280}
     @media (max-width:980px){.hero{grid-template-columns:1fr}.offers{grid-template-columns:1fr 1fr}.grid-3,.benefits{grid-template-columns:1fr 1fr}.footgrid{grid-template-columns:1fr 1fr}.bio{grid-template-columns:1fr}}
     @media (max-width:640px){.offers,.grid-3,.benefits{grid-template-columns:1fr}.footgrid{grid-template-columns:1fr}}
+    /* --- Botão Instagram na bio --- */
+.bio a img {
+  width: 40px;
+  height: 40px;
+  transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+.bio a:hover img {
+  transform: scale(1.15);
+  filter: drop-shadow(0 0 6px var(--terracota));
+}
+  /* --- Animação contínua do logo Instagram --- */
+@keyframes pulse {
+  0% { transform: scale(1); filter: drop-shadow(0 0 0 var(--terracota)); }
+  50% { transform: scale(1.12); filter: drop-shadow(0 0 8px var(--terracota)); }
+  100% { transform: scale(1); filter: drop-shadow(0 0 0 var(--terracota)); }
+}
+
+.bio a img {
+  width: 40px;
+  height: 40px;
+  animation: pulse 2.5s infinite ease-in-out;
+  transition: transform 0.3s ease, filter 0.3s ease;
+}
+
+.bio a:hover img {
+  transform: scale(1.2);
+  filter: drop-shadow(0 0 10px var(--teal));
+}
   </style>
 </head>
 <body>
@@ -103,27 +132,32 @@
       <h2>Como o FemFlow entrega resultado sem brigar com sua biologia</h2>
       <div class="grid-3">
         <div class="card">
-          <h3>1) Leitura do ciclo</h3>
-          <p>Você indica fase atual e sintomas. O plano ajusta volume e intensidade para menstrual, folicular, ovulatória e lútea.</p>
+          <h3>Leitura do ciclo</h3>
+          <p>Você marca sua fase e como está se sentindo. O plano adapta o volume e a intensidade para cada momento: menstrual, folicular, ovulatório e lúteo.</p>
         </div>
         <div class="card">
-          <h3>2) Treinos inteligentes</h3>
-          <p>Força e cardio estruturados por percepção de esforço (PSE), com ênfase em glúteos, costas e abdômen — postura, potência e proteção articular.</p>
+          <h3>Treinos inteligentes</h3>
+          <p>Treinos de força e cardio guiados pela percepção de esforço (PSE), com foco em glúteos, costas e abdômen — para valorizar o corpo feminino, melhorar a postura, gerar potência e proteger as articulações.</p>
         </div>
         <div class="card">
-          <h3>3) Nutrição alinhada</h3>
-          <p>Estratégias simples de macro e micronutrientes em cada fase: energia estável, menos inchaço, melhor recuperação.</p>
-        </div>
-      </div>
-    </section>
+  <h3>Nutrição alinhada</h3>
+  <p>Dicas simples de alimentação em cada fase: mais energia, menos inchaço e uma recuperação mais rápida.</p>
+  <a href="https://wa.me/5511986956313?text=O+Femflow+me+trouxe+aqui!" class="btn">Conhecer mais</a>
+</div>
+   <section class="section" id="responsavel">
+  <h2>Responsável pelo Método</h2>
+  <div class="bio">
+    <picture>
+      <img src="./assets/Blank-Template-Instagram.jpg" 
+           alt="Responsável pelo Método FemFlow" 
+           loading="lazy" />
+    </picture>
 
-    <section class="section" id="responsavel">
-      <h2>Responsável pelo Método</h2>
-      <div class="bio">
-        <picture>
-         <img src="./assets/Blank-Template-Instagram.jpg" alt="Responsável pelo Método FemFlow" loading="lazy" />
-        </picture>
-
+    <a href="https://www.instagram.com/ricardojrgram/" target="_blank">
+      <img src="./assets/instagram-logo.png" alt="Instagram" />
+    </a>
+  </div>
+</section>
         <div>
           <div class="who">Ricardo — CREF-208228-G/SP</div>
           <p>Educador físico e treinador responsável pelo FemFlow. Metodologia com foco em treino feminino alinhado às fases do ciclo, saúde hormonal e consistência sustentável.</p>
