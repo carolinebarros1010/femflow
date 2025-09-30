@@ -202,7 +202,37 @@ footer{ padding:3rem 0 4rem; background:linear-gradient(180deg, #fff4f0, #fff); 
   font-weight: 700;
   line-height: 1;
 }
+/* Layout geral */
+.ff-section{background:#FFF7F4}
+.ff-container{max-width:1120px;margin:0 auto;padding:2.5rem 1rem}
+.ff-title{font-family:"Playfair Display",serif;font-weight:800;
+  font-size:clamp(1.6rem,2.3vw,2.4rem);color:#1b2b28;margin:0 0 1.25rem}
 
+/* 2 colunas */
+.ff-layout{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:stretch}
+
+/* pilha de cards à esquerda */
+.ff-stack{display:flex;flex-direction:column;gap:1rem}
+
+/* estilo dos cards */
+.ff-card{background:#fff;border:1px solid #FFD7CF;border-radius:18px;
+  padding:1.25rem;box-shadow:0 10px 24px rgba(51,89,83,.06);flex:1}
+.ff-card h3{font-family:"Lato",system-ui,Roboto;font-size:1.1rem;margin:0 0 .5rem;
+  color:#0d211d;font-weight:800}
+.ff-card p{font-family:"Lato",system-ui,Roboto;color:#223b37;line-height:1.55;margin:0}
+.ff-link{display:inline-block;margin-top:.75rem;font-weight:800;
+  color:#335953;text-decoration:none}
+.ff-link:hover{text-decoration:underline}
+
+/* vídeo ocupa a altura dos 3 blocos */
+.ff-video video{width:100%;height:100%;object-fit:cover;border-radius:18px}
+
+/* responsivo */
+@media (max-width:960px){
+  .ff-layout{grid-template-columns:1fr}
+  .ff-video{order:-1} /* vídeo vai para cima no mobile */
+  .ff-video video{height:auto}
+}
   </style>
 </head>
 <body>
@@ -246,24 +276,40 @@ footer{ padding:3rem 0 4rem; background:linear-gradient(180deg, #fff4f0, #fff); 
 </div>
 
   </section>
-</main>
-<section class="section" id="como-funciona">
-  <h2>Como o FemFlow entrega resultado sem brigar com sua biologia</h2>
-  <div class="grid-3">
-    <div class="card">
-      <h3>Leitura do ciclo</h3>
-      <p>Você marca sua fase e como está se sentindo. O plano adapta o volume e a intensidade para cada momento: menstrual, folicular, ovulatório e lúteo.</p>
-    </div>
-    <div class="card">
-      <h3>Treinos inteligentes</h3>
-      <p>Treinos de força e cardio guiados pela percepção de esforço (PSE), com foco em glúteos, costas e abdômen — para valorizar o corpo feminino, melhorar a postura, gerar potência e proteger as articulações.</p>
-    </div>
-    <div class="card">
-      <h3>Nutrição alinhada</h3>
-      <p>Dicas simples de alimentação em cada fase: mais energia, menos inchaço e uma recuperação mais rápida.</p>
-      <a href="https://wa.me/5511986956313?text=O+Femflow+me+trouxe+aqui!" class="btn">Conhecer mais</a>
+<section class="ff-section">
+  <div class="ff-container">
+    <h2 class="ff-title">Treine a favor do seu ciclo</h2>
+    
+    <div class="ff-layout">
+      <!-- Coluna esquerda: blocos -->
+      <div class="ff-stack">
+        <article class="ff-card">
+          <h3>Leitura do ciclo</h3>
+          <p>Você indica a fase e o plano ajusta volume e intensidade — menstrual, folicular, ovulatória e lútea.</p>
+        </article>
+
+        <article class="ff-card">
+          <h3>Treinos inteligentes</h3>
+          <p>Força e cardio guiados por PSE, com foco em glúteos, costas e core para potência e proteção articular.</p>
+        </article>
+
+        <article class="ff-card">
+          <h3>Nutrição alinhada</h3>
+          <p>Passos simples por fase para mais energia, menos inchaço e recuperação mais rápida.</p>
+          <a class="ff-link" href="#detalhes">Conhecer mais</a>
+        </article>
+      </div>
+
+      <!-- Coluna direita: vídeo -->
+      <div class="ff-video">
+        <video controls poster="thumb.jpg">
+          <source src="video.mp4" type="video/mp4">
+          Seu navegador não suporta vídeo.
+        </video>
+      </div>
     </div>
   </div>
+
 </section>
 
 <section class="section" id="responsavel">
