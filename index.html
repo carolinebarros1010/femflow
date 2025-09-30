@@ -209,7 +209,7 @@ footer{ padding:3rem 0 4rem; background:linear-gradient(180deg, #fff4f0, #fff); 
   font-size:clamp(1.6rem,2.3vw,2.4rem);color:#1b2b28;margin:0 0 1.25rem}
 
 /* 2 colunas: texto à esquerda, vídeo à direita */
-.ff-layout {  display: grid;  grid-template-columns: 1fr 1fr;  gap: 1.5rem;  align-items: start;
+.ff-layout {grid-template-columns: 0.6fr 1.4fr; /* vídeo mais estreito, cards mais largos */
 }
 
 .ff-video { order: -1; } 
@@ -244,6 +244,20 @@ footer{ padding:3rem 0 4rem; background:linear-gradient(180deg, #fff4f0, #fff); 
 @media (max-width:960px){
   .ff-layout{grid-template-columns:1fr}
   .ff-video{min-height:auto}
+}
+  .ff-video {
+  position: relative;
+  display: inline-block;
+}
+.ff-video::after {
+  content: "▶";
+  font-size: 3rem;
+  color: white;
+  text-shadow: 0 2px 6px rgba(0,0,0,.6);
+  position: absolute;
+  top: 50%; left: 50%;
+  transform: translate(-50%,-50%);
+  pointer-events: none;
 }
   </style>
 </head>
@@ -314,6 +328,11 @@ footer{ padding:3rem 0 4rem; background:linear-gradient(180deg, #fff4f0, #fff); 
 
       <!-- Coluna direita: vídeo -->
       <div class="ff-video">
+  <video controls poster="/assets/capa-video.jpg">
+    <source src="/assets/video.mp4" type="video/mp4">
+    Seu navegador não suporta vídeo HTML5.
+  </video>
+</div>
   <video
     controls
     preload="metadata"
