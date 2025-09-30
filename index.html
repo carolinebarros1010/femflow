@@ -229,9 +229,11 @@ footer{ padding:3rem 0 4rem; background:linear-gradient(180deg, #fff4f0, #fff); 
 
 /* responsivo */
 @media (max-width:960px){
+    .ff-layout{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:stretch}
+.ff-video{min-height: 540px;} /* ajuste conforme seu design */
+@media (max-width:960px){
   .ff-layout{grid-template-columns:1fr}
-  .ff-video{order:-1} /* vídeo vai para cima no mobile */
-  .ff-video video{height:auto}
+  .ff-video{min-height:auto}
 }
   </style>
 </head>
