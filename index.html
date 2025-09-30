@@ -176,6 +176,32 @@ footer{ padding:3rem 0 4rem; background:linear-gradient(180deg, #fff4f0, #fff); 
   .nav{ justify-content:center; } /* centraliza tudo */
   .cta-header{ width:100%; text-align:center; margin-top:.25rem; } /* botão desce e ocupa a largura */
 }
+/* Zera comportamento do tema */
+.offer .features,
+.offer .features * { list-style: none; }
+.offer .features { margin: 0; padding: 0; }
+.offer .features li::marker { content: none; }
+.offer .features::before,
+.offer .features::after { content: none !important; }
+
+/* Esconde itens vazios (inclui os com <br> sozinho) */
+.offer .features li:empty { display: none; }
+.offer .features li:has(> br:only-child) { display: none; }
+
+/* Recria o bullet de forma controlada */
+.offer .features li {
+  position: relative;
+  margin: 0 0 .5rem 0;
+  padding-left: 1.2rem;
+}
+.offer .features li::before {
+  content: "•";
+  position: absolute;
+  left: 0;
+  top: .2rem;
+  font-weight: 700;
+  line-height: 1;
+}
 
   </style>
 </head>
