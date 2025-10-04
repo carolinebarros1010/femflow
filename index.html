@@ -125,6 +125,57 @@
       .ofertas-grid,.grid-3{grid-template-columns:1fr}
       .cta-header{width:100%;text-align:center;margin-top:.25rem}
     }
+    /* === COMO FUNCIONA: vídeo e cards com alturas casadas === */
+.ff-layout{
+  display:grid;
+  grid-template-columns: .9fr 1.1fr;  /* vídeo mais estreito, cards mais largos */
+  gap:1.25rem;
+  align-items:stretch;                /* faz a coluna dos cards igualar a altura do vídeo */
+}
+
+.ff-video{
+  border-radius:18px;
+  overflow:hidden;
+  background:#000;
+  box-shadow:0 16px 28px rgba(51,89,83,.15);
+  aspect-ratio: 9 / 16;               /* define a altura da linha do grid */
+}
+
+.ff-video video{
+  width:100%;
+  height:100%;
+  object-fit:cover;
+  display:block;
+}
+
+.ff-stack{
+  display:grid;
+  grid-template-rows: repeat(3, 1fr); /* 3 cards ocupam exatamente a altura do vídeo */
+  gap:1rem;
+  height:100%;
+}
+
+.ff-card{
+  background:#fff;
+  border:1px solid var(--creme);
+  border-radius:18px;
+  padding:1.1rem 1.1rem 1rem;
+  box-shadow:0 10px 22px rgba(51,89,83,.06);
+  display:flex;                       /* conteúdo bem distribuído dentro do card */
+  flex-direction:column;
+}
+
+.ff-card h3{ margin:.1rem 0 .5rem; color:var(--teal); font-size:1.05rem; }
+.ff-card p{ margin:.25rem 0; color:#223b37; line-height:1.55; }
+.ff-card a{ font-weight:800; color:var(--terracota); text-decoration:none; }
+.ff-card a:hover{ text-decoration:underline; }
+
+/* Mobile: empilha e solta a altura fixa */
+@media (max-width:980px){
+  .ff-layout{ grid-template-columns:1fr; }
+  .ff-stack{ grid-template-rows: none; height:auto; }
+  .ff-video{ aspect-ratio: 9 / 16; }  /* mantém vídeo vertical no mobile */
+}
   </style>
 </head>
 <body>
@@ -164,35 +215,45 @@
       </div>
     </section>
 
-    <!-- ====== NOVO: seção COMO FUNCIONA (vídeo + cards) ====== -->
-    <section class="ff-section" id="como-funciona">
-      <div class="ff-container">
-        <h2 class="ff-title">Como funciona o método FemFlow</h2>
-        <div class="ff-layout">
-          <div class="ff-video">
-            <video controls preload="metadata" playsinline poster="./assets/capa-video.png">
-              <source src="./assets/video.webm" type="video/webm">
-              <source src="./assets/video.mp4" type='video/mp4; codecs="avc1.42E01E, mp4a.40.2"'>
-              Seu navegador não suporta vídeo HTML5.
-            </video>
-          </div>
-          <div class="ff-stack">
-            <article class="ff-card">
-              <h3>Leitura do ciclo</h3>
-              <p>Você indica a fase — <strong>menstrual</strong>, <strong>folicular</strong>, <strong>ovulatória</strong> ou <strong>lútea</strong> — e o plano ajusta volume e intensidade automaticamente.</p>
-            </article>
-            <article class="ff-card">
-              <h3>Treinos inteligentes</h3>
-              <p>Força e cardio guiados por PSE, com foco em <strong>glúteos</strong>, <strong>costas</strong> e <strong>core</strong> para potência e proteção articular, evoluindo sem sobrecarga.</p>
-            </article>
-            <article class="ff-card">
-              <h3>Nutrição alinhada</h3>
-              <p>Passos simples por fase para mais energia, menos inchaço e melhor recuperação — sem dietas restritivas.</p>
-            </article>
-          </div>
-        </div>
+   <section class="ff-section" id="como-funciona">
+  <div class="ff-container">
+    <h2 class="ff-title">Como funciona o método FemFlow</h2>
+
+    <div class="ff-layout">
+      <!-- VÍDEO 9:16 -->
+      <div class="ff-video">
+        <video controls preload="metadata" playsinline poster="./assets/capa-video.png">
+          <source src="./assets/video.webm" type="video/webm">
+          <source src="./assets/video.mp4" type='video/mp4; codecs="avc1.42E01E, mp4a.40.2"'>
+          Seu navegador não suporta vídeo HTML5.
+        </video>
       </div>
-    </section>
+
+      <!-- 3 CARDS (altura total = altura do vídeo) -->
+      <div class="ff-stack">
+        <article class="ff-card">
+          <h3>Leitura do ciclo, sem drama</h3>
+          <p>Você indica sua fase ou momento: <b>pré-menopausa</b>, <b>menopausa</b> ou <b>ciclo regular sem sintomas</b>. O plano ajusta <b>volume</b> e <b>intensidade</b> para a energia real do seu dia — sem culpas e sem labirintos hormonais.</p>
+          <p>Quando os sintomas existem, a gente desacelera de propósito. Quando não existem, a gente usa a fase para potencializar força e cardio.</p>
+        </article>
+
+        <article class="ff-card">
+          <h3>Treinos inteligentes (força + cardio)</h3>
+          <p>Estruturas simples e eficazes guiadas por <b>PSE</b> (percepção de esforço), com foco em <b>glúteos</b>, <b>costas</b> e <b>core</b> — regiões que protegem joelhos e coluna e geram potência para a vida real.</p>
+          <p>Pré-meno/meno? Ciclos de descarga e opções “baixar volume” já prontos. Sem sintomas? Progressões seguras para evoluir com constância.</p>
+        </article>
+
+        <article class="ff-card">
+          <h3>Nutrição aplicada (sem dieta maluca)</h3>
+          <p>Passos práticos por fase/momento: <b>energia estável</b>, <b>melhor sono</b> e <b>recuperação</b>. Protocolos para retenção, inchaço e fome emocional quando necessário — e liberdade quando o corpo está equilibrado.</p>
+          <p>Precisa de um ajuste fino? Fale direto com a nutri: 
+            <a href="https://wa.me/5511986956313" target="_blank" rel="noopener">WhatsApp da Nutri (11) 98695-6313</a>.
+          </p>
+        </article>
+      </div>
+    </div>
+  </div>
+</section>
 
     <section class="section" id="responsavel">
       <h2>Responsável pelo Método</h2>
