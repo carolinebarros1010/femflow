@@ -13,19 +13,33 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=Lato:wght@300;400;700;900&display=swap" rel="stylesheet">
   <style>
-    :root{--creme:#F4E1D7;--pessego:#EFBDA6;--terracota:#CC6A5A;--teal:#335953;--grafite:#1f2937;--fundo:#fffaf7;--borda:#f1d9cf;}
+    /* ===== Paleta FemFlow ===== */
+    :root{
+      --creme:#F4E1D7; --pessego:#EFBDA6; --terracota:#CC6A5A;
+      --teal:#335953; --grafite:#1f2937; --fundo:#fffaf7; --borda:#f1d9cf;
+      /* aliases usados no restante do CSS */
+      --primary: var(--teal);
+      --border:  var(--creme);
+      --soft:    var(--creme);
+    }
+
     *{box-sizing:border-box}
     html,body{margin:0;padding:0;background:var(--fundo);color:var(--grafite);font-family:Lato,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,Cantarell,Noto Sans,Helvetica,Arial}
     a{color:var(--teal);text-decoration:none}
+
     .container{width:min(1120px,92vw);margin-inline:auto}
+
     .topbar{background:linear-gradient(90deg,var(--pessego),var(--terracota));color:#fff;padding:.5rem 0;font-size:.95rem}
     .topbar .container{display:flex;justify-content:center;gap:.75rem;flex-wrap:wrap}
+
     header{position:sticky;top:0;z-index:50;background:rgba(255,250,247,.85);backdrop-filter:saturate(180%) blur(10px);border-bottom:1px solid var(--borda)}
-    .nav{display:flex;align-items:center;justify-content:space-between;padding:.10rem 0}
-    .brand{display:flex;align-items:center;gap:.75rem;font-weight:900}
-    .logo-img {height: 180px; width: auto;display: block;}
+    .nav{display:flex;align-items:center;justify-content:space-between;gap:1rem;flex-wrap:wrap;padding:.5rem 0}
+    .logo-img{height:auto;max-height:72px;width:auto;display:block}
     .cta-header{padding:.7rem 1.1rem;background:var(--terracota);color:#fff;border-radius:999px;font-weight:800;box-shadow:0 6px 16px rgba(204,106,90,.25)}
-    .hero{display:grid;grid-template-columns:1.1fr .9fr;gap:2rem;align-items:center;padding:3rem 0}
+
+    /* Hero */
+    .hero{display:grid;grid-template-columns:1fr 1fr;grid-template-areas:"text image";gap:2rem;align-items:center;padding:3rem 0}
+    .hero-text{grid-area:text}
     .kicker{letter-spacing:.1em;text-transform:uppercase;color:var(--teal);font-weight:900;font-size:.85rem}
     h1{font-family:"Playfair Display",serif;line-height:1.05;margin:.4rem 0 1rem;font-size:clamp(1.9rem,3.2vw + 1rem,3.4rem)}
     .sub{font-size:1.1rem;color:#4b5563}
@@ -34,379 +48,66 @@
     .btn-primary{background:var(--terracota);color:#fff;box-shadow:0 12px 24px rgba(204,106,90,.25)}
     .btn-primary:hover{transform:translateY(-1px);box-shadow:0 16px 28px rgba(204,106,90,.28)}
     .btn-ghost{background:#fff;border-color:var(--borda);color:var(--grafite)}
-    /* Hero 50/50 + mídia responsiva */
-.hero{
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  grid-template-areas: "text image";
-  gap: 2rem;
-  align-items: center;
-  padding: 3rem 0;
-}
-.hero-text{ grid-area: text; }
-/* Hero 50/50 já está no seu CSS novo; aqui reforço mídia */
-.hero-media{
-  grid-area: image;
-  border-radius: 18px;
-  overflow: hidden;
-  box-shadow: 0 20px 40px rgba(51,89,83,.18);
-  aspect-ratio: 4 / 3;        /* reserva espaço mesmo se a imagem ainda não carregou */
-  background: #fff;           /* evita parecer “vazio” */
-}
-.hero-media picture,
-.hero-media img{
-  width: 100%;
-  height: 100%;
-  display: block;
-  object-fit: cover;          /* cobre o card sem distorcer */
-}
-    .ofertas-grid{
-  display:grid;
-  grid-template-columns: repeat(2, minmax(0,1fr));
-  gap:1rem;
-}
-.oferta{
-  border:1px solid var(--border);
-  border-radius:14px;
-  padding:1rem;
-  background:#fff;
-  display:flex; flex-direction:column; justify-content:space-between;
-}
-.oferta-head h3{ margin:.25rem 0 .25rem; color:var(--primary); }
-.oferta-head .sub{ margin:0; color:#475569; }
-.badge{
-  display:inline-block; font-size:.72rem; letter-spacing:.02em;
-  color:#0f3a33; background:rgba(51,89,83,.08);
-  border:1px dashed var(--primary); border-radius:999px; padding:.25rem .55rem; font-weight:800;
-}
-.badge.terracota{
-  color:#5b231c; background:rgba(204,106,90,.09); border-color:#CC6A5A;
-}
-.features{ margin:.75rem 0; padding-left:1.1rem; color:#374151; }
-.features li{ margin:.25rem 0; }
-.price{
-  font-weight:900; font-size:1.6rem; color:var(--primary); margin:.25rem 0 .65rem;
-}
-.price span{ font-size:.9rem; font-weight:700; color:#64748b; margin-left:.25rem; }
-.oferta .btn{ width:100%; text-align:center; }
-.hint{ color:#6b7280; font-size:.85rem; margin:.5rem 0 0; }
+    .hero-media{grid-area:image;border-radius:18px;overflow:hidden;box-shadow:0 20px 40px rgba(51,89,83,.18);aspect-ratio:4/3;background:#fff}
+    .hero-media picture,.hero-media img{width:100%;height:100%;display:block;object-fit:cover}
 
-.oferta.destaque{ outline:2px solid #EFBDA6; box-shadow:0 12px 24px rgba(239,189,166,.25); }
-.oferta.premium{ outline:2px solid var(--soft); }
+    /* Ofertas 2x2 */
+    .ofertas-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:1rem}
+    .oferta{
+      border:2px solid var(--creme); border-radius:16px; background:#fffdfd;
+      padding:1.25rem; transition:.25s ease; box-shadow:0 6px 18px rgba(244,225,215,.3);
+      display:flex; flex-direction:column; justify-content:space-between;
+    }
+    .oferta:hover{border-color:var(--pessego); box-shadow:0 10px 26px rgba(239,189,166,.35); transform:translateY(-2px)}
+    .oferta.destaque{border-color:var(--pessego); background:#fffaf8; box-shadow:0 10px 28px rgba(239,189,166,.4)}
+    .oferta-head h3{margin:.25rem 0 .25rem;color:var(--primary)}
+    .oferta-head .sub{margin:0;color:#475569}
+    .badge{display:inline-block;font-size:.72rem;letter-spacing:.02em;color:#5b231c;background:rgba(204,106,90,.09);border:1px dashed #CC6A5A;border-radius:999px;padding:.25rem .55rem;font-weight:800}
+    .features{margin:.75rem 0;padding-left:1.1rem;color:#374151}
+    .features li{margin:.25rem 0}
+    .price{font-weight:900;font-size:1.6rem;color:var(--primary);margin:.25rem 0 .65rem}
+    .price span{font-size:.9rem;font-weight:700;color:#64748b;margin-left:.25rem}
 
-@media (max-width:720px){
-  .ofertas-grid{ grid-template-columns: 1fr; }
-}
-    /* Botão padrão das ofertas (igual ao 15 dias) */
-.offer-btn{
-  display:block;
-  width:100%;
-  text-align:center;
-  padding:.9rem 1.2rem;
-  border-radius:12px;
-  font-weight:900;
-  background:var(--primary);
-  color:#fff;
-  text-decoration:none;
-  box-shadow:0 6px 14px rgba(51,89,83,.18);
-  transition:transform .15s ease, box-shadow .15s ease, filter .15s ease;
-}
-.offer-btn:hover{
-  transform:translateY(-1px);
-  box-shadow:0 8px 18px rgba(51,89,83,.24);
-  filter:brightness(0.97);
-}
-    
-/* ===== Botão destacado (Start 7 Dias) ===== */
-.offer-btn.highlight {
-  background: linear-gradient(135deg, #335953 0%, #CC6A5A 100%);
-  color:#fff;
-  font-weight:900;
-  box-shadow:0 6px 18px rgba(204,106,90,.25);
-  letter-spacing:.3px;
-  animation:pulseSoft 2.8s infinite ease-in-out;
-}
-.offer-btn.highlight:hover {
-  filter:brightness(1.05);
-  transform:translateY(-1px);
-  box-shadow:0 10px 22px rgba(204,106,90,.35);
-}
-@keyframes pulseSoft {
-  0%,100% { box-shadow:0 6px 18px rgba(204,106,90,.25); }
-  50%     { box-shadow:0 10px 25px rgba(204,106,90,.35); }
-}
+    /* Botão padrão das ofertas */
+    .offer-btn{
+      display:block;width:100%;text-align:center;padding:.9rem 1.2rem;border-radius:12px;
+      font-weight:900;background:var(--primary);color:#fff;text-decoration:none;
+      box-shadow:0 6px 14px rgba(51,89,83,.18);
+      transition:transform .15s ease, box-shadow .15s ease, filter .15s ease;
+    }
+    .offer-btn:hover{transform:translateY(-1px);box-shadow:0 8px 18px rgba(51,89,83,.24);filter:brightness(0.97)}
+    /* Destaque para 7 dias */
+    .offer-btn.highlight{
+      background:linear-gradient(135deg,#335953 0%,#CC6A5A 100%);
+      box-shadow:0 6px 18px rgba(204,106,90,.25);letter-spacing:.3px;animation:pulseSoft 2.8s infinite ease-in-out;
+    }
+    .offer-btn.highlight:hover{filter:brightness(1.05);transform:translateY(-1px);box-shadow:0 10px 22px rgba(204,106,90,.35)}
+    @keyframes pulseSoft{0%,100%{box-shadow:0 6px 18px rgba(204,106,90,.25)}50%{box-shadow:0 10px 25px rgba(204,106,90,.35)}}
 
+    /* Seções gerais */
+    .section{padding:2.5rem 0}
+    .section h2{font-family:"Playfair Display",serif;font-size:clamp(1.4rem,2vw + .8rem,2.2rem);margin:0 0 .75rem}
+    .grid-3{display:grid;grid-template-columns:repeat(3,1fr);gap:1rem}
+    .card{background:#fff;border:1px solid var(--borda);border-radius:18px;padding:1.2rem;box-shadow:0 10px 24px rgba(204,106,90,.08)}
 
-/* Seções e cards */
-.section{ padding:2.5rem 0; }
-.section h2{ font-family:"Playfair Display",serif; font-size:clamp(1.4rem,2vw + .8rem,2.2rem); margin:0 0 .75rem; }
-.grid-3{ display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; }
-.card{ background:#fff; border:1px solid var(--borda); border-radius:18px; padding:1.2rem; box-shadow:0 10px 24px rgba(204,106,90,.08); }
+    /* Bio */
+    .bio{display:grid;grid-template-columns:160px 1fr;gap:1rem;align-items:center;background:#fff;border:1px solid var(--borda);border-radius:18px;padding:1rem}
+    .bio img{width:160px;height:160px;object-fit:cover;border-radius:16px;box-shadow:0 10px 24px rgba(51,89,83,.12)}
+    .bio .who{font-weight:900}
+    .bio-texto{display:flex;flex-direction:column}
+    .bio-topo{display:flex;align-items:center;gap:.5rem;margin-bottom:.5rem}
+    .bio-topo a img{width:28px;height:28px;transition:transform .3s ease, filter .3s ease}
+    .bio-topo a:hover img{transform:scale(1.2);filter:drop-shadow(0 0 6px var(--terracota))}
 
-/* Ofertas */
-.offers{ display:grid; grid-template-columns:repeat(4,1fr); gap:1rem; }
-.offer{ position:relative; background:linear-gradient(180deg,#fff, #fff 60%, #fff4f0); border:1px solid var(--borda); border-radius:22px; padding:1.25rem; box-shadow:0 16px 30px rgba(204,106,90,.10); }
-.badge{ position:absolute; top:12px; right:12px; background:var(--teal); color:#fff; font-weight:900; font-size:.75rem; padding:.3rem .6rem; border-radius:999px; }
-.price{ font-size:1.4rem; font-weight:900; color:var(--teal); }
-.features{ margin:.6rem 0 1rem; padding:0 0 0 1rem; }
-.features li{ margin:.3rem 0; }
-.offer .btn{ width:100%; }
-
-/* Benefícios */
-.benefits{ display:grid; grid-template-columns:repeat(3,1fr); gap:1rem; }
-
-/* Bio */
-.bio{ display:grid; grid-template-columns:160px 1fr; gap:1rem; align-items:center; background:#fff; border:1px solid var(--borda); border-radius:18px; padding:1rem; }
-.bio img{ width:160px; height:160px; object-fit:cover; border-radius:16px; box-shadow:0 10px 24px rgba(51,89,83,.12); }
-.bio .who{ font-weight:900; }
-
-/* Dias */
-.day{ margin-bottom:1rem; }
-.day .btn{ margin-right:.5rem; margin-bottom:.5rem; }
-
-/* Details/summary */
-details{ background:#fff; border:1px solid var(--borda); border-radius:14px; padding:1rem; }
-summary{ font-weight:800; cursor:pointer; }
-
-/* Rodapé */
-footer{ padding:3rem 0 4rem; background:linear-gradient(180deg, #fff4f0, #fff); }
-.footgrid{ display:grid; grid-template-columns:2fr 1fr 1fr; gap:1rem; }
-.small{ font-size:.9rem; color:#6b7280; }
-.footnote{ margin-top:1rem; font-size:.85rem; color:#6b7280; }
-
-/* Responsivo */
-@media (max-width:980px){
-  .hero{
-    grid-template-columns:1fr;
-    grid-template-areas:
-      "image"
-      "text";   /* imagem em cima, texto embaixo */
-  }
-  .offers{ grid-template-columns:1fr 1fr; }
-  .grid-3, .benefits{ grid-template-columns:1fr 1fr; }
-  .footgrid{ grid-template-columns:1fr 1fr; }
-  .bio{ grid-template-columns:1fr; }
-}
-
-@media (max-width:640px){
-  .offers, .grid-3, .benefits{ grid-template-columns:1fr; }
-  .footgrid{ grid-template-columns:1fr; }
-}
-    /* ===== Contorno rose em todos os cards de oferta ===== */
-.oferta {
-  border: 2px solid #F4E1D7;            /* contorno rose */
-  border-radius: 16px;
-  background: #fffdfd;                  /* fundo branco levemente quente */
-  padding: 1.25rem;
-  transition: all 0.25s ease;
-  box-shadow: 0 6px 18px rgba(244, 225, 215, 0.3); /* sombra rosada suave */
-}
-.oferta:hover {
-  border-color: #EFBDA6;                /* pêssego ao passar o mouse */
-  box-shadow: 0 10px 26px rgba(239, 189, 166, 0.35);
-  transform: translateY(-2px);
-}
-
-/* Mantém destaque do plano “Popular” */
-.oferta.destaque {
-  border: 2px solid #EFBDA6;
-  background: #fffaf8;
-  box-shadow: 0 10px 28px rgba(239, 189, 166, 0.4);
-}
-
-/* Badge e tipografia continuam no padrão */
-.badge {
-  border-color: #CC6A5A;
-  background: rgba(204,106,90,.08);
-  color: #5b231c;
-}
-
-
-/* --- Botão Instagram na bio (mantido) --- */
-/* sua regra/análogos entram aqui */
-
-.bio-texto {
-  display: flex;
-  flex-direction: column;
-  justify-content: flex-start;
-}
-
-.bio-topo {
-  display: flex;
-  align-items: center;
-  gap: .5rem;
-  margin-bottom: .5rem;
-}
-
-.bio-topo .who {
-  font-weight: 900;
-}
-
-.bio-topo a img {
-  width: 28px;
-  height: 28px;
-  transition: transform 0.3s ease, filter 0.3s ease;
-}
-
-.bio-topo a:hover img {
-  transform: scale(1.2);
-  filter: drop-shadow(0 0 6px var(--terracota));
-}
-    /* Header: responsivo e sem quebra feia */
-.nav{
-  display:flex;
-  align-items:center;
-  justify-content:space-between;
-  gap:1rem;
-  flex-wrap:wrap;              /* permite quebrar para 2 linhas quando apertar */
-  padding:.5rem 0;             /* um pouco mais de ar */
-}
-
-.logo-img{
-  height:auto;
-  max-height:72px;             /* em desktop não passa disso */
-  width:auto;
-  display:block;
-}
-
-@media (max-width:980px){
-  .logo-img{ max-height:56px; }/* reduz a logo */
-  .cta-header{
-    padding:.55rem .95rem;
-    font-weight:800;
-  }
-}
-
-@media (max-width:640px){
-  .nav{ justify-content:center; } /* centraliza tudo */
-  .cta-header{ width:100%; text-align:center; margin-top:.25rem; } /* botão desce e ocupa a largura */
-}
-/* Zera comportamento do tema */
-.offer .features,
-.offer .features * { list-style: none; }
-.offer .features { margin: 0; padding: 0; }
-.offer .features li::marker { content: none; }
-.offer .features::before,
-.offer .features::after { content: none !important; }
-
-/* Esconde itens vazios (inclui os com <br> sozinho) */
-.offer .features li:empty { display: none; }
-.offer .features li:has(> br:only-child) { display: none; }
-
-/* Recria o bullet de forma controlada */
-.offer .features li {
-  position: relative;
-  margin: 0 0 .5rem 0;
-  padding-left: 1.2rem;
-}
-.offer .features li::before {
-  content: "•";
-  position: absolute;
-  left: 0;
-  top: .2rem;
-  font-weight: 700;
-  line-height: 1;
-}
-/* Layout geral */
-.ff-section{background:#FFF7F4}
-.ff-container{max-width:1120px;margin:0 auto;padding:2.5rem 1rem}
-.ff-title{font-family:"Playfair Display",serif;font-weight:800;
-  font-size:clamp(1.6rem,2.3vw,2.4rem);color:#1b2b28;margin:0 0 1.25rem}
-
-/* 2 colunas com vídeo à esquerda */
-.ff-layout{
-  display:grid;
-  grid-template-columns: 0.9fr 1.1fr; /* vídeo mais estreito, cards mais largos */
-  gap:1.5rem;
-  align-items:start;
-}
-
-/* vídeo vertical 9:16 com capa */
-.ff-video{border-radius:18px;overflow:hidden;background:#000}
-.ff-video video{
-  display:block;
-  width:100%;
-  aspect-ratio: 9 / 16;   /* mantém vertical sem distorcer */
-  height:auto;
-  object-fit:cover;
-  border-radius:18px;
-}
-    
-.ff-video {
-  aspect-ratio: 9 / 16;   /* mantém a proporção vertical */
-  max-width: 340px;       /* largura controlada, ajuste conforme layout */
-  margin: 0 auto;         /* centraliza na coluna */
-  border-radius: 18px;
-  overflow: hidden;
-  background: #000;       /* bordas pretas padrão */
-}
-
-.ff-video video {
-  width: 100%;
-  height: 100%;
-  object-fit: contain;    /* mostra tudo sem cortar */
-  display: block;
-  background: #000;
-  border-radius: 18px;
-}
-
-
-/* pilha de cards */
-.ff-stack{display:flex;flex-direction:column;gap:1rem}
-.ff-card{background:#fff;border:1px solid #FFD7CF;border-radius:18px;
-  padding:1.25rem;box-shadow:0 10px 24px rgba(51,89,83,.06)}
-.ff-card h3{font-family:"Lato",system-ui,Roboto;font-size:1.1rem;margin:0 0 .5rem;
-  color:#0d211d;font-weight:800}
-.ff-card p{font-family:"Lato",system-ui,Roboto;color:#223b37;line-height:1.55;margin:0}
-.ff-link{display:inline-block;margin-top:.75rem;font-weight:800;color:#335953;text-decoration:none}
-.ff-link:hover{text-decoration:underline}
-
-/* responsivo */
-@media (max-width:960px){
-  .ff-layout{grid-template-columns:1fr}
-  .ff-video, .ff-video video{border-radius:18px}
-}
-
-  padding:1.25rem;box-shadow:0 10px 24px rgba(51,89,83,.06);flex:1}
-.ff-card h3{font-family:"Lato",system-ui,Roboto;font-size:1.1rem;margin:0 0 .5rem;
-  color:#0d211d;font-weight:800}
-.ff-card p{font-family:"Lato",system-ui,Roboto;color:#223b37;line-height:1.55;margin:0}
-.ff-link{display:inline-block;margin-top:.75rem;font-weight:800;
-  color:#335953;text-decoration:none}
-.ff-link:hover{text-decoration:underline}
-
-/* vídeo ocupa a altura dos 3 blocos */
-.ff-video video {
-  width: auto;          /* não força a ocupar toda largura */
-  height: 100%;         /* ocupa a altura dos cards */
-  max-height: 600px;    /* limite de altura */
-  border-radius: 18px;
-  display: block;
-  margin: 0 auto;
-}
-
-/* responsivo */
-@media (max-width:960px){
-    .ff-layout{display:grid;grid-template-columns:1fr 1fr;gap:1.5rem;align-items:stretch}
-.ff-video{min-height: 540px;} /* ajuste conforme seu design */
-@media (max-width:960px){
-  .ff-layout{grid-template-columns:1fr}
-  .ff-video{min-height:auto}
-}
-  .ff-video {
-  position: relative;
-  display: inline-block;
-}
-.ff-video::after {
-  content: "▶";
-  font-size: 3rem;
-  color: white;
-  text-shadow: 0 2px 6px rgba(0,0,0,.6);
-  position: absolute;
-  top: 50%; left: 50%;
-  transform: translate(-50%,-50%);
-  pointer-events: none;
-}
+    /* Responsivo */
+    @media (max-width:980px){
+      .hero{grid-template-columns:1fr;grid-template-areas:"image" "text"}
+      .grid-3{grid-template-columns:1fr 1fr}
+    }
+    @media (max-width:640px){
+      .ofertas-grid,.grid-3{grid-template-columns:1fr}
+      .cta-header{width:100%;text-align:center;margin-top:.25rem}
+    }
   </style>
 </head>
 <body>
@@ -420,247 +121,156 @@ footer{ padding:3rem 0 4rem; background:linear-gradient(180deg, #fff4f0, #fff); 
 
   <header>
     <div class="container nav">
-     <div class="brand">
+      <div class="brand">
         <img src="./assets/logo femflow verde.png" alt="Logo FemFlow" class="logo-img" />
-       </div>
+      </div>
       <a class="cta-header" href="#ofertas">Começar agora</a>
     </div>
   </header>
 
-<main class="container">
-  <section class="hero" id="inicio">
-    <div class="hero-text">
-      <div class="kicker">Método feminino • ciclo como guia</div>
-      <h1>Transforme sua energia em performance com treinos alinhados ao ciclo menstrual.</h1>
-      <p class="sub">Periodização que respeita sintomas, hormônios e rotina — para mais energia, menos lesão e resultados consistentes.</p>
-      <div class="hero-cta">
-        <a class="btn btn-primary" href="#ofertas">Ver planos</a>
-        <a class="btn btn-ghost" href="#como-funciona">Como funciona</a>
+  <main class="container">
+    <section class="hero" id="inicio">
+      <div class="hero-text">
+        <div class="kicker">Método feminino • ciclo como guia</div>
+        <h1>Transforme sua energia em performance com treinos alinhados ao ciclo menstrual.</h1>
+        <p class="sub">Periodização que respeita sintomas, hormônios e rotina — para mais energia, menos lesão e resultados consistentes.</p>
+        <div class="hero-cta">
+          <a class="btn btn-primary" href="#ofertas">Ver planos</a>
+          <a class="btn btn-ghost" href="#como-funciona">Como funciona</a>
+        </div>
       </div>
-    </div> <!-- FECHA hero-text -->
-    
-<div class="hero-media">
-  <picture>
-    <source srcset="./assets/hero1.webp" type="image/webp">
-    <img src="./assets/hero1.png"
-         alt="Treino feminino alinhado ao ciclo"
-         loading="eager"
-         width="960" height="720">
-  </picture>
-</div>
-
-  </section>
-<section class="ff-section">
-  <div class="ff-container">
-    <h2 class="ff-title">Treine a favor do seu ciclo</h2>
-
-    <div class="ff-layout">
-      <!-- ESQUERDA: VÍDEO 9:16 -->
-<div class="ff-video">
-  <video
-    controls
-    preload="metadata"
-    playsinline
-    poster="/assets/capa-video.png"
-    style="display:block;width:100%;height:auto;aspect-ratio:9/16;object-fit:cover;border-radius:18px;background:#000">
-    <source src="/assets/video.mp4" type='video/mp4; codecs="avc1.42E01E, mp4a.40.2"'>
-    <source src="/assets/video.webm" type="video/webm">
-    Seu navegador não suporta vídeo HTML5.
-    <a href="/assets/video.mp4">Baixar vídeo</a>.
-  </video>
-</div>
-
-      <!-- DIREITA: CARDS -->
-      <div class="ff-stack">
-        <article class="ff-card">
-          <h3>Leitura do ciclo</h3>
-          <p>Você indica a fase e o plano ajusta volume e intensidade — menstrual, folicular, ovulatória e lútea.</p>
-          <p>👉 Assim, o treino respeita seu corpo e transforma hormônios em aliados da performance.</p>
-        </article>
-
-        <article class="ff-card">
-          <h3>Treinos inteligentes</h3>
-          <p>Força e cardio guiados por PSE, com foco em glúteos, costas e core para potência e proteção articular.</p>
-          <p> 👉 Cada sessão é pensada para evoluir sem sobrecarga e com resultado visível.</p>
-           </article>
-
-        <article class="ff-card">
-          <h3>Nutrição alinhada</h3>
-          <p>Passos simples por fase para mais energia, menos inchaço e recuperação mais rápida.</p>
-          <p>👉 Você aprende a comer no ritmo do seu ciclo, sem dietas restritivas ou complicações.</p>
-          <a class="ff-link" href="#detalhes">Conhecer mais</a>
-        </article>
-      </div>
-    </div>
-  </div>
-</section>
-
-<section class="section" id="responsavel">
-  <h2>Responsável pelo Método</h2>
-  <div class="bio">
-    <picture>
-      <img src="./assets/Blank-Template-Instagram.jpg"
-           alt="Responsável pelo Método FemFlow"
-           loading="lazy" />
-    </picture>
-
-    <div class="bio-texto">
-      <!-- Nome + Instagram lado a lado -->
-      <div class="bio-topo">
-        <div class="who">Ricardo — CREF-208228-G/SP</div>
-        <a href="https://www.instagram.com/ricardojrgram/"
-           target="_blank" rel="noopener noreferrer">
-          <img src="./assets/instagram-logo.png" alt="Instagram" />
-        </a>
-      </div>
-
-      <!-- Texto -->
-      <p>Educador físico e treinador responsável pelo FemFlow. Metodologia com foco em treino feminino alinhado às fases do ciclo, saúde hormonal e consistência sustentável.</p>
-      <p class="small">Atendimento online e programas estruturados. Dúvidas?
-        <a href="https://wa.me/551151942268" target="_blank" rel="noopener noreferrer">Fale no WhatsApp</a>.
-      </p>
-    </div>
-  </div>
-</section>
-
-    </div>
-</section>
-
-<section class="section" id="Parceria">
-  <h2>Círculo de Apoio</h2>
-  <div class="bio">
-    <picture>
-      <img src="./assets/nutrifernanda.png"
-           alt="Nutricionista"
-           loading="lazy" />
-    </picture>
-
-    <div class="bio-texto">
-      <!-- Nome + Instagram lado a lado -->
-      <div class="bio-topo">
-        <div class="who">Fernanda Secco — CRN 347513</div>
-        <a href="https://www.instagram.com/nutri_fernandasecco/"
-           target="_blank" rel="noopener noreferrer">
-          <img src="./assets/instagram-logo.png" alt="Instagram" />
-        </a>
-      </div>
-
-      <!-- Texto -->
-      <p>Especialista em nutrição esportiva e saúde feminina, com foco em performance, equilíbrio e qualidade de vida. Seu trabalho é voltado para integrar ciência e prática, oferecendo orientações personalizadas que respeitam a individualidade biológica de cada pessoa.</p>
-      <p class="small">Atendimento online e programas estruturados. Dúvidas?
-        <a href="https://wa.me/5511986956313" target="_blank" rel="noopener noreferrer">Fale no WhatsApp</a>.
-      </p>
-    </div>
-  </div>
-</section>
-
-    <section id="ofertas" class="card" style="margin-top:2rem;">
-  <h2 style="color:var(--primary);margin:0 0 .75rem;">Planos FemFlow</h2>
-  <p class="muted" style="margin:.25rem 0 1rem;">Escolha seu ponto de partida — do Start guiado ao Premium completo.</p>
-
-  <div class="ofertas-grid">
-    <!-- 7 DIAS GRÁTIS -->
-    <article class="oferta">
-      <div class="oferta-head">
-        <span class="badge">Grátis</span>
-        <h3>Start 7 Dias</h3>
-        <p class="sub">Experimente o método com acesso guiado</p>
-      </div>
-      <ul class="features">
-        <li>Plano de 7 dias liberado após o assistente</li>
-        <li>Treino “escondido” destravado no retorno</li>
-        <li>Respiração + mobilidade + técnica</li>
-      </ul>
-      <div class="price">R$ 0<span>/único</span></div>
-      <a id="cta-7dias" class="offer-btn highlight">Começar agora</a>
-      <p class="hint">Abre o assistente e volta para a página com o plano liberado.</p>
-    </article>
-
-    <!-- 15 DIAS – LEAD -->
-    <article class="oferta destaque">
-      <div class="oferta-head">
-        <span class="badge terracota">Popular</span>
-        <h3>Plano 15 Dias</h3>
-        <p class="sub">Adaptação guiada + captação de avanço</p>
-      </div>
-      <ul class="features">
-        <li>Estrutura ABC + progressão suave</li>
-        <li>Checklist semanal e PSE</li>
-        <li>Captura de dados para personalização</li>
-      </ul>
-      <div class="price">R$ 39,90<span>/único</span></div>
-      <a id="cta-15dias" class="offer-btn highlight">Garantir 15 dias</a>
-      <p class="hint">Leva para o assistente (lead) e retorna com confirmação.</p>
-    </article>
-
-    <!-- STRONG -->
-    <article class="oferta">
-      <div class="oferta-head">
-        <h3>Strong</h3>
-        <p class="sub">Aplicação do método em até 2 modalidades</p>
-      </div>
-      <ul class="features">
-        <li>App + Whats para ajustes</li>
-        <li>Até 2 modalidades (ex.: força + corrida)</li>
-        <li>Ciclo coreografado semanal</li>
-      </ul>
-      <div class="price">R$ 159,90<span>/mês</span></div>
-      <a id="cta-strong"  class="offer-btn highlight">Quero o Strong</a>
-      <p class="hint">Fluxo coleta seu objetivo e já direciona para o plano.</p>
-    </article>
-
-    <!-- PREMIUM -->
-    <article class="oferta premium">
-      <div class="oferta-head">
-        <h3>Premium</h3>
-        <p class="sub">Metodologia FemFlow completa + 3+ modalidades</p>
-      </div>
-      <ul class="features">
-        <li>Acesso ao App + TrainingPeaks + Garmin</li>
-        <li>3 modalidades ou mais</li>
-        <li>Ênfases mensais + periodização hormonal</li>
-      </ul>
-      <div class="price">R$ 259,90<span>/mês</span></div>
-      <a id="cta-premium" class="offer-btn highlight">Subir para Premium</a>
-      <p class="hint">Assistente configura seu perfil e conclui a adesão.</p>
-    </article>
-  </div>
-</section>
-
-    <section class="section" id="beneficios">
-      <h2>Benefícios que as alunas relatam</h2>
-      <div class="benefits">
-        <div class="card"><h3>Mais energia</h3><p>Ajuste de carga por fase = menos fadiga acumulada e mais disposição diária.</p></div>
-        <div class="card"><h3>Menos dor</h3>  <p>Ênfase técnica em glúteos, costas e abdômen melhora postura e protege joelhos/lombar.</p></div>
-        <div class="card"><h3>Resultado consistente</h3><p>Ciclos não são obstáculos — são mapas. Seguindo o mapa, você chega lá.</p></div>
+      <div class="hero-media">
+        <picture>
+          <source srcset="./assets/hero1.webp" type="image/webp">
+          <img src="./assets/hero1.png" alt="Treino feminino alinhado ao ciclo" loading="eager" width="960" height="720">
+        </picture>
       </div>
     </section>
 
-       <section class="section" id="faq">
-      <h2>Perguntas frequentes</h2>
-      <div class="grid-3">
-        <details class="card">
-          <summary>Tenho TPM forte. Consigo treinar?</summary>
-          <p>Sim. O plano prevê semanas de descarga e protocolos leves (mobilidade/respiração) na lútea tardia e menstrual para reduzir sintomas e manter consistência.</p>
-        </details>
-        <details class="card">
-          <summary>Não tenho academia. Funciona em casa?</summary>
-          <p>Claro. Os treinos têm alternativas com peso do corpo e elásticos, mantendo estímulos de força e estabilidade.</p>
-        </details>
-        <details class="card">
-          <summary>Uso anticoncepcional. Faz diferença?</summary>
-          <p>Você pode seguir os planos, observando sintomas. Na consultoria Premium, o ajuste é mais fino e individual.</p>
-        </details>
+    <section class="section" id="responsavel">
+      <h2>Responsável pelo Método</h2>
+      <div class="bio">
+        <picture>
+          <img src="./assets/Blank-Template-Instagram.jpg" alt="Responsável pelo Método FemFlow" loading="lazy" />
+        </picture>
+        <div class="bio-texto">
+          <div class="bio-topo">
+            <div class="who">Ricardo — CREF-208228-G/SP</div>
+            <a href="https://www.instagram.com/ricardojrgram/" target="_blank" rel="noopener noreferrer">
+              <img src="./assets/instagram-logo.png" alt="Instagram" />
+            </a>
+          </div>
+          <p>Educador físico e treinador responsável pelo FemFlow. Metodologia com foco em treino feminino alinhado às fases do ciclo, saúde hormonal e consistência sustentável.</p>
+          <p class="small">Atendimento online e programas estruturados. Dúvidas? <a href="https://wa.me/551151942268" target="_blank" rel="noopener noreferrer">Fale no WhatsApp</a>.</p>
+        </div>
+      </div>
+    </section>
+
+    <section class="section" id="Parceria">
+      <h2>Círculo de Apoio</h2>
+      <div class="bio">
+        <picture>
+          <img src="./assets/nutrifernanda.png" alt="Nutricionista" loading="lazy" />
+        </picture>
+        <div class="bio-texto">
+          <div class="bio-topo">
+            <div class="who">Fernanda Secco — CRN 347513</div>
+            <a href="https://www.instagram.com/nutri_fernandasecco/" target="_blank" rel="noopener noreferrer">
+              <img src="./assets/instagram-logo.png" alt="Instagram" />
+            </a>
+          </div>
+          <p>Especialista em nutrição esportiva e saúde feminina, com foco em performance, equilíbrio e qualidade de vida.</p>
+          <p class="small">Atendimento online e programas estruturados. Dúvidas? <a href="https://wa.me/5511986956313" target="_blank" rel="noopener noreferrer">WhatsApp</a>.</p>
+        </div>
+      </div>
+    </section>
+
+    <!-- OFERTAS -->
+    <section id="ofertas" class="card" style="margin-top:2rem;">
+      <h2 style="color:var(--primary);margin:0 0 .75rem;">Planos FemFlow</h2>
+      <p class="muted" style="margin:.25rem 0 1rem;">Escolha seu ponto de partida — do Start guiado ao Premium completo.</p>
+
+      <div class="ofertas-grid">
+        <!-- 7 DIAS GRÁTIS -->
+        <article class="oferta">
+          <div class="oferta-head">
+            <span class="badge">Grátis</span>
+            <h3>Start 7 Dias</h3>
+            <p class="sub">Experimente o método com acesso guiado</p>
+          </div>
+          <ul class="features">
+            <li>Plano de 7 dias liberado após o assistente</li>
+            <li>Treino “escondido” destravado no retorno</li>
+            <li>Respiração + mobilidade + técnica</li>
+          </ul>
+          <div class="price">R$ 0<span>/único</span></div>
+          <a id="cta-7dias" class="offer-btn highlight">Começar agora</a>
+        </article>
+
+        <!-- 15 DIAS – LEAD -->
+        <article class="oferta destaque">
+          <div class="oferta-head">
+            <span class="badge">Popular</span>
+            <h3>Plano 15 Dias</h3>
+            <p class="sub">Adaptação guiada + captação de avanço</p>
+          </div>
+          <ul class="features">
+            <li>Estrutura ABC + progressão suave</li>
+            <li>Checklist semanal e PSE</li>
+            <li>Captura de dados para personalização</li>
+          </ul>
+          <div class="price">R$ 39,90<span>/único</span></div>
+          <a id="cta-15dias" class="offer-btn">Garantir 15 dias</a>
+        </article>
+
+        <!-- STRONG -->
+        <article class="oferta">
+          <div class="oferta-head">
+            <h3>Strong</h3>
+            <p class="sub">Aplicação do método em até 2 modalidades</p>
+          </div>
+          <ul class="features">
+            <li>App + Whats para ajustes</li>
+            <li>Até 2 modalidades (ex.: força + corrida)</li>
+            <li>Ciclo coreografado semanal</li>
+          </ul>
+          <div class="price">R$ 159,90<span>/mês</span></div>
+          <a id="cta-strong" class="offer-btn">Quero o Strong</a>
+        </article>
+
+        <!-- PREMIUM -->
+        <article class="oferta">
+          <div class="oferta-head">
+            <h3>Premium</h3>
+            <p class="sub">Metodologia FemFlow completa + 3+ modalidades</p>
+          </div>
+          <ul class="features">
+            <li>Acesso ao App + TrainingPeaks + Garmin</li>
+            <li>3 modalidades ou mais</li>
+            <li>Ênfases mensais + periodização hormonal</li>
+          </ul>
+          <div class="price">R$ 259,90<span>/mês</span></div>
+          <a id="cta-premium" class="offer-btn">Subir para Premium</a>
+        </article>
+      </div>
+    </section>
+
+    <section class="section" id="beneficios">
+      <h2>Benefícios que as alunas relatam</h2>
+      <div class="benefits grid-3">
+        <div class="card"><h3>Mais energia</h3><p>Ajuste de carga por fase = menos fadiga acumulada e mais disposição diária.</p></div>
+        <div class="card"><h3>Menos dor</h3><p>Ênfase técnica em glúteos, costas e abdômen melhora postura e protege articulações.</p></div>
+        <div class="card"><h3>Resultado consistente</h3><p>Ciclos não são obstáculos — são mapas. Seguindo o mapa, você chega lá.</p></div>
       </div>
     </section>
   </main>
 
   <footer>
-    <div class="container footgrid">
+    <div class="container footgrid" style="display:grid;grid-template-columns:2fr 1fr 1fr;gap:1rem;">
       <div>
         <div class="brand">
-           <img src="./assets/logo femflow verde.png" alt="Logo FemFlow" class="logo-img" />
-         </div>
+          <img src="./assets/logo femflow verde.png" alt="Logo FemFlow" class="logo-img" />
+        </div>
         <p class="small">© 2025 FemFlow / MyFlowLife. Conteúdo educativo; não substitui aconselhamento médico. Consulte sua médica(o) antes de iniciar treino.</p>
         <p class="footnote">LGPD: coletamos dados apenas para entrega do plano e comunicações relacionadas. Você pode solicitar exclusão a qualquer momento.</p>
       </div>
@@ -683,117 +293,37 @@ footer{ padding:3rem 0 4rem; background:linear-gradient(180deg, #fff4f0, #fff); 
     </div>
   </footer>
 
-<script>
-  const MAP = {
-    TYPEBOT_7_DIAS: '#plano-7-dias',
-    CHECKOUT_15_DIAS: 'https://go.hotmart.com/O102103923F?dp=1',
-    CHECKOUT_12_SEMANAS: '#', // troque pelo seu checkout real
-    WHATS_PREMIUM: 'https://automacao.chatideal.com.br/anamnese-g44p1wv'
-  };
+  <script>
+    // ===== Todos os planos via Typebot (lead) =====
+    (function(){
+      const TYPEBOT_URL = "https://automacao.chatideal.com.br/anamnese-g44p1wv";
 
-  // Assim que o DOM estiver pronto, aplicamos os links
-  document.addEventListener('DOMContentLoaded', () => {
-    document.querySelectorAll('[data-link]').forEach(a => {
-      const key = a.getAttribute('data-link');
-      const url = MAP[key];
-
-      if (!url || url === '#') return;
-
-      a.setAttribute('href', url);
-
-      // Abre em nova aba se for link externo
-      if (/^https?:\/\//i.test(url)) {
-        a.setAttribute('target', '_blank');
-        a.setAttribute('rel', 'noopener noreferrer');
+      function buildLeadLink(plan){
+        const redirect = new URL(window.location.origin + "/obrigado");
+        redirect.searchParams.set("plan", plan);
+        const url = new URL(TYPEBOT_URL);
+        url.searchParams.set("redirectUrl", redirect.toString());
+        url.searchParams.set("plan", plan);
+        return url.toString();
       }
- // ===== CTAs Ofertas (usando seu TYPEBOT + redirect dinâmico) =====
-(function(){
-  // Helper para montar href com redirect + tag do plano
-  function buildHref(plan, redirectTo){
-    const redirect = new URL(redirectTo || makeRedirectUrl());
-    // fallback: se não passar explicitamente, volta para a página atual com from=typebot
-    redirect.searchParams.set("from","typebot");
-    // marca o plano para roteamento/telemetria
-    redirect.searchParams.set("plan", plan);
 
-    const url = new URL(TYPEBOT_URL);
-    url.searchParams.set("redirectUrl", redirect.toString());
-    url.searchParams.set("plan", plan);
-    return url.toString();
-  }
+      const buttons = [
+        { id: "cta-7dias",   plan: "7dias" },
+        { id: "cta-15dias",  plan: "15dias" },
+        { id: "cta-strong",  plan: "strong" },
+        { id: "cta-premium", plan: "premium" }
+      ];
 
-  // 7 dias grátis → entra no bot e retorna para a MESMA página com conteúdo liberado
-  const btn7 = document.getElementById("cta-7dias");
-  if(btn7){
-    const back = new URL(location.href);
-    back.search = ""; // limpa UTM para não poluir
-    back.searchParams.set("from","typebot");
-    back.searchParams.set("unlock","7dias");
-    btn7.href = buildHref("7dias", back.toString());
-    btn7.setAttribute("rel","noopener");
-  }
-
-  // 15 dias (lead) → usa o mesmo bot para captação; retorna para /obrigado
-  const btn15 = document.getElementById("cta-15dias");
-  if(btn15){
-    const thanks = new URL(location.origin + "/obrigado");
-    thanks.searchParams.set("from","lead");
-    thanks.searchParams.set("plan","15dias");
-    btn15.href = buildHref("15dias", thanks.toString());
-    btn15.setAttribute("rel","noopener");
-  }
-
-  // Strong (119,90) → coleta dados e retorna para /checkout-strong (ajuste se tiver outro endpoint)
-  const btnS = document.getElementById("cta-strong");
-  if(btnS){
-    const strongUrl = new URL(location.origin + "/checkout-strong");
-    strongUrl.searchParams.set("plan","strong");
-    btnS.href = buildHref("strong", strongUrl.toString());
-    btnS.setAttribute("rel","noopener");
-  }
-
-  // Premium (259,90) → coleta dados e retorna para /checkout-premium
-  const btnP = document.getElementById("cta-premium");
-  if(btnP){
-    const premUrl = new URL(location.origin + "/checkout-premium");
-    premUrl.searchParams.set("plan","premium");
-    btnP.href = buildHref("premium", premUrl.toString());
-    btnP.setAttribute("rel","noopener");
-  }
-}
- // ===== CTAs Ofertas FemFlow — todos via Typebot =====
-(function(){
-  const TYPEBOT_URL = "https://automacao.chatideal.com.br/anamnese-g44p1wv";
-
-  function buildLeadLink(plan){
-    const redirect = new URL(window.location.origin + "/obrigado");
-    redirect.searchParams.set("plan", plan);
-    const url = new URL(TYPEBOT_URL);
-    url.searchParams.set("redirectUrl", redirect.toString());
-    url.searchParams.set("plan", plan);
-    return url.toString();
-  }
-
-  const buttons = [
-    { id: "cta-7dias",   plan: "7dias" },
-    { id: "cta-15dias",  plan: "15dias" },
-    { id: "cta-strong",  plan: "strong" },
-    { id: "cta-premium", plan: "premium" }
-  ];
-
-  buttons.forEach(b => {
-    const el = document.getElementById(b.id);
-    if (el) {
-      el.href = buildLeadLink(b.plan);
-      el.target = "_blank";
-      el.rel = "noopener";
-    }
-  });
-})();
-
-</script>
-
-  <!-- (Opcional) Insira aqui seus pixels/analytics -->
+      buttons.forEach(b => {
+        const el = document.getElementById(b.id);
+        if (el) {
+          el.href = buildLeadLink(b.plan);
+          el.target = "_blank";
+          el.rel = "noopener";
+        }
+      });
+    })();
+  </script>
 </body>
 </html>
 
