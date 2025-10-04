@@ -60,6 +60,44 @@
   display: block;
   object-fit: cover;          /* cobre o card sem distorcer */
 }
+    .ofertas-grid{
+  display:grid;
+  grid-template-columns: repeat(2, minmax(0,1fr));
+  gap:1rem;
+}
+.oferta{
+  border:1px solid var(--border);
+  border-radius:14px;
+  padding:1rem;
+  background:#fff;
+  display:flex; flex-direction:column; justify-content:space-between;
+}
+.oferta-head h3{ margin:.25rem 0 .25rem; color:var(--primary); }
+.oferta-head .sub{ margin:0; color:#475569; }
+.badge{
+  display:inline-block; font-size:.72rem; letter-spacing:.02em;
+  color:#0f3a33; background:rgba(51,89,83,.08);
+  border:1px dashed var(--primary); border-radius:999px; padding:.25rem .55rem; font-weight:800;
+}
+.badge.terracota{
+  color:#5b231c; background:rgba(204,106,90,.09); border-color:#CC6A5A;
+}
+.features{ margin:.75rem 0; padding-left:1.1rem; color:#374151; }
+.features li{ margin:.25rem 0; }
+.price{
+  font-weight:900; font-size:1.6rem; color:var(--primary); margin:.25rem 0 .65rem;
+}
+.price span{ font-size:.9rem; font-weight:700; color:#64748b; margin-left:.25rem; }
+.oferta .btn{ width:100%; text-align:center; }
+.hint{ color:#6b7280; font-size:.85rem; margin:.5rem 0 0; }
+
+.oferta.destaque{ outline:2px solid #EFBDA6; box-shadow:0 12px 24px rgba(239,189,166,.25); }
+.oferta.premium{ outline:2px solid var(--soft); }
+
+@media (max-width:720px){
+  .ofertas-grid{ grid-template-columns: 1fr; }
+}
+
 
 /* Seções e cards */
 .section{ padding:2.5rem 0; }
@@ -449,72 +487,78 @@ footer{ padding:3rem 0 4rem; background:linear-gradient(180deg, #fff4f0, #fff); 
   </div>
 </section>
 
-    <section class="section" id="ofertas">
-      <h2>Escolha seu caminho</h2>
-      <div class="offers">
-         <!-- 7 dias -->
-      <article class="offer">
-  <div class="badge">Gratuito</div>
-  <h3>7 dias de adaptação</h3>
-  <p>Experimente o método e sinta a diferença em uma semana guiada.</p>
-  <p class="price">R$ 0</p>
-  <ul class="features">
-    <li>Plano de 7 dias com foco em hábito e técnica</li>
-    <li>Aquecimento, principal e resfriamento (tempo em minutos)</li>
-    <li>Respiração e mobilidade para reduzir tensão</li>
-    <li>Acesso ao Typebot para onboarding</li>
-  </ul>
-  <a class="btn btn-primary" href="https://www.femflow.com.br/7dias?from=typebot">Começar grátis</a>
-</article>
-        
-        <!-- 15 dias -->
-<article class="offer">
-  <div class="badge">Iniciante</div>
-  <h3>15 dias do zero + eBook de Nutrição</h3>
-  <p>Evolução segura + guia prático de nutrição por fases menstruais.</p>
-  <p class="price"><del>R$ 80,00</del> agora <span class="price">R$ 39,90</span></p>
-  <ul class="features">
-  <li>Programa de 2 semanas com evolução gradual de volume e intensidade</li>
-  <li>Treinos funcionais de apenas 15 minutos — em casa ou na academia</li>
-  <li>eBook exclusivo “Nutrição por Fases” (PDF)</li>
-  <li>Bônus #1: checklists práticos + protocolo de hidratação para potencializar resultados</li>
-   <li>Bônus #2: Protocolo de Respiração Antiestresse</li>
-  </ul>
-  <a class="btn btn-primary" href="#" data-link="CHECKOUT_15_DIAS">Quero começar</a>
-</article>
+    <section id="ofertas" class="card" style="margin-top:2rem;">
+  <h2 style="color:var(--primary);margin:0 0 .75rem;">Planos FemFlow</h2>
+  <p class="muted" style="margin:.25rem 0 1rem;">Escolha seu ponto de partida — do Start guiado ao Premium completo.</p>
 
-<!-- 12 semanas -->
-<article class="offer">
-  <div class="badge">Completo</div>
-  <h3>12 semanas de treinamento</h3>
-  <p>Periodização completa (3 meses) alinhada às fases do ciclo.</p>
-  <p class="price"><del>R$ 160,00</del> agora <span class="price">R$ 119,90</span></p>
-  <ul class="features">
-    <li>Estrutura por PSE (sub, limiar, VO₂)</li>
-    <li>Planilhas semanais + ajustes por sintomas</li>
-    <li>Força glúteo–costas–abdômen integrada</li>
-    <li>Suporte por e-mail/WhatsApp</li>
-  </ul>
-  <a class="btn btn-primary" href="#" data-link="CHECKOUT_12_SEMANAS">Garantir meu plano</a>
-</article>
-
-<!-- Premium -->
-<article class="offer">
-  <div class="badge">Premium</div>
-  <h3>Consultoria Online Completa</h3>
-  <p>Acompanhamento pessoal, feedbacks semanais e ajustes contínuos.</p>
-  <p class="price"><del>R$ 300,00</del> agora <span class="price">R$ 259,90</span></p>
-  <ul class="features">
-    <li>Treino individualizado (musculação + endurance)</li>
-    <li>Revisões semanais + adaptação por sintomas/hormônios</li>
-    <li>Canal direto para dúvidas e relatórios mensais</li>
-    <li>Onboarding via app + Typebot</li>
-  </ul>
-  <a class="btn btn-primary" href="https://automacao.chatideal.com.br/anamnese-g44p1wv"
-     target="_blank" rel="noopener noreferrer" data-link="WHATS_PREMIUM">Falar com a consultora</a>
-</article>
+  <div class="ofertas-grid">
+    <!-- 7 DIAS GRÁTIS -->
+    <article class="oferta">
+      <div class="oferta-head">
+        <span class="badge">Grátis</span>
+        <h3>Start 7 Dias</h3>
+        <p class="sub">Experimente o método com acesso guiado</p>
       </div>
-    </section>
+      <ul class="features">
+        <li>Plano de 7 dias liberado após o assistente</li>
+        <li>Treino “escondido” destravado no retorno</li>
+        <li>Respiração + mobilidade + técnica</li>
+      </ul>
+      <div class="price">R$ 0<span>/único</span></div>
+      <a id="cta-7dias" class="btn">Começar agora</a>
+      <p class="hint">Abre o assistente e volta para a página com o plano liberado.</p>
+    </article>
+
+    <!-- 15 DIAS – LEAD -->
+    <article class="oferta destaque">
+      <div class="oferta-head">
+        <span class="badge terracota">Popular</span>
+        <h3>Plano 15 Dias</h3>
+        <p class="sub">Adaptação guiada + captação de avanço</p>
+      </div>
+      <ul class="features">
+        <li>Estrutura ABC + progressão suave</li>
+        <li>Checklist semanal e PSE</li>
+        <li>Captura de dados para personalização</li>
+      </ul>
+      <div class="price">R$ 39,90<span>/único</span></div>
+      <a id="cta-15dias" class="btn">Garantir 15 dias</a>
+      <p class="hint">Leva para o assistente (lead) e retorna com confirmação.</p>
+    </article>
+
+    <!-- STRONG -->
+    <article class="oferta">
+      <div class="oferta-head">
+        <h3>Strong</h3>
+        <p class="sub">Aplicação do método em até 2 modalidades</p>
+      </div>
+      <ul class="features">
+        <li>App + Whats para ajustes</li>
+        <li>Até 2 modalidades (ex.: força + corrida)</li>
+        <li>Ciclo coreografado semanal</li>
+      </ul>
+      <div class="price">R$ 119,90<span>/mês</span></div>
+      <a id="cta-strong" class="btn">Quero o Strong</a>
+      <p class="hint">Fluxo coleta seu objetivo e já direciona para o plano.</p>
+    </article>
+
+    <!-- PREMIUM -->
+    <article class="oferta premium">
+      <div class="oferta-head">
+        <h3>Premium</h3>
+        <p class="sub">Metodologia FemFlow completa + 3+ modalidades</p>
+      </div>
+      <ul class="features">
+        <li>Acesso ao App + TrainingPeaks + Garmin</li>
+        <li>3 modalidades ou mais</li>
+        <li>Ênfases mensais + periodização hormonal</li>
+      </ul>
+      <div class="price">R$ 259,90<span>/mês</span></div>
+      <a id="cta-premium" class="btn">Subir para Premium</a>
+      <p class="hint">Assistente configura seu perfil e conclui a adesão.</p>
+    </article>
+  </div>
+</section>
 
     <section class="section" id="beneficios">
       <h2>Benefícios que as alunas relatam</h2>
@@ -595,8 +639,61 @@ footer{ padding:3rem 0 4rem; background:linear-gradient(180deg, #fff4f0, #fff); 
         a.setAttribute('target', '_blank');
         a.setAttribute('rel', 'noopener noreferrer');
       }
-    });
-  });
+ // ===== CTAs Ofertas (usando seu TYPEBOT + redirect dinâmico) =====
+(function(){
+  // Helper para montar href com redirect + tag do plano
+  function buildHref(plan, redirectTo){
+    const redirect = new URL(redirectTo || makeRedirectUrl());
+    // fallback: se não passar explicitamente, volta para a página atual com from=typebot
+    redirect.searchParams.set("from","typebot");
+    // marca o plano para roteamento/telemetria
+    redirect.searchParams.set("plan", plan);
+
+    const url = new URL(TYPEBOT_URL);
+    url.searchParams.set("redirectUrl", redirect.toString());
+    url.searchParams.set("plan", plan);
+    return url.toString();
+  }
+
+  // 7 dias grátis → entra no bot e retorna para a MESMA página com conteúdo liberado
+  const btn7 = document.getElementById("cta-7dias");
+  if(btn7){
+    const back = new URL(location.href);
+    back.search = ""; // limpa UTM para não poluir
+    back.searchParams.set("from","typebot");
+    back.searchParams.set("unlock","7dias");
+    btn7.href = buildHref("7dias", back.toString());
+    btn7.setAttribute("rel","noopener");
+  }
+
+  // 15 dias (lead) → usa o mesmo bot para captação; retorna para /obrigado
+  const btn15 = document.getElementById("cta-15dias");
+  if(btn15){
+    const thanks = new URL(location.origin + "/obrigado");
+    thanks.searchParams.set("from","lead");
+    thanks.searchParams.set("plan","15dias");
+    btn15.href = buildHref("15dias", thanks.toString());
+    btn15.setAttribute("rel","noopener");
+  }
+
+  // Strong (119,90) → coleta dados e retorna para /checkout-strong (ajuste se tiver outro endpoint)
+  const btnS = document.getElementById("cta-strong");
+  if(btnS){
+    const strongUrl = new URL(location.origin + "/checkout-strong");
+    strongUrl.searchParams.set("plan","strong");
+    btnS.href = buildHref("strong", strongUrl.toString());
+    btnS.setAttribute("rel","noopener");
+  }
+
+  // Premium (259,90) → coleta dados e retorna para /checkout-premium
+  const btnP = document.getElementById("cta-premium");
+  if(btnP){
+    const premUrl = new URL(location.origin + "/checkout-premium");
+    premUrl.searchParams.set("plan","premium");
+    btnP.href = buildHref("premium", premUrl.toString());
+    btnP.setAttribute("rel","noopener");
+  }
+}
 </script>
 
   <!-- (Opcional) Insira aqui seus pixels/analytics -->
