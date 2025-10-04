@@ -761,6 +761,36 @@ footer{ padding:3rem 0 4rem; background:linear-gradient(180deg, #fff4f0, #fff); 
     btnP.setAttribute("rel","noopener");
   }
 }
+ // ===== CTAs Ofertas FemFlow — todos via Typebot =====
+(function(){
+  const TYPEBOT_URL = "https://automacao.chatideal.com.br/anamnese-g44p1wv";
+
+  function buildLeadLink(plan){
+    const redirect = new URL(window.location.origin + "/obrigado");
+    redirect.searchParams.set("plan", plan);
+    const url = new URL(TYPEBOT_URL);
+    url.searchParams.set("redirectUrl", redirect.toString());
+    url.searchParams.set("plan", plan);
+    return url.toString();
+  }
+
+  const buttons = [
+    { id: "cta-7dias",   plan: "7dias" },
+    { id: "cta-15dias",  plan: "15dias" },
+    { id: "cta-strong",  plan: "strong" },
+    { id: "cta-premium", plan: "premium" }
+  ];
+
+  buttons.forEach(b => {
+    const el = document.getElementById(b.id);
+    if (el) {
+      el.href = buildLeadLink(b.plan);
+      el.target = "_blank";
+      el.rel = "noopener";
+    }
+  });
+})();
+
 </script>
 
   <!-- (Opcional) Insira aqui seus pixels/analytics -->
