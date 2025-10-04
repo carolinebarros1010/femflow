@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>MaleFlow | Start 7 Dias</title>
+<meta name="robots" content="noindex,nofollow">
+<link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;700;900&display=swap" rel="stylesheet">
+<style>
+  :root{--primary:#335953;--border:#e6ecea}
+  body{font-family:'Rubik',system-ui,-apple-system,Segoe UI,Roboto,Arial;background:#fff;color:#1f2937;margin:0}
+  .wrap{max-width:960px;margin:0 auto;padding:2rem 1rem}
+  .card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:1.25rem;box-shadow:0 10px 20px rgba(0,0,0,.06)}
+  h1{color:var(--primary);margin:0 0 .25rem}
+  .btn{display:inline-block;background:var(--primary);color:#fff;padding:.9rem 1.2rem;border-radius:12px;font-weight:900;text-decoration:none}
+  .day{border:1px solid var(--border);border-radius:12px;padding:1rem;margin:.75rem 0}
+  .muted{color:#6b7280}
+  .hide{display:none}
+
+  /* ===== Header em duas colunas (título + logo ao lado) ===== */
+  .header-7dias{
+    display:grid;
+    grid-template-columns: 1fr auto; /* texto ocupa, logo encaixa */
+    gap:1rem;
+    align-items:center;
+    margin-bottom:1.25rem;
+  }
+  .header-text{min-width:0}
+  .header-img{
+    display:flex; align-items:center; justify-content:flex-end;
+  }
+  .header-img img{
+    height:120px;           /* controle de altura */
+    max-width:220px;        /* não deixa ficar largo demais */
+    width:auto;             /* mantém proporção */
+    object-fit:contain;     /* sem corte */
+    display:block;
+  }
+  @media (max-width:640px){
+    .header-7dias{ grid-template-columns:1fr; }
+    .header-img{ justify-content:flex-start; }
+    .header-img img{ height:80px; max-width:60%; }
+  }
+  .secret-badge{
+  display:inline-block;
+  margin-top:.25rem;
+  font-size:.9rem;
+  color:#0f3a33;
+  background:rgba(51,89,83,.08); /* teal translúcido */
+  border:1px dashed #335953;
+  border-radius:10px;
+  padding:.35rem .6rem;
+  font-weight:700;
+}
+.secret-note{
+  margin: .5rem 0 1rem;
+  background:#f7fbfa;
+  border:1px solid #e6ecea;
+  border-radius:12px;
+  padding:.75rem 1rem;
+}
+.secret-note > summary{
+  cursor:pointer; font-weight:800; color:#335953; outline:none;
+}
+.secret-note > p{
+  margin:.5rem 0 0; color:#334155; line-height:1.55;
+}
+</style>
+</head>
+<body>
+  <div class="wrap">
+
+    <!-- GATE (portinha) -->
+    <div id="gate" class="card">
+      <h1>Start MaleFlow — acesso guiado</h1>
+      <p class="muted">Para liberar o plano, passe pelo assistente rápido (ajusta o material ao seu objetivo).</p>
+      <a class="btn" id="goBot"
+         href="https://automacao.chatideal.com.br/maleflowfluxo-xt1qnhw?redirectUrl=https%3A%2F%2Fwww.maleflow.com.br%2F7dias%3Ffrom%3Dtypebot">
+        Abrir assistente
+      </a>
+      <p id="err" class="muted"></p>
+    </div>
+<details class="secret-note">
+  <summary>Por que não revelamos toda a metodologia?</summary>
+  <p>
+    O protocolo completo do MaleFlow é aplicado no seu plano, mas não divulgado passo a passo.
+    Fazemos isso para manter integridade do método, evitar cópias superficiais e garantir progresso
+    guiado — menos barulho, mais resultado.
+  </p>
+</details>
+    <!-- CONTEÚDO LIBERADO -->
+    <div id="ok" class="card hide">
+
+      <!-- Cabeçalho lado a lado -->
+      <div class="header-7dias">
+        <div class="header-text">
+          <h1>Seu plano de 7 dias</h1>
+          <p class="muted">Guarde este link. Se preferir, peça o PDF no Whats.</p>
+        </div>
+        <div class="header-img">
+          <img src="./logo-maleflow.png" alt="MaleFlow 7 Dias">
+        </div>
+      </div>
+
+      <!-- Dias 1–7 -->
+      <div class="day">
+        <h3>Dia 1 — Treino A (Peito)</h3>
+        <ul>
+          <li><b>Aquecimento submáximo:</b> Supino reto 2×20 @ 50% carga</li>
+          <li><b>Força:</b> Supino reto 4×4–6 (80–90% 1RM)</li>
+          <li><b>Bi-set:</b> Supino inclinado + Flexão pés elevados (3x)</li>
+          <li><b>Tri-set:</b> Crucifixo cabo + Desenvolvimento militar + Prancha escapular (3x)</li>
+          <li><b>Drop-set:</b> Crossover polia até falha</li>
+          <li><b>Alongado estabilizador:</b> Face pull 3×15</li>
+          <li><b>Alongado principal:</b> Crucifixo inclinado 3×12</li>
+        </ul>
+      </div>
+
+      <div class="day">
+        <h3>Dia 2 — Cardio + Mobilidade</h3>
+        <ul>
+          <li>20–30 min corrida leve (PSE 4–5)</li>
+          <li>10 min mobilidade (quadril, t-spine, ombros)</li>
+          <li>Respiração box 4–4–4–4 por 5 min</li>
+        </ul>
+      </div>
+
+      <div class="day">
+        <h3>Dia 3 — Treino B (Costas + Agonistas)</h3>
+        <ul>
+          <li>Aquec.: Barra fixa assistida 2×15</li>
+          <li>Força: Remada curvada 4×4–6</li>
+          <li>Bi-set: Puxada aberta + Pull-over (3x)</li>
+          <li>Tri-set: Remada baixa + Supino fechado + Prancha lateral (3x)</li>
+          <li>Drop-set: Remada unilateral até falha</li>
+          <li>Along. estabilizador: Prancha 3×30–40s</li>
+          <li>Along. principal: Barra fixa isométrica 3×tempo</li>
+        </ul>
+      </div>
+
+      <div class="day">
+        <h3>Dia 4 — Cardio + Mobilidade</h3>
+        <ul>
+          <li>Bike/Remo 25–40 min (PSE 5–6)</li>
+          <li>Mobilidade quadril/tornozelo 10 min</li>
+          <li>Respiração coerente 6 min</li>
+        </ul>
+      </div>
+
+      <div class="day">
+        <h3>Dia 5 — Treino C (Pernas + Ombros)</h3>
+        <ul>
+          <li>Aquec.: Agachamento 2×20 @ 50%</li>
+          <li>Força: Agachamento 4×4–6</li>
+          <li>Bi-set: Leg press 12 + Afundo 12/cada (3x)</li>
+          <li>Tri-set: Elevação lateral + Elevação frontal + Rollout (3x)</li>
+          <li>Drop-set: Extensora até falha</li>
+          <li>Along. estabilizador: Good morning leve 3×12</li>
+          <li>Along. principal: Flexor banco romano 3×15</li>
+        </ul>
+      </div>
+
+      <div class="day">
+        <h3>Dia 6 — Cardio Intervalado</h3>
+        <ul>
+          <li>5–8 min aquecimento</li>
+          <li>6–8 × (1 min forte / 1 min trote)</li>
+          <li>Desaceleração + alongamento</li>
+        </ul>
+      </div>
+
+      <div class="day">
+        <h3>Dia 7 — Descanso</h3>
+        <ul>
+          <li>Caminhada leve opcional</li>
+          <li>Foco em sono, hidratação e alimentação</li>
+        </ul>
+      </div>
+    </div><!-- /#ok -->
+
+    <!-- CTA de retorno (fora do bloco do plano) -->
+    <div class="card" id="upsell" style="margin-top:2rem;text-align:center;">
+      <h2 style="color:#335953;margin-bottom:.5rem;">Você sentiu o Start...</h2>
+      <p class="muted" style="margin-bottom:1rem;line-height:1.6;">
+        7 dias provam que o método funciona. Resultado consistente vem com plano completo.
+      </p>
+    <a href="/#ofertas" class="btn" style="margin:.5rem;display:inline-block;">
+  🔥 Subir para o Strong — App + Whats (aplicação do método)
+</a>
+<a href="/#ofertas" class="btn" style="background:#1f2937;margin:.5rem;display:inline-block;">
+  🚀 Ir direto para o Elite — App/TrainingPeaks + Premium (camadas avançadas)
+</a>
+
+    </div>
+
+  </div><!-- /.wrap -->
+
+<script>
+/* ===== Config ===== */
+const TYPEBOT_URL = "https://automacao.chatideal.com.br/maleflowfluxo-xt1qnhw";
+const LS_KEY = "mf_7dias_token";
+const TTL_MIN = 60; // minutos de passe local
+
+/* UTM pass-through */
+function pickUTM(searchParams){
+  const p = new URLSearchParams(searchParams);
+  const keep = new URLSearchParams();
+  ["utm_source","utm_medium","utm_campaign","utm_content","utm_term"].forEach(k=>{
+    const v = p.get(k); if(v) keep.set(k,v);
+  });
+  return keep;
+}
+function makeRedirectUrl(){
+  const red = new URL(location.href);
+  red.search = "";
+  red.searchParams.set("from","typebot");
+  const utm = pickUTM(location.search);
+  utm.forEach((v,k)=> red.searchParams.set(k,v));
+  return red.toString();
+}
+
+/* Token leve (não é segurança real) */
+function genSoftToken(){ return (Date.now().toString(36)+Math.random().toString(36).slice(2,10)).toUpperCase(); }
+function saveToken(){
+  const payload = { t: genSoftToken(), exp: Date.now() + TTL_MIN*60*1000 };
+  localStorage.setItem(LS_KEY, JSON.stringify(payload));
+  return payload;
+}
+function readToken(){
+  try{
+    const raw = localStorage.getItem(LS_KEY);
+    if(!raw) return null;
+    const data = JSON.parse(raw);
+    if(!data.exp || Date.now() > data.exp) { localStorage.removeItem(LS_KEY); return null; }
+    return data;
+  }catch{ return null; }
+}
+
+/* Gate logic */
+(function(){
+  const params = new URLSearchParams(location.search);
+  const from = params.get("from");
+  const cached = readToken();
+
+  // configura botão do gate (href com redirect dinâmico)
+  const go = document.getElementById("goBot");
+  if (go) {
+    const redirectUrl = encodeURIComponent(makeRedirectUrl());
+    go.href = `${TYPEBOT_URL}?redirectUrl=${redirectUrl}`;
+    go.setAttribute("rel","noopener");
+  }
+
+  // libera conteúdo
+  if (from === "typebot") {
+    saveToken();
+    document.getElementById("gate").classList.add("hide");
+    document.getElementById("ok").classList.remove("hide");
+  } else if (cached) {
+    document.getElementById("gate").classList.add("hide");
+    document.getElementById("ok").classList.remove("hide");
+  } // senão, permanece no gate
+})();
+</script>
+</body>
+</html>
