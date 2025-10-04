@@ -3,16 +3,32 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width,initial-scale=1" />
-<title>MaleFlow | Start 7 Dias</title>
+<title>FemFlow | Start 7 Dias</title>
 <meta name="robots" content="noindex,nofollow">
 <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
-  :root{--primary:#335953;--border:#e6ecea}
+  /* ===== Paleta FemFlow =====
+     Creme Rosé: #F4E1D7
+     Pêssego:    #EFBDA6
+     Terracota:  #CC6A5A
+     Teal:       #335953
+  */
+  :root{
+    --primary:#335953;      /* Teal FemFlow */
+    --accent:#CC6A5A;       /* Terracota para destaques */
+    --soft:#F4E1D7;         /* Creme Rosé (fundos suaves / bordas) */
+    --peach:#EFBDA6;        /* Pêssego (hover/realces) */
+    --border:#F4E1D7;
+  }
+
   body{font-family:'Rubik',system-ui,-apple-system,Segoe UI,Roboto,Arial;background:#fff;color:#1f2937;margin:0}
   .wrap{max-width:960px;margin:0 auto;padding:2rem 1rem}
   .card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:1.25rem;box-shadow:0 10px 20px rgba(0,0,0,.06)}
-  h1{color:var(--primary);margin:0 0 .25rem}
-  .btn{display:inline-block;background:var(--primary);color:#fff;padding:.9rem 1.2rem;border-radius:12px;font-weight:900;text-decoration:none}
+  h1,h2,h3{color:var(--primary);margin:0 0 .5rem}
+  .btn{display:inline-block;background:var(--primary);color:#fff;padding:.9rem 1.2rem;border-radius:12px;font-weight:900;text-decoration:none;transition:.2s}
+  .btn:hover{filter:brightness(0.95)}
+  .btn-ghost{background:transparent;color:var(--primary);border:1px solid var(--primary);padding:.55rem .75rem;border-radius:10px;margin:.25rem 0;text-decoration:none;font-weight:700}
+  .btn-ghost:hover{background:var(--soft)}
   .day{border:1px solid var(--border);border-radius:12px;padding:1rem;margin:.75rem 0}
   .muted{color:#6b7280}
   .hide{display:none}
@@ -20,51 +36,32 @@
   /* ===== Header em duas colunas (título + logo ao lado) ===== */
   .header-7dias{
     display:grid;
-    grid-template-columns: 1fr auto; /* texto ocupa, logo encaixa */
+    grid-template-columns: 1fr auto;
     gap:1rem;
     align-items:center;
     margin-bottom:1.25rem;
   }
   .header-text{min-width:0}
-  .header-img{
-    display:flex; align-items:center; justify-content:flex-end;
-  }
+  .header-text p{margin:.25rem 0 0;color:#374151}
+  .header-img{display:flex;align-items:center;justify-content:flex-end}
   .header-img img{
-    height:120px;           /* controle de altura */
-    max-width:220px;        /* não deixa ficar largo demais */
-    width:auto;             /* mantém proporção */
-    object-fit:contain;     /* sem corte */
-    display:block;
+    height:120px;max-width:220px;width:auto;object-fit:contain;display:block;
   }
   @media (max-width:640px){
     .header-7dias{ grid-template-columns:1fr; }
     .header-img{ justify-content:flex-start; }
     .header-img img{ height:80px; max-width:60%; }
   }
+
   .secret-badge{
-  display:inline-block;
-  margin-top:.25rem;
-  font-size:.9rem;
-  color:#0f3a33;
-  background:rgba(51,89,83,.08); /* teal translúcido */
-  border:1px dashed #335953;
-  border-radius:10px;
-  padding:.35rem .6rem;
-  font-weight:700;
-}
-.secret-note{
-  margin: .5rem 0 1rem;
-  background:#f7fbfa;
-  border:1px solid #e6ecea;
-  border-radius:12px;
-  padding:.75rem 1rem;
-}
-.secret-note > summary{
-  cursor:pointer; font-weight:800; color:#335953; outline:none;
-}
-.secret-note > p{
-  margin:.5rem 0 0; color:#334155; line-height:1.55;
-}
+    display:inline-block;margin-top:.25rem;font-size:.9rem;color:#0f3a33;
+    background:rgba(51,89,83,.08);border:1px dashed #335953;border-radius:10px;padding:.35rem .6rem;font-weight:700;
+  }
+  .secret-note{
+    margin: .5rem 0 1rem;background:#f7fbfa;border:1px solid #e6ecea;border-radius:12px;padding:.75rem 1rem;
+  }
+  .secret-note > summary{cursor:pointer;font-weight:800;color:#335953;outline:none}
+  .secret-note > p{margin:.5rem 0 0;color:#334155;line-height:1.55}
 </style>
 </head>
 <body>
@@ -72,143 +69,149 @@
 
     <!-- GATE (portinha) -->
     <div id="gate" class="card">
-      <h1>Start MaleFlow — acesso guiado</h1>
-      <p class="muted">Para liberar o plano, passe pelo assistente rápido (ajusta o material ao seu objetivo).</p>
-      <a class="btn" id="goBot"
-         href="https://automacao.chatideal.com.br/maleflowfluxo-xt1qnhw?redirectUrl=https%3A%2F%2Fwww.maleflow.com.br%2F7dias%3Ffrom%3Dtypebot">
+      <div class="header-7dias">
+        <div class="header-text">
+          <h1>Start FemFlow — acesso guiado</h1>
+          <p class="muted">Para liberar o plano, passe pelo assistente rápido (ajusta o material ao seu objetivo).</p>
+        </div>
+        <div class="header-img">
+          <!-- Substitua o src pelo caminho real do seu logo -->
+          <img src="logo-femflow-verde.png" alt="Logo FemFlow">
+        </div>
+      </div>
+
+      <a class="btn" id="goBot" href="#">
         Abrir assistente
       </a>
       <p id="err" class="muted"></p>
     </div>
-<details class="secret-note">
-  <summary>Por que não revelamos toda a metodologia?</summary>
-  <p>
-    O protocolo completo do MaleFlow é aplicado no seu plano, mas não divulgado passo a passo.
-    Fazemos isso para manter integridade do método, evitar cópias superficiais e garantir progresso
-    guiado — menos barulho, mais resultado.
-  </p>
-</details>
+
+    <details class="secret-note">
+      <summary>Por que não revelamos toda a metodologia?</summary>
+      <p>
+        O protocolo completo da FemFlow é aplicado no seu plano, mas não divulgado passo a passo.
+        Fazemos isso para manter a integridade do método, evitar cópias superficiais e garantir progresso guiado —
+        menos barulho, mais resultado.
+      </p>
+    </details>
+
     <!-- CONTEÚDO LIBERADO -->
     <div id="ok" class="card hide">
 
-      <!-- Cabeçalho lado a lado -->
-    <section class="section" id="plano-7-dias">
-      <h2>Seu Plano de 7 Dias</h2>
+      <section class="section" id="plano-7-dias">
+        <h2>Seu Plano de 7 Dias</h2>
 
-      <article class="card day">
-        <h3>Dia 1 — Mobilidade total + respiração</h3>
-        <ul>
-          <li>6–8 min mobilidade torácica (parede/rotação/rolo)</li>
-          <li>2 blocos × 8 min (PSE 4/10): agachamento com apoio, ponte de glúteo, remada com elástico, prancha curta (20–25s)</li>
-          <li>5 min respiração coerente (5–6s inspirar/expirar)</li>
-        </ul>
-        <a class="btn btn-ghost" href="https://www.youtube.com/shorts/w0MfiVldR34" target="_blank" rel="noopener">📹 Mobilidade torácica (Isabella Campos)</a>
-        <a class="btn btn-ghost" href="https://www.youtube.com/shorts/gHVvqDRpqX4" target="_blank" rel="noopener">📹 Agachamento com apoio (Carol Borba)</a>
-        <a class="btn btn-ghost" href="https://www.youtube.com/shorts/1satDE63Bwc" target="_blank" rel="noopener">📹 Ponte de glúteo</a>
-        <a class="btn btn-ghost" href="https://www.youtube.com/shorts/ydJM8flEHrs" target="_blank" rel="noopener">📹 Remada com elástico</a>
-        <a class="btn btn-ghost" href="https://www.youtube.com/shorts/sEw8EGZBC1w" target="_blank" rel="noopener">📹 Prancha isométrica</a>
-        <a class="btn btn-ghost" href="https://www.youtube.com/shorts/B7oThbNlTG0" target="_blank" rel="noopener">📹 Respiração coerente guiada</a>
-      </article>
+        <article class="card day">
+          <h3>Dia 1 — Mobilidade total + respiração</h3>
+          <ul>
+            <li>6–8 min mobilidade torácica (parede/rotação/rolo)</li>
+            <li>2 blocos × 8 min (PSE 4/10): agachamento com apoio, ponte de glúteo, remada com elástico, prancha curta (20–25s)</li>
+            <li>5 min respiração coerente (5–6s inspirar/expirar)</li>
+          </ul>
+          <a class="btn-ghost" href="https://www.youtube.com/shorts/w0MfiVldR34" target="_blank" rel="noopener">📹 Mobilidade torácica (Isabella Campos)</a>
+          <a class="btn-ghost" href="https://www.youtube.com/shorts/gHVvqDRpqX4" target="_blank" rel="noopener">📹 Agachamento com apoio (Carol Borba)</a>
+          <a class="btn-ghost" href="https://www.youtube.com/shorts/1satDE63Bwc" target="_blank" rel="noopener">📹 Ponte de glúteo</a>
+          <a class="btn-ghost" href="https://www.youtube.com/shorts/ydJM8flEHrs" target="_blank" rel="noopener">📹 Remada com elástico</a>
+          <a class="btn-ghost" href="https://www.youtube.com/shorts/sEw8EGZBC1w" target="_blank" rel="noopener">📹 Prancha isométrica</a>
+          <a class="btn-ghost" href="https://www.youtube.com/shorts/B7oThbNlTG0" target="_blank" rel="noopener">📹 Respiração coerente guiada</a>
+        </article>
 
-      <article class="card day">
-        <h3>Dia 2 — Técnica: glúteo • costas • abdômen</h3>
-        <ul>
-          <li>Ponte de glúteo 3×10–12 (ênfase técnica)</li>
-          <li>Remada com elástico 3×12–15 (escápulas ativas)</li>
-          <li>Prancha isométrica 3×20–30s</li>
-          <li>Abdução de quadril lateral (“concha”) 2×12–15</li>
-        </ul>
-        <a class="btn btn-ghost" href="https://www.youtube.com/shorts/1satDE63Bwc" target="_blank" rel="noopener">📹 Ponte de glúteo — variações</a>
-        <a class="btn btn-ghost" href="https://www.youtube.com/shorts/ydJM8flEHrs" target="_blank" rel="noopener">📹 Remada com elástico</a>
-        <a class="btn btn-ghost" href="https://www.youtube.com/shorts/sEw8EGZBC1w" target="_blank" rel="noopener">📹 Prancha </a>
-        <a class="btn btn-ghost" href="https://www.youtube.com/shorts/NykPOcQj6bA" target="_blank" rel="noopener">📹 “Concha/ostra” </a>
-      </article>
+        <article class="card day">
+          <h3>Dia 2 — Técnica: glúteo • costas • abdômen</h3>
+          <ul>
+            <li>Ponte de glúteo 3×10–12 (ênfase técnica)</li>
+            <li>Remada com elástico 3×12–15 (escápulas ativas)</li>
+            <li>Prancha isométrica 3×20–30s</li>
+            <li>Abdução de quadril lateral (“concha”) 2×12–15</li>
+          </ul>
+          <a class="btn-ghost" href="https://www.youtube.com/shorts/1satDE63Bwc" target="_blank" rel="noopener">📹 Ponte de glúteo — variações</a>
+          <a class="btn-ghost" href="https://www.youtube.com/shorts/ydJM8flEHrs" target="_blank" rel="noopener">📹 Remada com elástico</a>
+          <a class="btn-ghost" href="https://www.youtube.com/shorts/sEw8EGZBC1w" target="_blank" rel="noopener">📹 Prancha </a>
+          <a class="btn-ghost" href="https://www.youtube.com/shorts/NykPOcQj6bA" target="_blank" rel="noopener">📹 “Concha/ostra” </a>
+        </article>
 
-      <article class="card day">
-        <h3>Dia 3 — Caminhada leve + mobilidade</h3>
-        <ul>
-          <li>20–30 min caminhada ou pedal leve (PSE 3–4)</li>
-          <li>5–8 min mobilidade torácica + quadril</li>
-          <li>Respiração em caixa 4–4–4–4 por 3–5 min</li>
-        </ul>
-        <a class="btn btn-ghost" href="https://www.youtube.com/shorts/2QJR9vJZwrI" target="_blank" rel="noopener">📹 Dicas de caminhada </a>
-        <a class="btn btn-ghost" href="https://www.youtube.com/shorts/ItUNZR8I3bg" target="_blank" rel="noopener">📹 Mobilidade torácica </a>
-        <a class="btn btn-ghost" href="https://www.youtube.com/shorts/E9Pz3vpzp6c" target="_blank" rel="noopener">📹 Respiração em Box</a>
-      </article>
+        <article class="card day">
+          <h3>Dia 3 — Caminhada leve + mobilidade</h3>
+          <ul>
+            <li>20–30 min caminhada ou pedal leve (PSE 3–4)</li>
+            <li>5–8 min mobilidade torácica + quadril</li>
+            <li>Respiração em caixa 4–4–4–4 por 3–5 min</li>
+          </ul>
+          <a class="btn-ghost" href="https://www.youtube.com/shorts/2QJR9vJZwrI" target="_blank" rel="noopener">📹 Dicas de caminhada </a>
+          <a class="btn-ghost" href="https://www.youtube.com/shorts/ItUNZR8I3bg" target="_blank" rel="noopener">📹 Mobilidade torácica </a>
+          <a class="btn-ghost" href="https://www.youtube.com/shorts/E9Pz3vpzp6c" target="_blank" rel="noopener">📹 Respiração em Box</a>
+        </article>
 
-      <article class="card day">
-        <h3>Dia 4 — Força leve técnica</h3>
-        <ul>
-          <li>Agachamento com apoio 3×10–12</li>
-          <li>Puxada de elástico na altura do rosto (face pull) 3×12–15</li>
-          <li>Quatro apoios alternado (bird‭dog) 3×8–10/lado</li>
-          <li>Abdutor“Concha” 2×12–15</li>
-        </ul>
-        <a class="btn btn-ghost" href="https://www.youtube.com/shorts/gHVvqDRpqX4" target="_blank" rel="noopener">📹 Agachamento — execução</a>
-        <a class="btn btn-ghost" href="https://www.youtube.com/shorts/enL0z76j0xA" target="_blank" rel="noopener">📹 Face pull com elástico</a>
-        <a class="btn btn-ghost" href="https://www.youtube.com/shorts/6Ez5m41UnPo" target="_blank" rel="noopener">📹 Quatro apoios alternado</a>
-        <a class="btn btn-ghost" href="https://www.youtube.com/shorts/NykPOcQj6bA" target="_blank" rel="noopener">📹 Abdutor “Concha” </a>
-      </article>
+        <article class="card day">
+          <h3>Dia 4 — Força leve técnica</h3>
+          <ul>
+            <li>Agachamento com apoio 3×10–12</li>
+            <li>Puxada de elástico na altura do rosto (face pull) 3×12–15</li>
+            <li>Quatro apoios alternado (bird‭dog) 3×8–10/lado</li>
+            <li>Abdutor “Concha” 2×12–15</li>
+          </ul>
+          <a class="btn-ghost" href="https://www.youtube.com/shorts/gHVvqDRpqX4" target="_blank" rel="noopener">📹 Agachamento — execução</a>
+          <a class="btn-ghost" href="https://www.youtube.com/shorts/enL0z76j0xA" target="_blank" rel="noopener">📹 Face pull com elástico</a>
+          <a class="btn-ghost" href="https://www.youtube.com/shorts/6Ez5m41UnPo" target="_blank" rel="noopener">📹 Quatro apoios alternado</a>
+          <a class="btn-ghost" href="https://www.youtube.com/shorts/NykPOcQj6bA" target="_blank" rel="noopener">📹 Abdutor “Concha” </a>
+        </article>
 
-      <article class="card day">
-        <h3>Dia 5 — Abdômen + mobilidade</h3>
-        <ul>
-          <li>“Inseto morto” (dead bug) 3×8–10/lado</li>
-          <li>Prancha isométrica 3×25–35s</li>
-          <li>Mobilidade torácica + quadril 6–8 min</li>
-        </ul>
-        <a class="btn btn-ghost" href="https://www.youtube.com/shorts/DqLL45uk2Tk" target="_blank" rel="noopener">📹 Dead bug </a>
-        <a class="btn btn-ghost" href="https://www.youtube.com/shorts/sEw8EGZBC1w" target="_blank" rel="noopener">📹 Prancha </a>
-        <a class="btn btn-ghost" href="https://www.youtube.com/shorts/w0MfiVldR34" target="_blank" rel="noopener">📹 Mobilidade torácica</a>
-      </article>
+        <article class="card day">
+          <h3>Dia 5 — Abdômen + mobilidade</h3>
+          <ul>
+            <li>“Inseto morto” (dead bug) 3×8–10/lado</li>
+            <li>Prancha isométrica 3×25–35s</li>
+            <li>Mobilidade torácica + quadril 6–8 min</li>
+          </ul>
+          <a class="btn-ghost" href="https://www.youtube.com/shorts/DqLL45uk2Tk" target="_blank" rel="noopener">📹 Dead bug </a>
+          <a class="btn-ghost" href="https://www.youtube.com/shorts/sEw8EGZBC1w" target="_blank" rel="noopener">📹 Prancha </a>
+          <a class="btn-ghost" href="https://www.youtube.com/shorts/w0MfiVldR34" target="_blank" rel="noopener">📹 Mobilidade torácica</a>
+        </article>
 
-      <article class="card day">
-        <h3>Dia 6 — Caminhada ou corrida progressiva</h3>
-        <ul>
-          <li>25–35 min com progressão leve (terminar em PSE 6)</li>
-          <li>5 min mobilidade suave</li>
-        </ul>
-        <a class="btn btn-ghost" href="https://www.youtube.com/shorts/0ydzyeQ11ME" target="_blank" rel="noopener">📹 Corrida leve </a>
-        <a class="btn btn-ghost" href="https://www.youtube.com/shorts/UH3fk1OS1ms" target="_blank" rel="noopener">📹 Alongar e soltar o corpo</a>
-      </article>
+        <article class="card day">
+          <h3>Dia 6 — Caminhada ou corrida progressiva</h3>
+          <ul>
+            <li>25–35 min com progressão leve (terminar em PSE 6)</li>
+            <li>5 min mobilidade suave</li>
+          </ul>
+          <a class="btn-ghost" href="https://www.youtube.com/shorts/0ydzyeQ11ME" target="_blank" rel="noopener">📹 Corrida leve </a>
+          <a class="btn-ghost" href="https://www.youtube.com/shorts/UH3fk1OS1ms" target="_blank" rel="noopener">📹 Alongar e soltar o corpo</a>
+        </article>
 
-      <article class="card day">
-        <h3>Dia 7 — Recuperação ativa + respiração</h3>
-        <ul>
-          <li>Caminhada leve 20–30 min</li>
-          <li>Respiração coerente 5–6 min</li>
-          <li>Alongamentos leves</li>
-        </ul>
-        <a class="btn btn-ghost" href="https://www.youtube.com/shorts/2QJR9vJZwrI" target="_blank" rel="noopener">📹 Caminhada leve/moderada</a>
-        <a class="btn btn-ghost" href="https://www.youtube.com/shorts/B7oThbNlTG0" target="_blank" rel="noopener">📹 Respiração coerente guiada</a>
-        <a class="btn btn-ghost" href="https://www.youtube.com/watch?v=UJN1cljyhVg" target="_blank" rel="noopener">📹 Alongamento básico </a>
-      </article>
-    </section>
-        </ul>
-      </div>
+        <article class="card day">
+          <h3>Dia 7 — Recuperação ativa + respiração</h3>
+          <ul>
+            <li>Caminhada leve 20–30 min</li>
+            <li>Respiração coerente 5–6 min</li>
+            <li>Alongamentos leves</li>
+          </ul>
+          <a class="btn-ghost" href="https://www.youtube.com/shorts/2QJR9vJZwrI" target="_blank" rel="noopener">📹 Caminhada leve/moderada</a>
+          <a class="btn-ghost" href="https://www.youtube.com/shorts/B7oThbNlTG0" target="_blank" rel="noopener">📹 Respiração coerente guiada</a>
+          <a class="btn-ghost" href="https://www.youtube.com/watch?v=UJN1cljyhVg" target="_blank" rel="noopener">📹 Alongamento básico </a>
+        </article>
+      </section>
     </div><!-- /#ok -->
 
     <!-- CTA de retorno (fora do bloco do plano) -->
     <div class="card" id="upsell" style="margin-top:2rem;text-align:center;">
       <h2 style="color:#335953;margin-bottom:.5rem;">Você sentiu o Start...</h2>
       <p class="muted" style="margin-bottom:1rem;line-height:1.6;">
-        7 dias provam que o método funciona. Resultado consistente vem com plano completo.
+        7 dias mostram o método em ação. Resultado consistente vem com o plano completo.
       </p>
-    <a href="/#ofertas" class="btn" style="margin:.5rem;display:inline-block;">
-  🔥 Subir para o Strong — App + Whats (aplicação do método)
-</a>
-<a href="/#ofertas" class="btn" style="background:#1f2937;margin:.5rem;display:inline-block;">
-  🚀 Ir direto para o Elite — App/TrainingPeaks + Premium (camadas avançadas)
-</a>
-
+      <a href="/#ofertas" class="btn" style="margin:.5rem;display:inline-block;">
+        🔥 Subir para o Strong — App + Whats (aplicação do método)
+      </a>
+      <a href="/#ofertas" class="btn" style="background:#1f2937;margin:.5rem;display:inline-block;">
+        🚀 Ir direto para o Elite — App/TrainingPeaks + Premium (camadas avançadas)
+      </a>
     </div>
 
   </div><!-- /.wrap -->
 
 <script>
-/* ===== Config ===== */
-const TYPEBOT_URL = "https://automacao.chatideal.com.br/maleflowfluxo-xt1qnhw";
-const LS_KEY = "mf_7dias_token";
+/* ===== Config (FemFlow) ===== */
+const TYPEBOT_URL = "https://automacao.chatideal.com.br/anamnese-g44p1wv"; // novo link
+const LS_KEY = "ff_7dias_token"; // namespace femflow
 const TTL_MIN = 60; // minutos de passe local
 
 /* UTM pass-through */
