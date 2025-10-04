@@ -97,6 +97,44 @@
 @media (max-width:720px){
   .ofertas-grid{ grid-template-columns: 1fr; }
 }
+    /* Botão padrão das ofertas (igual ao 15 dias) */
+.offer-btn{
+  display:block;
+  width:100%;
+  text-align:center;
+  padding:.9rem 1.2rem;
+  border-radius:12px;
+  font-weight:900;
+  background:var(--primary);
+  color:#fff;
+  text-decoration:none;
+  box-shadow:0 6px 14px rgba(51,89,83,.18);
+  transition:transform .15s ease, box-shadow .15s ease, filter .15s ease;
+}
+.offer-btn:hover{
+  transform:translateY(-1px);
+  box-shadow:0 8px 18px rgba(51,89,83,.24);
+  filter:brightness(0.97);
+}
+    
+/* ===== Botão destacado (Start 7 Dias) ===== */
+.offer-btn.highlight {
+  background: linear-gradient(135deg, #335953 0%, #CC6A5A 100%);
+  color:#fff;
+  font-weight:900;
+  box-shadow:0 6px 18px rgba(204,106,90,.25);
+  letter-spacing:.3px;
+  animation:pulseSoft 2.8s infinite ease-in-out;
+}
+.offer-btn.highlight:hover {
+  filter:brightness(1.05);
+  transform:translateY(-1px);
+  box-shadow:0 10px 22px rgba(204,106,90,.35);
+}
+@keyframes pulseSoft {
+  0%,100% { box-shadow:0 6px 18px rgba(204,106,90,.25); }
+  50%     { box-shadow:0 10px 25px rgba(204,106,90,.35); }
+}
 
 
 /* Seções e cards */
@@ -505,7 +543,8 @@ footer{ padding:3rem 0 4rem; background:linear-gradient(180deg, #fff4f0, #fff); 
         <li>Respiração + mobilidade + técnica</li>
       </ul>
       <div class="price">R$ 0<span>/único</span></div>
-      <a id="cta-7dias" class="btn">Começar agora</a>
+      <a id="cta-7dias" class="offer-btn highlight">Começar agora</a>
+
       <p class="hint">Abre o assistente e volta para a página com o plano liberado.</p>
     </article>
 
@@ -522,7 +561,7 @@ footer{ padding:3rem 0 4rem; background:linear-gradient(180deg, #fff4f0, #fff); 
         <li>Captura de dados para personalização</li>
       </ul>
       <div class="price">R$ 39,90<span>/único</span></div>
-      <a id="cta-15dias" class="btn">Garantir 15 dias</a>
+            <a id="cta-15dias"  class="offer-btn">Garantir 15 dias</a>
       <p class="hint">Leva para o assistente (lead) e retorna com confirmação.</p>
     </article>
 
@@ -538,7 +577,7 @@ footer{ padding:3rem 0 4rem; background:linear-gradient(180deg, #fff4f0, #fff); 
         <li>Ciclo coreografado semanal</li>
       </ul>
       <div class="price">R$ 119,90<span>/mês</span></div>
-      <a id="cta-strong" class="btn">Quero o Strong</a>
+      <a id="cta-strong"  class="offer-btn">Quero o Strong</a>
       <p class="hint">Fluxo coleta seu objetivo e já direciona para o plano.</p>
     </article>
 
@@ -554,7 +593,7 @@ footer{ padding:3rem 0 4rem; background:linear-gradient(180deg, #fff4f0, #fff); 
         <li>Ênfases mensais + periodização hormonal</li>
       </ul>
       <div class="price">R$ 259,90<span>/mês</span></div>
-      <a id="cta-premium" class="btn">Subir para Premium</a>
+      <a id="cta-premium" class="offer-btn">Subir para Premium</a>
       <p class="hint">Assistente configura seu perfil e conclui a adesão.</p>
     </article>
   </div>
