@@ -168,83 +168,86 @@
   </div><!-- /.wrap -->
 
 <script>
-/** ===== Opção A: abrir sem Typebot usando ?open=1 ===== */
-const TYPEBOT_URL = "https://automacao.chatideal.com.br/anamnese-g44p1wv";
-const LS_KEY = "ff_7dias_token";
-const TTL_DAYS = 7;
+<script>
+/** ===== FemFlow 7 dias — unlock robusto ===== */
+(function () {
+  const TYPEBOT_URL = "https://automacao.chatideal.com.br/anamnese-g44p1wv";
+  const LS_KEY = "ff_7dias_token";
+  const TTL_DAYS = 7;
 
-function saveToken(){
-  const exp = Date.now() + TTL_DAYS*24*60*60*1000;
-  localStorage.setItem(LS_KEY, JSON.stringify({exp}));
-}
-function hasToken(){
-  try{
-    const raw = localStorage.getItem(LS_KEY);
-    if(!raw) return false;
-    const d = JSON.parse(raw);
-    if(!d.exp || Date.now() > d.exp){ localStorage.removeItem(LS_KEY); return false; }
-    return true;
-  }catch{ return false; }
-}
-function makeRedirectUrl(){
-  const u = new URL(location.href);
-  u.search = "";
-  u.searchParams.set("from","typebot");
-  u.searchParams.set("unlock","7dias");
-  return u.toString();
-}
-
-(function(){
-  const p = new URLSearchParams(location.search);
-  const from   = p.get("from");
-  const unlock = p.get("unlock");
-  const open   = p.get("open");       // chave manual ?open=1
-  const cached = hasToken();
-
-  // Botão do gate → Typebot com redirect de volta pra esta página
-  const go = document.getElementById("goBot");
-  if (go){
-    const redirect = encodeURIComponent(makeRedirectUrl());
-    go.href   = `${TYPEBOT_URL}?redirectUrl=${redirect}&plan=7dias`;
-    go.target = "_blank";
-    go.rel    = "noopener";
+  function saveToken() {
+    const exp = Date.now() + TTL_DAYS * 24 * 60 * 60 * 1000;
+    localStorage.setItem(LS_KEY, JSON.stringify({ exp }));
   }
+  function hasToken() {
+    try {
+      const raw = localStorage.getItem(LS_KEY);
+      if (!raw) return false;
+      const d = JSON.parse(raw);
+      if (!d.exp || Date.now() > d.exp) {
+        localStorage.removeItem(LS_KEY);
+        return false;
+      }
+      return true;
+    } catch {
+      return false;
+    }
+  }
+  function makeRedirectUrl() {
+    const u = new URL(location.href);
+    u.search = "";
+    u.searchParams.set("from", "typebot");
+    u.searchParams.set("unlock", "7dias");
+    return u.toString();
+  }
+  function shouldOpenNow() {
+    const url = new URL(location.href);
+    const p = url.searchParams;
 
-  const shouldOpen =
-    (from === "typebot" && unlock === "7dias") ||
-    open === "1" ||
-    location.hash === "#open" ||
-    cached;
+    // Aceita qualquer valor de "open" (1, true, vazio) e também no hash
+    const openParam =
+      p.has("open") ||
+      /(^|[#&?])open(=|&|$)/i.test(location.href) ||
+      location.hash === "#open";
 
-  if (shouldOpen){
-    if (!cached) saveToken();
-    document.getElementById("gate").classList.add("hide");
-    document.getElementById("ok").classList.remove("hide");
-    // limpa query se veio por ?open=1 ou do typebot
-    if (open === "1" || (from && unlock)) {
+    const fromTypebot = p.get("from") === "typebot" && p.get("unlock") === "7dias";
+    return openParam || fromTypebot || hasToken();
+  }
+  function reveal() {
+    const gate = document.getElementById("gate");
+    const ok = document.getElementById("ok");
+    if (gate && ok) {
+      gate.classList.add("hide");
+      ok.classList.remove("hide");
+    }
+  }
+  function cleanUrlIfNeeded() {
+    const url = new URL(location.href);
+    if (url.searchParams.has("open") || url.searchParams.get("from") === "typebot") {
       history.replaceState({}, "", location.pathname);
     }
   }
+
+  // Espera o DOM para garantir que os elementos existam
+  document.addEventListener("DOMContentLoaded", function () {
+    // Configura o botão do gate → Typebot (continua funcionando)
+    const go = document.getElementById("goBot");
+    if (go) {
+      const redirect = encodeURIComponent(makeRedirectUrl());
+      go.href = `${TYPEBOT_URL}?redirectUrl=${redirect}&plan=7dias`;
+      go.target = "_blank";
+      go.rel = "noopener";
+    }
+
+    // Liberação
+    if (shouldOpenNow()) {
+      if (!hasToken()) saveToken();
+      reveal();
+      cleanUrlIfNeeded();
+    }
+  });
 })();
-/* === Ajuste dos botões de vídeo (sem alterar HTML) === */
-.card.day ul { margin-bottom: .5rem; }  /* separa lista dos botões */
-
-.card.day .btn-ghost{
-  display: inline-flex;      /* altura consistente */
-  align-items: center;
-  white-space: nowrap;       /* evita quebra dentro do botão */
-  line-height: 1.2;
-  margin: .35rem .5rem 0 0;  /* espaço horizontal e vertical entre botões */
-}
-
-/* Em telas pequenas, deixe os botões mais maleáveis */
-@media (max-width:640px){
-  .card.day .btn-ghost{
-    font-size: .95rem;
-    padding: .5rem .65rem;
-  }
-}
-  
+</script>
 </script>
 </body>
 </html>
