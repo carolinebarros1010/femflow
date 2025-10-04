@@ -192,6 +192,35 @@ footer{ padding:3rem 0 4rem; background:linear-gradient(180deg, #fff4f0, #fff); 
   .offers, .grid-3, .benefits{ grid-template-columns:1fr; }
   .footgrid{ grid-template-columns:1fr; }
 }
+    /* ===== Contorno rose em todos os cards de oferta ===== */
+.oferta {
+  border: 2px solid #F4E1D7;            /* contorno rose */
+  border-radius: 16px;
+  background: #fffdfd;                  /* fundo branco levemente quente */
+  padding: 1.25rem;
+  transition: all 0.25s ease;
+  box-shadow: 0 6px 18px rgba(244, 225, 215, 0.3); /* sombra rosada suave */
+}
+.oferta:hover {
+  border-color: #EFBDA6;                /* pêssego ao passar o mouse */
+  box-shadow: 0 10px 26px rgba(239, 189, 166, 0.35);
+  transform: translateY(-2px);
+}
+
+/* Mantém destaque do plano “Popular” */
+.oferta.destaque {
+  border: 2px solid #EFBDA6;
+  background: #fffaf8;
+  box-shadow: 0 10px 28px rgba(239, 189, 166, 0.4);
+}
+
+/* Badge e tipografia continuam no padrão */
+.badge {
+  border-color: #CC6A5A;
+  background: rgba(204,106,90,.08);
+  color: #5b231c;
+}
+
 
 /* --- Botão Instagram na bio (mantido) --- */
 /* sua regra/análogos entram aqui */
