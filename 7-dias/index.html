@@ -226,6 +226,25 @@ function makeRedirectUrl(){
     }
   }
 })();
+/* === Ajuste dos botões de vídeo (sem alterar HTML) === */
+.card.day ul { margin-bottom: .5rem; }  /* separa lista dos botões */
+
+.card.day .btn-ghost{
+  display: inline-flex;      /* altura consistente */
+  align-items: center;
+  white-space: nowrap;       /* evita quebra dentro do botão */
+  line-height: 1.2;
+  margin: .35rem .5rem 0 0;  /* espaço horizontal e vertical entre botões */
+}
+
+/* Em telas pequenas, deixe os botões mais maleáveis */
+@media (max-width:640px){
+  .card.day .btn-ghost{
+    font-size: .95rem;
+    padding: .5rem .65rem;
+  }
+}
+  
 </script>
 </body>
 </html>
