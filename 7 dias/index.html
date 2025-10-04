@@ -7,20 +7,9 @@
 <meta name="robots" content="noindex,nofollow">
 <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
-  /* ===== Paleta FemFlow =====
-     Creme Rosé: #F4E1D7
-     Pêssego:    #EFBDA6
-     Terracota:  #CC6A5A
-     Teal:       #335953
-  */
   :root{
-    --primary:#335953;      /* Teal FemFlow */
-    --accent:#CC6A5A;       /* Terracota para destaques */
-    --soft:#F4E1D7;         /* Creme Rosé (fundos suaves / bordas) */
-    --peach:#EFBDA6;        /* Pêssego (hover/realces) */
-    --border:#F4E1D7;
+    --primary:#335953; --accent:#CC6A5A; --soft:#F4E1D7; --peach:#EFBDA6; --border:#F4E1D7;
   }
-
   body{font-family:'Rubik',system-ui,-apple-system,Segoe UI,Roboto,Arial;background:#fff;color:#1f2937;margin:0}
   .wrap{max-width:960px;margin:0 auto;padding:2rem 1rem}
   .card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:1.25rem;box-shadow:0 10px 20px rgba(0,0,0,.06)}
@@ -33,41 +22,22 @@
   .muted{color:#6b7280}
   .hide{display:none}
 
-  /* ===== Header em duas colunas (título + logo ao lado) ===== */
-  .header-7dias{
-    display:grid;
-    grid-template-columns: 1fr auto;
-    gap:1rem;
-    align-items:center;
-    margin-bottom:1.25rem;
-  }
+  .header-7dias{display:grid;grid-template-columns:1fr auto;gap:1rem;align-items:center;margin-bottom:1.25rem}
   .header-text{min-width:0}
   .header-text p{margin:.25rem 0 0;color:#374151}
   .header-img{display:flex;align-items:center;justify-content:flex-end}
-  .header-img img{
-    height:120px;max-width:220px;width:auto;object-fit:contain;display:block;
-  }
-  @media (max-width:640px){
-    .header-7dias{ grid-template-columns:1fr; }
-    .header-img{ justify-content:flex-start; }
-    .header-img img{ height:80px; max-width:60%; }
-  }
+  .header-img img{height:120px;max-width:220px;width:auto;object-fit:contain;display:block}
+  @media (max-width:640px){ .header-7dias{grid-template-columns:1fr}.header-img{justify-content:flex-start}.header-img img{height:80px;max-width:60%}}
 
-  .secret-badge{
-    display:inline-block;margin-top:.25rem;font-size:.9rem;color:#0f3a33;
-    background:rgba(51,89,83,.08);border:1px dashed #335953;border-radius:10px;padding:.35rem .6rem;font-weight:700;
-  }
-  .secret-note{
-    margin: .5rem 0 1rem;background:#f7fbfa;border:1px solid #e6ecea;border-radius:12px;padding:.75rem 1rem;
-  }
-  .secret-note > summary{cursor:pointer;font-weight:800;color:#335953;outline:none}
+  .secret-note{margin:.5rem 0 1rem;background:#f7fbfa;border:1px solid #e6ecea;border-radius:12px;padding:.75rem 1rem}
+  .secret-note > summary{cursor:pointer;font-weight:800;color:#335953}
   .secret-note > p{margin:.5rem 0 0;color:#334155;line-height:1.55}
 </style>
 </head>
 <body>
   <div class="wrap">
 
-    <!-- GATE (portinha) -->
+    <!-- GATE -->
     <div id="gate" class="card">
       <div class="header-7dias">
         <div class="header-text">
@@ -75,204 +45,10 @@
           <p class="muted">Para liberar o plano, passe pelo assistente rápido (ajusta o material ao seu objetivo).</p>
         </div>
         <div class="header-img">
-          <!-- Substitua o src pelo caminho real do seu logo -->
-          <img src="logo-femflow-verde.png" alt="Logo FemFlow">
+          <!-- usa o arquivo com espaço no nome -->
+          <img src="logo femflow verde.png" alt="Logo FemFlow">
         </div>
       </div>
 
-      <a class="btn" id="goBot" href="#">
-        Abrir assistente
-      </a>
-      <p id="err" class="muted"></p>
-    </div>
-
-    <details class="secret-note">
-      <summary>Por que não revelamos toda a metodologia?</summary>
-      <p>
-        O protocolo completo da FemFlow é aplicado no seu plano, mas não divulgado passo a passo.
-        Fazemos isso para manter a integridade do método, evitar cópias superficiais e garantir progresso guiado —
-        menos barulho, mais resultado.
-      </p>
-    </details>
-
-    <!-- CONTEÚDO LIBERADO -->
-    <div id="ok" class="card hide">
-
-      <section class="section" id="plano-7-dias">
-        <h2>Seu Plano de 7 Dias</h2>
-
-        <article class="card day">
-          <h3>Dia 1 — Mobilidade total + respiração</h3>
-          <ul>
-            <li>6–8 min mobilidade torácica (parede/rotação/rolo)</li>
-            <li>2 blocos × 8 min (PSE 4/10): agachamento com apoio, ponte de glúteo, remada com elástico, prancha curta (20–25s)</li>
-            <li>5 min respiração coerente (5–6s inspirar/expirar)</li>
-          </ul>
-          <a class="btn-ghost" href="https://www.youtube.com/shorts/w0MfiVldR34" target="_blank" rel="noopener">📹 Mobilidade torácica (Isabella Campos)</a>
-          <a class="btn-ghost" href="https://www.youtube.com/shorts/gHVvqDRpqX4" target="_blank" rel="noopener">📹 Agachamento com apoio (Carol Borba)</a>
-          <a class="btn-ghost" href="https://www.youtube.com/shorts/1satDE63Bwc" target="_blank" rel="noopener">📹 Ponte de glúteo</a>
-          <a class="btn-ghost" href="https://www.youtube.com/shorts/ydJM8flEHrs" target="_blank" rel="noopener">📹 Remada com elástico</a>
-          <a class="btn-ghost" href="https://www.youtube.com/shorts/sEw8EGZBC1w" target="_blank" rel="noopener">📹 Prancha isométrica</a>
-          <a class="btn-ghost" href="https://www.youtube.com/shorts/B7oThbNlTG0" target="_blank" rel="noopener">📹 Respiração coerente guiada</a>
-        </article>
-
-        <article class="card day">
-          <h3>Dia 2 — Técnica: glúteo • costas • abdômen</h3>
-          <ul>
-            <li>Ponte de glúteo 3×10–12 (ênfase técnica)</li>
-            <li>Remada com elástico 3×12–15 (escápulas ativas)</li>
-            <li>Prancha isométrica 3×20–30s</li>
-            <li>Abdução de quadril lateral (“concha”) 2×12–15</li>
-          </ul>
-          <a class="btn-ghost" href="https://www.youtube.com/shorts/1satDE63Bwc" target="_blank" rel="noopener">📹 Ponte de glúteo — variações</a>
-          <a class="btn-ghost" href="https://www.youtube.com/shorts/ydJM8flEHrs" target="_blank" rel="noopener">📹 Remada com elástico</a>
-          <a class="btn-ghost" href="https://www.youtube.com/shorts/sEw8EGZBC1w" target="_blank" rel="noopener">📹 Prancha </a>
-          <a class="btn-ghost" href="https://www.youtube.com/shorts/NykPOcQj6bA" target="_blank" rel="noopener">📹 “Concha/ostra” </a>
-        </article>
-
-        <article class="card day">
-          <h3>Dia 3 — Caminhada leve + mobilidade</h3>
-          <ul>
-            <li>20–30 min caminhada ou pedal leve (PSE 3–4)</li>
-            <li>5–8 min mobilidade torácica + quadril</li>
-            <li>Respiração em caixa 4–4–4–4 por 3–5 min</li>
-          </ul>
-          <a class="btn-ghost" href="https://www.youtube.com/shorts/2QJR9vJZwrI" target="_blank" rel="noopener">📹 Dicas de caminhada </a>
-          <a class="btn-ghost" href="https://www.youtube.com/shorts/ItUNZR8I3bg" target="_blank" rel="noopener">📹 Mobilidade torácica </a>
-          <a class="btn-ghost" href="https://www.youtube.com/shorts/E9Pz3vpzp6c" target="_blank" rel="noopener">📹 Respiração em Box</a>
-        </article>
-
-        <article class="card day">
-          <h3>Dia 4 — Força leve técnica</h3>
-          <ul>
-            <li>Agachamento com apoio 3×10–12</li>
-            <li>Puxada de elástico na altura do rosto (face pull) 3×12–15</li>
-            <li>Quatro apoios alternado (bird‭dog) 3×8–10/lado</li>
-            <li>Abdutor “Concha” 2×12–15</li>
-          </ul>
-          <a class="btn-ghost" href="https://www.youtube.com/shorts/gHVvqDRpqX4" target="_blank" rel="noopener">📹 Agachamento — execução</a>
-          <a class="btn-ghost" href="https://www.youtube.com/shorts/enL0z76j0xA" target="_blank" rel="noopener">📹 Face pull com elástico</a>
-          <a class="btn-ghost" href="https://www.youtube.com/shorts/6Ez5m41UnPo" target="_blank" rel="noopener">📹 Quatro apoios alternado</a>
-          <a class="btn-ghost" href="https://www.youtube.com/shorts/NykPOcQj6bA" target="_blank" rel="noopener">📹 Abdutor “Concha” </a>
-        </article>
-
-        <article class="card day">
-          <h3>Dia 5 — Abdômen + mobilidade</h3>
-          <ul>
-            <li>“Inseto morto” (dead bug) 3×8–10/lado</li>
-            <li>Prancha isométrica 3×25–35s</li>
-            <li>Mobilidade torácica + quadril 6–8 min</li>
-          </ul>
-          <a class="btn-ghost" href="https://www.youtube.com/shorts/DqLL45uk2Tk" target="_blank" rel="noopener">📹 Dead bug </a>
-          <a class="btn-ghost" href="https://www.youtube.com/shorts/sEw8EGZBC1w" target="_blank" rel="noopener">📹 Prancha </a>
-          <a class="btn-ghost" href="https://www.youtube.com/shorts/w0MfiVldR34" target="_blank" rel="noopener">📹 Mobilidade torácica</a>
-        </article>
-
-        <article class="card day">
-          <h3>Dia 6 — Caminhada ou corrida progressiva</h3>
-          <ul>
-            <li>25–35 min com progressão leve (terminar em PSE 6)</li>
-            <li>5 min mobilidade suave</li>
-          </ul>
-          <a class="btn-ghost" href="https://www.youtube.com/shorts/0ydzyeQ11ME" target="_blank" rel="noopener">📹 Corrida leve </a>
-          <a class="btn-ghost" href="https://www.youtube.com/shorts/UH3fk1OS1ms" target="_blank" rel="noopener">📹 Alongar e soltar o corpo</a>
-        </article>
-
-        <article class="card day">
-          <h3>Dia 7 — Recuperação ativa + respiração</h3>
-          <ul>
-            <li>Caminhada leve 20–30 min</li>
-            <li>Respiração coerente 5–6 min</li>
-            <li>Alongamentos leves</li>
-          </ul>
-          <a class="btn-ghost" href="https://www.youtube.com/shorts/2QJR9vJZwrI" target="_blank" rel="noopener">📹 Caminhada leve/moderada</a>
-          <a class="btn-ghost" href="https://www.youtube.com/shorts/B7oThbNlTG0" target="_blank" rel="noopener">📹 Respiração coerente guiada</a>
-          <a class="btn-ghost" href="https://www.youtube.com/watch?v=UJN1cljyhVg" target="_blank" rel="noopener">📹 Alongamento básico </a>
-        </article>
-      </section>
-    </div><!-- /#ok -->
-
-    <!-- CTA de retorno (fora do bloco do plano) -->
-    <div class="card" id="upsell" style="margin-top:2rem;text-align:center;">
-      <h2 style="color:#335953;margin-bottom:.5rem;">Você sentiu o Start...</h2>
-      <p class="muted" style="margin-bottom:1rem;line-height:1.6;">
-        7 dias mostram o método em ação. Resultado consistente vem com o plano completo.
-      </p>
-      <a href="/#ofertas" class="btn" style="margin:.5rem;display:inline-block;">
-        🔥 Subir para o Strong — App + Whats (aplicação do método)
-      </a>
-      <a href="/#ofertas" class="btn" style="background:#1f2937;margin:.5rem;display:inline-block;">
-        🚀 Ir direto para o Elite — App/TrainingPeaks + Premium (camadas avançadas)
-      </a>
-    </div>
-
-  </div><!-- /.wrap -->
-
-<script>
-/* ===== Config (FemFlow) ===== */
-const TYPEBOT_URL = "https://automacao.chatideal.com.br/anamnese-g44p1wv"; // novo link
-const LS_KEY = "ff_7dias_token"; // namespace femflow
-const TTL_MIN = 60; // minutos de passe local
-
-/* UTM pass-through */
-function pickUTM(searchParams){
-  const p = new URLSearchParams(searchParams);
-  const keep = new URLSearchParams();
-  ["utm_source","utm_medium","utm_campaign","utm_content","utm_term"].forEach(k=>{
-    const v = p.get(k); if(v) keep.set(k,v);
-  });
-  return keep;
-}
-function makeRedirectUrl(){
-  const red = new URL(location.href);
-  red.search = "";
-  red.searchParams.set("from","typebot");
-  const utm = pickUTM(location.search);
-  utm.forEach((v,k)=> red.searchParams.set(k,v));
-  return red.toString();
-}
-
-/* Token leve (não é segurança real) */
-function genSoftToken(){ return (Date.now().toString(36)+Math.random().toString(36).slice(2,10)).toUpperCase(); }
-function saveToken(){
-  const payload = { t: genSoftToken(), exp: Date.now() + TTL_MIN*60*1000 };
-  localStorage.setItem(LS_KEY, JSON.stringify(payload));
-  return payload;
-}
-function readToken(){
-  try{
-    const raw = localStorage.getItem(LS_KEY);
-    if(!raw) return null;
-    const data = JSON.parse(raw);
-    if(!data.exp || Date.now() > data.exp) { localStorage.removeItem(LS_KEY); return null; }
-    return data;
-  }catch{ return null; }
-}
-
-/* Gate logic */
-(function(){
-  const params = new URLSearchParams(location.search);
-  const from = params.get("from");
-  const cached = readToken();
-
-  // configura botão do gate (href com redirect dinâmico)
-  const go = document.getElementById("goBot");
-  if (go) {
-    const redirectUrl = encodeURIComponent(makeRedirectUrl());
-    go.href = `${TYPEBOT_URL}?redirectUrl=${redirectUrl}`;
-    go.setAttribute("rel","noopener");
-  }
-
-  // libera conteúdo
-  if (from === "typebot") {
-    saveToken();
-    document.getElementById("gate").classList.add("hide");
-    document.getElementById("ok").classList.remove("hide");
-  } else if (cached) {
-    document.getElementById("gate").classList.add("hide");
-    document.getElementById("ok").classList.remove("hide");
-  } // senão, permanece no gate
-})();
-</script>
-</body>
-</html>
+      <a class="btn" id="goBot" href="#">Abrir assistente</a>
+      <p id="err" class="
