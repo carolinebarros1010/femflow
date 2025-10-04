@@ -7,31 +7,144 @@
 <meta name="robots" content="noindex,nofollow">
 <link href="https://fonts.googleapis.com/css2?family=Rubik:wght@400;700;900&display=swap" rel="stylesheet">
 <style>
-  :root{
-    --primary:#335953; --accent:#CC6A5A; --soft:#F4E1D7; --peach:#EFBDA6; --border:#F4E1D7;
+  <style>
+  :root {
+    --teal: #335953;
+    --terracota: #CC6A5A;
+    --pessego: #EFBDA6;
+    --creme: #F4E1D7;
+    --grafite: #1f2937;
   }
-  body{font-family:'Rubik',system-ui,-apple-system,Segoe UI,Roboto,Arial;background:#fff;color:#1f2937;margin:0}
-  .wrap{max-width:960px;margin:0 auto;padding:2rem 1rem}
-  .card{background:#fff;border:1px solid var(--border);border-radius:14px;padding:1.25rem;box-shadow:0 10px 20px rgba(0,0,0,.06)}
-  h1,h2,h3{color:var(--primary);margin:0 0 .5rem}
-  .btn{display:inline-block;background:var(--primary);color:#fff;padding:.9rem 1.2rem;border-radius:12px;font-weight:900;text-decoration:none;transition:.2s}
-  .btn:hover{filter:brightness(0.95)}
-  .btn-ghost{background:transparent;color:var(--primary);border:1px solid var(--primary);padding:.55rem .75rem;border-radius:10px;margin:.25rem 0;text-decoration:none;font-weight:700}
-  .btn-ghost:hover{background:var(--soft)}
-  .day{border:1px solid var(--border);border-radius:12px;padding:1rem;margin:.75rem 0}
-  .muted{color:#6b7280}
-  .hide{display:none}
 
-  .header-7dias{display:grid;grid-template-columns:1fr auto;gap:1rem;align-items:center;margin-bottom:1.25rem}
-  .header-text{min-width:0}
-  .header-text p{margin:.25rem 0 0;color:#374151}
-  .header-img{display:flex;align-items:center;justify-content:flex-end}
-  .header-img img{height:120px;max-width:220px;width:auto;object-fit:contain;display:block}
-  @media (max-width:640px){ .header-7dias{grid-template-columns:1fr}.header-img{justify-content:flex-start}.header-img img{height:80px;max-width:60%}}
+  body {
+    font-family: 'Rubik', system-ui, -apple-system, Segoe UI, Roboto, Arial;
+    background: #fff;
+    color: var(--grafite);
+    margin: 0;
+  }
 
-  .secret-note{margin:.5rem 0 1rem;background:#f7fbfa;border:1px solid #e6ecea;border-radius:12px;padding:.75rem 1rem}
-  .secret-note > summary{cursor:pointer;font-weight:800;color:#335953}
-  .secret-note > p{margin:.5rem 0 0;color:#334155;line-height:1.55}
+  .wrap {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 2rem 1rem;
+  }
+
+  .card {
+    background: #fff;
+    border: 2px solid var(--creme);
+    border-radius: 16px;
+    padding: 1.25rem;
+    box-shadow: 0 10px 24px rgba(239,189,166,0.2);
+  }
+
+  h1, h2, h3 {
+    color: var(--teal);
+    margin: 0 0 .5rem;
+  }
+
+  .btn {
+    display: inline-block;
+    background: var(--teal);
+    color: #fff;
+    padding: .9rem 1.2rem;
+    border-radius: 14px;
+    font-weight: 900;
+    text-decoration: none;
+    transition: .2s ease;
+    box-shadow: 0 6px 14px rgba(51,89,83,.25);
+  }
+  .btn:hover {
+    background: var(--terracota);
+    box-shadow: 0 8px 20px rgba(204,106,90,.35);
+  }
+
+  .btn-ghost {
+    background: transparent;
+    color: var(--teal);
+    border: 1.5px solid var(--teal);
+    padding: .55rem .9rem;
+    border-radius: 10px;
+    margin: .25rem;
+    font-weight: 700;
+    text-decoration: none;
+    transition: .2s;
+  }
+  .btn-ghost:hover {
+    background: var(--creme);
+    color: var(--terracota);
+    border-color: var(--terracota);
+  }
+
+  .day {
+    border: 2px solid var(--creme);
+    border-radius: 14px;
+    padding: 1rem;
+    margin: .75rem 0;
+  }
+
+  .muted {
+    color: #6b7280;
+  }
+
+  .hide {
+    display: none;
+  }
+
+  .header-7dias {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 1rem;
+    align-items: center;
+    margin-bottom: 1.25rem;
+  }
+
+  .header-text p {
+    margin: .25rem 0 0;
+    color: #374151;
+  }
+
+  .header-img img {
+    height: 100px;
+    max-width: 200px;
+    object-fit: contain;
+  }
+
+  @media (max-width:640px) {
+    .header-7dias { grid-template-columns: 1fr; }
+    .header-img img { height: 70px; max-width: 65%; }
+  }
+
+  details {
+    background: #fffaf8;
+    border: 1.5px solid var(--pessego);
+    border-radius: 12px;
+    padding: .75rem 1rem;
+    color: var(--grafite);
+  }
+  summary {
+    cursor: pointer;
+    font-weight: 800;
+    color: var(--teal);
+  }
+  details p {
+    margin: .5rem 0 0;
+    color: #334155;
+    line-height: 1.55;
+  }
+
+  #upsell h2 {
+    color: var(--teal);
+  }
+
+  #upsell .btn {
+    background: var(--terracota);
+    box-shadow: 0 6px 16px rgba(204,106,90,.3);
+  }
+  #upsell .btn:hover {
+    background: var(--pessego);
+    color: var(--teal);
+    box-shadow: 0 8px 20px rgba(239,189,166,.4);
+  }
 </style>
 </head>
 <body>
@@ -166,10 +279,8 @@
     </div>
 
   </div><!-- /.wrap -->
-
 <script>
-<script>
-/** ===== FemFlow 7 dias — unlock robusto ===== */
+/** ===== FemFlow 7 dias — desbloqueio visual e funcional ===== */
 (function () {
   const TYPEBOT_URL = "https://automacao.chatideal.com.br/anamnese-g44p1wv";
   const LS_KEY = "ff_7dias_token";
@@ -179,6 +290,7 @@
     const exp = Date.now() + TTL_DAYS * 24 * 60 * 60 * 1000;
     localStorage.setItem(LS_KEY, JSON.stringify({ exp }));
   }
+
   function hasToken() {
     try {
       const raw = localStorage.getItem(LS_KEY);
@@ -193,6 +305,7 @@
       return false;
     }
   }
+
   function makeRedirectUrl() {
     const u = new URL(location.href);
     u.search = "";
@@ -200,11 +313,11 @@
     u.searchParams.set("unlock", "7dias");
     return u.toString();
   }
+
   function shouldOpenNow() {
     const url = new URL(location.href);
     const p = url.searchParams;
 
-    // Aceita qualquer valor de "open" (1, true, vazio) e também no hash
     const openParam =
       p.has("open") ||
       /(^|[#&?])open(=|&|$)/i.test(location.href) ||
@@ -213,14 +326,12 @@
     const fromTypebot = p.get("from") === "typebot" && p.get("unlock") === "7dias";
     return openParam || fromTypebot || hasToken();
   }
+
   function reveal() {
-    const gate = document.getElementById("gate");
-    const ok = document.getElementById("ok");
-    if (gate && ok) {
-      gate.classList.add("hide");
-      ok.classList.remove("hide");
-    }
+    document.getElementById("gate")?.classList.add("hide");
+    document.getElementById("ok")?.classList.remove("hide");
   }
+
   function cleanUrlIfNeeded() {
     const url = new URL(location.href);
     if (url.searchParams.has("open") || url.searchParams.get("from") === "typebot") {
@@ -228,9 +339,7 @@
     }
   }
 
-  // Espera o DOM para garantir que os elementos existam
   document.addEventListener("DOMContentLoaded", function () {
-    // Configura o botão do gate → Typebot (continua funcionando)
     const go = document.getElementById("goBot");
     if (go) {
       const redirect = encodeURIComponent(makeRedirectUrl());
@@ -239,7 +348,6 @@
       go.rel = "noopener";
     }
 
-    // Liberação
     if (shouldOpenNow()) {
       if (!hasToken()) saveToken();
       reveal();
@@ -247,7 +355,6 @@
     }
   });
 })();
-</script>
 </script>
 </body>
 </html>
