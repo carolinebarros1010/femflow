@@ -210,14 +210,16 @@
     <div id="resultado-irregular" class="resultado-fase"></div>
   </div>
   
-  <div id="acessoTreinos" class="box" style="display:none;">
-  <h2>Acesso aos treinos da fase</h2>
-  <label>Digite seu código FemFlow:
-    <input type="text" id="codigoAcesso" placeholder="Ex: FEMFLOW03">
-  </label>
-  <button class="submit-btn" onclick="verificarCodigo()">Liberar meus treinos</button>
+ <!-- Campo para inserir o código -->
+<div class="box">
+  <h2>Insira o código para liberar seus treinos</h2>
+  <label for="codigo">Código de acesso:</label>
+  <input type="text" id="codigo" placeholder="Ex: FEMFLOW02 ou CASAFLOW02">
+  <button class="submit-btn" onclick="verificarCodigo()">Liberar treinos</button>
+  
+  <!-- Aqui aparecerão os treinos ou mensagem de erro -->
+  <div id="acessoTreinos" style="margin-top: 1.5rem;"></div>
 
-  <div id="linksTreinos" style="display:none; margin-top:1.5rem;"></div>
 </div>
 
 
@@ -294,7 +296,37 @@ function verificarCodigo() {
 
   linksDiv.innerHTML = html;
   linksDiv.style.display = 'block';
+
 }
+function verificarCodigo() {
+  const codigo = document.getElementById('codigo').value.trim().toUpperCase();
+  const treinosDiv = document.getElementById('acessoTreinos');
+  const fase = document.getElementById('faseDetectada')?.value || 'folicular';
+
+  let pasta = '';
+  let valido = false;
+
+  if (codigo.startsWith("FEMFLOW")) {
+    pasta = "treinos";
+    valido = true;
+  } else if (codigo.startsWith("CASAFLOW")) {
+    pasta = "treinocasa";
+    valido = true;
+  } else if (codigo.startsWith("GLUTEFLOW")) {
+    pasta = "gluteflow";
+    valido = true;
+  }
+
+  if (valido) {
+    treinosDiv.innerHTML = `
+      <h3>Treinos liberados para a fase <strong>${fase.toUpperCase()}</strong>:</h3>
+      <a href="https://www.femflow.com.br/femflowidciclo/${pasta}/treino_a_${fase}.html" target="_blank">Treino A</a>
+      <a href="https://www.femflow.com.br/femflowidciclo/${pasta}/treino_b_${fase}.html" target="_blank">Treino B</a>
+      <a href="https://www.femflow.com.br/femflowidciclo/${pasta}/treino_c_${fase}.html" target="_blank">Treino C</a>
+    `;
+  } else {
+    treinosDiv.innerHTML = `<p style="color: red;">Código inválido ou plano não reconhecido. Verifique e tente novamente.</p>`;
+  }
 </script>
 
 
