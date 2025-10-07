@@ -171,8 +171,28 @@ select {
   padding: 1rem;
   box-sizing: border-box;
 }
+  /* Ajuste para o box de acesso aos treinos */
+#acessoTreino input[type="text"],
+#acessoTreino button {
+  max-width: 100%;
+  width: 100%;
+  box-sizing: border-box;
+  padding: 0.5rem;
+  font-size: 1rem;
+  margin-bottom: 0.5rem;
+}
 
-</style>
+/* Responsivo para mobile */
+@media (max-width: 480px) {
+  #acessoTreino input[type="text"],
+  #acessoTreino button {
+    font-size: 0.9rem;
+    padding: 0.4rem;
+    width: 95%;
+    min-width: 5mm;
+  }
+
+  </style>
 </head>
 <body>
 
