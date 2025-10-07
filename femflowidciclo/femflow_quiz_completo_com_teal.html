@@ -253,17 +253,23 @@ function calcularFase() {
   else if (diaCiclo <= 16) fase = 'ovulatoria';
   else fase = 'lutea';
 
-  // Atualiza campo oculto
+  // Preenche o campo oculto com a fase detectada
   document.getElementById("faseDetectada").value = fase;
 
-  // Exibe resultado no box do ciclo regular
+  // Exibe o resultado tanto no box regular quanto no irregular
   document.getElementById("resultadoRegular").innerHTML = `
     <div class="box" style="background-color: #FFEAE5; margin-top: 1rem;">
       <h3>Fase atual detectada: ${fase.toUpperCase()}</h3>
     </div>
   `;
 
-  // Mostra box de treino
+  document.getElementById("resultadoIrregular").innerHTML = `
+    <div class="box" style="background-color: #FFEAE5; margin-top: 1rem;">
+      <h3>Fase atual detectada: ${fase.toUpperCase()}</h3>
+    </div>
+  `;
+
+  // Mostra o box de treino
   document.getElementById("acessoTreino").style.display = "block";
 }
 
