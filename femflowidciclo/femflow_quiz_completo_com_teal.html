@@ -207,7 +207,7 @@
       </select>
     </label>
     <button class="submit-btn" onclick="estimarFase()">Estimar fase</button>
-    <div id="resultadoRegular" class="result"></div>
+    <div id="resultadoIrregular" style="margin-top: 1.5rem;"></div>
   </div>
   
 <!-- Campo para inserir o código -->
@@ -256,24 +256,33 @@
     document.getElementById("acessoTreino").style.display = "block";
   }
 
-  function estimarFase() {
-    const respostas = [q1.value, q2.value, q3.value, q4.value, q5.value];
-    const contagem = {};
-    respostas.forEach(fase => {
-      if (fase) contagem[fase] = (contagem[fase] || 0) + 1;
-    });
-    let fase = Object.keys(contagem).reduce((a, b) => contagem[a] > contagem[b] ? a : b, 'folicular');
+function estimarFase() {
+  const respostas = [
+    document.getElementById("q1").value,
+    document.getElementById("q2").value,
+    document.getElementById("q3").value,
+    document.getElementById("q4").value,
+    document.getElementById("q5").value,
+  ];
 
-    faseDetectada = fase;
-    document.getElementById("faseDetectada").value = fase;
+  const contagem = {};
+  respostas.forEach(fase => {
+    if (fase) contagem[fase] = (contagem[fase] || 0) + 1;
+  });
 
-    document.getElementById("resultadoIrregular").innerHTML = `
-      <h3>Fase atual: ${fase.toUpperCase()}</h3>
-    `;
+  let fase = Object.keys(contagem).reduce((a, b) => contagem[a] > contagem[b] ? a : b, 'folicular');
 
-    document.getElementById("acessoTreino").style.display = "block";
-  }
+  // Atualiza a fase detectada no campo oculto
+  document.getElementById("faseDetectada").value = fase;
 
+  // Exibe o box de código se ainda não estiver visível
+  document.getElementById("acessoTreino").style.display = 'block';
+
+  // Mostra a fase no bloco do ciclo irregular
+  document.getElementById("resultadoIrregular").innerHTML = `
+    <h3>Sua fase estimada é: ${fase.toUpperCase()}</h3>
+  `;
+}
   function mostrarFaseSomente(fase) {
   // Aqui você define onde será exibido o resultado da fase
   const resultBox = document.getElementById('result');
