@@ -176,6 +176,22 @@ function mostrarLinks(fase) {
     <a href="https://www.femflow.com.br/femflowidciclo/treino_c_${fase}.html">Treino C</a>
   `;
 }
+  <script>
+  // Verifica se o usuário está autorizado via parâmetro de URL
+  const acesso = new URLSearchParams(window.location.search).get("acesso");
+  const acessoPermitido = acesso === "fem2025";
+
+  window.onload = function () {
+    if (!acessoPermitido) {
+      const botoes = document.querySelectorAll(".treino-btn");
+      botoes.forEach(btn => {
+        btn.href = "https://www.femflow.com.br#ofertas";
+        btn.innerText = "🔒 Acesse o plano para liberar o treino";
+        btn.classList.add("bloqueado");
+      });
+    }
+  }
+</script>
 </script>
 
 </body>
