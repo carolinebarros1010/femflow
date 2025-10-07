@@ -145,22 +145,63 @@
     color: var(--teal);
     box-shadow: 0 8px 20px rgba(239,189,166,.4);
   }
+  .card.day {
+  background: #fff;
+  border: 2px solid var(--pessego);
+  border-radius: 20px;
+  padding: 1.5rem;
+  margin: 1.5rem 0;
+  box-shadow: 0 6px 16px rgba(239,189,166,0.25);
+  transition: 0.3s ease;
+}
+
+.card.day h3 {
+  color: var(--terracota);
+  font-size: 1.25rem;
+  margin-bottom: 0.75rem;
+  position: relative;
+}
+
+.card.day h3::before {
+  content: "🌸";
+  position: absolute;
+  left: -1.75rem;
+}
+
+ul {
+  margin: 0.5rem 0 1rem;
+  padding-left: 1.2rem;
+}
+
+.btn-ghost {
+  display: inline-block;
+  margin: 0.35rem 0.35rem 0 0;
+  font-size: 0.9rem;
+  background: var(--creme);
+  border: 1.5px dashed var(--terracota);
+  color: var(--terracota);
+}
 </style>
 </head>
 <body>
   <div class="wrap">
 
     <!-- GATE -->
-    <div id="gate" class="card">
-      <div class="header-7dias">
-        <div class="header-text">
-          <h1>Start FemFlow — acesso guiado</h1>
-          <p class="muted">Para liberar o plano, passe pelo assistente rápido (ajusta o material ao seu objetivo).</p>
-        </div>
-        <div class="header-img">
-          <!-- arquivo com espaço no nome funciona; se renomear, ajuste aqui -->
-          <img src="logo femflow verde.png" alt="Logo FemFlow">
-        </div>
+
+    <body style="background: var(--creme);">
+  <div class="wrap">
+    <header class="header-7dias">
+      <div class="header-text">
+        <h1 style="font-size: 2rem; font-weight: 900;">💫 Bem-vinda ao seu Plano FemFlow</h1>
+        <p style="font-size: 1.1rem; color: var(--grafite); max-width: 80%;">
+          7 dias para iniciar sua reconexão com o corpo feminino: mobilidade, força leve, respiração e caminhada.
+        </p>
+      </div>
+      <div class="header-img">
+        <img src="logo femflow verde.png" alt="FemFlow Logo" />
+      </div>
+    </header>
+  
       </div>
 
       <a class="btn" id="goBot" href="#">Abrir assistente</a>
@@ -266,7 +307,10 @@
           <a class="btn-ghost" href="https://www.youtube.com/shorts/B7oThbNlTG0" target="_blank" rel="noopener">📹 Respiração coerente guiada</a>
           <a class="btn-ghost" href="https://www.youtube.com/watch?v=UJN1cljyhVg" target="_blank" rel="noopener">📹 Alongamento básico </a>
         </article>
-      </section>
+              </section>
+      <footer style="text-align: center; margin-top: 2rem;">
+  <p style="color: var(--grafite); font-size: 1rem;">✨ Lembre-se: cuidar do seu corpo é um ato de amor próprio. Um dia de cada vez. #FemFlow</p>
+</footer>
     </div><!-- /#ok -->
 
         <!-- CTA de retorno (fora do bloco do plano) -->
