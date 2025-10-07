@@ -164,37 +164,6 @@
   <div class="footer">
     FemFlow © 2025 – Potencialize seus treinos com a inteligência do seu corpo
   </div>
-<script>
-  const urlParams = new URLSearchParams(window.location.search);
-  const acesso = urlParams.get('acesso');
 
-  if (acesso === 'fem2025') {
-    document.getElementById('painel').innerHTML = `
-      <iframe src="femflow_quiz_completo_com_teal_corrigido.html" style="width:100%; height:1300px; border:none;"></iframe>`;
-  } else {
-    window.location.href = 'https://www.femflow.com.br#ofertas';
-  }
-
-  function verificarCodigo() {
-    const codigo = document.getElementById('codigo').value.trim().toUpperCase();
-    const erro = document.getElementById('erro');
-    const links = document.getElementById('linksTreinos');
-
-    if (codigo === 'FEM4SEM') {
-      erro.style.display = 'none';
-      links.style.display = 'block';
-      const fase = 'folicular';
-
-      document.getElementById('linkA').href = `https://www.femflow.com.br/femflowidciclo/treino_a_${fase}.html`;
-      document.getElementById('linkB').href = `https://www.femflow.com.br/femflowidciclo/treino_b_${fase}.html`;
-      document.getElementById('linkC').href = `https://www.femflow.com.br/femflowidciclo/treino_c_${fase}.html`;
-    } else {
-      erro.style.display = 'block';
-      setTimeout(() => {
-        window.location.href = 'https://www.femflow.com.br#ofertas';
-      }, 2500);
-    }
-  }
-</script>
 </body>
 </html>
