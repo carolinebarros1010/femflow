@@ -160,52 +160,13 @@
   <div class="footer">
     FemFlow © 2025 – Potencialize seus treinos com a inteligência do seu corpo
   </div>
-<!-- Bloco de Código de Acesso aos Treinos -->
-<section id="acesso-treinos" style="padding: 2rem 1rem; max-width: 600px; margin: 3rem auto; background: #fff; border-radius: 12px; box-shadow: 0 2px 12px rgba(0,0,0,0.05); text-align: center;">
-  <h2 style="color: #CC6A5A; font-family: 'Playfair Display', serif; margin-bottom: 1rem;">Liberar Treinos por Código</h2>
-  <p style="font-size: 1rem;">Insira o código recebido para liberar o acesso aos treinos do seu ciclo.</p>
-  
-  <input id="codigo" type="text" placeholder="Digite o código FEM4SEM" 
-         style="padding: 0.75rem 1rem; font-size: 1rem; border-radius: 8px; border: 1px solid #ccc; width: 80%; max-width: 300px; margin-top: 1rem;">
-  
-  <br>
-  <button onclick="verificarCodigo()" 
-          style="margin-top: 1rem; padding: 0.75rem 1.5rem; background-color: #335953; color: white; border: none; border-radius: 8px; font-size: 1rem; cursor: pointer;">
-    Liberar Treinos
-  </button>
-
-  <div id="erro" style="color: red; margin-top: 1rem; display: none;">❌ Código inválido. Redirecionando...</div>
-
-  <div id="linksTreinos" style="display: none; margin-top: 2rem;">
-    <h3 style="color: #335953; font-family: 'Playfair Display', serif;">Acesse seus treinos:</h3>
-    <a id="linkA" target="_blank" style="display:block; margin: 0.5rem 0; color: #EFBDA6; font-weight: bold;">➡️ Treino A</a>
-    <a id="linkB" target="_blank" style="display:block; margin: 0.5rem 0; color: #EFBDA6; font-weight: bold;">➡️ Treino B</a>
-    <a id="linkC" target="_blank" style="display:block; margin: 0.5rem 0; color: #EFBDA6; font-weight: bold;">➡️ Treino C</a>
-  </div>
-</section>
-
 <script>
-  function verificarCodigo() {
-    const codigo = document.getElementById('codigo').value.trim().toUpperCase();
-    const erro = document.getElementById('erro');
-    const links = document.getElementById('linksTreinos');
+  const urlParams = new URLSearchParams(window.location.search);
+  const acesso = urlParams.get('acesso');
 
-    if (codigo === 'FEM4SEM') {
-      erro.style.display = 'none';
-      links.style.display = 'block';
-
-      // Fase definida manualmente aqui. Pode ser dinâmica futuramente.
-      const fase = 'folicular';
-
-      document.getElementById('linkA').href = `https://www.femflow.com.br/femflowidciclo/treino_a_${fase}.html`;
-      document.getElementById('linkB').href = `https://www.femflow.com.br/femflowidciclo/treino_b_${fase}.html`;
-      document.getElementById('linkC').href = `https://www.femflow.com.br/femflowidciclo/treino_c_${fase}.html`;
-    } else {
-      erro.style.display = 'block';
-      setTimeout(() => {
-        window.location.href = 'https://www.femflow.com.br#ofertas';
-      }, 2500);
-    }
+  if (acesso !== 'fem2025') {
+    // Código incorreto ou ausente → redireciona para o site
+    window.location.href = 'https://www.femflow.com.br#ofertas';
   }
 </script>
 
