@@ -1,0 +1,83 @@
+
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Quiz FemFlow - Ciclo Menstrual</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <style>
+    body {
+      font-family: 'Lato', sans-serif;
+      background-color: #FFEAE5;
+      color: #333;
+      padding: 2rem;
+      line-height: 1.6;
+    }
+    h1 {
+      color: #CC6A5A;
+      text-align: center;
+      font-family: 'Playfair Display', serif;
+    }
+    .question {
+      margin: 2rem 0;
+    }
+    .question label {
+      display: block;
+      margin: 0.5rem 0;
+    }
+    .submit-btn {
+      display: block;
+      margin: 2rem auto;
+      background-color: #335953;
+      color: white;
+      padding: 1rem 2rem;
+      border: none;
+      font-size: 1rem;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .submit-btn:hover {
+      background-color: #CC6A5A;
+    }
+  </style>
+</head>
+<body>
+
+  <h1>Descubra em qual fase do ciclo você está</h1>
+
+  <form id="quizForm">
+    <div class="question">
+      <p>1. Em que dia do seu ciclo você está?</p>
+      <label><input type="radio" name="dia" value="1-5"> Entre o dia 1 e 5 (menstruação)</label>
+      <label><input type="radio" name="dia" value="6-12"> Entre o dia 6 e 12 (fase folicular)</label>
+      <label><input type="radio" name="dia" value="13-16"> Entre o dia 13 e 16 (ovulação)</label>
+      <label><input type="radio" name="dia" value="17-28"> Entre o dia 17 e 28 (lútea)</label>
+    </div>
+
+    <button type="submit" class="submit-btn">Ver minha fase</button>
+  </form>
+
+  <script>
+    document.getElementById('quizForm').addEventListener('submit', function(event) {
+      event.preventDefault();
+
+      const value = document.querySelector('input[name="dia"]:checked')?.value;
+
+      if (!value) {
+        alert("Por favor, selecione uma opção.");
+        return;
+      }
+
+      let fase = '';
+
+      if (value === '1-5') fase = 'menstrual';
+      else if (value === '6-12') fase = 'folicular';
+      else if (value === '13-16') fase = 'ovulatoria';
+      else if (value === '17-28') fase = 'lutea';
+
+      window.location.href = `https://www.femflow.com.br/femflowidciclo/treino_a_${fase}.html`;
+    });
+  </script>
+
+</body>
+</html>
