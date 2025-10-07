@@ -133,7 +133,7 @@
 
   <div class="result" id="result"></div>
 
-<script>
+<<script>
 function calcularFase() {
   const ultima = document.getElementById('ultimaMenstruacao').value;
   const duracao = parseInt(document.getElementById('duracaoCiclo').value);
@@ -167,32 +167,29 @@ function estimarFase() {
 }
 
 function mostrarLinks(fase) {
-  const result = document.getElementById('result');
-  result.innerHTML = `
-    <h2>Sua fase é: ${fase.toUpperCase()}</h2>
-    <p>Selecione seu treino de acordo com seu eBook e siga a periodização correta:</p>
-    <a href="https://www.femflow.com.br/femflowidciclo/treino_a_${fase}.html">Treino A</a>
-    <a href="https://www.femflow.com.br/femflowidciclo/treino_b_${fase}.html">Treino B</a>
-    <a href="https://www.femflow.com.br/femflowidciclo/treino_c_${fase}.html">Treino C</a>
-  `;
-}
-  <script>
-  // Verifica se o usuário está autorizado via parâmetro de URL
   const acesso = new URLSearchParams(window.location.search).get("acesso");
   const acessoPermitido = acesso === "fem2025";
 
-  window.onload = function () {
-    if (!acessoPermitido) {
-      const botoes = document.querySelectorAll(".treino-btn");
-      botoes.forEach(btn => {
-        btn.href = "https://www.femflow.com.br#ofertas";
-        btn.innerText = "🔒 Acesse o plano para liberar o treino";
-        btn.classList.add("bloqueado");
-      });
-    }
+  const result = document.getElementById('result');
+
+  if (acessoPermitido) {
+    result.innerHTML = `
+      <h2>Sua fase é: ${fase.toUpperCase()}</h2>
+      <p>Selecione seu treino de acordo com seu eBook e siga a periodização correta:</p>
+      <a href="https://www.femflow.com.br/femflowidciclo/treino_a_${fase}.html">Treino A</a>
+      <a href="https://www.femflow.com.br/femflowidciclo/treino_b_${fase}.html">Treino B</a>
+      <a href="https://www.femflow.com.br/femflowidciclo/treino_c_${fase}.html">Treino C</a>
+    `;
+  } else {
+    result.innerHTML = `
+      <h2>Sua fase é: ${fase.toUpperCase()}</h2>
+      <p>Os treinos estão disponíveis apenas para quem ativou o plano completo.</p>
+      <a href="https://www.femflow.com.br#ofertas">🔒 Acesse aqui para desbloquear seu treino</a>
+    `;
   }
+}
 </script>
-</script>
+
 
 </body>
 </html>
