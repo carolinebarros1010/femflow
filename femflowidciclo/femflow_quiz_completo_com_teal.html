@@ -134,28 +134,28 @@
   <div class="result" id="result"></div>
 
 <script>
-function calcularFase() {
-  const ultima = document.getElementById('ultimaMenstruacao').value;
-  const duracao = parseInt(document.getElementById('duracaoCiclo').value);
-  if (!ultima || !duracao) {
-    alert("Preencha os campos corretamente.");
-    return;
+  function calcularFase() {
+    const ultima = document.getElementById('ultimaMenstruacao').value;
+    const duracao = parseInt(document.getElementById('duracaoCiclo').value);
+    if (!ultima || !duracao) {
+      alert("Preencha os campos corretamente.");
+      return;
+    }
+
+    const hoje = new Date();
+    const ultimaDate = new Date(ultima);
+    const diffDias = Math.floor((hoje - ultimaDate) / (1000 * 60 * 60 * 24));
+    const diaCiclo = diffDias % duracao;
+
+    let fase = '';
+    if (diaCiclo <= 5) fase = 'menstrual';
+    else if (diaCiclo <= 12) fase = 'folicular';
+    else if (diaCiclo <= 16) fase = 'ovulatoria';
+    else fase = 'lutea';
+
+    mostrarLinks(fase);
   }
 
-  const hoje = new Date();
-  const ultimaDate = new Date(ultima);
-  const diffDias = Math.floor((hoje - ultimaDate) / (1000 * 60 * 60 * 24));
-  const diaCiclo = diffDias % duracao;
-
-  let fase = '';
-  if (diaCiclo <= 5) fase = 'menstrual';
-  else if (diaCiclo <= 12) fase = 'folicular';
-  else if (diaCiclo <= 16) fase = 'ovulatoria';
-  else fase = 'lutea';
-
-  mostrarLinks(fase);
-}
-  
   function estimarFase() {
     const respostas = [q1.value, q2.value, q3.value, q4.value, q5.value];
     const contagem = {};
@@ -168,24 +168,16 @@ function calcularFase() {
 
   function mostrarLinks(fase) {
     const result = document.getElementById('result');
-
-    if (acessoPermitido) {
-      result.innerHTML = `
-        <h2>Sua fase é: ${fase.toUpperCase()}</h2>
-        <p>Selecione seu treino de acordo com seu eBook e siga a periodização correta:</p>
-        <a class="treino-btn" href="https://www.femflow.com.br/femflowidciclo/treino_a_${fase}.html">Treino A</a>
-        <a class="treino-btn" href="https://www.femflow.com.br/femflowidciclo/treino_b_${fase}.html">Treino B</a>
-        <a class="treino-btn" href="https://www.femflow.com.br/femflowidciclo/treino_c_${fase}.html">Treino C</a>
-      `;
-    } else {
-      result.innerHTML = `
-        <h2>Sua fase é: ${fase.toUpperCase()}</h2>
-        <p>Para acessar os treinos dessa fase, adquira o plano completo.</p>
-        <a href="https://www.femflow.com.br#ofertas">🔒 Ver planos disponíveis</a>
-      `;
-    }
+    result.innerHTML = `
+      <h2>Sua fase é: ${fase.toUpperCase()}</h2>
+      <p>Selecione seu treino de acordo com seu eBook e siga a periodização correta:</p>
+      <a class="treino-btn" href="https://www.femflow.com.br/femflowidciclo/treino_a_${fase}.html">Treino A</a>
+      <a class="treino-btn" href="https://www.femflow.com.br/femflowidciclo/treino_b_${fase}.html">Treino B</a>
+      <a class="treino-btn" href="https://www.femflow.com.br/femflowidciclo/treino_c_${fase}.html">Treino C</a>
+    `;
   }
 </script>
+
 
 
 </body>
