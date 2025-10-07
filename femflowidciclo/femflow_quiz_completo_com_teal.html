@@ -210,6 +210,11 @@
     <div id="resultadoIrregular" style="margin-top: 1rem; font-weight: bold;"></div>
   </div>
   
+  <div style="text-align: center; margin-top: 2rem;">
+  <button class="submit-btn" onclick="limparCampos()">🔄 Limpar e refazer</button>
+</div>
+
+  
 <!-- Campo para inserir o código -->
 <input type="hidden" id="faseDetectada" value="">
 
@@ -374,6 +379,32 @@ function verificarCodigo() {
       container.innerHTML = `<p style="color: #CC6A5A;">❌ Código inválido. Verifique com sua treinadora ou compre um plano FemFlow para liberar os treinos.</p>`;
     }
   }
+  function limparCampos() {
+  // Campos do ciclo regular
+  document.getElementById("ultimaMenstruacao").value = "";
+  document.getElementById("duracaoCiclo").value = "28";
+  document.getElementById("resultadoRegular").innerHTML = "";
+
+  // Campos do ciclo irregular
+  document.getElementById("q1").value = "";
+  document.getElementById("q2").value = "";
+  document.getElementById("q3").value = "";
+  document.getElementById("q4").value = "";
+  document.getElementById("q5").value = "";
+  document.getElementById("resultadoIrregular").innerHTML = "";
+
+  // Código e resultado
+  document.getElementById("faseDetectada").value = "";
+  document.getElementById("codigoAcesso").value = "";
+  document.getElementById("treinosLiberados").innerHTML = "";
+
+  // Esconde o box de treinos
+  document.getElementById("acessoTreino").style.display = "none";
+
+  // Scroll para o topo da página
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+}
+
 </script>
 
 
