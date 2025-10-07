@@ -288,13 +288,30 @@ function estimarFase() {
 }
   
 
-  function mostrarFaseSomente(fase) {
-  // Aqui você define onde será exibido o resultado da fase
-  const resultBox = document.getElementById('result');
-  resultBox.innerHTML = `
-    <h2>Sua fase é: ${fase.toUpperCase()}</h2>
-    <p>Utilize esse resultado para acessar os treinos conforme seu plano FemFlow.</p>
-  `;
+ function mostrarFaseSomente(fase) {
+  // Atualiza o campo oculto com a fase detectada
+  document.getElementById("faseDetectada").value = fase;
+
+  // Atualiza o texto do box regular
+  const boxReg = document.getElementById("boxResultadoRegular");
+  const boxIrr = document.getElementById("boxResultadoIrregular");
+
+  // Esconde os dois boxes antes de mostrar o certo
+  boxReg.style.display = "none";
+  boxIrr.style.display = "none";
+
+  // Verifica qual campo de data está preenchido → regular ou irregular
+  const ultimaMenstruacao = document.getElementById("ultimaMenstruacao").value;
+
+  if (ultimaMenstruacao) {
+    // Mostrar resultado no box regular
+    document.getElementById("resultadoRegular").innerText = `Sua fase estimada é: ${fase.toUpperCase()}`;
+    boxReg.style.display = "block";
+  } else {
+    // Mostrar resultado no box irregular
+    document.getElementById("resultadoIrregular").innerText = `Sua fase estimada é: ${fase.toUpperCase()}`;
+    boxIrr.style.display = "block";
+
 }
 
 function verificarCodigo() {
@@ -356,8 +373,6 @@ function verificarCodigo() {
       container.innerHTML = `<p style="color: #CC6A5A;">❌ Código inválido. Verifique com sua treinadora ou compre um plano FemFlow para liberar os treinos.</p>`;
     }
   }
-</script>
-
 </script>
 
 
