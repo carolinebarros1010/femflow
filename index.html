@@ -191,6 +191,69 @@
 .btn-femflow-ciclo:hover {
   background-color: #CC6A5A;
 }
+    /* Container de botões - usa flexbox para alinhar */
+.button-group {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1rem;
+  justify-content: center;
+  margin-top: 1rem;
+}
+
+/* Botões individuais */
+.button-group .botao {
+  padding: 0.8rem 1.5rem;
+  border-radius: 2rem;
+  font-size: 1rem;
+  font-weight: bold;
+  border: none;
+  background-color: #CC6A5A;
+  color: white;
+  cursor: pointer;
+  white-space: nowrap;
+}
+
+/* Responsividade */
+@media (max-width: 480px) {
+  .button-group {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  .button-group .botao {
+    width: 100%;
+    text-align: center;
+  }
+}
+.nav-links {
+  display: flex;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+
+.cta-header {
+  padding: 0.8rem 1.2rem;
+  border-radius: 2rem;
+  background-color: #CC6A5A;
+  color: white;
+  text-decoration: none;
+  font-weight: bold;
+  white-space: nowrap;
+}
+
+/* Responsivo no mobile */
+@media (max-width: 480px) {
+  .nav-links {
+    flex-direction: column;
+    align-items: center;
+  }
+
+  .cta-header {
+    width: 100%;
+    text-align: center;
+  }
+}
 
 
   </style>
@@ -211,10 +274,10 @@
     </div>
 
     <!-- Botões da navegação -->
-    <nav class="nav-links">
-      <<a class="cta-header" href="https://carolinebarros1010.github.io/femflow/femflowidciclo">🌙 Identifique seu ciclo</a>
-      <a class="cta-header" href="#ofertas">Começar agora</a>
-      </nav>
+<nav class="nav-links">
+  <a class="cta-header" href="https://carolinebarros1010.github.io/femflow/femflowidciclo">🌙 Identifique seu ciclo</a>
+  <a class="cta-header" href="#ofertas">Começar agora</a>
+</nav>
   </div>
 </header>
 
