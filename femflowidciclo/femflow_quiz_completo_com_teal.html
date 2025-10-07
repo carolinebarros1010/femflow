@@ -159,7 +159,7 @@
       <input type="number" id="duracaoCiclo" value="28" min="20" max="40">
     </label>
     <button class="submit-btn" onclick="calcularFase()">Calcular minha fase</button>
-    <div id="resultadoIrregular" style="margin-top: 1.5rem;"></div>
+    <div id="resultadoRegular" style="margin-top: 1rem; font-weight: bold;"></div>
   </div>
 
   <!-- Ciclo irregular / Menopausa -->
@@ -207,7 +207,7 @@
       </select>
     </label>
     <button class="submit-btn" onclick="estimarFase()">Estimar fase</button>
-    <div id="resultadoIrregular" style="margin-top: 1.5rem;"></div>
+    <div id="resultadoRegular" style="margin-top: 1rem; font-weight: bold;"></div>
   </div>
   
 <!-- Campo para inserir o código -->
@@ -252,7 +252,6 @@
     document.getElementById("resultadoRegular").innerHTML = `
       <h3>Fase atual: ${fase.toUpperCase()}</h3>
     `;
-
     document.getElementById("acessoTreino").style.display = "block";
   }
 
@@ -278,11 +277,14 @@ function estimarFase() {
   // Exibe o box de código se ainda não estiver visível
   document.getElementById("acessoTreino").style.display = 'block';
 
+  // Mostra a fase no bloco do ciclo regular
+  document.getElementById("resultadoRegular").innerText = `Sua fase estimada é: ${fase.toUpperCase()}`;
+  
   // Mostra a fase no bloco do ciclo irregular
-  document.getElementById("resultadoIrregular").innerHTML = `
-    <h3>Sua fase estimada é: ${fase.toUpperCase()}</h3>
-  `;
+  document.getElementById("resultadoIRRegular").innerText = `Sua fase estimada é: ${fase.toUpperCase()}`;
 }
+  
+
   function mostrarFaseSomente(fase) {
   // Aqui você define onde será exibido o resultado da fase
   const resultBox = document.getElementById('result');
