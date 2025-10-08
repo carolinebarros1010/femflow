@@ -191,7 +191,9 @@ select {
     width: 95%;
     min-width: 5mm;
   }
-
+  html {
+  scroll-behavior: smooth;
+}
   </style>
 </head>
 <body>
@@ -208,7 +210,7 @@ select {
       <input type="number" id="duracaoCiclo" value="28" min="20" max="40">
     </label>
     <button class="submit-btn" onclick="calcularFase()">Calcular minha fase</button>
-    <button class="submit-btn" href="#acessoTreino">Ir Para Treino</button>
+    <button class="submit-btn" onclick="document.getElementById('acessoTreino').scrollIntoView({ behavior: 'smooth' })">Ir Para Treino</button>
     <div id="resultadoRegular" style="margin-top: 1rem; font-weight: bold;"></div>
   </div>
 
