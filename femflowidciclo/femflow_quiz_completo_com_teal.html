@@ -211,7 +211,27 @@ select {
 
   <div id="treinosLiberados" style="margin-top: 1.5rem;"></div>
 </div>
+  }
+  .submit-btn.destacado {
+  background: linear-gradient(135deg, #CC6A5A, #EFBDA6);
+  color: #ffffff;
+  padding: 0.9rem 2.2rem;
+  font-size: 1.05rem;
+  font-weight: 700;
+  border: none;
+  border-radius: 16px;
+  cursor: pointer;
+  margin-top: 0.75rem;
+  transition: all 0.3s ease;
+  box-shadow: 0 6px 20px rgba(204, 106, 90, 0.4);
+  display: inline-block;
+}
 
+.submit-btn.destacado:hover {
+  background: linear-gradient(135deg, #EFBDA6, #CC6A5A);
+  transform: scale(1.03);
+  box-shadow: 0 10px 25px rgba(239, 189, 166, 0.5);
+}
   </style>
 </head>
 <body>
@@ -294,10 +314,9 @@ select {
 
   <input type="text" id="codigoAcesso" placeholder="Adiquira o treino no Site">
   <button class="submit-btn" onclick="verificarCodigo()">Liberar treinos</button>
-  <button class="submit-btn" onclick="window.location.href='https://www.femflow.com.br/#ofertas'">Adquirir Plano</button>
+  <button class="submit-btn destacado" onclick="window.location.href='https://www.femflow.com.br/#ofertas'">Adquirir Plano ✨</button>
   <div id="treinosLiberados" style="margin-top: 1.5rem;"></div>
 </div>
-
 
 <script>
  let faseDetectada = "";
