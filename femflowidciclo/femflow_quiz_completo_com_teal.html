@@ -99,33 +99,39 @@
     margin-bottom: 2rem;
   }
 
+ .treino-btn {
+  display: inline-block;
+  margin: 0.5rem;
+  background-color: var(--pessego);
+  color: white;
+  text-decoration: none;
+  padding: 1rem 1.5rem;
+  border-radius: 12px;
+  font-weight: bold;
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+.treino-btn:hover {
+  background-color: var(--terracota);
+  transform: scale(1.03);
+}
+
+@media (max-width: 600px) {
+  .box, .result {
+    padding: 1.2rem;
+  }
+
   .treino-btn {
-    display: inline-block;
-    margin: 0.5rem;
-    background-color: var(--pessego);
-    color: white;
-    text-decoration: none;
-    padding: 1rem 1.5rem;
-    border-radius: 12px;
-    font-weight: bold;
-    transition: background 0.3s;
+    display: block;
+    width: 90%;
+    margin: 0.75rem auto;
+    padding: 0.8rem 1rem;
+    font-size: 0.9rem;
+    border-radius: 10px;
   }
 
-  .treino-btn:hover {
-    background-color: var(--terracota);
-  }
-
-  @media (max-width: 600px) {
-    .box, .result {
-      padding: 1.5rem;
-    }
-
-    .treino-btn {
-      display: block;
-      width: 100%;
-    }
-  }
-   .resultado-fase {
+  .resultado-fase {
   margin-top: 1.5rem;
   background-color: #fff;
   padding: 1rem;
