@@ -341,7 +341,7 @@ select {
 </div>
 
 <script>
- let faseDetectada = "";
+let faseDetectada = "";
 
 // --- Função para ciclo regular ---
 function calcularFase() {
@@ -364,23 +364,20 @@ function calcularFase() {
   else if (diaCiclo <= 16) fase = 'ovulatoria';
   else fase = 'lutea';
 
-  // Preenche o campo oculto com a fase detectada
   document.getElementById("faseDetectada").value = fase;
 
-  // Exibe o resultado tanto no box regular quanto no irregular
   document.getElementById("resultadoRegular").innerHTML = `
-    <div class="box" style="background-color: #FFEAE5; margin-top: 1rem;">
+    <div class="box" style="background-color:#FFEAE5; margin-top:1rem;">
       <h3>Fase atual detectada: ${fase.toUpperCase()}</h3>
     </div>
   `;
 
   document.getElementById("resultadoIrregular").innerHTML = `
-    <div class="box" style="background-color: #FFEAE5; margin-top: 1rem;">
+    <div class="box" style="background-color:#FFEAE5; margin-top:1rem;">
       <h3>Fase atual detectada: ${fase.toUpperCase()}</h3>
     </div>
   `;
 
-  // Mostra o box de treino
   document.getElementById("acessoTreino").style.display = "block";
 }
 
@@ -400,35 +397,31 @@ function estimarFase() {
   });
 
   let fase = Object.keys(contagem).reduce((a, b) => contagem[a] > contagem[b] ? a : b, 'folicular');
-
-  // Atualiza campo oculto
   document.getElementById("faseDetectada").value = fase;
 
-  // Exibe resultado no box do ciclo irregular
   document.getElementById("resultadoIrregular").innerHTML = `
-    <div class="box" style="background-color: #FFEAE5; margin-top: 1rem;">
+    <div class="box" style="background-color:#FFEAE5; margin-top:1rem;">
       <h3>Fase atual estimada: ${fase.toUpperCase()}</h3>
     </div>
   `;
 
-  // Mostra box de treino
   document.getElementById("acessoTreino").style.display = "block";
 }
 
-// --- Função utilitária se quiser unificar ---
+// --- Função utilitária ---
 function mostrarFaseSomente(fase) {
   document.getElementById("faseDetectada").value = fase;
 
   const ultimaMenstruacao = document.getElementById("ultimaMenstruacao").value;
   if (ultimaMenstruacao) {
     document.getElementById("resultadoRegular").innerHTML = `
-      <div class="box" style="background-color: #FFEAE5; margin-top: 1rem;">
+      <div class="box" style="background-color:#FFEAE5; margin-top:1rem;">
         <h3>Fase atual detectada: ${fase.toUpperCase()}</h3>
       </div>
     `;
   } else {
     document.getElementById("resultadoIrregular").innerHTML = `
-      <div class="box" style="background-color: #FFEAE5; margin-top: 1rem;">
+      <div class="box" style="background-color:#FFEAE5; margin-top:1rem;">
         <h3>Fase atual estimada: ${fase.toUpperCase()}</h3>
       </div>
     `;
@@ -437,80 +430,55 @@ function mostrarFaseSomente(fase) {
   document.getElementById("acessoTreino").style.display = "block";
 }
 
+// --- Função de liberação unificada ---
 function verificarCodigo() {
-  const codigo = document.getElementById('codigoAcesso').value.trim().toUpperCase();
-  const linksDiv = document.getElementById('linksTreinos');
-  linksDiv.innerHTML = ''; // limpa
+  const codigo = document.getElementById("codigoAcesso").value.trim().toUpperCase();
+  const fase = document.getElementById("faseDetectada").value;
+  const container = document.getElementById("treinosLiberados");
 
-  const urlBase = `https://www.femflow.com.br/femflowidciclo`;
-
-  const treinosPorCodigo = {
-    "FEMFLOW01": ["A", "B"],
-    "FEMFLOW02": ["A", "B", "C"],
-    "BEACHFLOW02": ["A", "B", "C"],
-    "FEMFLOW03": ["A", "B", "C", "D"]
-    // Adicione mais conforme precisar
-  };
-
-  if (!treinosPorCodigo[codigo]) {
-    linksDiv.innerHTML = `<p style="color:#CC6A5A; font-weight:bold;">Código inválido. Tente novamente.</p>`;
-    linksDiv.style.display = 'block';
+  if (!fase) {
+    container.innerHTML = "<p>❗ Primeiro descubra sua fase do ciclo.</p>";
     return;
   }
 
-  const treinos = treinosPorCodigo[codigo];
-  let html = `<h3>Treinos disponíveis:</h3>`;
+  const baseURL = "https://www.femflow.com.br/femflowidciclo/treinos";
+  let html = "";
 
-  treinos.forEach(letra => {
-    html += `<a class="treino-btn" target="_blank" style="display:block; margin-top: 0.5rem;" href="${urlBase}/treino_${letra.toLowerCase()}_${faseAtual}.html">Treino ${letra}</a>`;
+  if (codigo === "FEMFLOW02") {
+    html = `
+      <h3>🌸 Treinos liberados para a fase: ${fase.toUpperCase()}</h3>
+      <a class="treino-btn" target="_blank" href="${baseURL}/treino_a_${fase}.html">Treino A</a>
+      <a class="treino-btn" target="_blank" href="${baseURL}/treino_b_${fase}.html">Treino B</a>
+      <a class="treino-btn" target="_blank" href="${baseURL}/treino_c_${fase}.html">Treino C</a>
+      <p style="margin-top:12px;font-size:0.9rem;color:#335953;">
+        Versão tradicional FemFlow para fortalecimento e equilíbrio hormonal.
+      </p>
+    `;
+  } 
+  else if (codigo === "BEACHFLOW02") {
+    html = `
+      <h3>🏖️ Treinos liberados Beach Tênis – Fase: ${fase.toUpperCase()}</h3>
+      <a class="treino-btn" target="_blank" href="${baseURL}/treinobeach_a_${fase}.html">Treino A</a>
+      <a class="treino-btn" target="_blank" href="${baseURL}/treinobeach_b_${fase}.html">Treino B</a>
+      <a class="treino-btn" target="_blank" href="${baseURL}/treinobeach_c_${fase}.html">Treino C</a>
+      <p style="margin-top:12px;font-size:0.9rem;color:#335953;">
+        Versão específica para jogadoras de Beach Tênis com foco em potência e prevenção de lesão.
+      </p>
+    `;
+  } 
+  else {
+    html = `<p style="color:#CC6A5A;">❌ Código inválido. Verifique com sua treinadora ou adquira um plano FemFlow.</p>`;
   }
-  
-   const treinos = treinosPorCodigo[codigo];
-  let html = `<h3>Treinos disponíveis:</h3>`;
 
-  treinos.forEach(letra => {
-    html += `<a class="treino-btn" target="_blank" style="display:block; margin-top: 0.5rem;" href="${urlBase}/treinobeach_${letra.toLowerCase()}_${faseAtual}.html">Treino ${letra}</a>`;
-  });
-
-  linksDiv.innerHTML = html;
-  linksDiv.style.display = 'block';
-
+  container.innerHTML = html;
 }
-  function verificarCodigo() {
-    const codigo = document.getElementById("codigoAcesso").value.trim().toUpperCase();
-    const fase = document.getElementById("faseDetectada").value;
-    const container = document.getElementById("treinosLiberados");
 
-    if (!fase) {
-      container.innerHTML = "<p>❗ Primeiro descubra sua fase do ciclo.</p>";
-      return;
-    }
-
-    if (codigo === "FEMFLOW02") {
-      container.innerHTML = `
-        <h3>Treinos liberados para a fase: ${fase.toUpperCase()}</h3>
-        <a class="treino-btn" href="https://www.femflow.com.br/femflowidciclo/treinos/treino_a_${fase}.html" target="_blank">Treino A</a>
-        <a class="treino-btn" href="https://www.femflow.com.br/femflowidciclo/treinos/treino_b_${fase}.html" target="_blank">Treino B</a>
-        <a class="treino-btn" href="https://www.femflow.com.br/femflowidciclo/treinos/treino_c_${fase}.html" target="_blank">Treino C</a>
-      `;
-    } else if (codigo === "BEACHFLOW02") {
-      container.innerHTML = `
-        <h3>Treinos para jogador de Beach Tênis – Fase: ${fase.toUpperCase()}</h3>
-        <a class="treino-btn" href="https://www.femflow.com.br/femflowidciclo/treinos/treinobeach_a_${fase}.html" target="_blank">Treino A</a>
-        <a class="treino-btn" href="https://www.femflow.com.br/femflowidciclo/treinos/treinobeach_b_${fase}.html" target="_blank">Treino B</a>
-        <a class="treino-btn" href="https://www.femflow.com.br/femflowidciclo/treinos/treinobeach_c_${fase}.html" target="_blank">Treino C</a>
-      `;
-    } else {
-      container.innerHTML = `<p style="color: #CC6A5A;">❌ Código inválido. Verifique com sua treinadora ou compre um plano FemFlow para liberar os treinos.</p>`;
-    }
-  }
-  function limparCampos() {
-  // Campos do ciclo regular
+// --- Limpar tudo ---
+function limparCampos() {
   document.getElementById("ultimaMenstruacao").value = "";
   document.getElementById("duracaoCiclo").value = "28";
   document.getElementById("resultadoRegular").innerHTML = "";
 
-  // Campos do ciclo irregular
   document.getElementById("q1").value = "";
   document.getElementById("q2").value = "";
   document.getElementById("q3").value = "";
@@ -518,20 +486,14 @@ function verificarCodigo() {
   document.getElementById("q5").value = "";
   document.getElementById("resultadoIrregular").innerHTML = "";
 
-  // Código e resultado
   document.getElementById("faseDetectada").value = "";
   document.getElementById("codigoAcesso").value = "";
   document.getElementById("treinosLiberados").innerHTML = "";
 
-  // Esconde o box de treinos
   document.getElementById("acessoTreino").style.display = "none";
-
-  // Scroll para o topo da página
   window.scrollTo({ top: 0, behavior: 'smooth' });
 }
-
 </script>
-
 
 </body>
 </html>
