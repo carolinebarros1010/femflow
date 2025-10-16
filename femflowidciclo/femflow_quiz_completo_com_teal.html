@@ -463,6 +463,13 @@ function verificarCodigo() {
 
   treinos.forEach(letra => {
     html += `<a class="treino-btn" target="_blank" style="display:block; margin-top: 0.5rem;" href="${urlBase}/treino_${letra.toLowerCase()}_${faseAtual}.html">Treino ${letra}</a>`;
+  }
+  
+   const treinos = treinosPorCodigo[codigo];
+  let html = `<h3>Treinos disponíveis:</h3>`;
+
+  treinos.forEach(letra => {
+    html += `<a class="treino-btn" target="_blank" style="display:block; margin-top: 0.5rem;" href="${urlBase}/treinobeach_${letra.toLowerCase()}_${faseAtual}.html">Treino ${letra}</a>`;
   });
 
   linksDiv.innerHTML = html;
