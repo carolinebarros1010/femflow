@@ -1,0 +1,589 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1"/>
+<title>FemFlow — Verificador de Treino + Descubra sua Fase</title>
+<link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600&family=Lato:wght@400;600;700&display=swap" rel="stylesheet">
+<link rel="icon" type="image/svg+xml" href="femflow-favicon.svg"/>
+<style>
+:root{
+  --creme:#F4E1D7;
+  --pessego:#EFBDA6;
+  --terracota:#CC6A5A;
+  --teal:#335953;
+  --texto:#F4E1D7;
+  --muted:#d9cfc9;
+  --bg-dark:#0f1715;
+}
+
+/* Reset básico e tipografia */
+*{box-sizing:border-box}
+html,body{margin:0;padding:0}
+body{font-family:'Lato',sans-serif;background:var(--creme);color:#2B2B2B;}
+
+/* ===== HERO / VERIFICADOR (topo) ===== */
+.hero{
+  min-height: 78vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding: clamp(20px, 4vw, 40px) 16px;
+  background: linear-gradient(180deg, var(--teal) 0%, #25413c 45%, var(--terracota) 100%);
+  position: relative;
+  overflow: hidden;
+}
+.hero-inner{
+  width:100%;
+  max-width: 980px;
+  text-align:center;
+  color:var(--texto);
+}
+.logo{
+  display:block;
+  margin: 0 auto clamp(8px,2vw,16px);
+  width: 35%;
+  max-width:160px;
+  min-width:100px;
+  filter: drop-shadow(0 2px 4px rgba(0,0,0,.3));
+}
+.hero h1{
+  font-family:'Playfair Display',serif;
+  color:#fff;
+  margin:0 0 .35rem;
+  font-size: clamp(1.5rem, 2.4vw + .8rem, 2.4rem);
+}
+.hero p.lead{
+  color: var(--texto);
+  opacity:.92;
+  margin:0 0 1rem;
+}
+
+/* Cartão do verificador */
+.card{
+  background: rgba(255,255,255,.06);
+  backdrop-filter: blur(6px);
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 16px;
+  padding: clamp(14px, 2.5vw, 22px);
+  margin: 0 auto;
+  max-width: 900px;
+  color:#fff;
+  box-shadow: 0 10px 30px rgba(0,0,0,.18);
+}
+
+/* Inputs estilo pill */
+.input-row{
+  display:grid;
+  grid-template-columns: 1fr;
+  gap: 10px;
+  margin-top: 8px;
+}
+.input-row .group{ text-align:left; }
+label{font-size:.95rem; color:var(--muted); display:block; margin: 2px 4px 6px;}
+select,input[type=number]{
+  width:100%;
+  padding: 12px 14px;
+  border-radius: 999px;
+  border: 1px solid rgba(255,255,255,.16);
+  background: #ffffffee;
+  color: #243532;
+  font-size: 1rem;
+  outline: none;
+}
+.checkbox-wrap{
+  display:flex; flex-wrap:wrap; gap:8px; margin-top: 6px; justify-content:center;
+}
+.checkbox-wrap label{
+  color:#1c2b28; background:#ffffffee; border:1px solid rgba(0,0,0,.06);
+  padding:8px 10px; border-radius: 999px; font-size:.9rem;
+}
+.checkbox-wrap input{ margin-right:6px; }
+
+@media (min-width: 760px){
+  .input-row{ grid-template-columns:1fr 1fr; }
+}
+
+/* Botão circular principal */
+.big-circle{
+  --size: clamp(110px, 16vw, 150px);
+  width: var(--size);
+  height: var(--size);
+  border-radius: 50%;
+  margin: 16px auto 10px;
+  display:flex; align-items:center; justify-content:center;
+  background: radial-gradient(70% 70% at 30% 30%, var(--pessego), var(--terracota));
+  color:#fff;
+  font-weight: 900;
+  letter-spacing:.04em;
+  text-align:center;
+  line-height:1.15;
+  padding: 14px;
+  box-shadow: 0 10px 30px rgba(204,106,90,.45);
+  cursor:pointer;
+  user-select:none;
+  border:none;
+  transition: transform .2s ease, box-shadow .2s ease;
+  position: relative;
+  overflow:hidden;
+}
+.big-circle span{ font-size: clamp(.9rem, 1.2vw + .7rem, 1.2rem); }
+.big-circle:hover{ transform: translateY(-1px); box-shadow: 0 14px 36px rgba(204,106,90,.5); }
+.big-circle::after{ /* pulso respirante */
+  content:"";
+  position:absolute; inset:0;
+  border-radius:50%;
+  box-shadow: 0 0 0 0 rgba(239,189,166,.55);
+  animation: pulse 2s ease-out infinite;
+}
+@keyframes pulse{
+  0%{ box-shadow: 0 0 0 0 rgba(239,189,166,.45); }
+  70%{ box-shadow: 0 0 0 26px rgba(239,189,166,0); }
+  100%{ box-shadow: 0 0 0 0 rgba(239,189,166,0); }
+}
+
+/* Estado de loading do botão circular */
+.loading-spinner{
+  width: 46%;
+  aspect-ratio: 1/1;
+  border: 4px solid rgba(255,255,255,.35);
+  border-top-color:#fff;
+  border-radius:50%;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin{ to{ transform: rotate(360deg);} }
+
+/* Resultado */
+#resultArea{ margin-top: 14px; }
+.result-box{
+  border-radius: 14px; padding: 14px;
+}
+.ok{ background:#e9fbf3; border:1px solid #bfeede; color:#0b3d2c;}
+.warn{ background:#fff6e5; border:1px solid #ffd99a; color:#5b3a00;}
+.danger{ background:#ffe9e9; border:1px solid #f3b1b1; color:#5b1b1b;}
+
+/* Botão de ajuda e grupo de botões responsivos */
+.btn-row{
+  display:flex; flex-wrap:wrap; gap:10px; justify-content:center; margin-top:10px;
+}
+.btn{
+  background:#ffffff22; border:1px solid rgba(255,255,255,.35); color:#fff;
+  padding: 12px 18px; border-radius: 999px; cursor:pointer; font-weight:700;
+}
+.btn:hover{ background:#ffffff33; }
+@media (max-width: 600px){
+  .btn{ width:100%; text-align:center; }
+}
+
+/* ===== Seção Descubra sua Fase ===== */
+.section{
+  max-width: 980px; margin: 24px auto; padding: 16px;
+}
+.card-light{
+  background:#fff; border-radius: 16px; padding: clamp(14px,2.2vw,22px);
+  box-shadow: 0 10px 24px rgba(0,0,0,.08);
+}
+.section h2{
+  font-family:'Playfair Display',serif; color: var(--teal);
+  margin: 0 0 .5rem; font-size: clamp(1.2rem, 1.6vw + .9rem, 1.8rem);
+}
+.section .lead{ color:#555; }
+
+.grid2{ display:grid; grid-template-columns:1fr; gap:12px; }
+@media (min-width: 760px){ .grid2{ grid-template-columns:1fr 1fr; } }
+
+label.light{ color:#666; }
+input[type=date].light, input[type=number].light, select.light{
+  background:#fffaf7; border:1px solid #eee; color:#333;
+  border-radius:10px; padding:10px 12px; width:100%;
+}
+.controls-row{ display:flex; flex-wrap:wrap; gap:10px; margin-top:4px; }
+.control-btn{
+  background: var(--pessego); color:#fff; border:0; border-radius:10px;
+  padding: 10px 14px; font-weight:700; cursor:pointer;
+  transition: filter .2s ease;
+}
+.control-btn:hover{ filter: brightness(.96); }
+@media (max-width: 600px){ .control-btn{ width:100%; } }
+
+/* Resultado da fase + gráfico minimalista */
+.badge{display:inline-block;padding:.28rem .6rem;border-radius:999px;font-weight:700;font-size:.9rem;margin-left:.4rem}
+.badge.menstrual{background:#ffd6d1;color:#7a2c25}
+.badge.folicular{background:#ffe1d3;color:#7a3a27}
+.badge.ovulatoria{background:#dff2ed;color:#13463f}
+.badge.lutea{background:#f7eee9;color:#5a3a2b}
+
+.chart-wrap{ position:relative; width:100%; max-width:920px; margin:.5rem auto 0 }
+.chart-wrap canvas{ width:100% !important; height: 320px !important; display:block }
+@media (max-width:480px){ .chart-wrap canvas{ height: 240px !important } }
+
+.pulse-marker{
+  position:absolute; width:14px; height:14px; border-radius:50%; background: var(--teal);
+  box-shadow: 0 0 0 0 rgba(51,89,83,.5);
+  transform: translate(-50%,-50%);
+  animation: markerPulse 1.6s ease-out infinite;
+  pointer-events:none;
+}
+@keyframes markerPulse{
+  0%{ box-shadow: 0 0 0 0 rgba(51,89,83,.5); }
+  70%{ box-shadow: 0 0 0 14px rgba(51,89,83,0); }
+  100%{ box-shadow: 0 0 0 0 rgba(51,89,83,0); }
+}
+.sep{ height:1px; background:#f0d8cf; margin: .6rem 0 .8rem; border-radius:1px; }
+.fade-in{ animation: fadeIn .5s ease forwards }
+@keyframes fadeIn{ from{opacity:0; transform: translateY(6px)} to{opacity:1; transform: translateY(0)} }
+</style>
+</head>
+<body>
+
+<!-- HERO / VERIFICADOR -->
+<section class="hero" id="verificador">
+  <div class="hero-inner">
+    <img src="logo_femflow.png" alt="Logo_FemFlow" class="logo"/>
+    <h1>Seu treino está compatível com sua fase?</h1>
+    <p class="lead">Verifique se o seu treino respeita seu corpo e o momento do ciclo.</p>
+
+    <div class="card">
+      <div class="input-row">
+        <div class="group">
+          <label>Fase do ciclo</label>
+          <select id="phase">
+            <option value="menstrual">Menstrual</option>
+            <option value="folicular">Folicular</option>
+            <option value="ovulatoria">Ovulatória</option>
+            <option value="lutea">Lútea</option>
+          </select>
+        </div>
+        <div class="group">
+          <label>Duração prevista do treino (min)</label>
+          <input id="duration" type="number" min="5" max="300" value="45"/>
+        </div>
+      </div>
+
+      <div class="group" style="margin-top:10px; text-align:left;">
+        <label>Intensidade percebida (PSE) — 1 (muito leve) a 10 (máximo)</label>
+        <input id="pse" type="number" min="1" max="10" value="7"/>
+      </div>
+
+      <div class="group" style="margin-top:6px; text-align:left;">
+        <label>Sintomas hoje (marque o que tiver)</label>
+        <div class="checkbox-wrap">
+          <label><input type="checkbox" value="cólica"> Cólicas fortes</label>
+          <label><input type="checkbox" value="fadiga"> Fadiga acentuada</label>
+          <label><input type="checkbox" value="tontura"> Tontura/náusea</label>
+          <label><input type="checkbox" value="sangramento"> Sangramento intenso</label>
+          <label><input type="checkbox" value="insomnia"> Insônia</label>
+        </div>
+      </div>
+
+      <button class="big-circle" id="checkBtn" aria-live="polite"><span>VERIFICAR<br>TREINO</span></button>
+
+      <div id="resultArea"></div>
+
+      <div class="btn-row">
+        <button class="btn" onclick="document.getElementById('fase').scrollIntoView({behavior:'smooth', block:'start'})">❓ NÃO SABE SUA FASE? CLIQUE AQUI PARA DESCOBRIR</button>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- SEÇÃO: DESCUBRA SUA FASE -->
+<section class="section" id="fase">
+  <div class="card-light">
+    <h2>Descubra sua fase</h2>
+    <p class="lead">Calcule pela última menstruação (ciclo regular) ou estime por sintomas (irregular/DIU/menopausa). O gráfico abaixo mostra a ondulação natural do desempenho no ciclo e destaca onde você está.</p>
+
+    <div class="grid2">
+      <div>
+        <label class="light">Primeiro dia da última menstruação</label>
+        <input type="date" id="ultimaMenstruacao" class="light">
+        <label class="light">Duração média do ciclo (em dias)</label>
+        <input type="number" id="duracaoCiclo" class="light" value="28" min="20" max="40">
+        <div class="controls-row">
+          <button class="control-btn" onclick="calcularFase()">Calcular minha fase</button>
+          <button class="control-btn" onclick="limparCampos()">🔄 Limpar e refazer</button>
+        </div>
+      </div>
+      <div>
+        <label class="light">Estimativa por sintomas (irregular/DIU/menopausa)</label>
+        <select id="q1" class="light">
+          <option value="">Mais disposição física?</option>
+          <option value="folicular">Sim</option>
+          <option value="menstrual">Não</option>
+        </select>
+        <select id="q2" class="light">
+          <option value="">Inchaço ou irritabilidade?</option>
+          <option value="lutea">Sim</option>
+          <option value="ovulatoria">Não</option>
+        </select>
+        <select id="q3" class="light">
+          <option value="">Como está sua libido?</option>
+          <option value="ovulatoria">Alta</option>
+          <option value="menstrual">Baixa</option>
+        </select>
+        <select id="q4" class="light">
+          <option value="">Mais sensível/reflexiva?</option>
+          <option value="lutea">Sim</option>
+          <option value="folicular">Não</option>
+        </select>
+        <select id="q5" class="light">
+          <option value="">Dores ou cólicas?</option>
+          <option value="menstrual">Sim</option>
+          <option value="folicular">Não</option>
+        </select>
+        <div class="controls-row">
+          <button class="control-btn" onclick="estimarFase()">Estimar fase</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="sep"></div>
+
+    <div id="resultadoFase" class="lead"></div>
+    <div class="chart-wrap" id="chartContainer" style="display:none;">
+      <canvas id="graficoFase"></canvas>
+      <div id="marker" class="pulse-marker" style="display:none;"></div>
+    </div>
+  </div>
+</section>
+
+<!-- RODAPÉ -->
+<section class="section" style="text-align:center; color:#666; font-size:.95rem">
+  FemFlow © 2025 — Potencialize seus treinos com a inteligência do seu corpo
+</section>
+
+<!-- Chart.js + annotation -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1"></script>
+<script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-annotation@3.0.1"></script>
+<script>
+/* Utilidades */
+function labelFase(fase){
+  const map = { menstrual:'Menstrual', folicular:'Folicular', ovulatoria:'Ovulatória', lutea:'Lútea' };
+  return map[fase] || fase;
+}
+
+/* Thresholds do verificador */
+const thresholds = { menstrual: 6, folicular: 8, ovulatoria: 9, lutea: 7 };
+const volumeThreshold = 120;
+
+/* Botão circular: loading + análise */
+document.getElementById('checkBtn').addEventListener('click', ()=>{
+  const btn = document.getElementById('checkBtn');
+  const area = document.getElementById('resultArea');
+  area.innerHTML = '';
+
+  // vira loading
+  btn.innerHTML = '<div class="loading-spinner"></div>';
+  btn.style.pointerEvents = 'none';
+
+  setTimeout(()=>{
+    btn.style.pointerEvents = 'auto';
+    btn.innerHTML = '<span>VERIFICAR<br>TREINO</span>';
+
+    const phase = document.getElementById('phase').value;
+    const duration = Number(document.getElementById('duration').value||0);
+    const pse = Number(document.getElementById('pse').value||0);
+    const checks = Array.from(document.querySelectorAll('.checkbox-wrap input:checked')).map(c=>c.value);
+
+    let risk='OK';
+    const severe = checks.includes('sangramento') || checks.includes('tontura');
+    if (severe) risk='Perigo';
+    else if (pse > thresholds[phase] || duration > volumeThreshold || checks.includes('fadiga') || checks.includes('cólica')) risk='Atenção';
+
+    renderResult(risk, {phase,duration,pse,checks});
+  }, 1600);
+});
+
+function renderResult(risk, data){
+  const area = document.getElementById('resultArea');
+  const box = document.createElement('div');
+  box.className = 'result-box ' + (risk==='OK'?'ok': risk==='Atenção'?'warn':'danger');
+  if (risk==='OK'){
+    box.innerHTML = '<strong>✔ Treino compatível</strong><br>Para a fase <strong>' + labelFase(data.phase) + '</strong>, seu treino parece adequado. Monitore PSE e sintomas.';
+  } else if (risk==='Atenção'){
+    box.innerHTML = '<strong>⚠ Atenção</strong><br>Está um pouco pesado para <strong>' + labelFase(data.phase) + '</strong> (PSE ' + data.pse + ', ' + data.duration + 'min). Reduza 10–25% de intensidade e 15–30% de volume.';
+  } else {
+    box.innerHTML = '<strong>‼ Alerta vermelho</strong><br>Sinais críticos para a fase atual. Troque por sessão regenerativa (30–45 min leve) e reavalie.';
+  }
+  area.appendChild(box);
+}
+
+/* ===== Descubra sua Fase + Gráfico ===== */
+
+/* Curva base (28 dias) e reamostragem */
+const base28 = [35,30,40,45,50,60,65,70,75,80,85,90,95,100,95,90,85,80,75,70,65,60,55,50,45,40,35,30];
+function resampleCurve(base, L){
+  const arr=[];
+  for(let i=0;i<L;i++){
+    const t = i*(base.length-1)/(L-1);
+    const i0 = Math.floor(t), i1 = Math.min(base.length-1, i0+1);
+    const f = t - i0;
+    arr.push(base[i0]*(1-f) + base[i1]*f);
+  }
+  return arr;
+}
+
+let chart=null, cicloLenAtual=28, diaAtualIdx=0;
+
+function renderGrafico(cicloLen, fase, diaIdx){
+  cicloLenAtual = cicloLen;
+  diaAtualIdx = Math.max(0, Math.min(cicloLen-1, diaIdx));
+
+  const container = document.getElementById('chartContainer');
+  container.style.display='block';
+  const ctx = document.getElementById('graficoFase').getContext('2d');
+  const dataY = resampleCurve(base28, cicloLen);
+  const labels = Array.from({length:cicloLen}, (_,i)=> i+1);
+
+  // Limites proporcionais das fases
+  const mEnd = Math.round(5 * cicloLen/28);
+  const fEnd = Math.round(13 * cicloLen/28);
+  const oEnd = Math.round(15 * cicloLen/28);
+
+  const annotations = {
+    menstrual:{ type:'box', xMin:0.5, xMax:mEnd+0.5, backgroundColor:'rgba(255,215,207,.35)', borderWidth:0 },
+    folicular:{ type:'box', xMin:mEnd+0.5, xMax:fEnd+0.5, backgroundColor:'rgba(255,234,224,.35)', borderWidth:0 },
+    ovulatoria:{ type:'box', xMin:fEnd+0.5, xMax:oEnd+0.5, backgroundColor:'rgba(232,255,250,.35)', borderWidth:0 },
+    lutea:{ type:'box', xMin:oEnd+0.5, xMax:cicloLen+0.5, backgroundColor:'rgba(255,246,237,.35)', borderWidth:0 }
+  };
+
+  const dataset = {
+    label:'Desempenho (%)',
+    data: dataY,
+    borderColor: '#CC6A5A',
+    borderWidth: 3,
+    fill: true,
+    backgroundColor: 'rgba(239,189,166,.20)',
+    tension: .4,
+    pointRadius: 0,
+  };
+
+  if (chart){
+    chart.data.labels = labels;
+    chart.data.datasets[0] = dataset;
+    chart.options.plugins.annotation.annotations = annotations;
+    chart.update();
+  } else {
+    chart = new Chart(ctx, {
+      type:'line',
+      data:{ labels, datasets:[dataset] },
+      options:{
+        responsive:true, maintainAspectRatio:false,
+        plugins:{
+          legend:{ display:false },
+          annotation:{ annotations }
+        },
+        scales:{
+          x:{
+            title:{ display:true, text:'Dias do ciclo', color:'#335953' },
+            ticks:{ color:'#335953' },
+            grid:{ display:false },
+            min:1, max:cicloLen
+          },
+          y:{
+            title:{ display:false, text:'Desempenho (%)' },
+            min:0, max:100,
+            ticks:{ display:false },
+            grid:{ display:false }
+          }
+        },
+        elements:{ point:{ radius:0 } }
+      }
+    });
+  }
+
+  positionMarker();
+  window.addEventListener('resize', positionMarker, {passive:true});
+}
+
+function positionMarker(){
+  const marker = document.getElementById('marker');
+  const canvas = document.getElementById('graficoFase');
+  if(!chart) return;
+  const x = chart.scales.x.getPixelForValue(diaAtualIdx+1);
+  const y = chart.scales.y.getPixelForValue(chart.data.datasets[0].data[diaAtualIdx]);
+  marker.style.left = (x - canvas.getBoundingClientRect().left + canvas.parentElement.scrollLeft) + 'px';
+  marker.style.top  = (y - canvas.getBoundingClientRect().top + canvas.parentElement.scrollTop) + 'px';
+  marker.style.display='block';
+}
+
+/* Funções da fase */
+function labelBadge(fase){ return '<span class="badge '+fase+'">'+labelFase(fase)+'</span>'; }
+
+function calcularFase(){
+  const ultima = document.getElementById('ultimaMenstruacao').value;
+  const duracao = parseInt(document.getElementById('duracaoCiclo').value || 28, 10);
+  const out = document.getElementById('resultadoFase');
+  if(!ultima || isNaN(duracao)){
+    out.textContent='Preencha a data e a duração média do ciclo.';
+    out.style.color='#b33';
+    document.getElementById('chartContainer').style.display='none';
+    return;
+  }
+  const hoje = new Date();
+  const dtUlt = new Date(ultima+'T00:00:00');
+  const diffDias = Math.floor((hoje - dtUlt)/(1000*60*60*24));
+  const dia = ((diffDias % duracao) + duracao) % duracao; // 0..duracao-1
+
+  const mEnd = Math.round(5 * duracao/28);
+  const fEnd = Math.round(13 * duracao/28);
+  const oEnd = Math.round(15 * duracao/28);
+  let fase='lutea';
+  if (dia <= mEnd) fase='menstrual';
+  else if (dia <= fEnd) fase='folicular';
+  else if (dia <= oEnd) fase='ovulatoria';
+
+  out.innerHTML = 'Fase estimada: ' + labelBadge(fase) + ' — dia ' + (dia+1) + ' de ' + duracao;
+  out.style.color = '#234';
+
+  // Preenche o verificador automaticamente
+  const sel = document.getElementById('phase');
+  if (sel) sel.value = fase;
+
+  renderGrafico(duracao, fase, dia);
+}
+
+function estimarFase(){
+  const out = document.getElementById('resultadoFase');
+  const duracao = parseInt(document.getElementById('duracaoCiclo').value || 28, 10);
+  const vals = ['q1','q2','q3','q4','q5'].map(id=>document.getElementById(id).value).filter(Boolean);
+  if(!vals.length){
+    out.textContent='Responda às perguntas para estimarmos sua fase.';
+    out.style.color='#b33';
+    document.getElementById('chartContainer').style.display='none';
+    return;
+  }
+  const count={menstrual:0,folicular:0,ovulatoria:0,lutea:0};
+  vals.forEach(v=>{ if(count[v]!==undefined) count[v]++; });
+  let fase='folicular', max=-1; for(const k in count){ if(count[k]>max){max=count[k]; fase=k;} }
+
+  out.innerHTML = 'Fase estimada: ' + labelBadge(fase) + ' — ciclo de ' + duracao + ' dias (estimativa por sintomas)';
+  out.style.color = '#234';
+
+  // Centro aproximado de cada fase
+  const mEnd = Math.round(5 * duracao/28);
+  const fEnd = Math.round(13 * duracao/28);
+  const oEnd = Math.round(15 * duracao/28);
+  let idx=0;
+  if(fase==='menstrual') idx=Math.round(mEnd/2);
+  else if(fase==='folicular') idx=Math.round((mEnd+fEnd)/2);
+  else if(fase==='ovulatoria') idx=Math.round((fEnd+oEnd)/2);
+  else idx=Math.round((oEnd+duracao)/2);
+
+  // Preenche o verificador automaticamente
+  const sel = document.getElementById('phase');
+  if (sel) sel.value = fase;
+
+  renderGrafico(duracao, fase, Math.max(0, Math.min(duracao-1, idx)));
+}
+
+function limparCampos(){
+  ['ultimaMenstruacao'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  ['q1','q2','q3','q4','q5'].forEach(id=>{ const el=document.getElementById(id); if(el) el.value=''; });
+  const out=document.getElementById('resultadoFase'); out.textContent='';
+  document.getElementById('chartContainer').style.display='none';
+  document.getElementById('marker').style.display='none';
+}
+</script>
+</body>
+</html>

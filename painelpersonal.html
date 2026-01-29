@@ -1,0 +1,1624 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>FemFlow • Painel Personal</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link
+    href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:wght@500;600&display=swap"
+    rel="stylesheet"
+  />
+  <link rel="icon" type="image/x-icon" href="app/favicon.ico">
+  <link rel="shortcut icon" href="app/favicon.ico">
+  <link rel="apple-touch-icon" href="app/favicon.ico">
+  <meta name="msapplication-TileImage" content="app/favicon.ico">
+  <style>
+   :root {
+  --bg: #fff7f2;
+  --text: #111111;
+  --accent-coral: #ff6b6b;
+  --accent-orange: #ff8e53;
+  --accent-peach: #ffb199;
+  --accent-teal: #335953;
+  --card: #ffffff;
+  --muted: #f1e7e2;
+  --shadow: 0 16px 40px rgba(0, 0, 0, 0.08);
+  --radius-lg: 22px;
+  --radius-md: 16px;
+  --success: #2f8f5f;
+  --warning: #ff8e53;
+  --error: #e04848;
+}
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    body {
+      font-family: "Lato", sans-serif;
+      background: var(--bg);
+      color: var(--text);
+    }
+
+    h1,
+    h2,
+    h3 {
+      font-family: "Playfair Display", serif;
+      font-weight: 600;
+    }
+
+    a {
+      color: inherit;
+      text-decoration: none;
+    }
+
+    .app {
+      max-width: 1400px;
+      margin: 0 auto;
+      padding: 24px;
+      display: grid;
+      grid-template-columns: 240px 1fr;
+      gap: 24px;
+    }
+
+    .topbar {
+      grid-column: 1 / -1;
+      background: var(--card);
+      border-radius: var(--radius-lg);
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      box-shadow: var(--shadow);
+    }
+
+    .brand {
+      display: flex;
+      flex-direction: column;
+      gap: 2px;
+    }
+
+    .brand-title {
+      font-size: 22px;
+    }
+
+    .brand-sub {
+      font-size: 14px;
+      color: rgba(17, 17, 17, 0.6);
+    }
+
+    .topbar-actions {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+
+    .status {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 13px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .status-dot {
+      width: 10px;
+      height: 10px;
+      border-radius: 50%;
+      background: var(--warning);
+      box-shadow: 0 0 8px rgba(255, 142, 83, 0.6);
+    }
+
+    .button {
+      border: none;
+      border-radius: 999px;
+      padding: 10px 18px;
+      font-weight: 700;
+      font-size: 14px;
+      cursor: pointer;
+      background: linear-gradient(120deg, var(--accent-coral), var(--accent-orange));
+      color: #2f1a14;
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+    }
+
+    .button:hover {
+      transform: translateY(-1px);
+      box-shadow: 0 8px 18px rgba(255, 107, 107, 0.3);
+    }
+
+    .button.secondary {
+      background: var(--card);
+      color: var(--text);
+      border: 1px solid rgba(17, 17, 17, 0.1);
+      box-shadow: none;
+    }
+
+    .button.ghost {
+      background: transparent;
+      color: var(--accent-teal);
+      border: 1px solid rgba(51, 89, 83, 0.3);
+    }
+
+    .button:disabled {
+      opacity: 0.6;
+      cursor: not-allowed;
+      transform: none;
+      box-shadow: none;
+    }
+
+    .button.loading::after {
+      content: "";
+      width: 14px;
+      height: 14px;
+      border: 2px solid rgba(255, 255, 255, 0.6);
+      border-top-color: #fff;
+      border-radius: 50%;
+      animation: spin 0.6s linear infinite;
+    }
+
+    .button.success {
+      background: var(--success);
+    }
+
+    .button.error {
+      background: var(--error);
+    }
+
+    @keyframes spin {
+      to {
+        transform: rotate(360deg);
+      }
+    }
+
+    .sidebar {
+      background: var(--card);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      box-shadow: var(--shadow);
+      position: sticky;
+      top: 24px;
+      align-self: start;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .sidebar h3 {
+      font-size: 16px;
+    }
+
+    .nav {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+
+    .nav a {
+      padding: 10px 12px;
+      border-radius: 12px;
+      font-weight: 700;
+      color: rgba(17, 17, 17, 0.75);
+      background: rgba(255, 177, 153, 0.15);
+    }
+
+    .nav a:hover {
+      background: rgba(255, 107, 107, 0.2);
+      color: var(--text);
+    }
+
+    .main {
+      display: flex;
+      flex-direction: column;
+      gap: 24px;
+    }
+
+    .card {
+      background: var(--card);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 18px;
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 16px;
+    }
+
+    .card-title {
+      font-size: 20px;
+    }
+
+    .field-grid {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px 20px;
+    }
+
+    label {
+      font-weight: 700;
+      font-size: 13px;
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    small {
+      display: block;
+      margin-top: 6px;
+      font-size: 12px;
+      color: rgba(17, 17, 17, 0.65);
+      line-height: 1.4;
+    }
+
+    input,
+    select,
+    textarea {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid rgba(17, 17, 17, 0.15);
+      font-family: inherit;
+      font-size: 14px;
+      background: #fff;
+    }
+
+    textarea {
+      resize: vertical;
+      min-height: 80px;
+    }
+
+    .chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+      margin-top: 8px;
+    }
+
+    .chip {
+      padding: 6px 12px;
+      border-radius: 999px;
+      background: rgba(255, 177, 153, 0.25);
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .chip.active {
+      background: rgba(51, 89, 83, 0.15);
+      color: var(--accent-teal);
+    }
+
+    .actions-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+    }
+
+    .preview {
+      background: var(--muted);
+      padding: 12px 16px;
+      border-radius: 14px;
+      font-size: 13px;
+      word-break: break-all;
+    }
+
+    .maintenance-grid {
+      display: grid;
+      grid-template-columns: 1.2fr 1fr;
+      gap: 16px;
+      align-items: end;
+    }
+
+    .console {
+      background: #111111;
+      color: #fdf6f1;
+      border-radius: var(--radius-md);
+      padding: 16px;
+      min-height: 220px;
+      font-family: "Courier New", monospace;
+      font-size: 13px;
+      overflow: auto;
+      white-space: pre-wrap;
+    }
+
+    .console.empty {
+      opacity: 0.6;
+    }
+
+    .console .response-meta {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 12px;
+      margin-bottom: 12px;
+      font-family: "Plus Jakarta Sans", sans-serif;
+      font-size: 12px;
+      color: rgba(253, 246, 241, 0.8);
+    }
+
+    .console .response-meta span {
+      padding: 4px 10px;
+      border-radius: 999px;
+      background: rgba(255, 255, 255, 0.1);
+      font-weight: 600;
+    }
+
+    .console .table-wrapper {
+      border-radius: 12px;
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      overflow: auto;
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .console table {
+      width: max(100%, 720px);
+      border-collapse: collapse;
+      font-family: "Plus Jakarta Sans", sans-serif;
+      font-size: 12px;
+      color: #fdf6f1;
+    }
+
+    .console th,
+    .console td {
+      text-align: left;
+      padding: 8px 10px;
+      border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+      vertical-align: top;
+    }
+
+    .console th {
+      position: sticky;
+      top: 0;
+      background: #1a1a1a;
+      font-weight: 700;
+      z-index: 1;
+    }
+
+    .console tr:nth-child(even) td {
+      background: rgba(255, 255, 255, 0.02);
+    }
+
+    .mini-card {
+      background: rgba(255, 177, 153, 0.2);
+      border-radius: 16px;
+      padding: 16px;
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .mini-card button {
+      width: 100%;
+      justify-content: center;
+    }
+
+    .auth-screen {
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      background: radial-gradient(circle at top, rgba(255, 177, 153, 0.45), transparent 55%), var(--bg);
+    }
+
+    .auth-card {
+      width: min(420px, 100%);
+      background: var(--card);
+      border-radius: var(--radius-lg);
+      padding: 28px;
+      box-shadow: var(--shadow);
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .auth-card p {
+      font-size: 14px;
+      color: rgba(17, 17, 17, 0.7);
+    }
+
+    .auth-card .helper {
+      font-size: 12px;
+      color: rgba(17, 17, 17, 0.6);
+    }
+
+    .auth-toggle {
+      font-size: 12px;
+      color: var(--accent-teal);
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    .auth-fields {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    .auth-actions {
+      display: flex;
+      gap: 12px;
+    }
+
+    .auth-actions .button {
+      flex: 1;
+      justify-content: center;
+    }
+
+    .app.is-hidden {
+      display: none;
+    }
+
+    .user-badge {
+      background: rgba(51, 89, 83, 0.12);
+      color: var(--accent-teal);
+      padding: 8px 12px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 700;
+    }
+
+    .toast {
+      position: fixed;
+      right: 24px;
+      bottom: 24px;
+      background: #111111;
+      color: #fff;
+      padding: 12px 16px;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+      opacity: 0;
+      transform: translateY(10px);
+      transition: all 0.2s ease;
+      z-index: 40;
+    }
+
+    .toast.show {
+      opacity: 1;
+      transform: translateY(0);
+    }
+
+    .modal {
+      position: fixed;
+      inset: 0;
+      background: rgba(17, 17, 17, 0.45);
+      display: none;
+      align-items: center;
+      justify-content: center;
+      padding: 24px;
+      z-index: 50;
+    }
+
+    .modal.open {
+      display: flex;
+    }
+
+    .modal-content {
+      background: #fff;
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      max-width: 520px;
+      width: 100%;
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .modal-actions {
+      display: flex;
+      justify-content: flex-end;
+      gap: 12px;
+    }
+
+    .drawer-toggle {
+      display: none;
+    }
+
+    @media (max-width: 1100px) {
+      .app {
+        grid-template-columns: 1fr;
+      }
+
+      .sidebar {
+        position: static;
+      }
+
+      .drawer-toggle {
+        display: inline-flex;
+      }
+
+      .sidebar {
+        display: none;
+      }
+
+      .sidebar.open {
+        display: flex;
+      }
+    }
+
+    @media (max-width: 760px) {
+      .field-grid,
+      .maintenance-grid {
+        grid-template-columns: 1fr;
+      }
+
+      .app {
+        padding: 16px;
+      }
+
+      .card {
+        padding: 18px;
+      }
+
+      .topbar {
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 12px;
+      }
+
+      .topbar-actions {
+        width: 100%;
+        justify-content: space-between;
+        flex-wrap: wrap;
+      }
+
+      .button {
+        width: 100%;
+        justify-content: center;
+      }
+
+      .actions-row,
+      .auth-actions {
+        flex-direction: column;
+      }
+    }
+  </style>
+</head>
+<body>
+  <div class="auth-screen" id="loginScreen">
+    <div class="auth-card">
+      <h2>Entrar no Painel</h2>
+      <p>Use o e-mail ou telefone cadastrado na aba <strong>Personal</strong>.</p>
+      <div class="auth-fields">
+        <div class="signup-only" id="signupNomeGroup" style="display: none;">
+          <label for="signupNome">Nome</label>
+          <input id="signupNome" placeholder="Seu nome completo" />
+        </div>
+        <div>
+          <label for="loginIdentificador">Email ou telefone</label>
+          <input id="loginIdentificador" placeholder="ex: nome@email.com ou 11999999999" />
+        </div>
+        <div>
+          <label for="loginSenha">Senha</label>
+          <input id="loginSenha" type="password" placeholder="Digite sua senha" />
+        </div>
+        <div class="signup-only" id="signupTelefoneGroup" style="display: none;">
+          <label for="signupTelefone">Telefone</label>
+          <input id="signupTelefone" placeholder="11999999999" />
+        </div>
+      </div>
+      <div class="helper">As credenciais são validadas com hash SHA-256.</div>
+      <div class="auth-actions">
+        <button class="button secondary" id="loginConfig">Configurar endpoint</button>
+        <button class="button" id="loginSubmit">Entrar</button>
+      </div>
+      <div class="auth-actions" id="signupActions" style="display: none;">
+        <button class="button secondary" id="signupCancel">Voltar</button>
+        <button class="button" id="signupSubmit">Criar acesso</button>
+      </div>
+      <div class="auth-toggle" id="signupToggle">Cadastrar novo acesso</div>
+      <small id="loginStatus">Configure o endpoint do Apps Script antes de entrar.</small>
+    </div>
+  </div>
+
+  <div class="app is-hidden" id="app">
+    <div class="topbar">
+      <div class="brand">
+        <h1 class="brand-title">FemFlow • Painel Personal</h1>
+        <span class="brand-sub">Gestão de treinos 30 dias com mood sunset premium</span>
+      </div>
+      <div class="topbar-actions">
+        <div class="status" id="statusIndicator">
+          <span class="status-dot"></span>
+          <span id="statusText">OFFLINE</span>
+        </div>
+        <span class="user-badge" id="userBadge">Visitante</span>
+        <button class="button secondary" id="openConfig">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M12 1v3" />
+            <path d="M12 20v3" />
+            <path d="M4.22 4.22l2.12 2.12" />
+            <path d="M17.66 17.66l2.12 2.12" />
+            <path d="M1 12h3" />
+            <path d="M20 12h3" />
+            <path d="M4.22 19.78l2.12-2.12" />
+            <path d="M17.66 6.34l2.12-2.12" />
+            <circle cx="12" cy="12" r="4" />
+          </svg>
+          Configurar Endpoint
+        </button>
+        <button class="button ghost" id="logout">Sair</button>
+        <button class="button ghost drawer-toggle" id="toggleNav">Menu</button>
+      </div>
+    </div>
+
+    <aside class="sidebar" id="sidebar">
+      <h3>Navegação</h3>
+      <nav class="nav">
+        <a href="#gerar">Gerar 30 dias</a>
+        <a href="#relinkar">Relinkar aba</a>
+        <a href="#importar">Importar</a>
+      </nav>
+      <div class="mini-card">
+        <strong>Atalhos</strong>
+        <button class="button secondary" data-preset="iniciante">Iniciante • Menstrual • Gluteos</button>
+        <button class="button secondary" data-preset="intermediaria">Intermediaria • Folicular • Corrida longa</button>
+      </div>
+    </aside>
+
+    <main class="main">
+      <section class="card" id="gerar">
+        <div class="card-header">
+          <h2 class="card-title">Parâmetros do Treino</h2>
+          <span class="chip">Desktop-first • Responsivo</span>
+        </div>
+        <form id="paramForm" class="field-grid">
+          <div>
+            <label for="nivel">Nível</label>
+            <select id="nivel" name="nivel" required>
+              <option value="">Selecione</option>
+              <option value="iniciante">Iniciante</option>
+              <option value="intermediaria">Intermediaria</option>
+              <option value="avancada">Avancada</option>
+            </select>
+          </div>
+          <div>
+            <label for="padraoCiclo">Padrão do ciclo</label>
+            <select id="padraoCiclo" name="padrao_ciclo" required>
+              <option value="">Selecione</option>
+              <option value="3">ABC (3 dias)</option>
+              <option value="4">ABCD (4 dias)</option>
+              <option value="5">ABCDE (5 dias)</option>
+            </select>
+          </div>
+          <div>
+            <label for="targetApp">Target (app)</label>
+            <select id="targetApp" name="target">
+              <option value="femflow">FemFlow</option>
+              <option value="maleflow">MaleFlow</option>
+            </select>
+          </div>
+          <div>
+            <label for="enfase">Ênfase</label>
+            <input id="enfase" name="enfase" list="enfaseList" placeholder="Digite ou selecione" required />
+            <datalist id="enfaseList">
+              <option value="gluteos">Glúteos</option>
+              <option value="core">Core</option>
+              <option value="corrida_longa">Corrida longa distância</option>
+              <option value="corrida_curta">Corrida curta distância</option>
+              <option value="remo">Remo</option>
+              <option value="natacao">Natação</option>
+              <option value="beach_tennis">Beach tennis</option>
+              <option value="tenis">Tênis</option>
+              <option value="ciclismo">Ciclismo</option>
+              <option value="jiu_jitsu">Jiu-jitsu</option>
+              <option value="muay_thai">Muay thai</option>
+              <option value="militar">Ênfase Militar (Teste Físico Operacional)</option>
+              <option value="danca">Dança</option>
+              <option value="surf">Surf</option>
+              <option value="triatlo">Triatlo</option>
+              <option value="crossfit">Crossfit</option>
+            </datalist>
+            <div class="chips" id="chipContainer"></div>
+          </div>
+          <div>
+            <label for="destino">Destino (distribuir/importar)</label>
+            <input id="destino" name="destino" placeholder="Iniciante" />
+          </div>
+          <div>
+            <label for="idAluna">ID Aluna (opcional)</label>
+            <input id="idAluna" name="id_aluna" placeholder="123" />
+          </div>
+          <div>
+            <label for="serieEspecialAtiva">Série especial</label>
+            <select id="serieEspecialAtiva" name="serie_especial">
+              <option value="nao">Não aplicar</option>
+              <option value="sim">Aplicar</option>
+            </select>
+            <small>Usada na etapa Distribuir 30 dias para preencher o box de série especial.</small>
+          </div>
+          <div>
+            <label for="serieEspecialFase">Fase da série especial</label>
+            <select id="serieEspecialFase" name="serie_especial_fase">
+              <option value="">Selecione</option>
+              <option value="menstrual">Menstrual</option>
+              <option value="folicular">Folicular</option>
+              <option value="ovulatoria">Ovulatoria</option>
+              <option value="lutea">Lutea</option>
+            </select>
+          </div>
+          <div>
+            <label for="serieEspecialTipo">Tipo da série especial</label>
+            <select id="serieEspecialTipo" name="serie_especial_tipo">
+              <option value="">Selecione</option>
+              <option value="cc">CC • Cadência controlada</option>
+              <option value="sm">SM • Submáxima</option>
+              <option value="rp">RP • Rest-pause</option>
+              <option value="ae">AE • All out</option>
+              <option value="d">D • Dropset</option>
+              <option value="q">Q • Quadriset</option>
+              <option value="t">T • Triset</option>
+              <option value="b">B • Biset</option>
+              <option value="c">C • Cluster</option>
+              <option value="i">I • Isometria</option>
+            </select>
+          </div>
+          <div>
+            <label for="serieEspecialDiaTipo">Série especial por dia (opcional)</label>
+            <input
+              id="serieEspecialDiaTipo"
+              name="serie_especial_dia_tipo"
+              placeholder="Ex: 4:rp, 7:t, 12:b"
+            />
+            <small>Use dia:tipo (1–30). Exemplo: 4:rp aplica RP apenas no dia 4.</small>
+          </div>
+        </form>
+        <div class="actions-row">
+          <button class="button secondary" id="btnGerarBase" type="button">Gerar base ovulatória</button>
+          <button class="button secondary" id="btnSerieEspecial" type="button">Aplicar série especial na base</button>
+          <button class="button secondary" id="btnDistribuir" type="button">Distribuir 30 dias</button>
+        </div>
+        <div class="preview" id="previewUrl">Preview do Request: configure o endpoint.</div>
+        <div class="preview" id="previewInfo">
+          <strong id="previewTitle">Gerar base ovulatória FemFlow</strong>
+          <div>Target: <span data-preview="target">—</span></div>
+          <div>Nível: <span data-preview="nivel">—</span></div>
+          <div>Ênfase: <span data-preview="enfase">—</span></div>
+          <div style="margin-top: 10px;">
+            ℹ️ O sistema irá gerar automaticamente:
+            <div>- Dias 1–5: Menstrual</div>
+            <div>- Dias 6–13: Folicular</div>
+            <div>- Dias 14–17: Ovulatória</div>
+            <div>- Dias 18–30: Lútea</div>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" id="relinkar">
+        <div class="card-header">
+          <h2 class="card-title">Ações de Manutenção</h2>
+        </div>
+        <div class="maintenance-grid">
+          <div>
+            <label for="destinoRelink">Nome da aba para relinkar</label>
+            <input id="destinoRelink" placeholder="Padrão: BASE_OVULATORIA" />
+          </div>
+          <div class="actions-row">
+            <button class="button secondary" id="btnRelink" type="button">Relinkar</button>
+            <button class="button secondary" id="btnImport" type="button">Importar</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="card" id="importar">
+        <div class="card-header">
+          <h2 class="card-title">Resposta / Resultado</h2>
+        </div>
+        <div class="console empty" id="responseConsole">Nenhum resultado ainda.</div>
+        <div class="actions-row">
+          <button class="button secondary" id="btnCopy">Copiar JSON</button>
+          <button class="button secondary" id="btnDownload">Baixar JSON</button>
+          <button class="button secondary" id="btnClear">Limpar</button>
+        </div>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast" id="toast"></div>
+
+  <div class="modal" id="configModal">
+    <div class="modal-content">
+      <h2>Configurar Endpoint</h2>
+      <div>
+        <label for="endpointUrl">BASE_URL do Apps Script</label>
+        <input id="endpointUrl" placeholder="https://script.google.com/macros/s/.../exec" />
+      </div>
+      <div>
+        <label for="modeSelect">Modo preferido</label>
+        <select id="modeSelect">
+          <option value="fetch-first">Tentar FETCH primeiro</option>
+          <option value="link-only">Forçar LINK (sempre abrir nova aba)</option>
+        </select>
+      </div>
+      <div class="modal-actions">
+        <button class="button secondary" id="closeConfig">Cancelar</button>
+        <button class="button" id="saveConfig">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const chipOptions = [
+      { label: "Glúteos", value: "gluteos" },
+      { label: "Core", value: "core" },
+      { label: "Corrida longa distância", value: "corrida_longa" },
+      { label: "Corrida curta distância", value: "corrida_curta" },
+      { label: "Remo", value: "remo" },
+      { label: "Natação", value: "natacao" },
+      { label: "Beach tennis", value: "beach_tennis" },
+      { label: "Tênis", value: "tenis" },
+      { label: "Ciclismo", value: "ciclismo" },
+      { label: "Jiu-jitsu", value: "jiu_jitsu" },
+      { label: "Muay thai", value: "muay_thai" },
+      { label: "Dança", value: "danca" },
+      { label: "Surf", value: "surf" },
+      { label: "Triatlo", value: "triatlo" },
+      { label: "Crossfit", value: "crossfit" },
+    ];
+
+    const defaultPreset = {
+      iniciante: {
+        nivel: "iniciante",
+        enfase: "gluteos",
+        destino: "Iniciante",
+        id_aluna: "",
+      },
+      intermediaria: {
+        nivel: "intermediaria",
+        enfase: "corrida_longa",
+        destino: "Intermediaria",
+        id_aluna: "",
+      },
+    };
+
+    const AUTH_KEY = "femflow_personal_auth";
+    const AUTH_TTL = 1000 * 60 * 60 * 12;
+
+    const state = {
+      endpoint: localStorage.getItem("femflow_endpoint_url") || "",
+      mode: localStorage.getItem("femflow_mode") || "fetch-first",
+      timeoutMs: Number(localStorage.getItem("femflow_timeout_ms") || 180000),
+      response: null,
+      authMode: "login",
+    };
+
+    const qs = (id) => document.getElementById(id);
+    const toast = (msg) => {
+      const el = qs("toast");
+      el.textContent = msg;
+      el.classList.add("show");
+      setTimeout(() => el.classList.remove("show"), 2200);
+    };
+
+    const formatJson = (data) => JSON.stringify(data, null, 2);
+
+    const escapeHtml = (value) =>
+      String(value ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll("\"", "&quot;")
+        .replaceAll("'", "&#39;");
+
+    const parseCsvLine = (line) => {
+      const cells = [];
+      let current = "";
+      let inQuotes = false;
+
+      for (let i = 0; i < line.length; i += 1) {
+        const char = line[i];
+        if (char === "\"") {
+          if (inQuotes && line[i + 1] === "\"") {
+            current += "\"";
+            i += 1;
+          } else {
+            inQuotes = !inQuotes;
+          }
+          continue;
+        }
+        if (char === "," && !inQuotes) {
+          cells.push(current);
+          current = "";
+          continue;
+        }
+        current += char;
+      }
+      cells.push(current);
+      return cells.map((cell) => cell.trim());
+    };
+
+    const parseCsvTable = (text) => {
+      const lines = text
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter(Boolean);
+      if (lines.length === 0) return null;
+      const [headerLine, ...rowLines] = lines;
+      const headers = parseCsvLine(headerLine);
+      const rows = rowLines.map((line) => parseCsvLine(line));
+      return { headers, rows };
+    };
+
+    const buildResultTable = (data) => {
+      if (!data || typeof data.result !== "string") return null;
+      const table = parseCsvTable(data.result);
+      if (!table) return null;
+      const headerHtml = table.headers.map((header) => `<th>${escapeHtml(header)}</th>`).join("");
+      const bodyHtml = table.rows
+        .map(
+          (row) =>
+            `<tr>${row.map((cell) => `<td>${escapeHtml(cell)}</td>`).join("")}</tr>`
+        )
+        .join("");
+      const metaParts = [];
+      if (Object.prototype.hasOwnProperty.call(data, "ok")) {
+        metaParts.push(`<span>Status: ${escapeHtml(data.ok ? "ok" : "erro")}</span>`);
+      }
+      if (data.action) {
+        metaParts.push(`<span>Ação: ${escapeHtml(data.action)}</span>`);
+      }
+      const metaHtml = metaParts.length
+        ? `<div class="response-meta">${metaParts.join("")}</div>`
+        : "";
+      return `${metaHtml}<div class="table-wrapper"><table><thead><tr>${headerHtml}</tr></thead><tbody>${bodyHtml}</tbody></table></div>`;
+    };
+
+    const formatResponse = (data) => {
+      const tableHtml = buildResultTable(data);
+      if (tableHtml) {
+        return { html: tableHtml, isHtml: true };
+      }
+      return { html: formatJson(data), isHtml: false };
+    };
+
+    const buildUrl = (action, params = {}) => {
+      if (!state.endpoint) return "";
+      const url = new URL(state.endpoint);
+      url.searchParams.set("action", action);
+      Object.entries(params).forEach(([key, value]) => {
+        if (value !== "" && value !== undefined && value !== null) {
+          url.searchParams.set(key, value);
+        }
+      });
+      return url.toString();
+    };
+
+    const getBaseAction = (params) => {
+      const target = String(params?.target || "").toLowerCase();
+      return target === "maleflow" ? "gerarbase_male" : "gerarbase";
+    };
+
+    const updatePreview = () => {
+      const params = collectParams();
+      const baseAction = getBaseAction(params);
+      const preview = buildUrl(baseAction, params);
+      qs("previewUrl").textContent = preview
+        ? `Preview do Request: ${preview}`
+        : "Preview do Request: configure o endpoint.";
+      document.querySelectorAll("[data-preview]").forEach((el) => {
+        const key = el.dataset.preview;
+        el.textContent = params[key] || "—";
+      });
+      const isMale = String(params.target || "femflow").toLowerCase() === "maleflow";
+      qs("previewTitle").textContent = isMale
+        ? "Gerar base MaleFlow"
+        : "Gerar base ovulatória FemFlow";
+      qs("btnGerarBase").textContent = isMale
+        ? "Gerar base MaleFlow"
+        : "Gerar base ovulatória";
+    };
+
+    const collectParams = () => {
+      const nivel = qs("nivel").value.trim();
+      const padraoCiclo = qs("padraoCiclo").value.trim();
+      const fase = "ovulatoria";
+      const enfase = qs("enfase").value.trim();
+      const target = qs("targetApp").value.trim() || "femflow";
+      const destinoField = qs("destino").value.trim();
+      const idAluna = qs("idAluna").value.trim();
+      const destino = idAluna ? `personal_${idAluna}` : destinoField;
+      const serieEspecialAtiva = qs("serieEspecialAtiva").value.trim();
+      const serieEspecialFase = qs("serieEspecialFase").value.trim();
+      const serieEspecialTipo = qs("serieEspecialTipo").value.trim();
+      const serieEspecialDiaTipo = qs("serieEspecialDiaTipo").value.trim();
+      return {
+        nivel,
+        padraoCiclo,
+        fase,
+        enfase,
+        target,
+        destino,
+        id_aluna: idAluna,
+        serieEspecialAtiva,
+        serieEspecialFase,
+        serieEspecialTipo,
+        serieEspecialDiaTipo
+      };
+    };
+
+    const normalizePhone = (value) => String(value || "").replace(/\D/g, "");
+    
+const sha256Hex = async (text) => {
+  const enc = new TextEncoder();
+  const data = enc.encode(String(text));
+  const hashBuffer = await crypto.subtle.digest("SHA-256", data);
+  const hashArray = Array.from(new Uint8Array(hashBuffer));
+  return hashArray.map((b) => b.toString(16).padStart(2, "0")).join("");
+};
+
+    const getAuth = () => {
+      try {
+        const raw = localStorage.getItem(AUTH_KEY);
+        return raw ? JSON.parse(raw) : null;
+      } catch (error) {
+        return null;
+      }
+    };
+
+    const setAuth = (auth) => {
+      localStorage.setItem(AUTH_KEY, JSON.stringify(auth));
+    };
+
+    const clearAuth = () => {
+      localStorage.removeItem(AUTH_KEY);
+    };
+
+    const isAuthValid = (auth) => {
+      if (!auth || !auth.timestamp) return false;
+      return Date.now() - auth.timestamp < AUTH_TTL;
+    };
+
+    const applyAuthState = (auth) => {
+      const isValid = isAuthValid(auth);
+      qs("loginScreen").style.display = isValid ? "none" : "flex";
+      qs("app").classList.toggle("is-hidden", !isValid);
+      if (isValid) {
+        qs("userBadge").textContent = auth?.user?.nome || "Personal";
+      } else {
+        qs("userBadge").textContent = "Visitante";
+      }
+    };
+
+    const setAuthMode = (mode) => {
+      state.authMode = mode;
+      const isSignup = mode === "signup";
+      qs("signupNomeGroup").style.display = isSignup ? "block" : "none";
+      qs("signupTelefoneGroup").style.display = isSignup ? "block" : "none";
+      qs("signupActions").style.display = isSignup ? "flex" : "none";
+      qs("signupToggle").style.display = isSignup ? "none" : "block";
+      qs("loginSubmit").style.display = isSignup ? "none" : "inline-flex";
+    };
+
+    const reportFailure = (action, params, reason) => {
+      state.response = { error: reason, action, params };
+      updateResponse(state.response);
+    };
+
+    const validate = (params, action = "") => {
+      const normalizedAction = String(action || "").toLowerCase().trim();
+      if (!state.endpoint) {
+        const reason = "Informe o endpoint antes de executar.";
+        toast(reason);
+        reportFailure(action, params, reason);
+        return false;
+      }
+
+      if (["linkar", "importar"].includes(normalizedAction)) {
+        if (!params.destino) {
+          const reason = "Preencha o destino ou informe um ID de aluna.";
+          toast(reason);
+          reportFailure(action, params, reason);
+          return false;
+        }
+        return true;
+      }
+
+      if (normalizedAction === "distribuir30" && !params.destino) {
+        const reason = "Preencha o destino para distribuir.";
+        toast(reason);
+        reportFailure(action, params, reason);
+        return false;
+      }
+
+      if (normalizedAction === "serieespecial") {
+        if (params.serieEspecialAtiva !== "sim") {
+          const reason = "Ative a série especial antes de aplicar.";
+          toast(reason);
+          reportFailure(action, params, reason);
+          return false;
+        }
+        if (!params.serieEspecialDiaTipo) {
+          const reason = "Informe os dias específicos da série especial.";
+          toast(reason);
+          reportFailure(action, params, reason);
+          return false;
+        }
+      }
+
+      if (normalizedAction !== "serieespecial" && (!params.nivel || !params.enfase)) {
+        const reason = "Preencha nivel e enfase.";
+        toast(reason);
+        reportFailure(action, params, reason);
+        return false;
+      }
+      if (normalizedAction !== "serieespecial" && !params.padraoCiclo) {
+        const reason = "Selecione o padrão do ciclo.";
+        toast(reason);
+        reportFailure(action, params, reason);
+        return false;
+      }
+      if (action === "importar" && !params.id_aluna) {
+        const reason = "Informe o perfil (ID da aluna) antes de importar.";
+        toast(reason);
+        reportFailure(action, params, reason);
+        return false;
+      }
+      if (normalizedAction !== "serieespecial" && params.serieEspecialAtiva === "sim") {
+        const temDias = Boolean(params.serieEspecialDiaTipo);
+        if (!temDias && (!params.serieEspecialFase || !params.serieEspecialTipo)) {
+          const reason = "Selecione fase e tipo da série especial.";
+          toast(reason);
+          reportFailure(action, params, reason);
+          return false;
+        }
+      }
+      return true;
+    };
+
+    const setButtonState = (button, stateLabel, label) => {
+      button.classList.remove("loading", "success", "error");
+      button.disabled = false;
+      button.textContent = label;
+      if (stateLabel === "loading") {
+        button.classList.add("loading");
+        button.disabled = true;
+      }
+      if (stateLabel === "success") button.classList.add("success");
+      if (stateLabel === "error") button.classList.add("error");
+    };
+
+    const updateResponse = (data) => {
+      const consoleEl = qs("responseConsole");
+      if (!data) {
+        consoleEl.textContent = "Nenhum resultado ainda.";
+        consoleEl.classList.add("empty");
+        return;
+      }
+      const formatted = formatResponse(data);
+      if (formatted.isHtml) {
+        consoleEl.innerHTML = formatted.html;
+      } else {
+        consoleEl.textContent = formatted.html;
+      }
+      consoleEl.classList.remove("empty");
+    };
+
+    const buildFetchHint = (errorMessage, errorName) => {
+      if (errorName === "AbortError") {
+        return "Tempo limite excedido. O Apps Script pode estar travado ou executando além do limite. Verifique os logs de execução no Apps Script.";
+      }
+      const msg = String(errorMessage || "").toLowerCase();
+      if (msg.includes("failed to fetch") || msg.includes("networkerror")) {
+        return "Fetch bloqueado (provável CORS) ou Web App inacessível. Verifique se o Apps Script está publicado como Web App e com acesso 'Qualquer pessoa'.";
+      }
+      return "";
+    };
+
+    const runAction = async (action, params, button) => {
+      if (!validate(params, action)) return;
+      const url = buildUrl(action, params);
+      updatePreview();
+
+      setButtonState(button, "loading", button.textContent);
+      let modeUsed = state.mode === "link-only" ? "LINK" : "FETCH";
+      try {
+        let data = null;
+        if (state.mode === "link-only") {
+          window.open(url, "_blank");
+          data = { message: "LINK ONLY: endpoint aberto em nova aba.", url };
+        } else {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), state.timeoutMs);
+          const response = await fetch(url, { method: "GET", signal: controller.signal });
+          clearTimeout(timeoutId);
+          const contentType = response.headers.get("content-type") || "";
+          const payload = contentType.includes("application/json")
+            ? await response.json()
+            : await response.text();
+          if (!response.ok) {
+            throw new Error(
+              `Erro HTTP ${response.status}: ${typeof payload === "string" ? payload : JSON.stringify(payload)}`
+            );
+          }
+          data = payload;
+        }
+        state.response = data;
+        updateResponse(data);
+        setButtonState(button, "success", "Concluído");
+      } catch (error) {
+        const hint = buildFetchHint(error.message, error.name);
+        if (state.mode !== "link-only") {
+          window.open(url, "_blank");
+          const toastMessage = hint
+            ? hint
+            : "Fetch bloqueado (provável CORS). Abri o endpoint em nova aba.";
+          toast(toastMessage);
+          modeUsed = "LINK-FALLBACK";
+        }
+        state.response = {
+          error: error.message || "Erro inesperado",
+          action,
+          url,
+          hint: hint || undefined,
+        };
+        updateResponse(state.response);
+        setButtonState(button, "error", "Erro");
+      } finally {
+        setTimeout(() => {
+          const labelMap = {
+            gerarbase: "Gerar base ovulatória",
+            gerarbase_male: "Gerar base MaleFlow",
+            serieespecial: "Aplicar série especial",
+            distribuir30: "Distribuir 30 dias",
+            linkar: "Relinkar",
+            importar: "Importar",
+          };
+          setButtonState(button, "default", labelMap[action] || "Executar");
+        }, 1600);
+      }
+    };
+
+    const pingEndpoint = async () => {
+      const statusText = qs("statusText");
+      const dot = document.querySelector(".status-dot");
+      if (!state.endpoint) {
+        statusText.textContent = "OFFLINE";
+        dot.style.background = "var(--warning)";
+        return;
+      }
+      try {
+        const response = await fetch(state.endpoint, { method: "GET" });
+        if (response.ok) {
+          statusText.textContent = "ONLINE";
+          dot.style.background = "var(--success)";
+          return;
+        }
+      } catch (error) {
+        // fallback
+      }
+      statusText.textContent = "OFFLINE";
+      dot.style.background = "var(--error)";
+    };
+
+    const updateLoginStatus = (message, isError = false) => {
+      const el = qs("loginStatus");
+      el.textContent = message;
+      el.style.color = isError ? "var(--error)" : "rgba(17, 17, 17, 0.6)";
+    };
+
+    const handleLogin = async () => {
+      const identificador = qs("loginIdentificador").value.trim();
+      const senha = qs("loginSenha").value.trim();
+
+      if (!state.endpoint) {
+        updateLoginStatus("Configure o endpoint antes de entrar.", true);
+        return;
+      }
+      if (!identificador || !senha) {
+        updateLoginStatus("Informe email/telefone e senha.", true);
+        return;
+      }
+
+      const senha_hash = await sha256Hex(senha);
+const payload = { action: "login", senha_hash };
+
+      if (identificador.includes("@")) {
+        payload.email = identificador.toLowerCase();
+      } else {
+        payload.telefone = normalizePhone(identificador);
+      }
+
+      updateLoginStatus("Validando acesso...", false);
+
+      try {
+        console.info("Login payload", { endpoint: state.endpoint, payload });
+        const authUrl = new URL(state.endpoint);
+        authUrl.searchParams.set("action", "login");
+        const response = await fetch(authUrl.toString(), {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload),
+        });
+        const contentType = response.headers.get("content-type") || "";
+        const data = contentType.includes("application/json")
+          ? await response.json()
+          : await response.text();
+        if (!response.ok || (typeof data === "object" && data && data.ok !== true)) {
+  // log completo e legível
+  console.error("Cadastro falhou (HTTP ok, mas ok=false)", {
+    httpStatus: response.status,
+    contentType,
+    rawData: data,
+    stringified: (typeof data === "object" ? JSON.stringify(data, null, 2) : String(data))
+  });
+
+  const message = (typeof data === "object" && data)
+    ? (data.error || data.erro || data.message || data.mensagem || "Não foi possível cadastrar.")
+    : String(data || "Não foi possível cadastrar.");
+
+  throw new Error(message);
+}
+
+        const auth = {
+          timestamp: Date.now(),
+          user: data.user || (typeof data === "object" ? data.user : null),
+        };
+        setAuth(auth);
+        applyAuthState(auth);
+        updateLoginStatus("Acesso liberado!", false);
+        qs("loginIdentificador").value = "";
+        qs("loginSenha").value = "";
+      } catch (error) {
+        const hint = buildFetchHint(error.message, error.name);
+        updateLoginStatus(
+          hint ? `${error.message || "Não foi possível entrar."} ${hint}` : (error.message || "Não foi possível entrar."),
+          true
+        );
+      }
+    };
+
+    const handleSignup = async () => {
+      const nome = qs("signupNome").value.trim();
+      const identificador = qs("loginIdentificador").value.trim();
+      const senha = qs("loginSenha").value.trim();
+      const telefoneExtra = qs("signupTelefone").value.trim();
+
+      if (!state.endpoint) {
+        updateLoginStatus("Configure o endpoint antes de cadastrar.", true);
+        return;
+      }
+      if (!nome || !identificador || !senha) {
+        updateLoginStatus("Preencha nome, email/telefone e senha.", true);
+        return;
+      }
+
+      const senha_hash = await sha256Hex(senha);
+const payload = { action: "signup", nome, senha_hash };
+
+      if (identificador.includes("@")) {
+        payload.email = identificador.toLowerCase();
+      } else {
+        payload.telefone = normalizePhone(identificador);
+      }
+      if (telefoneExtra) {
+        payload.telefone = normalizePhone(telefoneExtra) || payload.telefone;
+      }
+
+      updateLoginStatus("Criando acesso...", false);
+
+      try {
+        console.info("Cadastro payload", { endpoint: state.endpoint, payload });
+        const authUrl = new URL(state.endpoint);
+        const response = await fetch(authUrl.toString(), {
+          method: "POST",
+          headers: { "Content-Type": "text/plain;charset=utf-8" },
+          body: JSON.stringify(payload),
+        });
+        const contentType = response.headers.get("content-type") || "";
+        const data = contentType.includes("application/json")
+          ? await response.json()
+          : await response.text();
+        if (!response.ok || (typeof data === "object" && !data.ok)) {
+          const message = typeof data === "object"
+            ? (data?.error || data?.erro || data?.message || data?.mensagem)
+            : data;
+          console.error("Cadastro falhou", { status: response.status, data });
+          throw new Error(message || "Não foi possível cadastrar.");
+        }
+        const auth = {
+          timestamp: Date.now(),
+          user: data.user || (typeof data === "object" ? data.user : null),
+        };
+        setAuth(auth);
+        applyAuthState(auth);
+        updateLoginStatus("Acesso criado com sucesso!", false);
+        qs("signupNome").value = "";
+        qs("signupTelefone").value = "";
+        qs("loginIdentificador").value = "";
+        qs("loginSenha").value = "";
+        setAuthMode("login");
+      } catch (error) {
+        const hint = buildFetchHint(error.message, error.name);
+        updateLoginStatus(
+          hint ? `${error.message || "Não foi possível cadastrar."} ${hint}` : (error.message || "Não foi possível cadastrar."),
+          true
+        );
+      }
+    };
+
+    const persistParams = () => {
+      const params = collectParams();
+      Object.entries(params).forEach(([key, value]) => {
+        localStorage.setItem(`femflow_${key}`, value || "");
+      });
+      syncChips();
+      updatePreview();
+    };
+
+      const loadParams = () => {
+        qs("nivel").value = localStorage.getItem("femflow_nivel") || "";
+        qs("padraoCiclo").value = localStorage.getItem("femflow_padraoCiclo") || "";
+        qs("enfase").value = localStorage.getItem("femflow_enfase") || "";
+        qs("targetApp").value = localStorage.getItem("femflow_target") || "femflow";
+        qs("destino").value = localStorage.getItem("femflow_destino") || "";
+        qs("idAluna").value = localStorage.getItem("femflow_id_aluna") || "";
+        qs("serieEspecialAtiva").value = localStorage.getItem("femflow_serieEspecialAtiva") || "nao";
+        qs("serieEspecialFase").value = localStorage.getItem("femflow_serieEspecialFase") || "";
+        qs("serieEspecialTipo").value = localStorage.getItem("femflow_serieEspecialTipo") || "";
+        qs("serieEspecialDiaTipo").value = localStorage.getItem("femflow_serieEspecialDiaTipo") || "";
+      };
+
+    const setupChips = () => {
+      const container = qs("chipContainer");
+      chipOptions.forEach((option) => {
+        const chip = document.createElement("button");
+        chip.type = "button";
+        chip.className = "chip";
+        chip.textContent = option.label;
+        chip.dataset.value = option.value;
+        chip.addEventListener("click", () => {
+          qs("enfase").value = option.value;
+          document.querySelectorAll(".chip").forEach((el) => el.classList.remove("active"));
+          chip.classList.add("active");
+          persistParams();
+        });
+        container.appendChild(chip);
+      });
+    };
+
+    const syncChips = () => {
+      const current = qs("enfase").value.trim().toLowerCase();
+      document.querySelectorAll(".chip").forEach((chip) => {
+        chip.classList.toggle("active", chip.dataset.value === current);
+      });
+    };
+
+    const setupPresets = () => {
+      document.querySelectorAll("[data-preset]").forEach((button) => {
+        button.addEventListener("click", () => {
+          const preset = defaultPreset[button.dataset.preset];
+          qs("nivel").value = preset.nivel;
+          qs("enfase").value = preset.enfase;
+          qs("destino").value = preset.destino;
+          qs("idAluna").value = preset.id_aluna;
+          persistParams();
+        });
+      });
+    };
+
+    const init = () => {
+      setupChips();
+      setupPresets();
+      loadParams();
+      syncChips();
+      updatePreview();
+      pingEndpoint();
+      applyAuthState(getAuth());
+      setAuthMode("login");
+      updateLoginStatus(state.endpoint ? "Endpoint configurado. Faça login." : "Configure o endpoint antes de entrar.");
+    };
+
+    qs("paramForm").addEventListener("input", persistParams);
+
+    qs("btnGerarBase").addEventListener("click", () => {
+      const params = collectParams();
+      runAction(getBaseAction(params), params, qs("btnGerarBase"));
+    });
+    qs("btnSerieEspecial").addEventListener("click", () => runAction("serieespecial", collectParams(), qs("btnSerieEspecial")));
+    qs("btnDistribuir").addEventListener("click", () => runAction("distribuir30", collectParams(), qs("btnDistribuir")));
+    qs("btnRelink").addEventListener("click", () => {
+  const params = collectParams();
+
+  const payload = {
+    destino: qs("destinoRelink").value.trim() || "BASE_OVULATORIA",
+    nivel: params.nivel
+  };
+  runAction("linkar", payload, qs("btnRelink"));
+    });
+    qs("btnImport").addEventListener("click", () => runAction("importar", collectParams(), qs("btnImport")));
+
+    qs("btnCopy").addEventListener("click", async () => {
+      if (!state.response) return toast("Nenhum JSON para copiar.");
+      await navigator.clipboard.writeText(formatJson(state.response));
+      toast("JSON copiado.");
+    });
+
+    qs("btnDownload").addEventListener("click", () => {
+      if (!state.response) return toast("Nenhum JSON para baixar.");
+      const blob = new Blob([formatJson(state.response)], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = "femflow_resposta.json";
+      link.click();
+      URL.revokeObjectURL(url);
+    });
+
+    qs("btnClear").addEventListener("click", () => {
+      state.response = null;
+      updateResponse(null);
+    });
+
+    qs("loginSubmit").addEventListener("click", handleLogin);
+    qs("loginSenha").addEventListener("keydown", (event) => {
+      if (event.key === "Enter") {
+        event.preventDefault();
+        handleLogin();
+      }
+    });
+    qs("signupSubmit").addEventListener("click", handleSignup);
+    qs("signupToggle").addEventListener("click", () => {
+      setAuthMode("signup");
+      updateLoginStatus("Preencha os dados para criar seu acesso.");
+    });
+    qs("signupCancel").addEventListener("click", () => {
+      setAuthMode("login");
+      updateLoginStatus("Faça login para continuar.");
+    });
+    qs("loginConfig").addEventListener("click", () => {
+      qs("configModal").classList.add("open");
+      qs("endpointUrl").value = state.endpoint;
+      qs("modeSelect").value = state.mode;
+    });
+
+    qs("openConfig").addEventListener("click", () => {
+      qs("configModal").classList.add("open");
+      qs("endpointUrl").value = state.endpoint;
+      qs("modeSelect").value = state.mode;
+    });
+
+    qs("closeConfig").addEventListener("click", () => qs("configModal").classList.remove("open"));
+
+    qs("saveConfig").addEventListener("click", () => {
+      state.endpoint = qs("endpointUrl").value.trim();
+      state.mode = qs("modeSelect").value;
+      localStorage.setItem("femflow_endpoint_url", state.endpoint);
+      localStorage.setItem("femflow_mode", state.mode);
+      qs("configModal").classList.remove("open");
+      updatePreview();
+      pingEndpoint();
+      toast("Configuração salva.");
+      if (!isAuthValid(getAuth())) {
+        updateLoginStatus(state.endpoint ? "Endpoint configurado. Faça login." : "Configure o endpoint antes de entrar.");
+      }
+    });
+
+    qs("logout").addEventListener("click", () => {
+      clearAuth();
+      applyAuthState(null);
+      updateLoginStatus("Sessão encerrada.");
+    });
+
+    qs("toggleNav").addEventListener("click", () => {
+      qs("sidebar").classList.toggle("open");
+    });
+
+    init();
+  </script>
+</body>
+</html>
+
+
+
+
+

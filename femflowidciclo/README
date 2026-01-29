@@ -1,0 +1,139 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>FemFlow | Potencialize seus treinos com o ciclo</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Lato&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --creme: #F4E1D7;
+      --pessego: #EFBDA6;
+      --terracota: #CC6A5A;
+      --teal: #335953;
+      --cinza: #2B2B2B;
+    }
+
+    body {
+      margin: 0;
+      font-family: 'Lato', sans-serif;
+      background-color: var(--creme);
+      color: var(--cinza);
+    }
+
+    header {
+      background-color: var(--teal);
+      color: white;
+      padding: 2rem;
+      text-align: center;
+    }
+
+    header h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2rem;
+      margin: 0.5rem 0;
+    }
+
+    header p {
+      font-size: 1rem;
+      margin-top: 0;
+    }
+
+    .hero {
+      text-align: center;
+      padding: 2rem;
+    }
+
+    .hero img {
+      max-width: 120px;
+      margin-bottom: 1rem;
+    }
+
+    .cta-buttons {
+      display: flex;
+      flex-direction: column;
+      gap: 1rem;
+      margin-top: 2rem;
+      max-width: 400px;
+      margin-inline: auto;
+    }
+
+    .cta-buttons a {
+      background-color: var(--pessego);
+      color: white;
+      text-decoration: none;
+      padding: 1rem;
+      border-radius: 12px;
+      font-weight: bold;
+      text-align: center;
+    }
+
+    .section {
+      background-color: white;
+      padding: 2rem;
+      margin: 2rem auto;
+      max-width: 900px;
+      border-radius: 16px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.05);
+    }
+
+    .section h2 {
+      font-family: 'Playfair Display', serif;
+      color: var(--terracota);
+      margin-top: 0;
+    }
+
+    .quiz-section iframe {
+      width: 100%;
+      height: 1200px;
+      border: none;
+    }
+
+    .footer {
+      text-align: center;
+      font-size: 0.85rem;
+      padding: 2rem;
+      color: #666;
+    }
+
+    @media (min-width: 600px) {
+      .cta-buttons {
+        flex-direction: row;
+        justify-content: center;
+      }
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <img src="https://raw.githubusercontent.com/carolinebarros1010/femflow/main/assets/logo_femflow.png" alt="FemFlow Logo">
+    <h1>Potencialize seus treinos com a inteligência do seu corpo</h1>
+    <p>Descubra sua fase do ciclo e treine com propósito</p>
+  </header>
+
+  <section class="cta-buttons">
+    <a href="#quiz">🔎 Descubra sua fase agora</a>
+    <a href="https://wa.me/5511951942268" target="_blank">💬 Fale com o time FemFlow</a>
+    <a href="https://carolinebarros1010.github.io/femflow/femflowidciclo/index.html" target="_blank">📚 Acesse os Treinos por Fase</a>
+  </section>
+
+  <section id="quiz" class="section quiz-section">
+    <h2>Qual sua fase atual?</h2>
+    <p>Você pode ter um ciclo regular, irregular, usar anticoncepcional, DIU ou estar na menopausa. Este teste ajuda a entender seu momento e recomendar o treino certo.</p>
+    <iframe src="femflowidciclo/femflow_quiz_completo_com_teal.html"></iframe>
+  </section>
+
+  <section class="section">
+    <h2>Planos FemFlow</h2>
+    <p>Escolha o acesso ao app ou o plano personal mensal para transformar seu treino.</p>
+    <div class="cta-buttons">
+      <a href="#">📲 App FemFlow – Treinos alinhados ao ciclo hormonal</a>
+      <a href="#">👩‍💻 Personal mensal – Treino personalizado com base no seu ciclo</a>
+    </div>
+  </section>
+
+  <div class="footer">
+    FemFlow © 2025 – Criado para o corpo feminino, com ciência e sensibilidade.
+  </div>
+</body>
+</html>
