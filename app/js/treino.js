@@ -694,10 +694,14 @@ if (tipoDominante === "hiitPremium") {
   const forte  = Number(h.forte)  || 40;
   const leve   = Number(h.leve)   || 20;
   const ciclos = Number(h.ciclos) || 6;
+  const link   = h.link || "";
+  const linkHTML = link
+    ? `<div class="ff-ex-nome"><a href="${link}" target="_blank">${h.titulo}</a></div>`
+    : `<h2 class="ff-ex-titulo">${h.titulo}</h2>`;
 
   return `
     <div class="carousel-item ff-box">
-      <h2 class="ff-ex-titulo">${h.titulo}</h2>
+      ${linkHTML}
 
       <p class="ff-sugestao-hiit">
         🔥 <b>${t("treino.hiit.protocolo", { forte, leve })}</b><br>

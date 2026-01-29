@@ -482,6 +482,7 @@ if (b.tipo === "hiit") {
     box: boxBase,
 
     titulo,
+    link: b.link || "",
     forte: Number(b.forte) || 40,
     leve: Number(b.leve) || 20,
     ciclos: Number(b.ciclos) || 6
