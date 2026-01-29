@@ -910,6 +910,8 @@ function normalizarFase(f) {
   return mapa[f] || "follicular";
 }
 
+
+
 /* ============================================================
    TESTES RÁPIDOS (rodar manualmente)
 ============================================================ */
@@ -917,11 +919,24 @@ function TEST_importar_tudo_femflow() {
   const r = importarTreinosFEMFLOW({ target: "femflow" });
   Logger.log(JSON.stringify(r, null, 2));
 }
-
+function TEST_importar_iniciante_femflow() {
+  const r = importarTreinosFEMFLOW_aba("Iniciante", { target: "femflow" });
+  Logger.log(JSON.stringify(r, null, 2));
+}
+function TEST_importar_intermediaria_femflow() {
+  const r = importarTreinosFEMFLOW_aba("Intermediaria", { target: "femflow" });
+  Logger.log(JSON.stringify(r, null, 2));
+}
+function TEST_importar_avancada_femflow() {
+  const r = importarTreinosFEMFLOW_aba("Avancada", { target: "femflow" });
+  Logger.log(JSON.stringify(r, null, 2));
+}
 function TEST_importar_tudo_maleflow() {
   const r = importarTreinosFEMFLOW({ target: "maleflow" });
   Logger.log(JSON.stringify(r, null, 2));
+
 }
+
 
 function TEST_importar_iniciante_maleflow() {
   const r = importarTreinosFEMFLOW_aba("Iniciante", { target: "maleflow" });
