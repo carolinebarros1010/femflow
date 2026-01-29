@@ -305,6 +305,7 @@ function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, pers
     reps: col("reps"),
     especial: col("especial"),
     tempo: col("tempo"),
+    distancia: col("distancia"),
     intervalo: col("intervalo"),
 
     forte: col("forte"),
@@ -437,6 +438,7 @@ function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, pers
         especial: { stringValue: String(idx.especial !== -1 ? (r[idx.especial] || "") : "") },
 
         tempo: { stringValue: String(r[idx.tempo] || "") },
+        distancia: { stringValue: String(r[idx.distancia] || "") },
         intervalo: { stringValue: String(r[idx.intervalo] || "") },
 
         forte: { stringValue: String(r[idx.forte] || "") },
@@ -550,6 +552,7 @@ function importarAbaMaleFlow_(sh, token, baseURL, nomeAba, importId, target, sco
     reps: col("reps"),
     especial: col("especial"),
     tempo: col("tempo"),
+    distancia: col("distancia"),
     intervalo: col("intervalo"),
     forte: col("forte"),
     leve: col("leve"),
@@ -805,6 +808,7 @@ function buildMaleFlowItemFromRow_(row, idx) {
   if (idx.reps !== -1) item.reps = String(row[idx.reps] || "");
   if (idx.especial !== -1) item.especial = String(row[idx.especial] || "");
   if (idx.tempo !== -1) item.tempo = String(row[idx.tempo] || "");
+  if (idx.distancia !== -1) item.distancia = String(row[idx.distancia] || "");
   if (idx.intervalo !== -1) item.intervalo = String(row[idx.intervalo] || "");
   if (idx.forte !== -1) item.forte = String(row[idx.forte] || "");
   if (idx.leve !== -1) item.leve = String(row[idx.leve] || "");
@@ -828,6 +832,7 @@ function buildMaleFlowItemFields_(item) {
   if (item.reps !== undefined) fields.reps = { stringValue: String(item.reps || "") };
   if (item.especial !== undefined) fields.especial = { stringValue: String(item.especial || "") };
   if (item.tempo !== undefined) fields.tempo = { stringValue: String(item.tempo || "") };
+  if (item.distancia !== undefined) fields.distancia = { stringValue: String(item.distancia || "") };
   if (item.intervalo !== undefined) fields.intervalo = { stringValue: String(item.intervalo || "") };
   if (item.forte !== undefined) fields.forte = { stringValue: String(item.forte || "") };
   if (item.leve !== undefined) fields.leve = { stringValue: String(item.leve || "") };
