@@ -1,0 +1,398 @@
+/* ==========================================================
+   FemFlow – ciclo.css
+   Migração do CSS inline → padronização 2025
+   Visual: vidro quente + terracota + teal
+   ========================================================== */
+
+:root {
+  --terracota: #cc6a5a;
+  --bege: #fff5ef;
+  --verde: #335953;
+  --pessego: #fceae3;
+  --texto: #5b4f49;
+
+  --radius: 16px;
+  --shadow: 0 8px 20px rgba(0,0,0,0.06);
+}
+
+/* ==========================================================
+   BASE
+========================================================== */
+body {
+  background: linear-gradient(180deg, #fff7f2, #fceae3);
+  margin: 0;
+  padding: 20px;
+  font-family: "Lato", sans-serif;
+  color: var(--texto);
+  text-align: center;
+  min-height: 100vh;
+  overflow-x: hidden;
+  position: relative;
+}
+
+/* camada vidro */
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  background: radial-gradient(circle at 20% 20%, rgba(255,255,255,0.45) 0%, transparent 60%),
+              radial-gradient(circle at 80% 80%, rgba(255,235,225,0.4) 0%, transparent 70%),
+              radial-gradient(circle at 50% 100%, rgba(239,189,166,0.25) 0%, transparent 80%);
+  filter: blur(36px);
+  z-index: -1;
+}
+
+/* ==========================================================
+   TÍTULOS
+========================================================== */
+h1 {
+  font-family: "Playfair Display", serif;
+  color: var(--terracota);
+  margin-bottom: 8px;
+  font-size: 1.8rem;
+}
+
+p.sub {
+  color: #7b6e68;
+  margin-bottom: 28px;
+  font-size: 1rem;
+}
+
+/* ==========================================================
+   CARD PRINCIPAL
+========================================================== */
+.card {
+  background: rgba(255,255,255,0.65);
+  backdrop-filter: blur(14px);
+  border-radius: var(--radius);
+  padding: 24px 20px;
+  margin: 0 auto 20px;
+  max-width: 460px;
+  text-align: left;
+  box-shadow: var(--shadow);
+  border: 1px solid rgba(255,255,255,0.55);
+  animation: fadeIn .5s ease;
+}
+
+/* fade suave */
+@keyframes fadeIn {
+  from { opacity:0; transform: translateY(6px); }
+  to { opacity:1; transform: translateY(0); }
+}
+
+/* ==========================================================
+   CAMPOS
+========================================================== */
+
+label {
+  display: block;
+  margin-top: 12px;
+  font-weight: 700;
+  color: var(--verde);
+}
+
+input, button {
+  width: 100%;
+  padding: 10px 12px;
+  margin-top: 6px;
+  border: 1px solid #e6d8d2;
+  border-radius: 12px;
+  font-size: 1rem;
+  box-sizing: border-box;
+  font-family: "Lato", sans-serif;
+}
+
+input {
+  background: #fff;
+  transition: .25s;
+}
+
+input:focus {
+  border-color: var(--pessego);
+  box-shadow: 0 0 0 3px rgba(239,189,166,0.32);
+  outline: none;
+}
+
+/* ==========================================================
+   BOTÕES
+========================================================== */
+
+button {
+  background: var(--verde);
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+  transition: .25s ease;
+  border: none;
+}
+
+button:hover {
+  background: var(--terracota);
+  transform: translateY(-1px);
+}
+
+/* ==========================================================
+   PERFIL – BOTÕES
+========================================================== */
+
+.perfil-btns {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 8px;
+  margin-bottom: 16px;
+}
+
+.perfil-btn {
+  flex: 1 1 45%;
+  background: rgba(255,255,255,0.65);
+  border: 2px solid var(--verde);
+  padding: 10px;
+  border-radius: 12px;
+  color: var(--verde);
+  font-weight: 700;
+  cursor: pointer;
+  transition: .25s ease;
+  text-align: center;
+  line-height: 1.2;
+}
+
+.perfil-btn:hover {
+  background: rgba(255,255,255,0.8);
+}
+
+.perfil-btn.active {
+  background: var(--verde);
+  border-color: var(--verde);
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(51,89,83,0.25);
+}
+
+.perfil-btn .perfil-label {
+  display: block;
+  font-weight: 700;
+}
+
+.perfil-btn .perfil-sub {
+  display: block;
+  margin-top: 4px;
+  font-size: 0.75rem;
+  font-weight: 400;
+  opacity: 0.85;
+}
+
+/* ==========================================================
+   SUBMENU DIU
+========================================================== */
+
+#diuSubmenu {
+  background: rgba(255,255,255,0.55);
+  padding: 20px;
+  border-radius: 14px;
+  margin-top: 12px;
+  box-shadow: var(--shadow);
+  border: 1px solid rgba(255,255,255,0.5);
+}
+
+/* ==========================================================
+   QUIZ
+========================================================== */
+
+.quiz-box {
+  display: none;
+  margin-top: 20px;
+  text-align: center;
+  animation: fadeIn .4s ease;
+}
+
+#quizPergunta {
+  color: var(--terracota);
+  font-weight: 700;
+  font-size: 1.05rem;
+  margin-bottom: 10px;
+}
+
+.quiz-btns {
+  display: flex;
+  justify-content: center;
+  gap: 16px;
+  margin-top: 12px;
+}
+
+.quiz-btns button {
+  width: 44%;
+  padding: 10px;
+  border-radius: 12px;
+  background: var(--verde);
+  color: #fff;
+  transition: .25s ease;
+  font-weight: 700;
+}
+
+.quiz-btns button:hover {
+  background: var(--terracota);
+}
+
+#quizStep {
+  margin-top: 8px;
+  color: #94786f;
+  font-size: .9rem;
+}
+
+/* ==========================================================
+   "Informações servem apenas..." texto final
+========================================================== */
+.info-extra {
+  font-size: .9rem;
+  color: #9a8077;
+  margin-top: 14px;
+  text-align: center;
+}
+
+/* ==========================================================
+   RESPONSIVO
+========================================================== */
+@media (max-width: 480px) {
+  h1 { font-size: 1.55rem; }
+  .card { padding: 20px 16px; }
+  .perfil-btn { flex: 1 1 46%; }
+}
+.cycle-info {
+  font-size: 0.95rem;
+  color: #cc6a5a;
+  margin-top: -10px;
+  margin-bottom: 15px;
+  font-weight: 600;
+  text-align: center;
+}
+.ff-sugestao-resp {
+  margin-top: 10px;
+  font-size: 0.9rem;
+  color: #94786f;
+  line-height: 1.4;
+}
+
+.ff-btn-resp-sugerida {
+  margin-top: 10px;
+  width: 100%;
+  padding: 12px;
+  border-radius: 14px;
+  font-size: 0.92rem;
+  background: #fceae3;
+  color: #cc6a5a;
+  font-weight: 700;
+  border: 1px solid #f1d7cd;
+  box-shadow: 0 2px 6px rgba(0,0,0,.05);
+  cursor: pointer;
+}
+
+.ff-btn-resp-sugerida:active {
+  transform: scale(0.98);
+}
+
+/* LOADING FEMFLOW */
+
+.ff-loading {
+  position: fixed;
+  inset: 0;
+  background: rgba(255, 247, 242, 0.85);
+  backdrop-filter: blur(6px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 999999;
+}
+
+.ff-loading.hidden {
+  display: none;
+}
+
+.ff-loading-box {
+  text-align: center;
+  padding: 30px 40px;
+  background: #ffffff;
+  border-radius: 20px;
+  box-shadow: 0 8px 30px rgba(0,0,0,0.15);
+  border: 2px solid #fceae3;
+}
+
+.ff-spinner {
+  width: 48px;
+  height: 48px;
+  border: 5px solid #fceae3;
+  border-top-color: #cc6a5a;
+  border-radius: 50%;
+  animation: ffspin 0.9s linear infinite;
+}
+
+@keyframes ffspin {
+  from { transform: rotate(0deg); }
+  to   { transform: rotate(360deg); }
+}
+
+.ff-loading-box p {
+  font-family: "Lato";
+  font-size: 1.1rem;
+  margin-top: 14px;
+  color: #cc6a5a;
+  font-weight: 600;
+}
+/* ================================
+   FEMFLOW • CICLO — ESPAÇO HEADER
+==================================*/
+.pagina-ciclo {
+  background: #fff5ef;
+  color: #5b4f49;
+  font-family: "Lato", sans-serif;
+  margin: 0;
+  text-align: center;
+
+  /* evita que o header fique por cima do título */
+  padding-top: calc(85px + env(safe-area-inset-top, 0px));
+  box-sizing: border-box;
+}
+
+/* garante que o título não grude no header */
+.pagina-ciclo h1 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  font-family: "Playfair Display", serif;
+}
+/* ============================================================
+   🌸 FemFlow – Rodapé informativo do Ciclo (cycleFooter)
+   ------------------------------------------------------------
+   • Estilo elegante, limpo e consistente com o visual FemFlow
+   • Mantém identidade mesmo com troca de idioma
+============================================================ */
+
+/* container geral */
+.cycleFooter {
+  margin-top: 22px;
+  padding: 14px 18px;
+  text-align: center;
+  font-size: 0.92rem;
+  font-family: 'Lato', sans-serif;
+  color: #A87E72;
+  line-height: 1.45;
+  background: #FFF7F2;
+  border-radius: 14px;
+  width: calc(100% - 40px);
+  max-width: 420px;
+  margin-left: auto;
+  margin-right: auto;
+  box-shadow: 0px 4px 12px rgba(0,0,0,0.06);
+}
+
+/* Emojis ficam suaves e alinhados */
+.cycleFooter .emoji {
+  font-size: 1rem;
+  margin-left: 4px;
+  opacity: 0.8;
+}
+
+/* Modo escuro */
+body.dark .cycleFooter {
+  background: #2b2b2b;
+  color: #d8cfc7;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.4);
+}
