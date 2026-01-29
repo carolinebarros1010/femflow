@@ -1,5 +1,5 @@
 // SW V24 Unificado – MyFlowLife / Gerador de Corrida
-const CACHE_NAME = "myflowlife-gerador-v24";
+const CACHE_NAME = "femflow-gerador-v24";
 const ASSETS = [
   "./",
   "./index.html",

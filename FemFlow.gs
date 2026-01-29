@@ -134,7 +134,7 @@ function doPost(e) {
       slug = 'geral';
     }
 
-    const link_planilha = `https://carolinebarros1010.github.io/myflowlife/femflow/app/modulos/${nivelAcesso}/${slug}/index.html`;
+    const link_planilha = `https://carolinebarros1010.github.io/femflow/app/modulos/${nivelAcesso}/${slug}/index.html`;
 
     sheet.appendRow([newId, nome, email, product, new Date(), true, nivelAcesso, ciclo_duracao, data_inicio, link_planilha]);
 
@@ -191,7 +191,7 @@ function doPost(e) {
         MailApp.sendEmail(
           data.email,
           'Recuperação de ID FemFlow',
-          `Olá ${data.nome},\n\nSeu ID FemFlow é: ${id}\n\nAcesse: https://carolinebarros1010.github.io/myflowlife/femflow/app\n\uD83C\uDF38 Bons treinos!`
+          `Olá ${data.nome},\n\nSeu ID FemFlow é: ${id}\n\nAcesse: https://carolinebarros1010.github.io/femflow/app\n\uD83C\uDF38 Bons treinos!`
         );
         return _json({ status: 'ok', id });
       }
