@@ -694,20 +694,63 @@ if (tipoDominante === "hiitPremium") {
   const forte  = Number(h.forte)  || 40;
   const leve   = Number(h.leve)   || 20;
   const ciclos = Number(h.ciclos) || 6;
+  const link   = h.link || "";
+  const linkHTML = link
+    ? `<div class="ff-ex-nome"><a href="${link}" target="_blank">${h.titulo}</a></div>`
+    : `<h2 class="ff-ex-titulo">${h.titulo}</h2>`;
+  const lang = FEMFLOW.lang || "pt";
+  const fallbackMap = {
+    pt: `
+      🔥 <b>Protocolo 40 / 20</b><br>
+      Execute 40s em alta intensidade e depois 20s de recuperação.<br>
+      Repita por 6 ciclos seguindo o timer abaixo.<br><br>
+
+      <span class="ff-hiit-exemplos">
+        • <b>Academia: esteira, bike, escada, remo, air bike</b><br>
+        • <b>Em casa: polichinelo, corrida parada, burpee, corda, salto no lugar</b>
+      </span>
+    `,
+    en: `
+      🔥 <b>Protocol 40 / 20</b><br>
+      Do 40s at high intensity and then 20s of recovery.<br>
+      Repeat for 6 cycles following the timer below.<br><br>
+
+      <span class="ff-hiit-exemplos">
+        • <b>Gym: treadmill, bike, stair climber, rowing, air bike</b><br>
+        • <b>At home: jumping jacks, running in place, burpee, jump rope, jumps in place</b>
+      </span>
+    `,
+    fr: `
+      🔥 <b>Protocole 40 / 20</b><br>
+      Faites 40s en haute intensité puis 20s de récupération.<br>
+      Répétez pendant 6 cycles en suivant le minuteur ci-dessous.<br><br>
+
+      <span class="ff-hiit-exemplos">
+        • <b>Salle: tapis, vélo, escalier, rameur, air bike</b><br>
+        • <b>À la maison: jumping jacks, course sur place, burpee, corde à sauter, sauts sur place</b>
+      </span>
+    `
+  };
+  const fallbackTexto = fallbackMap[lang] || fallbackMap.pt;
+  const sugestaoHTML = link
+    ? `
+      🔥 <b>${t("treino.hiit.protocolo", { forte, leve })}</b><br>
+      ${t("treino.hiit.descricao", { forte, leve })}<br>
+      ${t("treino.hiit.ciclos", { ciclos })}<br><br>
+
+      <span class="ff-hiit-exemplos">
+        • <b>${t("treino.hiit.exemplosAcademia")}</b><br>
+        • <b>${t("treino.hiit.exemplosCasa")}</b>
+      </span>
+    `
+    : fallbackTexto;
 
   return `
     <div class="carousel-item ff-box">
-      <h2 class="ff-ex-titulo">${h.titulo}</h2>
+      ${linkHTML}
 
       <p class="ff-sugestao-hiit">
-        🔥 <b>${t("treino.hiit.protocolo", { forte, leve })}</b><br>
-        ${t("treino.hiit.descricao", { forte, leve })}<br>
-        ${t("treino.hiit.ciclos", { ciclos })}<br><br>
-
-        <span class="ff-hiit-exemplos">
-          • <b>${t("treino.hiit.exemplosAcademia")}</b><br>
-          • <b>${t("treino.hiit.exemplosCasa")}</b>
-        </span>
+        ${sugestaoHTML}
       </p>
 
       <div class="hiit-bubble">
