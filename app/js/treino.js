@@ -698,20 +698,34 @@ if (tipoDominante === "hiitPremium") {
   const linkHTML = link
     ? `<div class="ff-ex-nome"><a href="${link}" target="_blank">${h.titulo}</a></div>`
     : `<h2 class="ff-ex-titulo">${h.titulo}</h2>`;
+  const sugestaoHTML = link
+    ? `
+      🔥 <b>${t("treino.hiit.protocolo", { forte, leve })}</b><br>
+      ${t("treino.hiit.descricao", { forte, leve })}<br>
+      ${t("treino.hiit.ciclos", { ciclos })}<br><br>
+
+      <span class="ff-hiit-exemplos">
+        • <b>${t("treino.hiit.exemplosAcademia")}</b><br>
+        • <b>${t("treino.hiit.exemplosCasa")}</b>
+      </span>
+    `
+    : `
+      🔥 <b>Protocolo 40 / 20</b><br>
+      Execute 40s em alta intensidade e depois 20s de recuperação.<br>
+      Repita por 6 ciclos seguindo o timer abaixo.<br><br>
+
+      <span class="ff-hiit-exemplos">
+        • <b>Academia: esteira, bike, escada, remo, air bike</b><br>
+        • <b>Em casa: polichinelo, corrida parada, burpee, corda, salto no lugar</b>
+      </span>
+    `;
 
   return `
     <div class="carousel-item ff-box">
       ${linkHTML}
 
       <p class="ff-sugestao-hiit">
-        🔥 <b>${t("treino.hiit.protocolo", { forte, leve })}</b><br>
-        ${t("treino.hiit.descricao", { forte, leve })}<br>
-        ${t("treino.hiit.ciclos", { ciclos })}<br><br>
-
-        <span class="ff-hiit-exemplos">
-          • <b>${t("treino.hiit.exemplosAcademia")}</b><br>
-          • <b>${t("treino.hiit.exemplosCasa")}</b>
-        </span>
+        ${sugestaoHTML}
       </p>
 
       <div class="hiit-bubble">
