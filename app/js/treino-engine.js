@@ -367,7 +367,13 @@ FEMFLOW.engineTreino.organizarBlocosSimples = brutos => {
         }
       }
 
-      else if (b.tipo === "cardio_final") boxNum = 900;
+      else if (b.tipo === "cardio_intermediario") {
+        if (!isNaN(boxNum)) {
+          boxNum = boxNum >= 100 ? boxNum - 99.5 : boxNum + 0.5;
+        } else {
+          boxNum = 0.5;
+        }
+      } else if (b.tipo === "cardio_final") boxNum = 900;
       else if (b.tipo === "resfriamento") boxNum = 999;
 
      return {
@@ -498,8 +504,29 @@ if (b.tipo === "hiit") {
       out.push({
         tipo: "cardio_final",
         box: Number(b.boxNum || 900),
-        titulo: b.titulo || "💗 Cardio Final",
-        duracao: Number(b.tempo) || 600
+        titulo: FEMFLOW.engineTreino.selecionarTitulo(b) || "💗 Cardio Final",
+        series: b.series ?? b.serie ?? "",
+        tempo: b.tempo ?? "",
+        distancia: b.distancia ?? b.reps ?? "",
+        intervalo: Number(b.intervalo) || 0,
+        duracao: Number(b.tempo) || 0
+      });
+      continue;
+    }
+
+    /* =========================
+       CARDIO INTERMEDIARIO
+    ========================= */
+    if (b.tipo === "cardio_intermediario") {
+      out.push({
+        tipo: "cardio_intermediario",
+        box: Number(b.boxNum || 0.5),
+        titulo: FEMFLOW.engineTreino.selecionarTitulo(b) || "💗 Cardio",
+        series: b.series ?? b.serie ?? "",
+        tempo: b.tempo ?? "",
+        distancia: b.distancia ?? b.reps ?? "",
+        intervalo: Number(b.intervalo) || 0,
+        duracao: Number(b.tempo) || 0
       });
       continue;
     }
