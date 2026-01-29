@@ -319,12 +319,16 @@ function distribuirBaseOvulatoriaPara30Dias_(p, padrao) {
       copia.fase = ctx.fase;
       copia.enfase = ctx.enfase;
       copia.reps = normalizarReps_(copia.reps);
+      const distanciaRaw = String(copia.distancia || '').trim();
 
       if (copia.tipo === 'treino') {
         copia.series = String(seriesBase);
         copia.intervalo = copia.intervalo || FEMFLOW.INTERVALO_TREINO;
         const repsPorIntervalo = repsPorIntervaloDescanso_(copia.intervalo);
         copia.reps = repsPorIntervalo || String(repsBase);
+        if (distanciaRaw) {
+          copia.reps = '';
+        }
         if (ctx.fase !== 'ovulatoria') copia.especial = '';
         if (!especialPermitido) {
           copia.box = normalizarBoxSemEspecial(copia.box);
@@ -333,6 +337,9 @@ function distribuirBaseOvulatoriaPara30Dias_(p, padrao) {
       }
 
       if (String(copia.tempo || '').trim()) {
+        copia.reps = '';
+      }
+      if (distanciaRaw) {
         copia.reps = '';
       }
 
