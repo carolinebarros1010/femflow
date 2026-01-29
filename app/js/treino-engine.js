@@ -41,6 +41,19 @@ FEMFLOW.engineTreino.normalizarNivel = raw => {
   return n; // 🔥 respeita backend
 };
 
+FEMFLOW.engineTreino.selecionarTitulo = bloco => {
+  const lang = FEMFLOW.lang || "pt";
+  const key = `titulo_${lang}`;
+  return (
+    bloco?.[key] ||
+    bloco?.titulo_pt ||
+    bloco?.titulo_en ||
+    bloco?.titulo_fr ||
+    bloco?.titulo ||
+    ""
+  );
+};
+
 
 /* ============================================================
    2) SÉRIE ESPECIAL
@@ -158,11 +171,14 @@ if (!enfase) {
   }
 
   const blocos = [];
- snap.forEach(d => {
-  const data = d.data();
-  console.log("🔥 FIREBASE RAW:", data.box, data.tipo, data);
-  blocos.push(data);
-});
+  snap.forEach(d => {
+    const data = d.data();
+    if (!data.titulo && !data.titulo_pt && !data.titulo_en && !data.titulo_fr) {
+      data.titulo = d.id;
+    }
+    console.log("🔥 FIREBASE RAW:", data.box, data.tipo, data);
+    blocos.push(data);
+  });
 
   return blocos;
 };
@@ -204,7 +220,13 @@ FEMFLOW.engineTreino.carregarBlocosExtras = async ({
 
     if (!snap.empty) {
       const blocos = [];
-      snap.forEach(d => blocos.push(d.data()));
+      snap.forEach(d => {
+        const data = d.data();
+        if (!data.titulo && !data.titulo_pt && !data.titulo_en && !data.titulo_fr) {
+          data.titulo = d.id;
+        }
+        blocos.push(data);
+      });
       return blocos;
     }
   }
@@ -216,7 +238,13 @@ FEMFLOW.engineTreino.carregarBlocosExtras = async ({
 
   if (!flatSnap.empty) {
     const blocos = [];
-    flatSnap.forEach(d => blocos.push(d.data()));
+    flatSnap.forEach(d => {
+      const data = d.data();
+      if (!data.titulo && !data.titulo_pt && !data.titulo_en && !data.titulo_fr) {
+        data.titulo = d.id;
+      }
+      blocos.push(data);
+    });
     return blocos.sort((a, b) => (a.ordem || 0) - (b.ordem || 0));
   }
 
@@ -293,7 +321,13 @@ FEMFLOW.engineTreino.carregarBlocosPersonal = async ({
   }
 
   const blocos = [];
-  snap.forEach(d => blocos.push(d.data()));
+  snap.forEach(d => {
+    const data = d.data();
+    if (!data.titulo && !data.titulo_pt && !data.titulo_en && !data.titulo_fr) {
+      data.titulo = d.id;
+    }
+    blocos.push(data);
+  });
   return blocos;
 };
 
@@ -417,11 +451,12 @@ if (b.tipo === "treino" && Number(b.boxNum) >= 900) {
        TREINO (EXERCÍCIO)
     ========================= */
     if (b.tipo === "treino") {
+      const titulo = FEMFLOW.engineTreino.selecionarTitulo(b) || "Exercício";
       out.push({
         tipo: "treino",
         box: Number(b.boxNum || b.box || 1),
         serieEspecial: b.serieEspecial || null,
-        titulo: b.titulo_pt || b.titulo || "Exercício",
+        titulo,
         link: b.link || "",
         series: b.series || "",
         reps: b.reps || "",
@@ -435,6 +470,7 @@ if (b.tipo === "treino" && Number(b.boxNum) >= 900) {
 ========================= */
 if (b.tipo === "hiit") {
   const boxBase = Number(b.boxNum || 500);
+  const titulo = FEMFLOW.engineTreino.selecionarTitulo(b) || "🔥 HIIT";
 
   out.push({
     tipo: "hiitPremium",
@@ -445,7 +481,7 @@ if (b.tipo === "hiit") {
     // mantém box numérico para ordenação
     box: boxBase,
 
-    titulo: b.titulo_pt || b.titulo || "🔥 HIIT",
+    titulo,
     forte: Number(b.forte) || 40,
     leve: Number(b.leve) || 20,
     ciclos: Number(b.ciclos) || 6
@@ -598,7 +634,7 @@ FEMFLOW.engineTreino.listarExerciciosDia = async ({
 
   for (const bloco of comHIIT) {
     if (bloco.tipo !== "treino") continue;
-    const titulo = bloco.titulo_pt || bloco.titulo || "";
+    const titulo = FEMFLOW.engineTreino.selecionarTitulo(bloco);
     if (!titulo || vistos.has(titulo)) continue;
     nomes.push(titulo);
     vistos.add(titulo);
