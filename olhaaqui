@@ -1,0 +1,6 @@
+macOS/Linux - keytool -genkey -v -keystore femflow.keystore -alias femflow-key \
+  -keyalg RSA -keysize 2048 -validity 10000
+powershwll: keytool -genkey -v -keystore femflow.keystore -alias femflow-key -keyalg RSA -keysize 2048 -validity 10000
+
+android.keystore Bubble para atualização senha Bmc082849$
+

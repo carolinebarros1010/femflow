@@ -1,0 +1,340 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>MyFlowLife | Metodologias</title>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+<style>
+:root {
+  --teal: #335953;
+  --terracota: #cc6a5a;
+  --pessego: #EFBDA6;
+  --texto: #f9f9f9;
+}
+
+/* ===== Fundo animado e geral ===== */
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  color: var(--texto);
+  background: linear-gradient(135deg, var(--teal), var(--terracota), #2b4642);
+  background-size: 400% 400%;
+  animation: gradientShift 25s ease infinite;
+  overflow-x: hidden;
+}
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ===== Splash ===== */
+#splash {
+  position: fixed;
+  inset: 0;
+  background: #f8f8f8;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Helvetica Rounded Bold', Helvetica, Arial, sans-serif;
+  text-transform: none;
+  color: #1e1e1e;
+  z-index: 999;
+  transition: opacity 1.5s ease, transform 1.5s ease;
+}
+  #splash h2 {
+  font-family: 'Inter', sans-serif;
+  font-size: 1.1rem;
+  color: rgba(0, 0, 0, 0.75);
+  margin-top: 0.4rem;
+  letter-spacing: 0.5px;
+}
+#splash.fade-out { opacity: 0; transform: scale(1.05); pointer-events: none; }
+
+/* ===== Logo ===== */
+.brand-minimal {
+  position: fixed;
+  top: 20px;
+  left: 24px;
+  font-family: 'Helvetica Rounded Bold', Helvetica, Arial, sans-serif;
+  color: #0f1f1c;
+  font-size: 1.2rem;
+  letter-spacing: 0.5px;
+  opacity: 0.9;
+  z-index: 10;
+}
+
+/* ===== Botões fixos ===== */
+
+
+/* ===== Conteúdo ===== */
+main {
+  max-width: 1100px;
+  margin: 8rem auto 5rem;
+  padding: 2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 3.5rem;
+}
+
+section.metodo {
+  display: flex;
+  align-items: center;
+  gap: 2rem;
+  background: rgba(255,255,255,0.05);
+  border-radius: 24px;
+  backdrop-filter: blur(10px);
+  padding: 2rem;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.1);
+  transition: transform .4s ease;
+}
+section.metodo:hover { transform: translateY(-4px); }
+
+section.metodo img {
+  width: 180px;
+  height: auto;
+  object-fit: contain;
+}
+
+section.metodo div.texto {
+  flex: 1;
+}
+
+section.metodo h2 {
+  font-family: 'Helvetica Rounded Bold', Helvetica, Arial, sans-serif;
+  font-size: 1.8rem;
+  margin-bottom: .8rem;
+  color: #fff;
+}
+section.metodo p {
+  font-size: 1rem;
+  line-height: 1.6;
+  color: rgba(255,255,255,0.9);
+}
+
+/* Responsivo */
+@media (max-width: 800px) {
+  section.metodo {
+    flex-direction: column;
+    text-align: center;
+  }
+  section.metodo img { width: 140px; }
+}
+  /* ====== CORREÇÃO DE SOBREPOSIÇÃO DOS BOTÕES ====== */
+.metodologia-botoes {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 1rem;
+  margin-top: 2rem;
+  position: relative;
+  z-index: 5; /* garante que fiquem acima de fundos ou blur */
+}
+
+.metodologia-botoes a {
+  text-decoration: none;
+  border-radius: 40px;
+  padding: 0.8rem 1.6rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  font-family: 'Inter', sans-serif;
+  display: inline-block;
+}
+
+/* Mantém coerência visual com MyFlowLife */
+.btn-primary {
+  background: linear-gradient(135deg, #335953, #CC6A5A);
+  color: #fff;
+  border: none;
+}
+.btn-primary:hover {
+  filter: brightness(1.1);
+  transform: translateY(-3px);
+}
+
+.btn-outline {
+  border: 2px solid #EFBDA6;
+  color: #EFBDA6;
+  background: transparent;
+}
+.btn-outline:hover {
+  background: #EFBDA6;
+  color: #335953;
+  transform: translateY(-3px);
+}
+  .btn-voltar-fixo {
+  position: fixed;
+  bottom: 1.5rem;
+  left: 1.5rem;
+  background: rgba(255, 255, 255, 0.25);
+  color: #335953;
+  backdrop-filter: blur(10px);
+  border: 2px solid rgba(255,255,255,0.5);
+  border-radius: 30px;
+  padding: 0.6rem 1.2rem;
+  font-weight: 600;
+  transition: all 0.3s ease;
+  z-index: 100;
+}
+
+.btn-voltar-fixo:hover {
+  background: #EFBDA6;
+  color: #1d3b38;
+  transform: translateY(-2px);
+}
+  /* ===== BOTÃO NEWSLETTER — TOPO ESQUERDO ===== */
+.btn-newsletter {
+  position: fixed;
+  top: 1rem;
+  right: auto;
+  left: 1rem;
+  z-index: 998;
+
+  font-family: 'Inter', sans-serif;
+  font-size: 0.9rem;
+  letter-spacing: 0.8px;
+  font-weight: 500;
+  text-transform: lowercase;
+  text-decoration: none;
+
+  border: 1px solid rgba(51,89,83,0.25);
+  background: rgba(255,255,255,0.2);
+  color: #335953;
+  backdrop-filter: blur(10px);
+  border-radius: 100px;
+  padding: 0.55rem 1.1rem;
+
+  transition: all 0.35s ease;
+  opacity: 0.9;
+}
+
+.btn-newsletter:hover {
+  background: rgba(255,255,255,0.35);
+  border-color: rgba(51,89,83,0.4);
+  transform: translateY(-2px);
+  opacity: 1;
+}
+
+/* === Newsletter na metodologia: canto superior direito === */
+.btn-newsletter {
+  position: fixed !important;
+  top: max(12px, env(safe-area-inset-top));
+  right: calc(12px + env(safe-area-inset-right));
+  left: auto !important;
+  bottom: auto !important;
+
+  font-family: 'Inter', sans-serif;
+  font-size: .9rem;
+  letter-spacing: .6px;
+  border: 1px solid rgba(255,255,255,.35);
+  background: rgba(255,255,255,.12);
+  color: #335953;
+  backdrop-filter: blur(10px);
+  border-radius: 999px;
+  padding: .55rem 1.1rem;
+  box-shadow: 0 6px 18px rgba(0,0,0,.08);
+  transition: all .3s ease;
+  z-index: 1001;
+}
+
+.btn-newsletter:hover {
+  background: rgba(255,255,255,.25);
+  border-color: rgba(255,255,255,.5);
+  transform: translateY(-2px);
+  color: #1d3b38;
+}
+
+/* mobile */
+@media (max-width: 768px) {
+  .btn-newsletter {
+    top: max(10px, env(safe-area-inset-top));
+    right: calc(10px + env(safe-area-inset-right));
+    font-size: .85rem;
+    padding: .5rem 1rem;
+  }
+}
+
+  /* estética (mantém o estilo myflowlife) */
+  font-family: 'Inter', sans-serif;
+  font-size: .9rem;
+  letter-spacing: .6px;
+  border: 1px solid rgba(255,255,255,.35);
+  background: rgba(255,255,255,.12);
+  color: #335953;
+  backdrop-filter: blur(10px);
+  border-radius: 999px;
+  padding: .55rem 1.1rem;
+  box-shadow: 0 6px 18px rgba(0,0,0,.08);
+  transition: all .3s ease;
+  z-index: 1001; /* acima de cards/efeitos */
+}
+
+.btn-newsletter:hover {
+  background: rgba(255,255,255,.25);
+  border-color: rgba(255,255,255,.5);
+  transform: translateY(-2px);
+  color: #1d3b38;
+}
+
+/* mobile: afasta do notch e não deixa enorme */
+@media (max-width: 768px) {
+  .btn-newsletter {
+    top: max(10px, env(safe-area-inset-top));
+    right: calc(10px + env(safe-area-inset-right));
+    font-size: .85rem;
+    padding: .5rem 1rem;
+  }
+}
+</style>
+</head>
+<body>
+
+<div id="splash">
+  <h1>MyFlowLife</h1>
+  <h2>Potência Sustentável</h2>
+</div>
+
+<div class="brand-minimal">MyFlowLife</div>
+<a href="#" class="btn-newsletter" onclick="return goCadastro('#','newsletter','metodologia')">newsletter</a>
+  <a href="https://www.myflowlife.com.br#planos" class="btn-voltar-fixo">← Voltar</a>
+<main>
+  <section class="metodo">
+    <img src="../assets/logo-femflow.png" alt="FemFlow">
+    <div class="texto">
+      <h2>Metodologia FemFlow</h2>
+      <p>O corpo feminino segue um ciclo poderoso, e a metodologia FemFlow traduz esse ritmo em movimento consciente. Com base em evidências científicas sobre as flutuações hormonais, o treino é ajustado para potencializar energia, foco e recuperação em cada fase do ciclo menstrual.</p>
+      <p>Mais que uma planilha de treinos, é um método que respeita o corpo, o tempo e a mente da mulher moderna — combinando força, leveza e autoconhecimento.</p>
+    </div>
+  </section>
+
+  <section class="metodo">
+    <img src="../assets/logo-maleflow.png" alt="MaleFlow">
+    <div class="texto">
+      <h2>Metodologia MaleFlow</h2>
+      <p>Desenvolvida para homens que buscam performance real com consistência, a metodologia MaleFlow estrutura o treino como uma pirâmide da potência: base sólida de volume, equilíbrio entre intensidade e recuperação e foco absoluto na sustentabilidade do progresso.</p>
+      <p>Mais que treinar forte, é treinar com propósito — combinando ciência, disciplina e autocontrole para construir potência duradoura dentro e fora do treino.</p>
+    </div>
+  </section>
+</main>
+
+<script>
+document.addEventListener('DOMContentLoaded', ()=>{
+  const splash = document.getElementById('splash');
+  setTimeout(()=> splash.classList.add('fade-out'), 1000);
+  setTimeout(()=> splash.remove(), 2200);
+});
+
+/* GoCadastro: salva origem e redireciona */
+function goCadastro(url, ebook, origem){
+  localStorage.setItem("ebook", ebook);
+  localStorage.setItem("origem", origem);
+  window.location.href = "../cadastro/index.html";
+  return false;
+}
+</script>
+
+</body>
+</html>
+

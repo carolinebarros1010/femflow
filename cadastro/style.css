@@ -1,0 +1,195 @@
+/* ================= MyFlowLife Cadastro Futurista ================= */
+
+:root {
+  --cor1: #9CBCC1;
+  --cor2: #A3C6C7;
+  --cor3: #F8F8F8;
+  --vidro: rgba(255,255,255,0.6);
+  --borda: rgba(0,0,0,0.1);
+  --texto: #335953;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  font-family: 'Inter', sans-serif;
+  color: var(--texto);
+}
+
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  background: linear-gradient(135deg, var(--cor1), var(--cor2), var(--cor3));
+  background-size: 400% 400%;
+  animation: gradientShift 20s ease infinite;
+  overflow: hidden;
+}
+
+/* ================= Gradiente dinâmico ================= */
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ================= Splash Screen ================= */
+#splash {
+  position: fixed;
+  inset: 0;
+  background: #f8f8f8;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Helvetica Rounded Bold', 'Helvetica Rounded', Helvetica, Arial, sans-serif;
+  font-weight: bold;
+  text-transform: uppercase;
+  color: #1e1e1e;
+  text-align: center;
+  opacity: 0;
+  animation: splashFade 3.5s ease forwards;
+  z-index: 100;
+  text-shadow: 0 0 10px rgba(255,255,255,0.6);
+}
+
+#splash h1 {
+  font-size: 2.4rem;
+  margin: 0.3rem 0;
+  letter-spacing: 2px;
+}
+#splash h2 {
+  font-size: 1.1rem;
+  margin: 0;
+  letter-spacing: 1px;
+}
+
+@keyframes splashFade {
+  0% { opacity: 0; }
+  15%, 85% { opacity: 1; }
+  100% { opacity: 0; visibility: hidden; }
+}
+
+/* ================= Logo Principal ================= */
+.logo {
+  font-family: 'Helvetica Rounded Bold', 'Helvetica Rounded', Helvetica, Arial, sans-serif;
+  font-weight: bold;
+  font-size: 2.4rem;
+  color: #000;
+  margin-top: 60px;
+  margin-bottom: 25px;
+  text-align: center;
+  letter-spacing: 1.5px;
+  text-transform: uppercase;
+  opacity: 0;
+  animation: fadeLogo 1.2s ease forwards;
+  animation-delay: 3.5s;
+  text-shadow: 0 0 10px rgba(255,255,255,0.6), 0 2px 8px rgba(0,0,0,0.15);
+}
+
+@keyframes fadeLogo {
+  from { opacity: 0; transform: translateY(-10px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+/* ================= Formulário ================= */
+.card {
+  background: var(--vidro);
+  border: 1px solid var(--borda);
+  backdrop-filter: blur(14px) saturate(140%);
+  border-radius: 20px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.15), inset 0 0 30px rgba(255,255,255,0.1);
+  padding: 2.5rem 2rem;
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  opacity: 0;
+  transform: translateY(10px);
+  animation: aparecer 1s ease forwards;
+  animation-delay: 4s;
+  position: relative;
+  overflow: hidden;
+}
+
+@keyframes aparecer { to { opacity: 1; transform: translateY(0); } }
+
+/* Reflexo translúcido */
+.card::before {
+  content: "";
+  position: absolute;
+  top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background: linear-gradient(120deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 60%);
+  transform: rotate(25deg);
+  animation: reflexo 10s linear infinite;
+}
+
+@keyframes reflexo {
+  0% { transform: translateX(-100%) rotate(25deg); }
+  100% { transform: translateX(100%) rotate(25deg); }
+}
+
+label {
+  display: flex;
+  flex-direction: column;
+  font-weight: 500;
+  font-size: 0.9rem;
+}
+
+input {
+  margin-top: .3rem;
+  border: none;
+  border-bottom: 1px solid var(--texto);
+  padding: .5rem .2rem;
+  background: transparent;
+  color: var(--texto);
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+
+input:focus {
+  outline: none;
+  border-color: #000;
+}
+
+button {
+  border: none;
+  padding: .9rem 1.2rem;
+  border-radius: 14px;
+  font-weight: 600;
+  color: var(--texto);
+  background: var(--vidro);
+  border: 1px solid var(--borda);
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  transition: all .3s ease;
+}
+
+button:hover {
+  background: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+/* ================= Mensagem de sucesso ================= */
+.success {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.8);
+  backdrop-filter: blur(10px);
+  font-size: 1.4rem;
+  color: var(--texto);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+  z-index: 50;
+}
+.success.show { opacity: 1; pointer-events: all; }

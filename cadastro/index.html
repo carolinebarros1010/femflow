@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>MyFlowLife | Cadastro Central</title>
+  <style>
+:root {
+  --cor1: #9CBCC1;
+  --cor2: #A3C6C7;
+  --cor3: #F8F8F8;
+  --vidro: rgba(255,255,255,0.6);
+  --borda: rgba(0,0,0,0.1);
+  --texto: #335953;
+}
+
+* { box-sizing: border-box; }
+
+html, body {
+  margin: 0;
+  height: 100%;
+  font-family: 'Inter', sans-serif;
+  color: var(--texto);
+}
+
+body {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  background: linear-gradient(135deg, var(--cor1), var(--cor2), var(--cor3));
+  background-size: 400% 400%;
+  animation: gradientShift 20s ease infinite;
+  overflow: hidden;
+}
+
+/* ====== Gradiente dinâmico ====== */
+@keyframes gradientShift {
+  0% { background-position: 0% 50%; }
+  50% { background-position: 100% 50%; }
+  100% { background-position: 0% 50%; }
+}
+
+/* ====== Splash elegante ====== */
+#splash {
+  position: fixed;
+  inset: 0;
+  background: #f8f8f8;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  font-family: 'Helvetica Rounded Bold','Helvetica Rounded',Helvetica,Arial,sans-serif;
+  font-weight: bold;
+  color: #1e1e1e;
+  text-align: center;
+  z-index: 100;
+  text-shadow: 0 0 10px rgba(255,255,255,.6);
+  opacity: 1;
+  transform: scale(1);
+  transition: opacity 1.5s ease, transform 1.5s ease;
+}
+#splash.fade-out {
+  opacity: 0;
+  transform: scale(1.05) translateY(-10px);
+  pointer-events: none;
+}
+#splash h1 {
+  font-size: 2.4rem;
+  margin: 0.3rem 0;
+  letter-spacing: 2px;
+}
+#splash h2 {
+  font-size: 1.1rem;
+  margin: 0;
+  letter-spacing: 1px;
+}
+
+/* ====== Logo ====== */
+.logo {
+  font-family: 'Helvetica Rounded Bold','Helvetica Rounded',Helvetica,Arial,sans-serif;
+  font-weight: bold;
+  font-size: 2.4rem;
+  color: #000;
+  margin-top: 60px;
+  margin-bottom: 25px;
+  text-align: center;
+  letter-spacing: 1.5px;
+   opacity: 0;
+  transition: opacity 0.6s ease 1s;
+  text-shadow: 0 0 10pxrgba(255,255,255,0.6), 0 2px 8px rgba(0,0,0,0.15);
+}
+
+/* ====== Formulário ====== */
+.card {
+  background: var(--vidro);
+  border: 1px solid var(--borda);
+  backdrop-filter: blur(14px) saturate(140%);
+  border-radius: 20px;
+  box-shadow: 0 12px 40px rgba(0,0,0,0.15), inset 0 0 30px rgba(255,255,255,0.1);
+  padding: 2.5rem 2rem;
+  width: 100%;
+  max-width: 380px;
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+  opacity: 0;
+  transform: translateY(10px);
+  transition: opacity 0.6s ease 1s, transform 0.6s ease 1s;
+  position: relative;
+  overflow: hidden;
+}
+.card.ready {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+/* Reflexo translúcido */
+.card::before {
+  content: "";
+  position: absolute;
+  top: -50%; left: -50%;
+  width: 200%; height: 200%;
+  background: linear-gradient(120deg, rgba(255,255,255,0.2) 0%, rgba(255,255,255,0) 60%);
+  transform: rotate(25deg);
+  animation: reflexo 8s linear infinite;
+}
+@keyframes reflexo {
+  0% { transform: translateX(-100%) rotate(25deg); }
+  100% { transform: translateX(100%) rotate(25deg); }
+}
+
+input {
+  border: none;
+  border-bottom: 1px solid var(--texto);
+  padding: .5rem .2rem;
+  background: transparent;
+  color: var(--texto);
+  font-size: 1rem;
+  transition: all 0.3s ease;
+}
+input:focus {
+  outline: none;
+  border-color: #000;
+}
+
+button {
+  border: none;
+  padding: .9rem 1.2rem;
+  border-radius: 14px;
+  font-weight: 600;
+  color: var(--texto);
+  background: var(--vidro);
+  border: 1px solid var(--borda);
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  transition: all .3s ease;
+}
+button:hover {
+  background: #fff;
+  transform: translateY(-2px);
+  box-shadow: 0 8px 25px rgba(0,0,0,0.15);
+}
+
+/* ====== Mensagem de sucesso ====== */
+.success {
+  position: fixed;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.8);
+  backdrop-filter: blur(10px);
+  font-size: 1.4rem;
+  color: var(--texto);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+  z-index: 50;
+}
+.success.show {
+  opacity: 1;
+  pointer-events: all;
+}
+  </style>
+</head>
+<body>
+  <div id="splash">
+    <h1>MyFlowLife</h1>
+    <h2>Potência Sustentável</h2>
+  </div>
+
+  <div class="logo">MyFlowLife</div>
+
+  <form id="form" class="card">
+    <input type="text" id="nome" name="nome" placeholder="Nome" required pattern="^[A-Za-zÀ-ÿ0-9\s'.-]{2,}$">
+    <input 
+  type="email" 
+  id="email" 
+  name="email" 
+  placeholder="Email" 
+  required 
+  pattern="^[^\s@]+@[^\s@]+\.[^\s@]+$">
+
+    <input type="text" id="telefone" name="telefone" placeholder="(11) 98234-7127" required pattern="^[0-9()\\s-]{8,15}$">
+    <input type="date" id="data-nascimento" name="dataNascimento" required>
+    <button type="submit">Continuar</button>
+  </form>
+
+  <div class="success" id="success">Cadastro enviado com sucesso!</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', () => {
+  const splash = document.getElementById('splash');
+  const logo = document.querySelector('.logo');
+  const card = document.querySelector('.card');
+
+  // Inicia o fade-out do splash após 0.6s
+  setTimeout(() => splash.classList.add('fade-out'), 600);
+
+  // Remove o splash e exibe o conteúdo após 1.6s
+  setTimeout(() => {
+    splash.style.display = 'none';
+    logo.style.opacity = '1';
+    card.classList.add('ready');
+  }, 1600);
+});
+
+  // controle de origem e ebook
+  const form = document.getElementById("form");
+  const success = document.getElementById("success");
+  const urlParams = new URLSearchParams(window.location.search);
+
+  const origem = urlParams.get("origem") || localStorage.getItem("origem");
+  if (origem) localStorage.setItem("origem", origem);
+
+  const ebook = urlParams.get("ebook") || localStorage.getItem("ebook");
+  if (ebook) localStorage.setItem("ebook", ebook);
+
+  form.addEventListener("submit", async (e) => {
+    e.preventDefault();
+    const data = {
+      nome: form.nome.value.trim(),
+      email: form.email.value.trim(),
+      telefone: form.telefone.value.trim(),
+      dataNascimento: form.dataNascimento.value,
+      origem: localStorage.getItem("origem") || "desconhecida",
+      ebook: localStorage.getItem("ebook") || "não informado"
+    };
+    try {
+      await fetch("https://script.google.com/macros/s/AKfycbzoLP8uwomZSPBLo6mmcD71POBA7GByedp5wHtdZpvzYyxeB_P-F7BsUYIC1hVsBg9f/exec", {
+        method: "POST",
+        mode: "no-cors",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(data)
+      });
+      success.classList.add("show");
+      setTimeout(() => {
+        const destino = localStorage.getItem("origemURL");
+        if (destino) window.location.href = destino;
+        else history.back();
+      }, 3000);
+    } catch (err) {
+      alert("Erro ao enviar o cadastro. Tente novamente.");
+    }
+  });
+  </script>
+
+  <script>
+document.addEventListener('DOMContentLoaded', () => {
+  const splash = document.getElementById('splash');
+  const logo = document.querySelector('.logo');
+  const card = document.querySelector('.card');
+
+  // Splash animado
+  setTimeout(() => splash.classList.add('fade-out'), 600);
+  setTimeout(() => {
+    splash.style.display = 'none';
+    logo.style.opacity = '1';
+    card.classList.add('ready');
+  }, 1600);
+});
+
+// Controle de origem, ebook e redirecionamento pós-cadastro
+const form = document.getElementById("form");
+const success = document.getElementById("success");
+const urlParams = new URLSearchParams(window.location.search);
+
+// 🔹 Captura todos os parâmetros relevantes
+const origem = urlParams.get("origem") || localStorage.getItem("origem");
+const ebook = urlParams.get("ebook") || localStorage.getItem("ebook");
+const origemURL = urlParams.get("origemURL") || localStorage.getItem("origemURL");
+
+// 🔹 Armazena no localStorage para persistir entre páginas
+if (origem) localStorage.setItem("origem", origem);
+if (ebook) localStorage.setItem("ebook", ebook);
+if (origemURL) localStorage.setItem("origemURL", origemURL);
+if (enfase) localStorage.setItem("enfase", enfase);
+
+// 🔹 Envio do formulário
+form.addEventListener("submit", async (e) => {
+  e.preventDefault();
+
+  const data = {
+    nome: form.nome.value.trim(),
+    email: form.email.value.trim(),
+    telefone: form.telefone.value.trim(),
+    dataNascimento: form.dataNascimento.value,
+    origem: localStorage.getItem("origem") || "desconhecida",
+    ebook: localStorage.getItem("ebook") || "não informado",
+    origemURL: localStorage.getItem("origemURL") || ""
+  };
+
+  try {
+    await fetch("https://script.google.com/macros/s/AKfycbzoLP8uwomZSPBLo6mmcD71POBA7GByedp5wHtdZpvzYyxeB_P-F7BsUYIC1hVsBg9f/exec", {
+      method: "POST",
+      mode: "no-cors",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(data)
+    });
+
+    // Mostra sucesso e redireciona
+    success.classList.add("show");
+    setTimeout(() => {
+      const destino = localStorage.getItem("origemURL");
+      if (destino) {
+        localStorage.removeItem("origemURL");
+        window.location.href = destino;
+      } else {
+        history.back();
+      }
+    }, 2500);
+
+  } catch (err) {
+    alert("Erro ao enviar o cadastro. Tente novamente.");
+  }
+});
+</script>
+
+</body>
+</html>
