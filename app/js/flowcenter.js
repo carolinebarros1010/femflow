@@ -587,7 +587,7 @@ function initFlowCenter() {
     }
     const id = localStorage.getItem("femflow_id");
     if (id) FEMFLOW.router("geradordecorrida/index.html");
-    else location.href = "https://www.myflowlife.com.br/#ofertas";
+    else location.href = "https://www.femflow.com.br/#ofertas";
   };
 
       FEMFLOW.loading.hide();

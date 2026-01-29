@@ -540,28 +540,28 @@ footer {
 
 /* Exemplo — repetir apenas quando quiser imagem */
 .thumb-gluteo {
-  background-image: url("/femflow/app/css/cards/gluteos.jpg");
+  background-image: url("/app/css/cards/gluteos.jpg");
 }
 
 .thumb-militar {
-  background-image: url("/femflow/app/css/cards/militar.jpg");
+  background-image: url("/app/css/cards/militar.jpg");
 }
 
 .thumb-ombro {
-  background-image: url("/femflow/app/css/cards/ombro.jpg");
+  background-image: url("/app/css/cards/ombro.jpg");
 }
 
 .thumb-quadriceps {
-  background-image: url("/femflow/app/css/cards/quadriceps.jpg");
+  background-image: url("/app/css/cards/quadriceps.jpg");
 }
 
 .thumb-costas {
-  background-image: url("/femflow/app/css/cards/costas.jpg");
+  background-image: url("/app/css/cards/costas.jpg");
 }
 
 .thumb-peito,
 .thumb-peitoral {
-  background-image: url("/femflow/app/css/cards/peitoral.jpg");
+  background-image: url("/app/css/cards/peitoral.jpg");
 }
 /* ============================================================
    🔒 CARD BLOQUEADO (vitrine)
