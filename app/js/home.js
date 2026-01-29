@@ -629,7 +629,7 @@ const CARD_THUMBS = {
 function getThumbUrl(enfase) {
   const file = CARD_THUMBS[enfase];
   if (!file) return "";
-  return new URL(`/femflow/app/css/cards/${file}`, window.location.origin).toString();
+  return new URL(`/app/css/cards/${file}`, window.location.origin).toString();
 }
 
 /* ============================================================
@@ -640,7 +640,7 @@ const EBOOKS_FALLBACK_COLOR = "#fceae3";
 function resolveEbookUrl(path) {
   const cleanPath = String(path || "").replace(/^\/+/, "");
   if (!cleanPath) return "";
-  return new URL(`/femflow/app/ebooks/${cleanPath}`, window.location.origin).toString();
+  return new URL(`/app/ebooks/${cleanPath}`, window.location.origin).toString();
 }
 
 function resolveEbookLink(link) {
