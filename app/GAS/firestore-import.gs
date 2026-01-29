@@ -345,31 +345,40 @@ function normalizarFase(f) {
   return mapa[f] || "follicular";
 }
 
+
+
 /* ============================================================
    TESTES RÁPIDOS (rodar manualmente)
 ============================================================ */
-function TEST_importar_tudo() {
-  const r = importarTreinosFEMFLOW();
+function TEST_importar_tudo_femflow() {
+  const r = importarTreinosFEMFLOW({ target: "femflow" });
+  Logger.log(JSON.stringify(r, null, 2));
+}
+function TEST_importar_iniciante_femflow() {
+  const r = importarTreinosFEMFLOW_aba("Iniciante", { target: "femflow" });
+  Logger.log(JSON.stringify(r, null, 2));
+}
+function TEST_importar_intermediaria_femflow() {
+  const r = importarTreinosFEMFLOW_aba("Intermediaria", { target: "femflow" });
+  Logger.log(JSON.stringify(r, null, 2));
+}
+function TEST_importar_avancada_femflow() {
+  const r = importarTreinosFEMFLOW_aba("Avancada", { target: "femflow" });
+  Logger.log(JSON.stringify(r, null, 2));
+}
+function TEST_importar_tudo_maleflow() {
+  const r = importarTreinosFEMFLOW({ target: "maleflow" });
+  Logger.log(JSON.stringify(r, null, 2));
+
+}
+
+
+function TEST_importar_iniciante_maleflow() {
+  const r = importarTreinosFEMFLOW_aba("Iniciante", { target: "maleflow" });
   Logger.log(JSON.stringify(r, null, 2));
 }
 
-function TEST_importar_iniciante() {
-  const r = importarTreinosFEMFLOW_aba("Iniciante");
-  Logger.log(JSON.stringify(r, null, 2));
-}
-function TEST_importar_intermediaria() {
-  const r = importarTreinosFEMFLOW_aba("Intermediaria");
-  Logger.log(JSON.stringify(r, null, 2));
-}
-function TEST_importar_avancada() {
-  const r = importarTreinosFEMFLOW_aba("Avancada");
-  Logger.log(JSON.stringify(r, null, 2));
-}
-function TEST_importar_personal() {
-  const r = importarTreinosFEMFLOW_aba("personal_FF-TESTE");
-  Logger.log(JSON.stringify(r, null, 2));
-}
-function TEST_token() {
-  const token = getFirebaseAccessToken();
+function TEST_token_maleflow() {
+  const token = getFirebaseAccessToken("maleflow");
   Logger.log(token);
 }
