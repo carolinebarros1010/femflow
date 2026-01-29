@@ -920,12 +920,27 @@ function renderExercicio(ex) {
 
   const intervalo = Number(ex.intervalo) || 0;
 const totalSeries = Number(ex.series) || 1;
+  const distanciaValue = ex.distancia !== undefined && ex.distancia !== null
+    ? String(ex.distancia).trim()
+    : "";
+  const distanciaText = distanciaValue ? `${distanciaValue} m` : "";
    const isRP = ex._isRestPause && ex._isUltimoDoCombo;
   const isIsometria = Boolean(ex._isometriaTempo || ex._serieCodigo === "I");
-  const execTempoValue = ex.tempo || ex._isometriaTempo || ex.reps || "";
+  const execTempoValue = ex.tempo || ex._isometriaTempo || "";
   const execTempoText = /^\d+(\.\d+)?$/.test(String(execTempoValue).trim())
     ? `${execTempoValue}s`
     : execTempoValue;
+  const repsValue = ex.reps ? String(ex.reps).trim() : "";
+  const seriesValue = ex.series ? String(ex.series).trim() : "";
+  const repsInfoHTML = isIsometria
+    ? `<span>⏱️ <b>${execTempoText}</b> execução</span>`
+    : distanciaText
+    ? `<span>📏 <b>${distanciaText}</b></span>`
+    : repsValue
+    ? `<span>🔁 <b>${repsValue}</b></span>`
+    : execTempoValue
+    ? `<span>⏱️ <b>${execTempoText}</b></span>`
+    : `<span>🔁 <b>-</b></span>`;
 
 
 const serieProgressHTML = `
@@ -1063,12 +1078,8 @@ return `
     </div>
 
     <div class="ff-info-line">
-      <span>🌀 <b>${ex.series}</b>x</span>
-      ${
-        isIsometria
-          ? `<span>⏱️ <b>${execTempoText}</b> execução</span>`
-          : `<span>🔁 <b>${ex.reps}</b></span>`
-      }
+      <span>🌀 <b>${seriesValue || "-"}</b>x</span>
+      ${repsInfoHTML}
       <span>⏱️ <b>${intervalo}s</b></span>
     </div>
 

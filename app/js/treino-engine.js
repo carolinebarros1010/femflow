@@ -466,6 +466,8 @@ if (b.tipo === "treino" && Number(b.boxNum) >= 900) {
         link: b.link || "",
         series: b.series || "",
         reps: b.reps || "",
+        tempo: b.tempo || "",
+        distancia: b.distancia || "",
         intervalo: Number(b.intervalo) || 60
       });
       continue;
