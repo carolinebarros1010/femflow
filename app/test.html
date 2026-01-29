@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Teste FemFlow + Apps Script</title>
+</head>
+<body>
+  <h1>Teste de conexão com Apps Script</h1>
+  <p>Abra o console do navegador (F12) para ver o resultado.</p>
+
+  <script>
+    const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbwMdVo_TgYGg5mj5W4wcP1yD2PXRcLkA4tZRcc9TdSe363qIvm29odXkAGyPMIJR0xf/exec";
+
+    console.log("Iniciando teste de fetch...");
+
+    fetch(URL_SCRIPT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action: "ping" })
+    })
+    .then(r => r.text())
+    .then(t => {
+      console.log("RESPOSTA BRUTA DO SCRIPT:", t);
+    })
+    .catch(e => {
+      console.error("ERRO NO FETCH:", e);
+    });
+  </script>
+</body>
+</html>

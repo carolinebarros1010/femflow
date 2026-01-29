@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+
+  <title>FemFlow • Home</title>
+
+  <link rel="icon" href="favicon.ico">
+  <link rel="manifest" href="manifest.json">
+
+  <!-- Fontes -->
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="css/core.css">
+  <link rel="stylesheet" href="css/header.css">
+  <link rel="stylesheet" href="css/themes.css">
+  <link rel="stylesheet" href="css/home.css">
+</head>
+
+<body>
+  <!-- FIREBASE (compat) -->
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+
+<!-- INIT DO FIREBASE -->
+<script src="js/firebase-init.js?v=20250127"></script>
+
+  
+  <!-- BEM-VINDA -->
+  <h1 id="bvTexto" class="bemvinda">Bem-vinda!</h1>
+  
+<div class="video">
+  <div class="video-wrapper">
+    <h2 id="homeVideoTitle"></h2>
+    <p id="homeVideoSub"></p>
+    <iframe
+      id="homeVideoFrame"
+      src="https://www.youtube-nocookie.com/embed/pAifTtNF9sQ?controls=0&modestbranding=1&rel=0&playsinline=1"
+      title="Vídeo de boas-vindas do FemFlow"
+      allowfullscreen
+      loading="lazy">
+    </iframe>
+  </div>
+</div>
+
+  <!-- BOTÃO FLOW CENTER -->
+  <div class="home-top-buttons">
+    <button id="btnFlow" class="home-btn">Continue seu treino</button>
+  </div>
+
+  <!-- PERSONAL -->
+  <h2 class="home-section-title" id="tituloPersonalTopo">Personal</h2>
+  <div class="rail" id="railPersonal"></div>
+
+  <!-- FOLLOWME -->
+  <h2 class="home-section-title" id="tituloFollowMe">Treine junto por 30 dias</h2>
+  <div class="rail" id="railFollowMe"></div>
+
+  <!-- MUSCULAR -->
+  <h2 class="home-section-title" id="tituloMuscular">Treinos por Enfase</h2>
+  <div class="rail" id="railMuscular"></div>
+
+  <!-- ESPORTES -->
+ <h2 class="home-section-title" id="tituloEsportes">Esportes</h2>
+  <div class="rail" id="railEsportes"></div>
+
+  <!-- CASA -->
+  <h2 class="home-section-title" id="tituloCasa">Treinar em Casa</h2>
+  <div class="rail" id="railCasa"></div>
+
+  <!-- EBOOKS -->
+  <h2 class="home-section-title" id="tituloEbooks">Ebooks</h2>
+  <div class="rail" id="railEbooks"></div>
+
+  <!-- MODAL TREINOS POR SEMANA -->
+  <div id="treinosSemanaModal" class="ff-modal-overlay hidden" aria-hidden="true">
+    <div class="ff-modal-card" role="dialog" aria-modal="true">
+      <h3 class="ff-modal-title" id="treinosSemanaTitulo">Quantos dias por semana você pretende treinar?</h3>
+      <p class="ff-modal-subtitle" id="treinosSemanaSub">
+        Isso ajuda a identificar descanso e ausência corretamente.
+      </p>
+      <div class="ff-modal-options" id="treinosSemanaOptions"></div>
+      <div class="ff-modal-actions">
+        <button class="ff-modal-btn ghost" id="treinosSemanaCancelar">Agora não</button>
+        <button class="ff-modal-btn" id="treinosSemanaSalvar">Salvar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL CONFIRMAÇÃO NOVO PROGRAMA -->
+  <div id="novoProgramaModal" class="ff-modal-overlay hidden" aria-hidden="true">
+    <div class="ff-modal-card" role="dialog" aria-modal="true">
+      <h3 class="ff-modal-title">Quer realmente iniciar um novo programa?</h3>
+      <p class="ff-modal-subtitle">
+        Ao confirmar, o programa atual será reiniciado.
+      </p>
+      <p class="ff-modal-note">
+        Para retomar seu treino clique em "<strong>Continue seu treino</strong>".
+      </p>
+      <div class="ff-modal-actions">
+        <button class="ff-modal-btn ghost" id="novoProgramaCancelar">Não</button>
+        <button class="ff-modal-btn" id="novoProgramaConfirmar">Sim, iniciar</button>
+      </div>
+    </div>
+  </div>
+
+  
+ <script src="js/lang.js"></script>
+<script src="femflow-core.js"></script>
+
+<!-- Só agora o home -->
+<script src="js/home.js"></script>
+
+
+  <script>
+    document.getElementById("btnFlow").onclick = () => FEMFLOW.router("flowcenter");
+  </script>
+
+</body>
+</html>

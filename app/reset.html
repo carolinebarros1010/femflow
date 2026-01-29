@@ -1,0 +1,299 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>Redefinir senha • FemFlow</title>
+
+  <link rel="stylesheet" href="css/style.css"/>
+
+  <style>
+    :root{
+      --terracota:#cc6a5a;
+      --teal:#335953;
+      --pessego:#efbda6;
+      --bege:#f4e1d7;
+      --texto:#5b4f49;
+    }
+    body{
+      margin:0;
+      min-height:100vh;
+      display:flex;
+      align-items:center;
+      justify-content:center;
+      font-family:"Lato",sans-serif;
+      background:linear-gradient(180deg,var(--bege) 0%,var(--pessego) 100%);
+      color:var(--teal);
+      -webkit-font-smoothing:antialiased;
+    }
+    .card{
+      width:92%;
+      max-width:420px;
+      padding:2.4rem 2rem;
+      border-radius:24px;
+      background:rgba(255,255,255,0.94);
+      backdrop-filter:blur(14px);
+      box-shadow:0 10px 28px rgba(0,0,0,0.08);
+      text-align:center;
+      animation:fadeIn .4s ease;
+      border:1px solid rgba(255,255,255,0.6);
+    }
+    .card img.logo{
+      width:120px;
+      margin-bottom:1rem;
+    }
+    h2{
+      margin:0;
+      font-size:1.55rem;
+      color:var(--terracota);
+      font-family:"Playfair Display",serif;
+    }
+    .subtitle{
+      font-size:.95rem;
+      margin:.5rem 0 1.8rem;
+      color:var(--teal);
+    }
+    .form-group{
+      margin-bottom:1.1rem;
+      text-align:left;
+      display:flex;
+      flex-direction:column;
+      align-items:center;
+    }
+    .form-group label{
+      font-weight:700;
+      font-size:.9rem;
+      margin-bottom:.3rem;
+      width:78%;
+      max-width:290px;
+      color:var(--texto);
+    }
+    input{
+      width:78%;
+      max-width:290px;
+      padding:.85rem 1rem;
+      border:1px solid #e6ddd8;
+      border-radius:14px;
+      font-size:.95rem;
+      color:var(--teal);
+      background:#fff;
+      outline:none;
+      transition:border-color .2s,box-shadow .2s;
+    }
+    input:focus{
+      border-color:var(--terracota);
+      box-shadow:0 0 0 3px rgba(204,106,90,.2);
+    }
+    button{
+      width:78%;
+      max-width:290px;
+      padding:.95rem;
+      margin-top:.6rem;
+      border:none;
+      border-radius:14px;
+      font-weight:700;
+      font-size:1rem;
+      color:#fff;
+      background:linear-gradient(135deg,var(--teal),var(--terracota));
+      cursor:pointer;
+      transition:transform .25s ease;
+    }
+    button:hover{
+      transform:translateY(-2px);
+    }
+    .message{
+      margin-top:1.4rem;
+      min-height:1.4rem;
+      font-size:.95rem;
+    }
+    @keyframes fadeIn{
+      from{opacity:0;transform:translateY(10px);}
+      to{opacity:1;transform:translateY(0);}
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <img src="assets/logofemflowterracotasf.png" alt="FemFlow" class="logo"/>
+    <h2>Redefinir senha</h2>
+    <p class="subtitle">Informe sua nova senha para continuar 💫</p>
+
+    <div class="form-group">
+      <label for="email">E-mail</label>
+      <input type="email" id="email" placeholder="seu@email.com"/>
+    </div>
+
+    <div class="form-group">
+      <label for="senha1">Nova senha</label>
+      <input type="password" id="senha1" placeholder="Crie uma senha"/>
+    </div>
+
+    <div class="form-group">
+      <label for="senha2">Confirme a nova senha</label>
+      <input type="password" id="senha2" placeholder="Repita a senha"/>
+    </div>
+
+    <button id="btnSalvar">Salvar nova senha</button>
+    <p id="mensagem" class="message"></p>
+  </div>
+
+  <script>
+  // Desliga logo e botão Voltar nesta página
+  window.FEMFLOW_SUPPRESS_UI = true;
+  </script>
+  <script src="./femflow-core.js"></script>
+ <script>
+const $ = s => document.querySelector(s);
+const msg = $("#mensagem");
+const i18n = {
+  pt: {
+    title: "Redefinir senha",
+    subtitle: "Informe sua nova senha para continuar 💫",
+    emailLabel: "E-mail",
+    emailPlaceholder: "seu@email.com",
+    senha1Label: "Nova senha",
+    senha1Placeholder: "Crie uma senha",
+    senha2Label: "Confirme a nova senha",
+    senha2Placeholder: "Repita a senha",
+    save: "Salvar nova senha",
+    msgFill: "Preencha todos os campos.",
+    msgLength: "A senha deve ter ao menos 6 caracteres.",
+    msgMatch: "As senhas não coincidem.",
+    msgInvalid: "Link inválido ou expirado.",
+    msgUpdating: "Atualizando senha…",
+    msgSuccess: "✔️ Senha atualizada! Voltando ao login…",
+    msgError: "Erro ao redefinir senha.",
+    msgConnection: "❌ Falha na conexão."
+  },
+  en: {
+    title: "Reset password",
+    subtitle: "Enter your new password to continue 💫",
+    emailLabel: "Email",
+    emailPlaceholder: "you@email.com",
+    senha1Label: "New password",
+    senha1Placeholder: "Create a password",
+    senha2Label: "Confirm new password",
+    senha2Placeholder: "Repeat the password",
+    save: "Save new password",
+    msgFill: "Please fill out all fields.",
+    msgLength: "Password must be at least 6 characters.",
+    msgMatch: "Passwords do not match.",
+    msgInvalid: "Invalid or expired link.",
+    msgUpdating: "Updating password…",
+    msgSuccess: "✔️ Password updated! Returning to login…",
+    msgError: "Error resetting password.",
+    msgConnection: "❌ Connection failed."
+  },
+  fr: {
+    title: "Réinitialiser le mot de passe",
+    subtitle: "Saisissez votre nouveau mot de passe pour continuer 💫",
+    emailLabel: "E-mail",
+    emailPlaceholder: "vous@email.com",
+    senha1Label: "Nouveau mot de passe",
+    senha1Placeholder: "Créez un mot de passe",
+    senha2Label: "Confirmez le mot de passe",
+    senha2Placeholder: "Répétez le mot de passe",
+    save: "Enregistrer le nouveau mot de passe",
+    msgFill: "Veuillez remplir tous les champs.",
+    msgLength: "Le mot de passe doit comporter au moins 6 caractères.",
+    msgMatch: "Les mots de passe ne correspondent pas.",
+    msgInvalid: "Lien invalide ou expiré.",
+    msgUpdating: "Mise à jour du mot de passe…",
+    msgSuccess: "✔️ Mot de passe mis à jour ! Retour à la connexion…",
+    msgError: "Erreur lors de la réinitialisation du mot de passe.",
+    msgConnection: "❌ Échec de la connexion."
+  }
+};
+const getLang = () => {
+  const p = new URLSearchParams(location.search);
+  const raw = (p.get("lang") || localStorage.getItem("femflow_lang") || "pt")
+    .toLowerCase()
+    .trim();
+  if (raw.startsWith("en")) return "en";
+  if (raw.startsWith("fr")) return "fr";
+  return "pt";
+};
+const lang = getLang();
+const T = i18n[lang] || i18n.pt;
+const t = key => T[key] || i18n.pt[key] || key;
+
+(function init() {
+  const p = new URLSearchParams(location.search);
+
+  window._resetID    = p.get("id") || "";
+  window._resetToken = p.get("token") || "";
+
+  const e = p.get("email");
+  if (e) $("#email").value = decodeURIComponent(e);
+
+  document.querySelector("h2").textContent = t("title");
+  document.querySelector(".subtitle").textContent = t("subtitle");
+  document.querySelector("label[for='email']").textContent = t("emailLabel");
+  document.querySelector("label[for='senha1']").textContent = t("senha1Label");
+  document.querySelector("label[for='senha2']").textContent = t("senha2Label");
+  $("#email").placeholder = t("emailPlaceholder");
+  $("#senha1").placeholder = t("senha1Placeholder");
+  $("#senha2").placeholder = t("senha2Placeholder");
+  $("#btnSalvar").textContent = t("save");
+})();
+
+function setMsg(t, ok=false){
+  msg.textContent = t;
+  msg.style.color = ok ? "#2e7d32" : "#335953";
+}
+function setErr(t){
+  msg.textContent = t;
+  msg.style.color = "#cc6a5a";
+}
+
+async function salvar() {
+  const email = $("#email").value.trim().toLowerCase();
+  const s1 = $("#senha1").value.trim();
+  const s2 = $("#senha2").value.trim();
+
+  if (!email || !s1 || !s2) return setErr(t("msgFill"));
+  if (s1.length < 6) return setErr(t("msgLength"));
+  if (s1 !== s2) return setErr(t("msgMatch"));
+  if (!window._resetID || !window._resetToken) return setErr(t("msgInvalid"));
+
+  setMsg(t("msgUpdating"));
+  $("#btnSalvar").disabled = true;
+
+  try {
+    const resp = await fetch(FEMFLOW.SCRIPT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        action: "resetsenha",
+        id: window._resetID,
+        token: window._resetToken,
+        novaSenha: s1
+      })
+    });
+
+    const data = await resp.json();
+    console.log("BACK RESET:", data);
+
+    if (data.status === "ok") {
+      setMsg(t("msgSuccess"), true);
+      setTimeout(() => location.href = "index.html", 1200);
+    } else {
+      setErr(data.msg || t("msgError"));
+      $("#btnSalvar").disabled = false;
+    }
+  }
+  catch (e) {
+    console.error(e);
+    setErr(t("msgConnection"));
+    $("#btnSalvar").disabled = false;
+  }
+}
+
+// 🚀 AQUI ESTÁ A LINHA QUE FALTAVA!!! 
+$("#btnSalvar").onclick = salvar;
+
+</script>
+
+
+</body>
+</html>

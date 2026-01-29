@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width,initial-scale=1.0">
+  <title>FemFlow • Treine Junto</title>
+
+  <link rel="icon" href="favicon.ico">
+  <link rel="manifest" href="manifest.json">
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+
+  <!-- Core CSS -->
+  <link rel="stylesheet" href="css/core.css">
+  <link rel="stylesheet" href="css/header.css">
+  <link rel="stylesheet" href="css/themes.css">
+
+  <!-- FollowMe CSS -->
+  <link rel="stylesheet" href="css/followme.css">
+</head>
+
+<body>
+
+<!-- HEADER -->
+<script src="js/lang.js"></script>
+<script src="femflow-core.js"></script>
+
+<h1 id="followTitulo">—</h1>
+<p id="followSub">—</p>
+
+<!-- ===========================
+     GRID DE COACHES
+============================== -->
+<div class="coach-grid" id="coachGrid">
+  <!-- JS preenche aqui -->
+</div>
+
+<!-- ===========================
+     SCRIPT FOLLOWME
+============================== -->
+<script src="js/followme.js"></script>
+  
+<div id="modal-nivel" class="modal-nivel oculto">
+  <div class="modal-nivel-box">
+    <h2>📊 Selecione seu nível</h2>
+
+    <button class="nivel-btn" data-nivel="iniciante">Iniciante</button>
+    <button class="nivel-btn" data-nivel="intermediaria">Intermediária</button>
+    <button class="nivel-btn" data-nivel="avancada">Avançada</button>
+
+    <button id="btnConfirmarNivel" class="nivel-confirmar">
+      Confirmar nível
+    </button>
+
+    <button id="fecharNivel" class="nivel-fechar">Fechar</button>
+  </div>
+</div>
+
+</body>
+</html>
