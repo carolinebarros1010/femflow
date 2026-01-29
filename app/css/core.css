@@ -34,6 +34,11 @@ body {
   padding-top: 60px; /* espaço para header fixo */
 }
 
+/* ---------- UTILITÁRIOS ---------- */
+.hidden {
+  display: none !important;
+}
+
 /* ---------- CONTAINERS ---------- */
 .container {
   width: 100%;
@@ -158,6 +163,67 @@ input, select {
 
 .ff-close:active {
   background: #ddd;
+}
+
+/* ============================================================
+   MODAL DE IDIOMA
+============================================================ */
+.ff-lang-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 160000;
+}
+
+.ff-lang-modal.hidden {
+  display: none;
+}
+
+.ff-lang-box {
+  width: min(420px, 92vw);
+  background: #fff;
+  border-radius: 18px;
+  padding: 22px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+
+.ff-lang-box h2 {
+  margin: 0 0 16px;
+  color: var(--teal);
+  font-family: "Playfair Display", serif;
+}
+
+.ff-lang-btn {
+  width: 100%;
+  margin-top: 10px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid #e2d5cc;
+  background: #fff5ef;
+  color: #335953;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ff-lang-btn:active {
+  background: #f2ded5;
+}
+
+.ff-lang-close {
+  margin-top: 16px;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: none;
+  background: #cc6a5a;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
 }
 /* ============================================================
    TOAST FEMFLOW — VISIBILIDADE 2025
@@ -284,6 +350,4 @@ input, select {
   from { opacity: 0; transform: translateY(10px); }
   to   { opacity: 1; transform: translateY(0); }
 }
-
-
 
