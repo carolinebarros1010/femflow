@@ -19,7 +19,7 @@ if ($_SERVER['REQUEST_METHOD'] === 'OPTIONS') {
 }
 
 // Endpoint público do backend (Cloudflare Worker)
-$API = "https://api-myflowlife.falling-wildflower-a8c0.workers.dev";
+$API = "https://femflowapi.falling-wildflower-a8c0.workers.dev";
 
 // Método
 $method = $_SERVER['REQUEST_METHOD'];

@@ -9,7 +9,7 @@ window.FEMFLOW = window.FEMFLOW || {};
    1. CONFIG GLOBAL
 =========================================================== */
 
-FEMFLOW.SCRIPT_URL = "https://api-myflowlife.falling-wildflower-a8c0.workers.dev/";
+FEMFLOW.SCRIPT_URL = "https://femflowapi.falling-wildflower-a8c0.workers.dev/";
 FEMFLOW.API_URL = FEMFLOW.SCRIPT_URL;
 
 FEMFLOW.lang = localStorage.getItem("femflow_lang") || "pt";
