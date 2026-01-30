@@ -306,6 +306,7 @@ const CARDS_HOME_PRESETS = [
   "avancada_teen_14_ao_16",
   "avancada_voleibol_quadra",
   "avancada_corrida_curta",
+  "avancada_hyrox",
   "avancada_casa_queima_gordura",
   "avancada_casa_fullbody_praia",
   "iniciante_20minemcasa",
@@ -328,6 +329,7 @@ const CARDS_HOME_PRESETS = [
   "iniciante_teen_14_ao_16",
   "iniciante_voleibol_quadra",
   "iniciante_corrida_curta",
+  "iniciante_hyrox",
   "iniciante_casa_queima_gordura",
   "iniciante_casa_fullbody_praia",
   "intermediaria_20minemcasa",
@@ -350,6 +352,7 @@ const CARDS_HOME_PRESETS = [
   "intermediaria_teen_14_ao_16",
   "intermediaria_voleibol_quadra",
   "intermediaria_corrida_curta",
+  "intermediaria_hyrox",
   "intermediaria_casa_queima_gordura",
   "intermediaria_casa_fullbody_praia"
 ];
@@ -621,6 +624,7 @@ const CARD_THUMBS = {
   fullbody_40min: "fullbody_40min.jpg",
   teen_14_ao_16: "teen_14_ao_16.jpg",
   voleibol_quadra: "voleibol_quadra.jpg",
+  hyrox: "hyrox.jpg",
   personal: "personal_ricardojr.jpg",
   personal_ricardojr: "personal_ricardojr.jpg",
   corrida_curta: "corrida_curta.jpg"
