@@ -719,6 +719,21 @@ font-size: 0.9rem !important;
   font-size: 0.9rem;
 }
 
+.ff-cardio-box {
+  border: 1px solid rgba(30, 125, 122, 0.18);
+  background: linear-gradient(180deg, #ffffff 0%, #f7fbfb 100%);
+}
+
+.ff-cardio-box.ff-cardio-final {
+  border-color: rgba(204, 106, 90, 0.35);
+  background: linear-gradient(180deg, #fff9f6 0%, #fff0ea 100%);
+}
+
+.ff-cardio-box.ff-cardio-intermediario {
+  border-color: rgba(30, 125, 122, 0.25);
+  background: linear-gradient(180deg, #f3fbfb 0%, #e9f6f5 100%);
+}
+
 /* ============================================================
    9) PRANCHA
 ============================================================ */
@@ -1147,6 +1162,15 @@ font-size: 0.9rem !important;
   margin-bottom: 4px !important;
   margin-bottom: 6px;
   line-height: 1.15;
+}
+
+.ff-ex-titulo a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.ff-ex-titulo a:hover {
+  text-decoration: underline;
 }
 html, body {
   width: 100%;
