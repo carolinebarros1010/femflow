@@ -374,10 +374,9 @@ function extrairNivelEnfase(docId) {
   );
   if (nivelIndex < 0) return null;
   const nivel = normalizarNivel(partes[nivelIndex]);
-  const enfase = partes
+  const enfase = normalizarEnfase(partes
     .filter((_, index) => index !== nivelIndex)
-    .join("_")
-    .trim();
+    .join("_"));
   if (!nivel || !enfase) return null;
   return { nivel, enfase };
 }
@@ -388,6 +387,16 @@ function normalizarNivel(raw) {
   if (n.startsWith("inter")) return "intermediaria";
   if (n.startsWith("avan")) return "avancada";
   return "iniciante";
+}
+
+function normalizarEnfase(raw) {
+  return String(raw || "")
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "_")
+    .replace(/-+/g, "_")
+    .replace(/_+/g, "_")
+    .replace(/^_+|_+$/g, "");
 }
 
 function inferirCategoria(enfase) {
@@ -545,7 +554,7 @@ async function carregarCatalogoFirebase() {
     if (!parsed && data?.enfase) {
       parsed = {
         nivel: nivelAluno,
-        enfase: String(data.enfase || "").toLowerCase().trim()
+        enfase: normalizarEnfase(data.enfase)
       };
     }
     if (!parsed) return;
