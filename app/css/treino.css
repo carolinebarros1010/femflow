@@ -151,7 +151,8 @@ body {
 
 .carousel-container {
   width: 100%;
-  height: calc(100dvh - 110px);
+  height: fit-content;
+  max-height: calc(100dvh - 110px);
   overflow-x: auto;
   overflow-y: hidden;
   scroll-snap-type: x mandatory;
@@ -165,12 +166,14 @@ body {
   display: flex;
   gap: 14px;
   padding: 0 14px;
-  height: 100%;
+  height: fit-content;
+  align-items: flex-start;
 }
 
 .carousel-item {
   flex: 0 0 calc(100vw - 28px);
   max-width: calc(100vw - 28px);
+  align-self: flex-start;
 
   /* Ajusta altura conforme conteúdo, com limite para manter a área rolável */
   height: fit-content;
