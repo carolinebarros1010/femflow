@@ -711,6 +711,10 @@ function renderBox(bloco) {
     const c = bloco[0];
     const { descricao, detalhes } = montarCardioInfo(c);
     const duracao = Number(c.duracao) || 0;
+    const cardioClass =
+      tipoDominante === "cardio_final"
+        ? "ff-cardio-final"
+        : "ff-cardio-intermediario";
     const detalhesHTML = detalhes.length
       ? `
         <ul class="ff-cardio-info">
@@ -732,7 +736,7 @@ function renderBox(bloco) {
       : "";
 
     return `
-      <div class="carousel-item ff-box">
+      <div class="carousel-item ff-box ff-cardio-box ${cardioClass}">
         <h2 class="ff-ex-titulo">${c.titulo}</h2>
 
         <p class="ff-cardio-descricao">${descricao}</p>

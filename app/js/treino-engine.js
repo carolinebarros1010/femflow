@@ -367,7 +367,7 @@ FEMFLOW.engineTreino.organizarBlocosSimples = brutos => {
         }
       }
 
-      else if (b.tipo === "cardio_intermediario") {
+      else if (b.tipo === "cardio_intermediario" || b.tipo === "cardio") {
         if (!isNaN(boxNum)) {
           boxNum = boxNum >= 100 ? boxNum - 99.5 : boxNum + 0.5;
         } else {
@@ -519,7 +519,7 @@ if (b.tipo === "hiit") {
     /* =========================
        CARDIO INTERMEDIARIO
     ========================= */
-    if (b.tipo === "cardio_intermediario") {
+    if (b.tipo === "cardio_intermediario" || b.tipo === "cardio") {
       out.push({
         tipo: "cardio_intermediario",
         box: Number(b.boxNum || 0.5),
