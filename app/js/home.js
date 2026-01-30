@@ -306,6 +306,7 @@ const CARDS_HOME_PRESETS = [
   "avancada_teen_14_ao_16",
   "avancada_voleibol_quadra",
   "avancada_corrida_curta",
+  "avancada_hyrox",
   "avancada_casa_queima_gordura",
   "avancada_casa_fullbody_praia",
   "iniciante_20minemcasa",
@@ -328,6 +329,7 @@ const CARDS_HOME_PRESETS = [
   "iniciante_teen_14_ao_16",
   "iniciante_voleibol_quadra",
   "iniciante_corrida_curta",
+  "iniciante_hyrox",
   "iniciante_casa_queima_gordura",
   "iniciante_casa_fullbody_praia",
   "intermediaria_20minemcasa",
@@ -350,17 +352,29 @@ const CARDS_HOME_PRESETS = [
   "intermediaria_teen_14_ao_16",
   "intermediaria_voleibol_quadra",
   "intermediaria_corrida_curta",
+  "intermediaria_hyrox",
   "intermediaria_casa_queima_gordura",
   "intermediaria_casa_fullbody_praia"
 ];
 
 function extrairNivelEnfase(docId) {
   if (!docId) return null;
-  const partes = String(docId).split("_");
+  const partes = String(docId)
+    .split("_")
+    .map(parte => parte.toLowerCase().trim())
+    .filter(Boolean);
   if (partes.length < 2) return null;
-  const [nivelRaw, ...resto] = partes;
-  const nivel = nivelRaw.toLowerCase().trim();
-  const enfase = resto.join("_").toLowerCase().trim();
+  const nivelIndex = partes.findIndex(
+    parte =>
+      parte.startsWith("inic") ||
+      parte.startsWith("inter") ||
+      parte.startsWith("avan")
+  );
+  if (nivelIndex < 0) return null;
+  const nivel = normalizarNivel(partes[nivelIndex]);
+  const enfase = normalizarEnfase(partes
+    .filter((_, index) => index !== nivelIndex)
+    .join("_"));
   if (!nivel || !enfase) return null;
   return { nivel, enfase };
 }
@@ -371,6 +385,16 @@ function normalizarNivel(raw) {
   if (n.startsWith("inter")) return "intermediaria";
   if (n.startsWith("avan")) return "avancada";
   return "iniciante";
+}
+
+function normalizarEnfase(raw) {
+  return String(raw || "")
+    .toLowerCase()
+    .trim()
+    .replace(/\s+/g, "_")
+    .replace(/-+/g, "_")
+    .replace(/_+/g, "_")
+    .replace(/^_+|_+$/g, "");
 }
 
 function inferirCategoria(enfase) {
@@ -530,7 +554,7 @@ async function carregarCatalogoFirebase() {
     if (!parsed && data?.enfase) {
       parsed = {
         nivel: nivelAluno,
-        enfase: String(data.enfase || "").toLowerCase().trim()
+        enfase: normalizarEnfase(data.enfase)
       };
     }
     if (!parsed) return;
@@ -621,6 +645,7 @@ const CARD_THUMBS = {
   fullbody_40min: "fullbody_40min.jpg",
   teen_14_ao_16: "teen_14_ao_16.jpg",
   voleibol_quadra: "voleibol_quadra.jpg",
+  hyrox: "hyrox.jpg",
   personal: "personal_ricardojr.jpg",
   personal_ricardojr: "personal_ricardojr.jpg",
   corrida_curta: "corrida_curta.jpg"
