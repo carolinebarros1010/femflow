@@ -281,7 +281,7 @@ const FEMFLOW = {
   CSV_COLS: [
     'tipo','box','ordem','enfase','fase','dia',
     'titulo_pt','titulo_en','titulo_fr','link',
-    'series','reps','especial','tempo','intervalo','forte','leve','ciclos'
+    'series','reps','especial','tempo','distancia','intervalo','forte','leve','ciclos'
   ]
 };
 
