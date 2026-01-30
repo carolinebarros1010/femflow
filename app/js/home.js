@@ -359,11 +359,23 @@ const CARDS_HOME_PRESETS = [
 
 function extrairNivelEnfase(docId) {
   if (!docId) return null;
-  const partes = String(docId).split("_");
+  const partes = String(docId)
+    .split("_")
+    .map(parte => parte.toLowerCase().trim())
+    .filter(Boolean);
   if (partes.length < 2) return null;
-  const [nivelRaw, ...resto] = partes;
-  const nivel = nivelRaw.toLowerCase().trim();
-  const enfase = resto.join("_").toLowerCase().trim();
+  const nivelIndex = partes.findIndex(
+    parte =>
+      parte.startsWith("inic") ||
+      parte.startsWith("inter") ||
+      parte.startsWith("avan")
+  );
+  if (nivelIndex < 0) return null;
+  const nivel = normalizarNivel(partes[nivelIndex]);
+  const enfase = partes
+    .filter((_, index) => index !== nivelIndex)
+    .join("_")
+    .trim();
   if (!nivel || !enfase) return null;
   return { nivel, enfase };
 }
