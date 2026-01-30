@@ -715,6 +715,10 @@ function renderBox(bloco) {
       tipoDominante === "cardio_final"
         ? "ff-cardio-final"
         : "ff-cardio-intermediario";
+    const link = c.link || "";
+    const tituloHTML = link
+      ? `<a href="${link}" target="_blank" rel="noopener">${c.titulo}</a>`
+      : c.titulo;
     const detalhesHTML = detalhes.length
       ? `
         <ul class="ff-cardio-info">
@@ -737,7 +741,7 @@ function renderBox(bloco) {
 
     return `
       <div class="carousel-item ff-box ff-cardio-box ${cardioClass}">
-        <h2 class="ff-ex-titulo">${c.titulo}</h2>
+        <h2 class="ff-ex-titulo">${tituloHTML}</h2>
 
         <p class="ff-cardio-descricao">${descricao}</p>
         ${detalhesHTML}

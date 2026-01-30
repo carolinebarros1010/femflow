@@ -1162,6 +1162,15 @@ font-size: 0.9rem !important;
   margin-bottom: 6px;
   line-height: 1.15;
 }
+
+.ff-ex-titulo a {
+  color: inherit;
+  text-decoration: none;
+}
+
+.ff-ex-titulo a:hover {
+  text-decoration: underline;
+}
 html, body {
   width: 100%;
   max-width: 100%;
