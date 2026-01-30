@@ -494,6 +494,43 @@ const hasPersonal =
     const s = seg % 60;
     return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
   }
+
+  function formatCardioTempo(valor) {
+    if (valor === null || valor === undefined || valor === "") return "";
+    const num = Number(valor);
+    if (Number.isFinite(num) && num > 0) {
+      if (num % 60 === 0) return `${num / 60} min`;
+      return fmtTime(num);
+    }
+    return String(valor);
+  }
+
+  function montarCardioInfo(c) {
+    const series = c.series ? String(c.series) : "";
+    const tempoOuDistancia = c.distancia
+      ? String(c.distancia)
+      : formatCardioTempo(c.tempo || c.duracao);
+    const intervaloTexto = formatCardioTempo(c.intervalo);
+
+    const descricao = t("treino.cardio.descricao", {
+      series: series || "-",
+      tempo: tempoOuDistancia || "-",
+      intervalo: intervaloTexto || "-"
+    });
+
+    const detalhes = [];
+    if (series) {
+      detalhes.push(t("treino.cardio.seriesLabel", { series }));
+    }
+    if (tempoOuDistancia) {
+      detalhes.push(t("treino.cardio.tempoLabel", { tempo: tempoOuDistancia }));
+    }
+    if (intervaloTexto) {
+      detalhes.push(t("treino.cardio.intervaloLabel", { intervalo: intervaloTexto }));
+    }
+
+    return { descricao, detalhes };
+  }
    
 function renderTreino(lista) {
 
@@ -544,11 +581,14 @@ console.log("🧪 BOX KEYS RAW:", Object.keys(grupos));
 
   /* ordenar box: -100 → 0 → 1 → 2 → … → 500 → 900 → 999 */
   const boxKeys = Object.keys(grupos).sort((a, b) => {
-  const na = parseInt(a);
-  const nb = parseInt(b);
+  const na = parseFloat(a);
+  const nb = parseFloat(b);
 
   // ambos numéricos → ordena normal
-  if (!isNaN(na) && !isNaN(nb)) return na - nb;
+  if (!isNaN(na) && !isNaN(nb)) {
+    if (na !== nb) return na - nb;
+    return String(a).localeCompare(String(b));
+  }
 
   // um numérico, outro não → numérico vem primeiro
   if (!isNaN(na)) return -1;
@@ -665,22 +705,39 @@ function renderBox(bloco) {
 }
 
   /* ======================================================
-     CARDIO FINAL
+     CARDIO (FINAL + INTERMEDIARIO)
   ====================================================== */
-  if (tipoDominante === "cardio_final") {
+  if (tipoDominante === "cardio_final" || tipoDominante === "cardio_intermediario") {
     const c = bloco[0];
+    const { descricao, detalhes } = montarCardioInfo(c);
+    const duracao = Number(c.duracao) || 0;
+    const detalhesHTML = detalhes.length
+      ? `
+        <ul class="ff-cardio-info">
+          ${detalhes.map(item => `<li>${item}</li>`).join("")}
+        </ul>
+      `
+      : "";
+    const timerHTML = duracao > 0
+      ? `
+        <div class="ff-descanso-wrap">
+          <button class="ff-descanso-btn btnStartTimer">${t("treino.cardio.iniciar")}</button>
+          <span class="ff-timer-count">${fmtTime(duracao)}</span>
+
+          <div class="ff-timer-bar" data-timer="${duracao}">
+            <div class="ff-timer-fill"></div>
+          </div>
+        </div>
+      `
+      : "";
+
     return `
       <div class="carousel-item ff-box">
         <h2 class="ff-ex-titulo">${c.titulo}</h2>
 
-        <div class="ff-descanso-wrap">
-          <button class="ff-descanso-btn btnStartTimer">▶️ Iniciar cardio</button>
-          <span class="ff-timer-count">${fmtTime(Number(c.duracao) || 0)}</span>
-
-          <div class="ff-timer-bar" data-timer="${Number(c.duracao) || 0}">
-            <div class="ff-timer-fill"></div>
-          </div>
-        </div>
+        <p class="ff-cardio-descricao">${descricao}</p>
+        ${detalhesHTML}
+        ${timerHTML}
       </div>
     `;
   }
@@ -863,12 +920,27 @@ function renderExercicio(ex) {
 
   const intervalo = Number(ex.intervalo) || 0;
 const totalSeries = Number(ex.series) || 1;
+  const distanciaValue = ex.distancia !== undefined && ex.distancia !== null
+    ? String(ex.distancia).trim()
+    : "";
+  const distanciaText = distanciaValue ? `${distanciaValue} m` : "";
    const isRP = ex._isRestPause && ex._isUltimoDoCombo;
   const isIsometria = Boolean(ex._isometriaTempo || ex._serieCodigo === "I");
-  const execTempoValue = ex.tempo || ex._isometriaTempo || ex.reps || "";
+  const execTempoValue = ex.tempo || ex._isometriaTempo || "";
   const execTempoText = /^\d+(\.\d+)?$/.test(String(execTempoValue).trim())
     ? `${execTempoValue}s`
     : execTempoValue;
+  const repsValue = ex.reps ? String(ex.reps).trim() : "";
+  const seriesValue = ex.series ? String(ex.series).trim() : "";
+  const repsInfoHTML = isIsometria
+    ? `<span>⏱️ <b>${execTempoText}</b> execução</span>`
+    : distanciaText
+    ? `<span>📏 <b>${distanciaText}</b></span>`
+    : repsValue
+    ? `<span>🔁 <b>${repsValue}</b></span>`
+    : execTempoValue
+    ? `<span>⏱️ <b>${execTempoText}</b></span>`
+    : `<span>🔁 <b>-</b></span>`;
 
 
 const serieProgressHTML = `
@@ -1006,12 +1078,8 @@ return `
     </div>
 
     <div class="ff-info-line">
-      <span>🌀 <b>${ex.series}</b>x</span>
-      ${
-        isIsometria
-          ? `<span>⏱️ <b>${execTempoText}</b> execução</span>`
-          : `<span>🔁 <b>${ex.reps}</b></span>`
-      }
+      <span>🌀 <b>${seriesValue || "-"}</b>x</span>
+      ${repsInfoHTML}
       <span>⏱️ <b>${intervalo}s</b></span>
     </div>
 

@@ -486,6 +486,14 @@ home: {
       "Em casa: polichinelo, corrida parada, burpee, corda, salto no lugar",
     iniciar: "Toque para iniciar"
   },
+    cardio: {
+    descricao:
+      "Complete {series} série(s) de {tempo} com {intervalo} de intervalo. Mantenha um ritmo confortável.",
+    seriesLabel: "Séries: {series}",
+    tempoLabel: "Tempo/Distância: {tempo}",
+    intervaloLabel: "Intervalo: {intervalo}",
+    iniciar: "▶️ Iniciar cardio"
+  },
      aquecimento: {
     sugestao: "💨 Sugestão: prepare seu corpo com uma respiração consciente antes de começar.",
     btn: "🌬️ Abrir protocolos de respiração"
@@ -779,6 +787,14 @@ home: {
   exemplosCasa:
     "At home: jumping jacks, running in place, burpees, rope, jumps",
   iniciar: "Tap to start"
+},
+    cardio: {
+  descricao:
+    "Complete {series} set(s) of {tempo} with {intervalo} of rest. Keep a comfortable pace.",
+  seriesLabel: "Sets: {series}",
+  tempoLabel: "Time/Distance: {tempo}",
+  intervaloLabel: "Rest: {intervalo}",
+  iniciar: "▶️ Start cardio"
 },
   aquecimento: {
     sugestao: "💨 Tip: prepare your body with conscious breathing before you start.",
@@ -1075,6 +1091,14 @@ fr: {
   exemplosCasa:
     "À la maison: jumping jacks, course sur place, burpees, corde, sauts",
   iniciar: "Touchez pour commencer"
+},
+    cardio: {
+  descricao:
+    "Complétez {series} série(s) de {tempo} avec {intervalo} de repos. Gardez un rythme confortable.",
+  seriesLabel: "Séries : {series}",
+  tempoLabel: "Temps/Distance : {tempo}",
+  intervaloLabel: "Repos : {intervalo}",
+  iniciar: "▶️ Démarrer le cardio"
 },
    aquecimento: {
     sugestao: "💨 Astuce : prépare ton corps avec une respiration consciente avant de commencer.",
