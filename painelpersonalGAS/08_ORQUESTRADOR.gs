@@ -237,6 +237,7 @@ function distribuirBaseOvulatoriaPara30Dias_(p, padrao) {
         row.titulo_fr,
         row.link,
         row.tempo,
+        row.distancia,
         row.intervalo,
         row.especial
       ].map(v => String(v || '').trim()).join('|');
@@ -266,7 +267,7 @@ function distribuirBaseOvulatoriaPara30Dias_(p, padrao) {
     if (nivelNormalizado === 'intermediaria') return 4;
     return 3;
   };
-  const selecionarDiaBase_ = (diaBase, ctx) => {
+  const selecionarDiaBase_ = (diaBase, ctx, usoDiaBase, ultimoDiaBase) => {
     const minimoTreinos = qtdExerciciosTreino_(ctx.nivel, ctx.fase, ctx.estrutura);
     const totalDias = diasBase.length;
     const idxBase = diasBase.indexOf(diaBase);
@@ -277,17 +278,22 @@ function distribuirBaseOvulatoriaPara30Dias_(p, padrao) {
         (idx - idxBase + totalDias) % totalDias,
         (idxBase - idx + totalDias) % totalDias
       );
-      return { dia, treinos, distancia };
+      return { dia, treinos, distancia, uso: usoDiaBase[dia] || 0 };
     });
     const comMinimo = candidatos
       .filter(candidato => candidato.treinos >= minimoTreinos)
-      .sort((a, b) => (a.distancia - b.distancia) || (b.treinos - a.treinos));
-    if (comMinimo.length) return comMinimo[0].dia;
+      .sort((a, b) => (a.distancia - b.distancia) || (b.treinos - a.treinos) || (a.uso - b.uso));
+    if (comMinimo.length) {
+      const preferidos = comMinimo.filter(candidato => candidato.dia !== ultimoDiaBase);
+      return (preferidos[0] || comMinimo[0]).dia;
+    }
 
     const melhor = candidatos.sort((a, b) => b.treinos - a.treinos)[0];
     return melhor?.dia || diaBase;
   };
 
+  const usoDiaBase = {};
+  let ultimoDiaBase = null;
   const baseAnchor = 14;
 
   for (let dia = 1; dia <= FEMFLOW.DIAS_TOTAL; dia++) {
@@ -312,19 +318,28 @@ function distribuirBaseOvulatoriaPara30Dias_(p, padrao) {
     const hiitRegra = hiitPermitidoOuObrigatorio_(ctx.fase);
     const maxPorBox = maxPorBox_(ctx.nivel);
 
-    diaBase = selecionarDiaBase_(diaBase, ctx);
+    const treinosDiaBase = contarTreinos_(porDiaBase[diaBase] || []);
+    if (!treinosDiaBase) {
+      diaBase = selecionarDiaBase_(diaBase, ctx, usoDiaBase, ultimoDiaBase);
+    }
+    usoDiaBase[diaBase] = (usoDiaBase[diaBase] || 0) + 1;
+    ultimoDiaBase = diaBase;
     const linhasDia = (porDiaBase[diaBase] || []).map(row => {
       const copia = Object.assign({}, row);
       copia.dia = dia;
       copia.fase = ctx.fase;
       copia.enfase = ctx.enfase;
       copia.reps = normalizarReps_(copia.reps);
+      const distanciaRaw = String(copia.distancia || '').trim();
 
       if (copia.tipo === 'treino') {
         copia.series = String(seriesBase);
         copia.intervalo = copia.intervalo || FEMFLOW.INTERVALO_TREINO;
         const repsPorIntervalo = repsPorIntervaloDescanso_(copia.intervalo);
         copia.reps = repsPorIntervalo || String(repsBase);
+        if (distanciaRaw) {
+          copia.reps = '';
+        }
         if (ctx.fase !== 'ovulatoria') copia.especial = '';
         if (!especialPermitido) {
           copia.box = normalizarBoxSemEspecial(copia.box);
@@ -333,6 +348,9 @@ function distribuirBaseOvulatoriaPara30Dias_(p, padrao) {
       }
 
       if (String(copia.tempo || '').trim()) {
+        copia.reps = '';
+      }
+      if (distanciaRaw) {
         copia.reps = '';
       }
 
