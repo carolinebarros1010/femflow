@@ -172,16 +172,17 @@ body {
   flex: 0 0 calc(100vw - 28px);
   max-width: calc(100vw - 28px);
 
-  /* Altura mínima para manter estrutura sem sobrar espaço */
-  min-height: calc(100dvh - 180px);
+  /* Ajusta altura conforme conteúdo, com limite para manter a área rolável */
+  height: fit-content;
+  max-height: calc(100dvh - 180px);
 
   background: white;
   border-radius: 22px;
 
   padding: 14px !important;
 
-  /* 🔥 Espaço dinâmico: só o suficiente p/ não encostar no footer */
-  padding-bottom: calc(80px + env(safe-area-inset-bottom, 0px)) !important;
+  /* 🔥 Espaço mínimo p/ não encostar no footer */
+  padding-bottom: calc(32px + env(safe-area-inset-bottom, 0px)) !important;
 
   scroll-snap-align: center;
   scroll-snap-stop: always;
