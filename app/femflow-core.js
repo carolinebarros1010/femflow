@@ -103,6 +103,21 @@ FEMFLOW.toast = (msg, error = false) => {
   setTimeout(() => box.classList.remove("visible"), 2400);
 };
 
+FEMFLOW.listenForUpdates = function () {
+  if (!("serviceWorker" in navigator)) return;
+
+  navigator.serviceWorker.addEventListener("message", (event) => {
+    if (event.data?.type !== "FEMFLOW_UPDATE_AVAILABLE") return;
+
+    if (localStorage.getItem("femflow_update_ready") !== "true") {
+      localStorage.setItem("femflow_update_ready", "true");
+      FEMFLOW.toast("✨ Atualizamos o FemFlow com melhorias.");
+    }
+  });
+};
+
+FEMFLOW.listenForUpdates();
+
 FEMFLOW.toggleBodyScroll = function (locked) {
   document.body.classList.toggle("ff-modal-open", locked);
 };
