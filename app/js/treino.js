@@ -127,21 +127,11 @@ document.addEventListener("DOMContentLoaded", () => {
         const viewport = window.visualViewport;
         const offsetX = viewport?.offsetLeft || 0;
         const offsetY = viewport?.offsetTop || 0;
-        const viewportHeight = viewport?.height || window.innerHeight;
-        const isFooterTarget = Boolean(step.target.closest(".fix-footer"));
-        const baseRadius = Math.max(rect.width, rect.height) / 2 + 28;
+        const baseRadius = Math.max(rect.width, rect.height) / 2 + 20;
         const targetCenterX = rect.left + rect.width / 2 + offsetX;
         const targetCenterY = rect.top + rect.height / 2 + offsetY;
-        const spotlightBottom = viewportHeight + offsetY;
-        const footerOvershoot = 18;
-        const footerExtraDrop = 85;
-        const footerSpotRadius = 84;
-        const radius = isFooterTarget
-          ? footerSpotRadius + Math.max(0, spotlightBottom - targetCenterY)
-          : baseRadius;
-        const spotlightY = isFooterTarget
-          ? spotlightBottom + footerOvershoot + footerExtraDrop
-          : targetCenterY;
+        const radius = baseRadius;
+        const spotlightY = targetCenterY;
 
         tourOverlay.style.setProperty("--spot-x", `${targetCenterX}px`);
         tourOverlay.style.setProperty("--spot-y", `${spotlightY}px`);
