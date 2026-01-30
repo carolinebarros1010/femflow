@@ -1,5 +1,5 @@
 // 🌸 FemFlow Service Worker v5.0 (PWA + CORS safe)
-const CACHE_NAME = "femflow-cache-v7";
+const CACHE_NAME = "femflow-cache-v8";
 
 // Arquivos principais do app (tela, JS e manifest)
 const ASSETS = [
@@ -71,6 +71,7 @@ self.addEventListener("activate", (event) => {
     (async () => {
       // Remove versões antigas
       const keys = await caches.keys();
+      const hadPreviousCache = keys.some((key) => key !== CACHE_NAME);
       await Promise.all(
         keys
           .filter((key) => key !== CACHE_NAME)
@@ -88,6 +89,16 @@ self.addEventListener("activate", (event) => {
       });
 
       await self.clients.claim();
+
+      if (hadPreviousCache) {
+        const clients = await self.clients.matchAll({
+          type: "window",
+          includeUncontrolled: true
+        });
+        clients.forEach((client) => {
+          client.postMessage({ type: "FEMFLOW_UPDATE_AVAILABLE" });
+        });
+      }
     })()
   );
 });
