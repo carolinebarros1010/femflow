@@ -699,6 +699,25 @@ font-size: 0.9rem !important;
   margin-bottom: 8px;
 }
 
+.ff-cardio-descricao {
+  font-size: 0.95rem;
+  line-height: 1.4;
+  text-align: center;
+  color: var(--ink);
+  margin: 8px 0 12px;
+}
+
+.ff-cardio-info {
+  list-style: none;
+  padding: 0;
+  margin: 0 0 12px;
+  display: grid;
+  gap: 6px;
+  text-align: center;
+  color: var(--ink);
+  font-size: 0.9rem;
+}
+
 /* ============================================================
    9) PRANCHA
 ============================================================ */
