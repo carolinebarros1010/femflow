@@ -237,6 +237,7 @@ function distribuirBaseOvulatoriaPara30Dias_(p, padrao) {
         row.titulo_fr,
         row.link,
         row.tempo,
+        row.distancia,
         row.intervalo,
         row.especial
       ].map(v => String(v || '').trim()).join('|');
@@ -329,6 +330,17 @@ function distribuirBaseOvulatoriaPara30Dias_(p, padrao) {
       copia.fase = ctx.fase;
       copia.enfase = ctx.enfase;
       copia.reps = normalizarReps_(copia.reps);
+      const especialRaw = String(copia.especial || '').trim();
+      const tempoRaw = String(copia.tempo || '').trim();
+      const distanciaRawInicial = String(copia.distancia || '').trim();
+      const especialCodes = ['I','RP','CC','SM','AE','D','Q','T','B','C'];
+
+      if (!especialRaw && especialCodes.includes(tempoRaw.toUpperCase()) && distanciaRawInicial) {
+        copia.especial = tempoRaw.toUpperCase();
+        copia.tempo = distanciaRawInicial;
+        copia.distancia = '';
+      }
+
       const distanciaRaw = String(copia.distancia || '').trim();
 
       if (copia.tipo === 'treino') {
