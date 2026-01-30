@@ -78,6 +78,14 @@ Sempre após o treino
 
 Usa apenas a coluna tempo
 
+🔹 Cardio Intermediário
+tipo = cardio_intermediario
+box = 100 (após aquecimento), 101 (após box 1), 102 (após box 2), etc.
+
+Inserido automaticamente entre os boxes do treino
+
+Pode usar colunas: series, tempo/distancia e intervalo
+
 🔹 Resfriamento
 tipo = resfriamento
 box = 999   ✅ PADRÃO OFICIAL

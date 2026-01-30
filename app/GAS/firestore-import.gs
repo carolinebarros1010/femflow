@@ -213,6 +213,7 @@ function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, pers
     series: col("series"),
     reps: col("reps"),
     tempo: col("tempo"),
+    distancia: col("distancia"),
     intervalo: col("intervalo"),
 
     forte: col("forte"),
@@ -277,6 +278,7 @@ function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, pers
         reps: { stringValue: String(r[idx.reps] || "") },
 
         tempo: { stringValue: String(r[idx.tempo] || "") },
+        distancia: { stringValue: String(r[idx.distancia] || "") },
         intervalo: { stringValue: String(r[idx.intervalo] || "") },
 
         forte: { stringValue: String(r[idx.forte] || "") },
