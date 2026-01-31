@@ -98,6 +98,10 @@ async function garantirTreinosSemana() {
   const valorRaw = localStorage.getItem(TREINOS_SEMANA_KEY);
   const valor = Number(valorRaw);
   if (Number.isFinite(valor) && valor >= 1 && valor <= 7) return true;
+  if (valorRaw != null) {
+    localStorage.removeItem(TREINOS_SEMANA_KEY);
+  }
+  treinosSemanaSelecionado = null;
 
   const aprovado = await abrirModalTreinosSemana();
   return aprovado === true;
@@ -219,8 +223,14 @@ function normalizarFreeAccess(perfil) {
 }
 
 function persistPerfil(perfil) {
+  const idAtual = String(perfil.id || "");
+  const idAnterior = localStorage.getItem("femflow_id") || "";
+  if (idAnterior && idAtual && idAnterior !== idAtual) {
+    localStorage.removeItem(TREINOS_SEMANA_KEY);
+    treinosSemanaSelecionado = null;
+  }
   // essenciais
-  localStorage.setItem("femflow_id", perfil.id || "");
+  localStorage.setItem("femflow_id", idAtual);
   localStorage.setItem("femflow_nome", perfil.nome || "");
   localStorage.setItem("femflow_email", perfil.email || "");
   localStorage.setItem("femflow_nivel", String(perfil.nivel || "iniciante").toLowerCase());
