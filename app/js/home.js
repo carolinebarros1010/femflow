@@ -1106,6 +1106,10 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     persistPerfil(perfil);
 
+    if (localStorage.getItem("femflow_auth") === "yes") {
+      setTimeout(() => FEMFLOW.push?.requestPermissionAfterLogin?.(), 800);
+    }
+
     // ✅ ciclo configurado vem do VALIDAR
     if (perfil.fase && perfil.diaCiclo) {
       localStorage.setItem("femflow_cycle_configured", "yes");
