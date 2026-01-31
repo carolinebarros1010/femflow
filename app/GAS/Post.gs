@@ -183,6 +183,20 @@ function doPost(e) {
         break;
 
       /* ===========================
+         🔔 PUSH — REGISTRO TOKEN
+      ============================ */
+      case "register_push_token":
+        resposta = registerPushToken_(data);
+        break;
+
+      /* ===========================
+         🔔 PUSH — ENVIO
+      ============================ */
+      case "send_push":
+        resposta = sendPush_(data);
+        break;
+
+      /* ===========================
          🧭 ADMIN — PAINEL
       ============================ */
       case "admin_update_aluna":

@@ -118,6 +118,130 @@ FEMFLOW.listenForUpdates = function () {
 
 FEMFLOW.listenForUpdates();
 
+/* ============================================================
+   🔔 PUSH NOTIFICATIONS (FCM)
+============================================================ */
+FEMFLOW.registerServiceWorker = async function () {
+  if (!("serviceWorker" in navigator)) return null;
+
+  try {
+    const registration = await navigator.serviceWorker.register("service-worker.js");
+    return registration;
+  } catch (err) {
+    console.warn("[FemFlow] Falha ao registrar Service Worker:", err);
+    return null;
+  }
+};
+
+FEMFLOW.push = {
+  promptKey: "femflow_push_prompted",
+  tokenKey: "femflow_push_token",
+  sentKey: "femflow_push_token_sent",
+  _initialized: false,
+  _messaging: null,
+  _registration: null,
+
+  getPromptCopy() {
+    const lang = FEMFLOW.lang || "pt";
+    const copies = {
+      pt: "Quer receber lembretes suaves sobre seu treino e seu ciclo? Você pode desativar quando quiser.",
+      en: "Would you like gentle reminders about your training and cycle? You can turn them off anytime.",
+      es: "¿Quieres recordatorios suaves sobre tu entrenamiento y tu ciclo? Puedes desactivarlos cuando quieras."
+    };
+
+    return copies[lang] || copies.pt;
+  },
+
+  async init() {
+    if (this._initialized) return;
+    if (typeof firebase === "undefined" || !firebase.messaging) return;
+
+    this._registration = await FEMFLOW.registerServiceWorker();
+    if (!this._registration) return;
+
+    this._messaging = firebase.messaging();
+    this._initialized = true;
+
+    try {
+      this._messaging.onMessage((payload) => {
+        if (document.visibilityState === "visible") {
+          console.info("[FemFlow] Push recebido em primeiro plano:", payload);
+          FEMFLOW.dispatch?.("push", { payload });
+          return;
+        }
+      });
+    } catch (err) {
+      console.warn("[FemFlow] Falha ao registrar listener de push:", err);
+    }
+  },
+
+  async requestPermissionAfterLogin() {
+    if (!("Notification" in window)) return;
+
+    if (localStorage.getItem(this.promptKey) === "yes") {
+      await this.tryRegisterToken();
+      return;
+    }
+
+    const accepted = window.confirm(this.getPromptCopy());
+    localStorage.setItem(this.promptKey, "yes");
+
+    if (!accepted) return;
+
+    const permission = await Notification.requestPermission();
+    if (permission !== "granted") return;
+
+    await this.tryRegisterToken();
+  },
+
+  async tryRegisterToken() {
+    if (!("Notification" in window)) return;
+    if (Notification.permission !== "granted") return;
+
+    await this.init();
+    if (!this._messaging || !this._registration) return;
+
+    try {
+      const options = { serviceWorkerRegistration: this._registration };
+      if (window.FEMFLOW_VAPID_KEY) {
+        options.vapidKey = window.FEMFLOW_VAPID_KEY;
+      }
+
+      const token = await this._messaging.getToken(options);
+      if (!token) return;
+
+      const storedToken = localStorage.getItem(this.tokenKey);
+      const alreadySent = localStorage.getItem(this.sentKey) === "yes";
+      if (storedToken === token && alreadySent) return;
+
+      localStorage.setItem(this.tokenKey, token);
+
+      const userId = localStorage.getItem("femflow_id") || "";
+      const deviceId = FEMFLOW.getDeviceId();
+      const lang = FEMFLOW.lang || "pt";
+
+      if (!userId) return;
+
+      await FEMFLOW.post({
+        action: "register_push_token",
+        userId,
+        deviceId,
+        platform: "web",
+        lang,
+        pushToken: token
+      });
+
+      localStorage.setItem(this.sentKey, "yes");
+    } catch (err) {
+      console.warn("[FemFlow] Não foi possível registrar push token:", err);
+    }
+  }
+};
+
+document.addEventListener("DOMContentLoaded", () => {
+  FEMFLOW.registerServiceWorker();
+});
+
 FEMFLOW.toggleBodyScroll = function (locked) {
   document.body.classList.toggle("ff-modal-open", locked);
 };
