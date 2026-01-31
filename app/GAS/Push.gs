@@ -66,52 +66,61 @@ function sendPush_(data) {
     return { status: "error", msg: "missing_fcm_key" };
   }
 
-  const tokens = resolvePushTokens_(data);
-  if (!tokens.length) {
+  const targets = resolvePushTargets_(data);
+  if (!targets.length) {
     return { status: "error", msg: "no_tokens" };
   }
 
-  const allowedTokens = filterTokensByDailyLimit_(tokens);
-  if (!allowedTokens.length) {
+  const allowedTargets = filterTargetsByDailyLimit_(targets);
+  if (!allowedTargets.length) {
     return { status: "skipped_daily_limit" };
   }
 
   const event = String(data.event || "").trim().toLowerCase();
   const action = String(data.action || "").trim();
   const url = String(data.url || "").trim();
-  const lang = String(data.lang || "pt").trim().toLowerCase();
-
-  const copy = resolvePushCopy_(event, lang);
-  const title = String(data.title || copy.title || "").trim();
-  const body = String(data.body || copy.body || "").trim();
-
-  if (!title || !body) {
-    return { status: "error", msg: "missing_title_body" };
-  }
-
-  const resolvedAction = action || copy.action || "open_home";
-  const payload = buildFcmPayload_(title, body, resolvedAction, url);
+  const overrideTitle = String(data.title || "").trim();
+  const overrideBody = String(data.body || "").trim();
 
   const results = [];
   const maxTokens = 500;
-  const chunks = chunkArray_(allowedTokens, maxTokens);
+  const targetsByLang = groupTargetsByLang_(allowedTargets);
 
-  chunks.forEach((chunk) => {
-    const response = sendFcmRequest_(serverKey, {
-      ...payload,
-      registration_ids: chunk
+  Object.keys(targetsByLang).forEach((langKey) => {
+    const copy = resolvePushCopy_(event, langKey);
+    const title = overrideTitle || copy.title || "";
+    const body = overrideBody || copy.body || "";
+
+    if (!title || !body) {
+      results.push({ status: "error", msg: "missing_title_body", lang: langKey });
+      return;
+    }
+
+    const resolvedAction = action || copy.action || "open_home";
+    const payload = buildFcmPayload_(title, body, resolvedAction, url);
+    const chunks = chunkArray_(targetsByLang[langKey], maxTokens);
+
+    chunks.forEach((chunk) => {
+      const response = sendFcmRequest_(serverKey, {
+        ...payload,
+        registration_ids: chunk
+      });
+      results.push(response);
     });
-    results.push(response);
   });
 
-  markPushSent_(allowedTokens, data);
+  markPushSent_(allowedTargets.map((target) => target.token), data);
 
   return { status: "ok", results };
 }
 
-function resolvePushTokens_(data) {
+function resolvePushTargets_(data) {
   const explicitToken = String(data.pushToken || "").trim();
-  if (explicitToken) return [explicitToken];
+  const filterLang = String(data.lang || "").trim().toLowerCase();
+  if (explicitToken) {
+    const explicitLang = filterLang || lookupLangByToken_(explicitToken) || "pt";
+    return [{ token: explicitToken, lang: explicitLang }];
+  }
 
   const userId = String(data.userId || "").trim();
   const deviceId = String(data.deviceId || "").trim();
@@ -119,21 +128,29 @@ function resolvePushTokens_(data) {
 
   const sheet = ensureSheet(SHEET_PUSH_TOKENS, HEADER_PUSH_TOKENS);
   const values = sheet.getDataRange().getValues();
-  const tokens = [];
+  const targets = [];
 
   for (let i = 1; i < values.length; i += 1) {
     const rowUserId = String(values[i][0] || "").trim();
     const rowDeviceId = String(values[i][1] || "").trim();
+    const rowLang = String(values[i][3] || "").trim().toLowerCase() || "pt";
     const rowToken = String(values[i][4] || "").trim();
 
     if (!rowToken) continue;
     if (userId && rowUserId !== userId) continue;
     if (deviceId && rowDeviceId !== deviceId) continue;
+    if (filterLang && rowLang !== filterLang) continue;
 
-    tokens.push(rowToken);
+    targets.push({ token: rowToken, lang: rowLang });
   }
 
-  return Array.from(new Set(tokens));
+  const unique = new Map();
+  targets.forEach((target) => {
+    if (!unique.has(target.token)) {
+      unique.set(target.token, target);
+    }
+  });
+  return Array.from(unique.values());
 }
 
 function markPushSent_(tokens, data) {
@@ -149,12 +166,13 @@ function markPushSent_(tokens, data) {
   }
 }
 
-function filterTokensByDailyLimit_(tokens) {
+function filterTargetsByDailyLimit_(targets) {
   const sheet = ensureSheet(SHEET_PUSH_TOKENS, HEADER_PUSH_TOKENS);
   const values = sheet.getDataRange().getValues();
-  const tokenSet = new Set(tokens);
+  const tokenSet = new Set(targets.map((target) => target.token));
   const allowed = [];
-  const today = Utilities.formatDate(new Date(), "GMT", "yyyy-MM-dd");
+  const timezone = Session.getScriptTimeZone();
+  const today = Utilities.formatDate(new Date(), timezone, "yyyy-MM-dd");
 
   for (let i = 1; i < values.length; i += 1) {
     const rowToken = String(values[i][4] || "").trim();
@@ -162,11 +180,14 @@ function filterTokensByDailyLimit_(tokens) {
 
     const lastSent = values[i][6];
     if (lastSent instanceof Date && !isNaN(lastSent.getTime())) {
-      const lastDay = Utilities.formatDate(lastSent, "GMT", "yyyy-MM-dd");
+      const lastDay = Utilities.formatDate(lastSent, timezone, "yyyy-MM-dd");
       if (lastDay === today) continue;
     }
 
-    allowed.push(rowToken);
+    const target = targets.find((item) => item.token === rowToken);
+    if (target) {
+      allowed.push(target);
+    }
   }
 
   return allowed;
@@ -268,4 +289,28 @@ function chunkArray_(list, size) {
     out.push(list.slice(i, i + size));
   }
   return out;
+}
+
+function groupTargetsByLang_(targets) {
+  const grouped = {};
+  targets.forEach((target) => {
+    const lang = target.lang || "pt";
+    if (!grouped[lang]) grouped[lang] = [];
+    grouped[lang].push(target.token);
+  });
+  return grouped;
+}
+
+function lookupLangByToken_(token) {
+  const sheet = ensureSheet(SHEET_PUSH_TOKENS, HEADER_PUSH_TOKENS);
+  const values = sheet.getDataRange().getValues();
+
+  for (let i = 1; i < values.length; i += 1) {
+    const rowToken = String(values[i][4] || "").trim();
+    if (rowToken === token) {
+      return String(values[i][3] || "").trim().toLowerCase();
+    }
+  }
+
+  return "";
 }
