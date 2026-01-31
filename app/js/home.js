@@ -390,13 +390,20 @@ function normalizarNivel(raw) {
 }
 
 function normalizarEnfase(raw) {
-  return String(raw || "")
+  const normalizada = String(raw || "")
     .toLowerCase()
     .trim()
     .replace(/\s+/g, "_")
     .replace(/-+/g, "_")
     .replace(/_+/g, "_")
     .replace(/^_+|_+$/g, "");
+
+  if (/^20_min_em_casa$/.test(normalizada)) return "20minemcasa";
+  if (/^full_body_40(_min)?$/.test(normalizada)) return "fullbody_40min";
+  if (/^fullbody_40(_min)?$/.test(normalizada)) return "fullbody_40min";
+  if (/^teen_14_a_16$/.test(normalizada)) return "teen_14_ao_16";
+
+  return normalizada;
 }
 
 function inferirCategoria(enfase) {
