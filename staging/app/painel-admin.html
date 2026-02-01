@@ -1,12 +1,12 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <base target="_top">
+  <base href="/" target="_top">
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <meta name="theme-color" content="#111114" />
-  <link rel="manifest" href="manifest.json" />
-  <link rel="icon" href="favicon.ico" />
+  <link rel="manifest" href="/app/manifest.json" />
+  <link rel="icon" href="/app/favicon.ico" />
   <title>FemFlow — Painel PWA</title>
   <style>
     :root {
@@ -280,9 +280,9 @@
     const BASE = "https://script.google.com/macros/s/AKfycbz-XlzsxRzYCHz-Ri2CYR2aRb7jyZenQD-04Po_Qgu0Vc6KWuSXBnAPla4EBDJT5qEU/exec";
     window.FEMFLOW_ADMIN_BASE = BASE;
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("service-worker.js");
+      navigator.serviceWorker.register("/app/service-worker.js");
     }
   </script>
-  <script src="js/painel-admin.js"></script>
+  <script src="/app/js/painel-admin.js"></script>
 </body>
 </html>
