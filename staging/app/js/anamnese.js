@@ -123,8 +123,8 @@ function getPerguntasTraduzidas() {
 
   const SCRIPT_URL =
     FEMFLOW?.SCRIPT_URL ||
-    localStorage.getItem("femflow_script") ||
-    "https://femflowapi.falling-wildflower-a8c0.workers.dev/";
+    window.FEMFLOW_ACTIVE?.scriptUrl ||
+    "";
 
   // ------------------------------------------------------------
   //  VALIDAÇÃO

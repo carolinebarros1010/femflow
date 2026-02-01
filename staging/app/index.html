@@ -5,7 +5,11 @@
 <base href="/staging/app/" />
 
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="format-detection" content="telephone=no" />
+  <script src="./config/config.js"></script>
   <title>Entrar no FemFlow</title>
 
   <link rel="icon" type="image/x-icon" href="favicon.ico">
@@ -15,7 +19,7 @@
 
 
   <script>window.FEMFLOW_DISABLE_UI = true;</script>
-  <script defer src="./femflow-core.js"></script>
+  <script defer src="./core/femflow-core.js"></script>
 
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
@@ -76,10 +80,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   window.FEMFLOW = window.FEMFLOW || {};
 
-  const scriptURL =
-    FEMFLOW.SCRIPT_URL ||
-    localStorage.getItem("femflow_script") ||
-    "https://femflowapi.falling-wildflower-a8c0.workers.dev/";
+  const scriptURL = FEMFLOW.SCRIPT_URL;
 
   const $ = sel => document.querySelector(sel);
   const msg = $("#mensagem");

@@ -3,8 +3,12 @@
    Autor: Ricardo Fernandes
    ========================== */
 
+const FEMFLOW_ENV = window.FEMFLOW_ENV || "staging";
 const FEMFLOW = {
-  SCRIPT_URL: "https://script.google.com/macros/s/AKfycbyovJHpMBqGhKmGFSePjHk-v5xAk8XB9NEfBG735nZjSz08f-jMfKE3OMkPVIZHObb0/exec",
+  SCRIPT_URL:
+    window.FEMFLOW_ACTIVE?.scriptUrlModulos ||
+    window.FEMFLOW_CONFIG?.scriptUrlsModulos?.[FEMFLOW_ENV] ||
+    "https://script.google.com/macros/s/AKfycbyovJHpMBqGhKmGFSePjHk-v5xAk8XB9NEfBG735nZjSz08f-jMfKE3OMkPVIZHObb0/exec",
   LOGO: "../../assets/logofemlowverde.png",
 
   /* ----------- ⚙️ INICIALIZAÇÃO ------------ */

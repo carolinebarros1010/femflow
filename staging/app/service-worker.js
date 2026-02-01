@@ -9,21 +9,28 @@ importScripts(
   "https://www.gstatic.com/firebasejs/9.22.2/firebase-messaging-compat.js"
 );
 
-const firebaseConfig = {
-  apiKey: "AIzaSyB675lX-la7dGkZP1tfvzlPZ4oxvMPLBh0",
-  authDomain: "femflow-ebec2.firebaseapp.com",
-  projectId: "femflow-ebec2",
-  storageBucket: "femflow-ebec2.firebasestorage.app",
-  messagingSenderId: "1043953159611",
-  appId: "1:1043953159611:web:d12b82f744740f3124c89e",
-  measurementId: "G-6F644L5VTW"
-};
+importScripts("config/config.js");
 
-if (!firebase.apps?.length) {
-  firebase.initializeApp(firebaseConfig);
+const ENV = self.FEMFLOW_ENV || "staging";
+const firebaseConfig =
+  self.FEMFLOW_ACTIVE?.firebaseConfig ||
+  self.FEMFLOW_CONFIG?.firebaseConfigs?.[ENV];
+const logError = ENV === "staging" ? console.warn : console.error;
+
+if (firebaseConfig?.apiKey && !firebase.apps?.length) {
+  try {
+    firebase.initializeApp(firebaseConfig);
+  } catch (err) {
+    logError("[SW] Erro ao inicializar Firebase:", err);
+  }
 }
 
-const messaging = firebase.messaging();
+let messaging = null;
+try {
+  messaging = firebase.messaging();
+} catch (err) {
+  logError("[SW] Firebase messaging indisponível:", err);
+}
 
 const PUSH_ACTION_URLS = {
   open_treino: "./treino.html",
@@ -42,26 +49,28 @@ const resolvePushUrl = (payload) => {
   return PUSH_ACTION_URLS[action] || data.url || "./home.html";
 };
 
-messaging.onBackgroundMessage((payload) => {
-  const data = payload?.data || {};
-  const title = payload?.notification?.title || data.title || "FemFlow";
-  const body = payload?.notification?.body || data.body || "";
-  const action =
-    data.action ||
-    data.click_action ||
-    payload?.notification?.click_action ||
-    "";
-  const url = resolvePushUrl(payload);
+if (messaging) {
+  messaging.onBackgroundMessage((payload) => {
+    const data = payload?.data || {};
+    const title = payload?.notification?.title || data.title || "FemFlow";
+    const body = payload?.notification?.body || data.body || "";
+    const action =
+      data.action ||
+      data.click_action ||
+      payload?.notification?.click_action ||
+      "";
+    const url = resolvePushUrl(payload);
 
-  const options = {
-    body,
-    icon: "./assets/icons/icon-192.png",
-    badge: "./assets/icons/icon-192.png",
-    data: { action, url }
-  };
+    const options = {
+      body,
+      icon: "./assets/icons/icon-192.png",
+      badge: "./assets/icons/icon-192.png",
+      data: { action, url }
+    };
 
-  self.registration.showNotification(title, options);
-});
+    self.registration.showNotification(title, options);
+  });
+}
 
 // Arquivos principais do app (tela, JS e manifest)
 const ASSETS = [
@@ -80,7 +89,9 @@ const ASSETS = [
 
   "./css/style.css",
 
-  "./femflow-core.js",
+  "./config/config.js",
+  "./core/femflow-core.js",
+  "./services/firebase-init.js",
   "./js/ciclo.js",
   "./js/treino.js",
   "./js/anamnese.js",
