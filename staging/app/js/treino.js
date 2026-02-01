@@ -756,9 +756,9 @@ if (tipoDominante === "hiitPremium") {
   const lang = FEMFLOW.lang || "pt";
   const fallbackMap = {
     pt: `
-      🔥 <b>Protocolo 40 / 20</b><br>
-      Execute 40s em alta intensidade e depois 20s de recuperação.<br>
-      Repita por 6 ciclos seguindo o timer abaixo.<br><br>
+      🔥 <b>Protocolo ${forte} / ${leve}</b><br>
+      Execute ${forte}s em alta intensidade e depois ${leve}s de recuperação.<br>
+      Repita por ${ciclos} ciclos seguindo o timer abaixo.<br><br>
 
       <span class="ff-hiit-exemplos">
         • <b>Academia: esteira, bike, escada, remo, air bike</b><br>
@@ -766,9 +766,9 @@ if (tipoDominante === "hiitPremium") {
       </span>
     `,
     en: `
-      🔥 <b>Protocol 40 / 20</b><br>
-      Do 40s at high intensity and then 20s of recovery.<br>
-      Repeat for 6 cycles following the timer below.<br><br>
+      🔥 <b>Protocol ${forte} / ${leve}</b><br>
+      Do ${forte}s at high intensity and then ${leve}s of recovery.<br>
+      Repeat for ${ciclos} cycles following the timer below.<br><br>
 
       <span class="ff-hiit-exemplos">
         • <b>Gym: treadmill, bike, stair climber, rowing, air bike</b><br>
@@ -776,9 +776,9 @@ if (tipoDominante === "hiitPremium") {
       </span>
     `,
     fr: `
-      🔥 <b>Protocole 40 / 20</b><br>
-      Faites 40s en haute intensité puis 20s de récupération.<br>
-      Répétez pendant 6 cycles en suivant le minuteur ci-dessous.<br><br>
+      🔥 <b>Protocole ${forte} / ${leve}</b><br>
+      Faites ${forte}s en haute intensité puis ${leve}s de récupération.<br>
+      Répétez pendant ${ciclos} cycles en suivant le minuteur ci-dessous.<br><br>
 
       <span class="ff-hiit-exemplos">
         • <b>Salle: tapis, vélo, escalier, rameur, air bike</b><br>
