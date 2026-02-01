@@ -496,26 +496,41 @@ const hasPersonal =
   }
 
   function montarCardioInfo(c) {
-    const series = c.series ? String(c.series) : "";
-    const tempoOuDistancia = c.distancia
-      ? String(c.distancia)
-      : formatCardioTempo(c.tempo || c.duracao);
-    const intervaloTexto = formatCardioTempo(c.intervalo);
+    const serieValor = c.series;
+    const distanciaValor = c.distancia;
+    const tempoValor = c.tempo || c.duracao;
+    const intervaloValor = c.intervalo;
 
-    const descricao = t("treino.cardio.descricao", {
-      series: series || "-",
-      tempo: tempoOuDistancia || "-",
-      intervalo: intervaloTexto || "-"
-    });
+    const series = serieValor !== undefined && serieValor !== null ? String(serieValor) : "";
+    const tempoOuDistancia = distanciaValor
+      ? String(distanciaValor)
+      : formatCardioTempo(tempoValor);
+    const intervaloTexto = formatCardioTempo(intervaloValor);
+
+    const hasSeries = series && series !== "0";
+    const hasTempo = tempoOuDistancia && tempoOuDistancia !== "0";
+    const hasIntervalo = intervaloTexto && intervaloTexto !== "0";
+    const usarFallback = !(hasSeries && hasTempo && hasIntervalo);
+    const fallbackTempo = t("treino.cardio.fallbackTempo");
+
+    const descricao = usarFallback
+      ? t("treino.cardio.fallback")
+      : t("treino.cardio.descricao", {
+          series: series || "-",
+          tempo: tempoOuDistancia || "-",
+          intervalo: intervaloTexto || "-"
+        });
 
     const detalhes = [];
-    if (series) {
+    if (hasSeries) {
       detalhes.push(t("treino.cardio.seriesLabel", { series }));
     }
-    if (tempoOuDistancia) {
+    if (hasTempo) {
       detalhes.push(t("treino.cardio.tempoLabel", { tempo: tempoOuDistancia }));
+    } else if (usarFallback) {
+      detalhes.push(t("treino.cardio.tempoLabel", { tempo: fallbackTempo }));
     }
-    if (intervaloTexto) {
+    if (hasIntervalo) {
       detalhes.push(t("treino.cardio.intervaloLabel", { intervalo: intervaloTexto }));
     }
 
