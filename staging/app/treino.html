@@ -1,0 +1,272 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+
+  <title>FemFlow — Treino Diário</title>
+
+  <link rel="icon" href="favicon.ico">
+  <link rel="manifest" href="manifest.json">
+
+  <!-- CSS base FemFlow -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/core.css">
+  <link rel="stylesheet" href="css/header.css">
+  <link rel="stylesheet" href="css/themes.css">
+
+  <!-- treino.css -->
+  <link rel="stylesheet" href="css/treino.css">
+
+  <!-- Fonte -->
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+</head>
+
+<body>
+
+  <!-- Barra de Progresso -->
+  <div class="progress-bar" id="progressBar"></div>
+
+  <!-- Header -->
+  <header class="treino-header">
+    <h1 id="tituloTreinoTopo">Treino Diário</h1>
+
+    <h2 id="tituloDiaTreino"
+        style="text-align:center;
+               color:#335953;
+               margin:8px 0;
+               font-family:'Playfair Display',serif;
+               font-weight:500;">
+      Dia do Programa
+    </h2>
+  </header>
+
+  <div class="carousel-indicator" id="carouselIndicator">
+    <div class="carousel-indicator-bar">
+      <span class="carousel-indicator-thumb" id="carouselIndicatorThumb"></span>
+    </div>
+    <div class="carousel-indicator-dots" id="carouselIndicatorDots"></div>
+  </div>
+
+  <!-- Carrossel -->
+  <div class="carousel-container">
+    <div class="carousel-track" id="carouselTrack">
+     <div class="carousel-item ff-box">
+  <!-- título do box -->
+  <h2 class="ff-ex-titulo">Carregando treino…</h2>
+
+  <!-- 🔥 área reservada para série especial -->
+  <div class="ff-serie-info" hidden></div>
+
+  <!-- exercícios entram aqui -->
+  <div class="ff-exercicios"></div>
+</div>
+
+    </div>
+  </div>
+
+  <!-- Rodapé -->
+  <div class="fix-footer">
+    <button id="salvarTreinoBtn" class="btn-primary-clean">💾 Salvar treino</button>
+    <button id="cancelarTreinoBtn" class="btn-tertiary-clean">Cancelar</button>
+  </div>
+
+  <!-- MODAL PSE -->
+  <div id="modalPSE" class="modal-pse-overlay hidden">
+    <div class="modal-pse-card">
+      <h3 class="modal-title" id="pseTitulo">Como foi o treino?</h3>
+
+      <label class="modal-label" id="pseLabel">PSE (0 a 10)</label>
+      <div class="pse-slider-wrapper">
+        <div class="pse-emoji" id="pseEmojiWrap" aria-live="polite">
+          <span id="pseEmoji">😴</span>
+          <span class="pse-emoji-value" id="pseEmojiValue">0</span>
+        </div>
+        <input type="range" min="0" max="10" value="0" id="pseInput" class="modal-slider"/>
+      </div>
+
+      <div class="modal-actions">
+        <button id="btnConfirmarPSE" class="modal-btn-ok">Salvar</button>
+        <button id="btnCancelarPSE" class="modal-btn-cancel">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL PRÓXIMO TREINO -->
+  <div id="modalProximoTreino" class="modal-proximo-overlay hidden" aria-hidden="true">
+    <div class="modal-proximo-card" role="dialog" aria-modal="true">
+      <h3 class="modal-proximo-title" id="modalProximoTitulo">Próximo treino</h3>
+      <p class="modal-proximo-subtitle" id="modalProximoSub">
+        Veja os exercícios para se programar.
+      </p>
+      <ul class="modal-proximo-list" id="modalProximoLista"></ul>
+    </div>
+  </div>
+
+  <!-- TOUR TREINO (primeiro acesso) -->
+  <div id="treinoTour" class="treino-tour is-hidden" aria-hidden="true">
+    <div class="treino-tour-card" role="dialog" aria-modal="true">
+      <div class="treino-tour-step" id="treinoTourStep">1/3</div>
+      <h3 class="treino-tour-title" id="treinoTourTitle">Salve seu treino</h3>
+      <p class="treino-tour-text" id="treinoTourText">
+        Ao finalizar, salve para registrar seu PSE e evolução.
+      </p>
+      <div class="treino-tour-actions">
+        <button id="treinoTourSkip" class="treino-tour-skip">Pular</button>
+        <button id="treinoTourNext" class="treino-tour-next">Próximo</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- FIREBASE -->
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-messaging-compat.js"></script>
+
+
+<script src="js/firebase-init.js?v=20250127"></script>
+<script>
+  if (firebase.auth) {
+    firebase.auth().signInAnonymously().catch((err) => {
+      console.warn("[FemFlow] Auth anônimo falhou:", err);
+    });
+  }
+</script>
+
+<!-- SCRIPTS FEMFLOW -->
+<script src="js/lang.js"></script>
+<script src="femflow-core.js"></script>
+<script src="./js/treino-engine.js"></script>
+<script src="./js/treino.js"></script>
+
+<script>
+/* ============================================================
+   1) DOM READY + FEMFLOW INIT + MIDDLEWARE DE ACESSO
+============================================================ */
+document.addEventListener("DOMContentLoaded", () => {
+
+  /* ------------------------------------------------------------
+     🔐 MIDDLEWARE — Impede acesso direto por URL
+  ------------------------------------------------------------ */
+  const id       = localStorage.getItem("femflow_id");
+  const produto  = localStorage.getItem("femflow_produto");
+  const cicloOK  = localStorage.getItem("femflow_cycle_configured") === "yes";
+  const enfase   = localStorage.getItem("femflow_enfase");
+  const hasPersonal  = localStorage.getItem("femflow_has_personal") === "true";
+  const modePersonal = localStorage.getItem("femflow_mode_personal") === "true";
+  const personal     = hasPersonal && modePersonal;
+  const acessoValido = Boolean(id && produto);
+
+  if (!acessoValido) {
+    FEMFLOW.toast("Acesse o treino pelo painel do FemFlow.");
+    FEMFLOW.router("home.html");
+    return;
+  }
+
+  if (!personal) {
+    if (!cicloOK) {
+      FEMFLOW.toast("Configure seu ciclo antes de acessar o treino.");
+      FEMFLOW.router("ciclo.html");
+      return;
+    }
+
+    if (!enfase) {
+      FEMFLOW.toast("Acesse o treino pelo painel do FemFlow.");
+      FEMFLOW.router("home.html");
+      return;
+    }
+  }
+
+  /* ------------------------------------------------------------
+     Inicialização do núcleo
+  ------------------------------------------------------------ */
+  if (window.FEMFLOW && typeof FEMFLOW.init === "function") {
+    FEMFLOW.init();
+  }
+
+  aplicarIdioma();
+
+  document.addEventListener("femflow:langChange", aplicarIdioma);
+
+  /* ============================================================
+     ATUALIZAR NÍVEL AUTOMATICAMENTE
+  ============================================================ */
+  document.addEventListener("femflow:ready", (ev) => {
+    const resp = ev.detail;
+    if (!resp) return;
+
+    if (resp.nivel) {
+      localStorage.setItem("femflow_nivel", resp.nivel);
+    }
+  });
+
+  document.addEventListener("femflow:nivelAtualizado", (ev) => {
+    const nivel = ev.detail;
+    if (nivel) {
+      localStorage.setItem("femflow_nivel", nivel);
+    }
+  });
+
+  /* ============================================================
+     2) FUNÇÃO DE IDIOMA — Treino Diário
+  ============================================================ */
+  function aplicarIdioma() {
+    const L = FEMFLOW?.langs?.[FEMFLOW.lang] || FEMFLOW.langs.pt;
+
+    document.getElementById("tituloTreinoTopo").textContent = L.treino.tituloTopo;
+    document.getElementById("tituloDiaTreino").textContent   = L.treino.diaPrograma;
+
+    document.getElementById("salvarTreinoBtn").textContent   = L.treino.btnSalvar;
+    document.getElementById("cancelarTreinoBtn").textContent = L.treino.btnCancelar;
+
+    document.getElementById("pseTitulo").textContent         = L.treino.pseTitulo;
+    document.getElementById("pseLabel").textContent          = L.treino.pseLabel;
+    document.getElementById("btnConfirmarPSE").textContent   = L.treino.pseSalvar;
+    document.getElementById("btnCancelarPSE").textContent    = L.treino.pseCancelar;
+    const modalProximoTitulo = document.getElementById("modalProximoTitulo");
+    const modalProximoSub = document.getElementById("modalProximoSub");
+    if (modalProximoTitulo) {
+      const diaAtual = Number(localStorage.getItem("femflow_diaCiclo") || 1);
+      const cicloLength = Number(localStorage.getItem("femflow_cycleLength") || 28);
+      const cicloValido = Number.isFinite(cicloLength) && cicloLength > 0 ? cicloLength : 28;
+      const proximoDia = diaAtual + 1 > cicloValido ? 1 : diaAtual + 1;
+      modalProximoTitulo.textContent = t("treino.proximoModal.titulo", {
+        dia: proximoDia
+      });
+    }
+    if (modalProximoSub) {
+      modalProximoSub.textContent = L.treino.proximoModal.subtitulo;
+    }
+  }
+
+  /* ============================================================
+     3) BOTÃO CANCELAR — volta para FlowCenter
+  ============================================================ */
+  document.getElementById("cancelarTreinoBtn").onclick = () => {
+    FEMFLOW.router("flowcenter.html");
+  };
+
+});
+</script>
+
+<!-- MODAL DE NÍVEL (TREINO) -->
+<div id="modal-nivel" class="modal-nivel oculto">
+  <div class="modal-nivel-box">
+    <h2>📊 Selecione seu nível</h2>
+
+    <button class="nivel-btn" data-nivel="iniciante">Iniciante</button>
+    <button class="nivel-btn" data-nivel="intermediaria">Intermediária</button>
+    <button class="nivel-btn" data-nivel="avancada">Avançada</button>
+
+    <button id="btnConfirmarNivel" class="nivel-confirmar">
+      Confirmar nível
+    </button>
+
+    <button id="fecharNivel" class="nivel-fechar">Fechar</button>
+  </div>
+</div>
+
+
+</body>
+</html>

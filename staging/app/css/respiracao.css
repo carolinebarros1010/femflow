@@ -1,0 +1,558 @@
+/* ============================================================
+   FEMFLOW • RESPIRAÇÃO — ESTILO OFICIAL 2025
+   ------------------------------------------------------------
+   Cores suaves, botões arredondados e tipografia FemFlow
+============================================================ */
+
+/* ---------- Paleta FemFlow ---------- */
+:root {
+  --terracota: #CC6A5A;
+  --bege: #FFF5EF;
+  --verde: #335953;
+  --texto: #5B4F49;
+  --cinza-btn: #F1ECE8;
+}
+
+/* ---------- Layout Base ---------- */
+body {
+  background-color: var(--bege);
+  color: var(--texto);
+  font-family: "Lato", sans-serif;
+  text-align: center;
+  margin: 0;
+  padding-top: calc(85px + env(safe-area-inset-top, 0px));
+  box-sizing: border-box;
+}
+
+/* ---------- Títulos ---------- */
+h1 {
+  font-family: 'Playfair Display', serif;
+  color: var(--terracota);
+  font-size: 2.2rem;
+  line-height: 1.2;
+  margin: 0;
+}
+
+h1 span:first-child {
+  display: block;
+  color: var(--texto);
+  font-size: 1.6rem;
+  font-weight: 700;
+}
+
+h1 span:last-child {
+  display: block;
+  color: var(--terracota);
+  font-size: 2.2rem;
+  font-weight: 700;
+}
+
+p.sub {
+  margin-top: 10px;
+  margin-bottom: 35px;
+  font-size: 1rem;
+  color: var(--texto);
+}
+
+/* ============================================================
+   BOTÕES DE PROTOCOLO
+============================================================ */
+.btn-protocolo {
+  width: 92%;
+  max-width: 340px;
+  background: var(--cinza-btn);
+  border: none;
+  border-radius: 25px;
+  padding: 14px 18px;
+  font-size: 1.05em;
+  font-weight: 700;
+  cursor: pointer;
+  margin: 10px auto;
+  display: block;
+  color: var(--texto);
+  transition: all 0.25s ease;
+}
+
+.btn-protocolo:hover {
+  transform: scale(1.03);
+  box-shadow: 0 5px 12px rgba(0,0,0,0.12);
+}
+
+/* ---------- Subtítulos dos grupos ---------- */
+.grupo-titulo {
+  font-family: "Playfair Display", serif;
+  font-size: 20px;
+  margin-top: 30px;
+  margin-bottom: 12px;
+  color: var(--verde);
+  font-weight: 700;
+}
+
+/* ============================================================
+   DESCRIÇÃO ABERTA
+============================================================ */
+.desc {
+  display: none;
+  padding: 10px 14px;
+  margin-top: -6px;
+  margin-bottom: 10px;
+  border-left: 3px solid var(--terracota);
+  background: #fdf4ef;
+  border-radius: 6px;
+  font-size: 14px;
+  color: var(--texto);
+  font-family: "Lato", sans-serif;
+  line-height: 1.45;
+  animation: fade .3s ease;
+}
+
+@keyframes fade {
+  from { opacity: 0; transform: translateY(-4px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ============================================================
+   MODAL DE RESPIRAÇÃO (círculo + fases)
+============================================================ */
+#breathModal {
+  display: none;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  min-height: calc(100vh - 100px);
+  background: var(--bege);
+  transition: background 0.6s ease;
+  padding-top: 60px;
+}
+
+#breathCircle {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: var(--terracota);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #fff;
+  font-size: 3em;
+  font-weight: 700;
+  box-shadow: 0 0 25px rgba(204, 106, 90, 0.25);
+  margin-bottom: 20px;
+}
+
+#faseLabel {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.3em;
+  color: var(--texto);
+  font-style: italic;
+  transition: opacity 0.5s;
+}
+
+#btnStart {
+  margin-top: 30px;
+  background: var(--verde);
+  color: #fff;
+  border: none;
+  border-radius: 25px;
+  padding: 12px 24px;
+  font-size: 1em;
+  font-weight: 700;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+#btnStart:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.18);
+}
+
+/* ---------- Footer ---------- */
+footer {
+  margin-top: 40px;
+  color: #A87E72;
+  font-size: 0.9em;
+}
+
+/* ---------- Botão voltar ---------- */
+.ff-voltar-treino {
+  margin: 10px;
+  background: transparent;
+  border: none;
+  color: var(--verde);
+  font-size: 0.95rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+/* ------------------------------------------------------------
+   LAYOUT GERAL DA PÁGINA DE RESPIRAÇÃO
+------------------------------------------------------------ */
+.pagina-respiracao {
+  background-color: var(--bege);
+  color: var(--texto);
+  font-family: "Lato", sans-serif;
+  text-align: center;
+  margin: 0;
+  padding-top: calc(85px + env(safe-area-inset-top, 0px));
+  box-sizing: border-box;
+}
+
+/* TÍTULO PRINCIPAL */
+.pagina-respiracao h1 {
+  font-family: 'Playfair Display', serif;
+  color: var(--terracota);
+  font-size: 1.9rem;
+  line-height: 1.2;
+  margin: 0;
+}
+
+.pagina-respiracao h1 span:first-child {
+  display: block;
+  color: var(--texto);
+  font-size: 1.3rem;
+  font-weight: 700;
+}
+
+.pagina-respiracao h1 span:last-child {
+  display: block;
+  color: var(--terracota);
+  font-size: 1.7rem;
+  font-weight: 700;
+}
+
+/* SUBTÍTULO */
+.pagina-respiracao p.sub {
+  margin-top: 10px;
+  margin-bottom: 28px;
+  font-size: 0.95rem;
+  color: var(--texto);
+}
+
+/* GRUPOS (títulos das seções) */
+.pagina-respiracao .grupo-titulo {
+  font-family: "Playfair Display", serif;
+  font-size: 0.95rem;
+  margin-top: 18px;
+  margin-bottom: 8px;
+  color: var(--verde);
+  letter-spacing: 0.04em;
+}
+
+/* BOTÕES DOS PROTOCOLOS */
+.pagina-respiracao .btn-protocolo {
+  width: 90%;
+  max-width: 340px;
+  border: none;
+  border-radius: 25px;
+  padding: 12px 16px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  margin: 8px auto;
+  display: block;
+  background: #F3F1EF;
+  color: var(--texto);
+  box-shadow: 0 4px 10px rgba(0,0,0,0.04);
+  transition: all 0.25s ease;
+}
+
+.pagina-respiracao .btn-protocolo:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+  background: #ffffff;
+}
+
+/* CLASSES DE COR (se ainda estiver usando) */
+.pagina-respiracao .box   { background: #CC6A5A; color: #fff; }
+.pagina-respiracao .moon  { background: #E2B5A5; color: #5A4032; }
+.pagina-respiracao .energy{ background: #335953; color: #fff; }
+.pagina-respiracao .calm  { background: #EAD5C8; color: #5A4032; }
+.pagina-respiracao .fire  { background: #B44C3B; color: #fff; }
+
+/* ------------------------------------------------------------
+   MODAL / CÍRCULO DE RESPIRAÇÃO
+------------------------------------------------------------ */
+.pagina-respiracao #breathModal {
+  display: none;
+  flex-direction: column;
+  justify-content: flex-start;
+  align-items: center;
+  min-height: calc(100vh - 100px);
+  background: var(--bege);
+  transition: background 0.6s ease;
+  padding-top: 60px;
+}
+
+.pagina-respiracao #breathCircle {
+  width: 180px;
+  height: 180px;
+  border-radius: 50%;
+  background: var(--terracota);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  color: #fff;
+  font-size: 3rem;
+  font-weight: 700;
+  box-shadow: 0 0 25px rgba(204, 106, 90, 0.25);
+  margin-bottom: 20px;
+}
+
+.pagina-respiracao #faseLabel {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.2rem;
+  color: var(--texto);
+  font-style: italic;
+  transition: opacity 0.5s;
+}
+
+.pagina-respiracao #countdown {
+  font-size: 1.1rem;
+  margin-top: 8px;
+  color: var(--verde);
+  display: none;
+}
+
+/* BOTÃO START */
+.pagina-respiracao #btnStart {
+  margin-top: 30px;
+  background: var(--verde);
+  color: #fff;
+  border: none;
+  border-radius: 25px;
+  padding: 12px 24px;
+  font-size: 0.95rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.pagina-respiracao #btnStart:hover {
+  transform: scale(1.05);
+  box-shadow: 0 4px 8px rgba(0,0,0,0.15);
+}
+
+/* FOOTER */
+.pagina-respiracao footer {
+  margin-top: 32px;
+  color: #A87E72;
+  font-size: 0.9rem;
+}
+
+/* BOTÃO VOLTAR AO TREINO */
+.ff-voltar-treino {
+  margin: 10px;
+  background: transparent;
+  border: none;
+  color: #335953;
+  font-size: 0.95rem;
+  font-weight: 700;
+}
+
+/* ------------------------------------------------------------
+   AJUSTE FINO MOBILE
+------------------------------------------------------------ */
+@media (max-width: 420px) {
+  .pagina-respiracao h1 {
+    font-size: 1.7rem;
+  }
+  .pagina-respiracao h1 span:first-child {
+    font-size: 1.15rem;
+  }
+  .pagina-respiracao h1 span:last-child {
+    font-size: 1.55rem;
+  }
+  .pagina-respiracao .btn-protocolo {
+    font-size: 0.9rem;
+    padding: 11px 14px;
+  }
+}
+/* ============================================================
+   FEMFLOW — Drawer Lateral da Respiração
+   Arquivo: respiracao.css
+============================================================ */
+
+.breath-drawer {
+  position: fixed;
+  top: 0;
+  right: -100%;
+  width: 88%;
+  max-width: 360px;
+  height: 100vh;
+  background: var(--bege);
+  box-shadow: -6px 0 22px rgba(0,0,0,0.18);
+  padding: 28px 18px;
+  overflow-y: auto;
+  transition: right .45s cubic-bezier(.25,.8,.25,1);
+  z-index: 2000;
+}
+
+.breath-drawer.active {
+  right: 0;
+}
+
+.drawer-close-btn {
+  background: none;
+  border: none;
+  font-size: 28px;
+  color: var(--terracota);
+  margin-bottom: 10px;
+  cursor: pointer;
+}
+
+.drawer-header {
+  font-family: "Playfair Display", serif;
+  font-size: 1.7rem;
+  color: var(--terracota);
+  font-weight: 700;
+  text-align: center;
+  margin-bottom: 18px;
+}
+
+/* Ajuste do modal interno */
+#breathModal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 18px;
+}
+
+#breathCircle {
+  width: 170px;
+  height: 170px;
+  border-radius: 50%;
+  font-size: 3rem;
+  font-weight: bold;
+  color: #fff;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  margin-bottom: 18px;
+}
+
+#faseLabel {
+  font-family: 'Playfair Display', serif;
+  font-size: 1.3rem;
+  color: var(--texto);
+  margin-bottom: 12px;
+}
+
+#btnStart {
+  background: var(--verde);
+  color: #fff;
+  border: none;
+  border-radius: 25px;
+  padding: 10px 22px;
+  font-size: 1rem;
+  margin-top: 10px;
+  cursor: pointer;
+  transition: 0.3s;
+}
+
+#btnStart:hover {
+  transform: scale(1.05);
+}
+
+#btnCloseModal {
+  background: none;
+  border: none;
+  margin-top: 22px;
+  font-size: .95rem;
+  font-weight: 700;
+  color: var(--verde);
+  cursor: pointer;
+}
+/* ============================================================
+   AJUSTES FINAIS — MODAL + DRAWER  (VERSÃO AJUSTADA 2025)
+============================================================ */
+
+/* Altura real do header FemFlow */
+:root {
+  --header-height: 78px;
+}
+
+/* Modal dentro do drawer — agora respeita o header */
+#breathModal {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-start;
+
+  /* impede sobrepor header */
+  padding-top: calc(var(--header-height) + 20px);
+
+  /* altura completa considerando safe area */
+  min-height: calc(100vh - var(--header-height));
+  width: 100%;
+
+  background: var(--bege);
+  overflow-y: auto;
+
+  box-sizing: border-box;
+}
+
+/* Círculo ajustado para caber no drawer sem cortar */
+#breathCircle {
+  width: 165px;
+  height: 165px;
+  font-size: 2.8rem;
+  margin-top: 10px;
+}
+
+/* Descrição dentro do modal (novo bloco) */
+#breathDesc {
+  font-size: 0.95rem;
+  color: var(--texto);
+  text-align: center;
+  max-width: 280px;
+  margin-bottom: 18px;
+  line-height: 1.45;
+  opacity: 0.9;
+  font-style: italic;
+}
+
+/* Label das fases */
+#faseLabel {
+  margin-bottom: 10px;
+  font-size: 1.2rem;
+}
+
+/* Botão iniciar */
+#btnStart {
+  margin-top: 18px;
+}
+
+/* Botão voltar */
+#btnCloseModal {
+  margin-top: 25px;
+  margin-bottom: 20px;
+}
+
+/* Drawer refinado para não cortar modal */
+.breath-drawer {
+  padding-top: calc(var(--header-height) + 12px);
+}
+
+/* Título do drawer ajustado */
+.drawer-header {
+  margin-top: 0;
+  margin-bottom: 22px;
+}
+
+/* Modal interno mais compacto em telas pequenas */
+@media (max-width: 420px) {
+  #breathCircle {
+    width: 150px;
+    height: 150px;
+    font-size: 2.5rem;
+  }
+
+  #faseLabel {
+    font-size: 1.1rem;
+  }
+
+  #breathDesc {
+    font-size: 0.9rem;
+    max-width: 260px;
+  }
+}

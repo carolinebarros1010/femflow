@@ -1,0 +1,189 @@
+<!doctype html>
+<html>
+<head>
+  <base target="_top">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>FemFlow — Dashboard</title>
+  <style>
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;margin:0;background:#0f0f10;color:#f3f3f3}
+    header{position:sticky;top:0;background:#151518;padding:14px 16px;border-bottom:1px solid #26262b;z-index:2}
+    .wrap{max-width:1100px;margin:0 auto;padding:14px 16px}
+    .row{display:flex;gap:12px;flex-wrap:wrap}
+    .card{background:#151518;border:1px solid #26262b;border-radius:14px;padding:12px;flex:1;min-width:260px}
+    .muted{color:#b7b7be}
+    input,select,button{border-radius:10px;border:1px solid #2b2b33;background:#0f0f10;color:#f3f3f3;padding:10px}
+    button{cursor:pointer;background:#1f1f25}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:10px;border-bottom:1px solid #26262b;text-align:left;font-size:14px}
+    .pill{display:inline-block;padding:4px 10px;border-radius:999px;border:1px solid #2b2b33;font-size:12px}
+    .ok{border-color:#2e7d32}
+    .warn{border-color:#f9a825}
+    .bad{border-color:#c62828}
+    .grid2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+    @media (max-width:900px){ .grid2{grid-template-columns:1fr} }
+  </style>
+</head>
+
+<body>
+<header>
+  <div class="wrap row" style="align-items:center;justify-content:space-between">
+    <div>
+      <div style="font-weight:800">FemFlow — Dashboard Operacional</div>
+      <div class="muted" id="sub">Conectando…</div>
+    </div>
+
+    <div class="row" style="align-items:center">
+      <input id="id" placeholder="Buscar por ID (FF-XXXX)" />
+      <button id="btnBuscar">Buscar</button>
+      <button id="btnAlertas">Alertas</button>
+      <button id="btnRecarregar">Recarregar</button>
+    </div>
+  </div>
+</header>
+
+<main class="wrap">
+  <section class="grid2">
+    <div class="card">
+      <div style="font-weight:700;margin-bottom:8px">Resumo</div>
+      <div class="row">
+        <div class="card" style="background:#0f0f10">
+          <div class="muted">Alertas</div>
+          <div style="font-size:28px;font-weight:800" id="kpiAlertas">—</div>
+        </div>
+        <div class="card" style="background:#0f0f10">
+          <div class="muted">SAC Total</div>
+          <div style="font-size:28px;font-weight:800" id="kpiSac">—</div>
+        </div>
+      </div>
+      <div class="muted" style="margin-top:8px">Dica: use “Alertas” para ver quem precisa de ação agora.</div>
+    </div>
+
+    <div class="card">
+      <div style="font-weight:700;margin-bottom:8px">Última consulta</div>
+      <div id="lastBox" class="muted">Nenhuma ainda.</div>
+    </div>
+  </section>
+
+  <section class="card" style="margin-top:12px">
+    <div class="row" style="align-items:center;justify-content:space-between">
+      <div style="font-weight:700">Resultado</div>
+      <div id="statusPill" class="pill">—</div>
+    </div>
+    <div id="result" class="muted" style="margin-top:10px">Use a busca por ID ou clique em Alertas.</div>
+  </section>
+
+  <section class="card" style="margin-top:12px">
+    <div style="font-weight:700;margin-bottom:8px">Lista / Tabela</div>
+    <div style="overflow:auto">
+      <table>
+        <thead>
+          <tr>
+            <th>Tipo</th>
+            <th>ID</th>
+            <th>Nome</th>
+            <th>Detalhes</th>
+          </tr>
+        </thead>
+        <tbody id="tbody">
+          <tr><td colspan="4" class="muted">Sem dados.</td></tr>
+        </tbody>
+      </table>
+    </div>
+  </section>
+</main>
+
+<script>
+  // 🔧 coloque aqui seu endpoint atual
+  const BASE = "<?= ScriptApp.getService().getUrl() ?>";
+
+  const el = (id) => document.getElementById(id);
+  const setPill = (txt, kind="") => {
+    const p = el("statusPill");
+    p.textContent = txt;
+    p.className = "pill " + (kind || "");
+  };
+
+  async function api(action, params={}) {
+    const url = new URL(BASE);
+    url.searchParams.set("action", action);
+    Object.entries(params).forEach(([k,v]) => url.searchParams.set(k, v));
+    const r = await fetch(url.toString(), { method:"GET" });
+    return r.json();
+  }
+
+  function renderAlertas(alertas){
+    const tb = el("tbody");
+    tb.innerHTML = "";
+    if (!alertas || !alertas.length){
+      tb.innerHTML = `<tr><td colspan="4" class="muted">Nenhum alerta.</td></tr>`;
+      return;
+    }
+    alertas.forEach(a=>{
+      const det =
+        a.tipo === "inatividade"
+          ? `Inativa há ${a.diasSemTreinar} dias • nível=${a.nivel||"-"} • fase=${a.fase||"-"}`
+          : a.tipo === "sac_humano_recorrente"
+            ? `SAC total=${a.sacTotal} • humano=${a.humano}`
+            : `—`;
+      const tr = document.createElement("tr");
+      tr.innerHTML = `
+        <td><span class="pill warn">${a.tipo}</span></td>
+        <td>${a.id||""}</td>
+        <td>${a.nome||""}</td>
+        <td class="muted">${det}</td>
+      `;
+      tb.appendChild(tr);
+    });
+  }
+
+  function renderAluna(r){
+    // aqui você vai evoluir depois pra cards completos (status pagamento, produto, anamnese etc)
+    el("result").innerHTML = `
+      <div><b>ID:</b> ${r?.id||"-"}</div>
+      <div><b>Nome:</b> ${r?.nome||"-"}</div>
+      <div><b>Email:</b> ${r?.email||"-"}</div>
+      <div><b>Produto:</b> ${r?.produto||"-"} • <b>Ativa:</b> ${String(r?.ativa)}</div>
+      <div><b>Nível:</b> ${r?.nivel||"-"} • <b>Fase:</b> ${r?.fase||"-"} • <b>DiaCiclo:</b> ${r?.diaCiclo||"-"}</div>
+      <div><b>PerfilHormonal:</b> ${r?.perfilHormonal||"-"} • <b>DiaPrograma:</b> ${r?.diaPrograma||"-"}</div>
+    `;
+  }
+
+  async function loadAlertas(){
+    setPill("Carregando…");
+    const resp = await api("dashboard_alertas");
+    if (resp.status !== "ok"){ setPill("Erro", "bad"); return; }
+    el("kpiAlertas").textContent = resp.total || 0;
+    setPill("Alertas OK", resp.total ? "warn" : "ok");
+    renderAlertas(resp.alertas);
+    el("lastBox").textContent = `Alertas carregados: ${resp.total || 0}`;
+  }
+
+  async function buscarID(){
+    const id = el("id").value.trim();
+    if (!id) return;
+
+    setPill("Carregando…");
+    // usa sua action validar (fonte única)
+    const url = new URL(BASE);
+    url.searchParams.set("action", "validar");
+    url.searchParams.set("id", id);
+
+    const resp = await fetch(url.toString()).then(r=>r.json());
+    if (resp.status !== "ok"){ setPill("Não encontrado", "bad"); return; }
+
+    setPill("OK", "ok");
+    renderAluna(resp);
+    el("lastBox").textContent = `Última busca: ${id}`;
+  }
+
+  el("btnAlertas").onclick = loadAlertas;
+  el("btnBuscar").onclick = buscarID;
+  el("btnRecarregar").onclick = ()=>location.reload();
+
+  // boot
+  el("sub").textContent = "Pronto. Busque por ID ou abra Alertas.";
+  setPill("Pronto");
+</script>
+</body>
+</html>
