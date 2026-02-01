@@ -480,6 +480,9 @@ if (b.tipo === "hiit") {
   const boxBase = Number(b.boxNum || 500);
   const titulo = FEMFLOW.engineTreino.selecionarTitulo(b) || "🔥 HIIT";
 
+  const leve = Number(b.leve ?? b.fraco) || 20;
+  const ciclos = Number(b.ciclos ?? b.ciclo) || 6;
+
   out.push({
     tipo: "hiitPremium",
 
@@ -492,8 +495,8 @@ if (b.tipo === "hiit") {
     titulo,
     link: b.link || "",
     forte: Number(b.forte) || 40,
-    leve: Number(b.leve) || 20,
-    ciclos: Number(b.ciclos) || 6
+    leve,
+    ciclos
   });
   continue;
 }
