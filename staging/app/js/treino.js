@@ -502,11 +502,18 @@ const hasPersonal =
       : formatCardioTempo(c.tempo || c.duracao);
     const intervaloTexto = formatCardioTempo(c.intervalo);
 
-    const descricao = t("treino.cardio.descricao", {
-      series: series || "-",
-      tempo: tempoOuDistancia || "-",
-      intervalo: intervaloTexto || "-"
-    });
+    const hasSeries = Boolean(series);
+    const hasTempo = Boolean(tempoOuDistancia);
+    const hasIntervalo = Boolean(intervaloTexto);
+    const usarFallback = !(hasSeries && hasTempo && hasIntervalo);
+
+    const descricao = usarFallback
+      ? t("treino.cardio.fallback")
+      : t("treino.cardio.descricao", {
+          series: series || "-",
+          tempo: tempoOuDistancia || "-",
+          intervalo: intervaloTexto || "-"
+        });
 
     const detalhes = [];
     if (series) {
