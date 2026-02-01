@@ -843,14 +843,14 @@ async function handleCardClick(enfase, locked) {
     const isTrial = produto === "trial_app";
     const categoria = inferirCategoria(enfase);
     if (isTrial && ["muscular", "esportes", "casa"].includes(categoria)) {
-      window.open(LINK_ACESSO_APP, "_blank");
+      FEMFLOW.openExternal(LINK_ACESSO_APP);
       return;
     }
 
     // 🧠 PERSONAL — CTA dedicado (propaganda)
     if (enfase === "personal" || enfase.startsWith("personal_")) {
       FEMFLOW.toast("🔒 Treino Personal é um plano exclusivo.");
-      window.open(LINK_PERSONAL, "_blank");
+      FEMFLOW.openExternal(LINK_PERSONAL);
       return;
     }
 

@@ -3,10 +3,14 @@
 <head>
   <base href="/staging/app/" />
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="format-detection" content="telephone=no" />
+  <script src="./config/config.js"></script>
   <meta name="theme-color" content="#111114" />
-  <link rel="manifest" href="/app/manifest.json" />
-  <link rel="icon" href="/app/favicon.ico" />
+  <link rel="manifest" href="manifest.json" />
+  <link rel="icon" href="favicon.ico" />
   <title>FemFlow — Painel PWA</title>
   <style>
     :root {
@@ -277,7 +281,10 @@
   </main>
 
   <script>
-    const BASE = "https://script.google.com/macros/s/AKfycbz-XlzsxRzYCHz-Ri2CYR2aRb7jyZenQD-04Po_Qgu0Vc6KWuSXBnAPla4EBDJT5qEU/exec";
+    const BASE =
+      window.FEMFLOW_ACTIVE?.scriptUrlAdmin ||
+      window.FEMFLOW_CONFIG?.scriptUrlsAdmin?.[window.FEMFLOW_ENV || "staging"] ||
+      "";
     window.FEMFLOW_ADMIN_BASE = BASE;
     if ("serviceWorker" in navigator) {
       navigator.serviceWorker.register("/app/service-worker.js");

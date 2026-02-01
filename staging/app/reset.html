@@ -2,7 +2,11 @@
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="format-detection" content="telephone=no" />
+  <script src="./config/config.js"></script>
   <title>Redefinir senha • FemFlow</title>
 
   <link rel="stylesheet" href="css/style.css"/>
@@ -141,7 +145,7 @@
   // Desliga logo e botão Voltar nesta página
   window.FEMFLOW_SUPPRESS_UI = true;
   </script>
-  <script src="./femflow-core.js"></script>
+  <script src="./core/femflow-core.js"></script>
  <script>
 const $ = s => document.querySelector(s);
 const msg = $("#mensagem");

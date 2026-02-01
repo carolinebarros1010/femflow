@@ -4,13 +4,20 @@
 ======================================================================= */
 
 window.FEMFLOW = window.FEMFLOW || {};
+const FEMFLOW_ENV = window.FEMFLOW_ENV || "staging";
+const FEMFLOW_ACTIVE = window.FEMFLOW_ACTIVE || {};
+const FEMFLOW_CONFIG = window.FEMFLOW_CONFIG || {};
 
 /* ===========================================================
    1. CONFIG GLOBAL
 =========================================================== */
 
-FEMFLOW.SCRIPT_URL = "https://femflowapi.falling-wildflower-a8c0.workers.dev/";
+FEMFLOW.SCRIPT_URL =
+  FEMFLOW_ACTIVE.scriptUrl ||
+  FEMFLOW_CONFIG?.scriptUrls?.[FEMFLOW_ENV] ||
+  "https://femflowapi.falling-wildflower-a8c0.workers.dev/";
 FEMFLOW.API_URL = FEMFLOW.SCRIPT_URL;
+FEMFLOW.ENV = FEMFLOW_ENV;
 
 FEMFLOW.lang = localStorage.getItem("femflow_lang") || "pt";
 FEMFLOW.setLang = function (lang) {
@@ -82,6 +89,24 @@ FEMFLOW.setSessionToken = function (token) {
 
 FEMFLOW.clearSession = function () {
   localStorage.removeItem("femflow_session_token");
+};
+
+FEMFLOW.sessionTransport = {
+  type: "localStorage",
+  postMessageFallback: null,
+  setPostMessageBridge(fn) {
+    this.postMessageFallback = typeof fn === "function" ? fn : null;
+  }
+};
+
+FEMFLOW.openExternal = function (url) {
+  if (!url) return;
+  window.location.href = url;
+};
+
+FEMFLOW.openInternal = function (path) {
+  if (!path) return;
+  window.location.href = path;
 };
 
 

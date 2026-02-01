@@ -387,7 +387,7 @@ function initFlowCenter() {
     extraBtn.onclick = () => {
       if (!treinoAcessoOk) {
         FEMFLOW.toast("Seu acesso expirou. Assine para continuar.");
-        return window.open(LINK_ACESSO_APP, "_blank");
+        return FEMFLOW.openExternal(LINK_ACESSO_APP);
       }
       modalExtra?.classList.remove("oculto");
     };
@@ -498,7 +498,7 @@ function initFlowCenter() {
     nextTreinoBtn.onclick = () => {
       if (!treinoAcessoOk) {
         FEMFLOW.toast("Seu acesso expirou. Assine para continuar.");
-        return window.open(LINK_ACESSO_APP, "_blank");
+        return FEMFLOW.openExternal(LINK_ACESSO_APP);
       }
       void carregarProximoTreino();
     };
@@ -508,7 +508,7 @@ function initFlowCenter() {
     btn.addEventListener("click", () => {
       if (!treinoAcessoOk) {
         FEMFLOW.toast("Seu acesso expirou. Assine para continuar.");
-        window.open(LINK_ACESSO_APP, "_blank");
+        FEMFLOW.openExternal(LINK_ACESSO_APP);
         return;
       }
       const enfase = btn.dataset.extraEnfase;
@@ -545,7 +545,7 @@ function initFlowCenter() {
       } else {
         FEMFLOW.toast("Seu acesso expirou. Assine para continuar.");
       }
-      return window.open(LINK_ACESSO_APP, "_blank");
+      return FEMFLOW.openExternal(LINK_ACESSO_APP);
     }
 
     /* ✨ FOLLOWME */
@@ -587,7 +587,7 @@ function initFlowCenter() {
     }
     const id = localStorage.getItem("femflow_id");
     if (id) FEMFLOW.router("geradordecorrida/index.html");
-    else location.href = "https://www.femflow.com.br/#ofertas";
+    else FEMFLOW.openInternal("../#ofertas");
   };
 
       FEMFLOW.loading.hide();
