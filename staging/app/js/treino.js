@@ -753,9 +753,9 @@ function renderBox(bloco) {
 if (tipoDominante === "hiitPremium") {
   const h = bloco[0];
 
-  const forte  = Number(h.forte)  || 40;
-  const leve   = Number(h.leve)   || 20;
-  const ciclos = Number(h.ciclos) || 6;
+  const forte  = Number(h.forte) || 40;
+  const leve   = Number(h.leve ?? h.fraco) || 20;
+  const ciclos = Number(h.ciclos ?? h.ciclo) || 6;
   const link   = h.link || "";
   const linkHTML = link
     ? `<div class="ff-ex-nome"><a href="${link}" target="_blank">${h.titulo}</a></div>`
