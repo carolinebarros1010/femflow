@@ -217,10 +217,13 @@ function initFlowCenter() {
   const ativa = parseBooleanish(perfil.ativa);
   const hasPersonal  = localStorage.getItem("femflow_has_personal") === "true";
   const modePersonal = localStorage.getItem("femflow_mode_personal") === "true";
+  const enduranceSetupExists =
+    localStorage.getItem("femflow_endurance_config") ||
+    localStorage.getItem("femflow_endurance_setup_done") === "true";
 
   // 🔥 regra canônica
   const personal = hasPersonal && modePersonal;
-  const enduranceEnabled = hasPersonal;
+  const enduranceEnabled = hasPersonal || Boolean(enduranceSetupExists);
 
   const isApp    = produtoRaw === "acesso_app" || isTrial;
   const isFollow = produtoRaw.startsWith("followme_");
