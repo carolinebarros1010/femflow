@@ -332,6 +332,88 @@ FEMFLOW.engineTreino.carregarBlocosPersonal = async ({
 };
 
 /* ============================================================
+   5B) FIREBASE — BLOCO ENDURANCE (PERSONAL)
+============================================================ */
+FEMFLOW.engineTreino.carregarBlocosEndurance = async ({
+  id, semana, dia
+}) => {
+  const authUid = firebase?.auth?.()?.currentUser?.uid || null;
+  console.log("🔍 [ENDURANCE] Firebase auth status:", authUid ? "logado" : "sem login", {
+    uid: authUid
+  });
+
+  if (!id) {
+    console.error("❌ Dados inválidos para consulta Endurance:", { id });
+    return [];
+  }
+
+  const semanaNum = Number(semana);
+  if (!Number.isFinite(semanaNum) || semanaNum < 1) {
+    console.error("❌ semana inválida. Abortando consulta Endurance:", semana);
+    return [];
+  }
+
+  const diaNorm = String(dia || "")
+    .toLowerCase()
+    .trim()
+    .replace("terça", "terca")
+    .replace("sábado", "sabado");
+
+  if (!diaNorm) {
+    console.error("❌ dia inválido. Abortando consulta Endurance:", dia);
+    return [];
+  }
+
+  const semanaKey = `semana_${semanaNum}`;
+  const path = `/personal_trainings/${id}/endurance/${semanaKey}/dias/${diaNorm}/blocos`;
+
+  console.log("🔥 FIREBASE PATH (ENDURANCE):", {
+    id,
+    semana: semanaKey,
+    dia: diaNorm
+  });
+
+  FEMFLOW.log("🔥 [ENDURANCE] Firebase:", { semanaKey, dia: diaNorm });
+
+  let snap;
+  try {
+    snap = await firebase.firestore()
+      .collection("personal_trainings")
+      .doc(id)
+      .collection("endurance")
+      .doc(semanaKey)
+      .collection("dias")
+      .doc(diaNorm)
+      .collection("blocos")
+      .get();
+  } catch (err) {
+    console.error("❌ [ENDURANCE] Erro ao buscar no Firebase:", err);
+    return [];
+  }
+
+  if (snap.empty) {
+    FEMFLOW.error("❌ Nenhum treino ENDURANCE encontrado no Firebase:", {
+      path,
+      id,
+      semana: semanaKey,
+      dia: diaNorm
+    });
+    console.log("🧪 [ENDURANCE] Documentos retornados:", snap.size);
+    return [];
+  }
+
+  const blocos = [];
+  snap.forEach(d => {
+    const data = d.data();
+    if (!data.titulo && !data.titulo_pt && !data.titulo_en && !data.titulo_fr) {
+      data.titulo = d.id;
+    }
+    blocos.push(data);
+  });
+  return blocos;
+};
+
+/* ============================================================
    6) ORGANIZAÇÃO + HIIT
 ============================================================ */
 FEMFLOW.engineTreino.organizarBlocosSimples = brutos => {
@@ -625,6 +707,45 @@ const filtrados = comHIIT.filter(b => {
 
 return FEMFLOW.engineTreino.converterParaFront(filtrados);
 
+};
+
+/* ============================================================
+   7B) MONTAR TREINO ENDURANCE (PERSONAL)
+============================================================ */
+FEMFLOW.engineTreino.montarTreinoEndurance = async ({
+  id, semana, dia
+}) => {
+  const blocosRaw = await FEMFLOW.engineTreino.carregarBlocosEndurance({
+    id,
+    semana,
+    dia
+  });
+
+  if (!blocosRaw.length) return [];
+
+  const ordenados = FEMFLOW.engineTreino.organizarBlocosSimples(blocosRaw);
+  const comHIIT = FEMFLOW.engineTreino.intercalarHIIT(ordenados);
+
+  let aquecimentoInserido = false;
+  let resfriamentoInserido = false;
+
+  const filtrados = comHIIT.filter(b => {
+    if (b.tipo === "aquecimento") {
+      if (aquecimentoInserido) return false;
+      aquecimentoInserido = true;
+      return true;
+    }
+
+    if (b.tipo === "resfriamento") {
+      if (resfriamentoInserido) return false;
+      resfriamentoInserido = true;
+      return true;
+    }
+
+    return true;
+  });
+
+  return FEMFLOW.engineTreino.converterParaFront(filtrados);
 };
 
 /* ============================================================

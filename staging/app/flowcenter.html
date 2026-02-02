@@ -101,6 +101,60 @@
   </div>
 </div>
 
+<!-- MODAL ENDURANCE -->
+<div id="modal-endurance" class="modal-endurance oculto" aria-hidden="true">
+  <div class="modal-endurance-box" role="dialog" aria-modal="true">
+    <h2>🏃‍♂️ Defina seu Endurance</h2>
+    <p class="modal-endurance-sub">
+      Responda para personalizarmos o seu treino de cardio.
+    </p>
+
+    <label class="endurance-field">
+      <span>Qual modalidade?</span>
+      <input type="text" id="enduranceModalidade" placeholder="Ex: corrida, bike, natação">
+    </label>
+
+    <div class="endurance-field">
+      <span>Quantos treinos por semana?</span>
+      <div class="endurance-options" id="enduranceTreinosSemana">
+        <button type="button" class="endurance-chip" data-value="1">1</button>
+        <button type="button" class="endurance-chip" data-value="2">2</button>
+        <button type="button" class="endurance-chip" data-value="3">3</button>
+        <button type="button" class="endurance-chip" data-value="4">4</button>
+        <button type="button" class="endurance-chip" data-value="5">5</button>
+        <button type="button" class="endurance-chip" data-value="6">6</button>
+        <button type="button" class="endurance-chip" data-value="7">7</button>
+      </div>
+    </div>
+
+    <div class="endurance-field">
+      <span>Quais dias da semana?</span>
+      <div class="endurance-options" id="enduranceDiasSemana">
+        <button type="button" class="endurance-chip" data-value="segunda">Seg</button>
+        <button type="button" class="endurance-chip" data-value="terca">Ter</button>
+        <button type="button" class="endurance-chip" data-value="quarta">Qua</button>
+        <button type="button" class="endurance-chip" data-value="quinta">Qui</button>
+        <button type="button" class="endurance-chip" data-value="sexta">Sex</button>
+        <button type="button" class="endurance-chip" data-value="sabado">Sáb</button>
+        <button type="button" class="endurance-chip" data-value="domingo">Dom</button>
+      </div>
+    </div>
+
+    <label class="endurance-field">
+      <span>
+        Qual ritmo médio?
+        <span class="endurance-info" title="Minutos para cada 100m em natação, velocidade média em bike, pace em corrida.">i</span>
+      </span>
+      <input type="text" id="enduranceRitmo" placeholder="Ex: 2:10/100m, 25 km/h, 5:20 min/km">
+    </label>
+
+    <div class="endurance-actions">
+      <button type="button" class="endurance-btn ghost" id="enduranceCancelar">Cancelar</button>
+      <button type="button" class="endurance-btn" id="enduranceSalvar">Salvar e continuar</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL PRÓXIMO TREINO -->
 <div id="modalProximoTreino" class="modal-proximo-overlay hidden" aria-hidden="true">
   <div class="modal-proximo-card" role="dialog" aria-modal="true">
