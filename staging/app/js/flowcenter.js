@@ -217,8 +217,9 @@ function initFlowCenter() {
   const ativa = parseBooleanish(perfil.ativa);
   const hasPersonal  = localStorage.getItem("femflow_has_personal") === "true";
   const modePersonal = localStorage.getItem("femflow_mode_personal") === "true";
+  const enduranceConfigRaw = localStorage.getItem("femflow_endurance_config");
   const enduranceSetupExists =
-    localStorage.getItem("femflow_endurance_config") ||
+    (enduranceConfigRaw !== null && enduranceConfigRaw !== "") ||
     localStorage.getItem("femflow_endurance_setup_done") === "true";
 
   // 🔥 regra canônica
@@ -470,6 +471,12 @@ function initFlowCenter() {
       if (Array.isArray(config.diasSemana) && config.diasSemana.length) {
         return config.diasSemana.map(String);
       }
+      if (typeof config.diasSemana === "string" && config.diasSemana.trim()) {
+        return config.diasSemana
+          .split(/[,\n;|]+/)
+          .map(item => item.trim())
+          .filter(Boolean);
+      }
     } catch (err) {
       console.warn("Config Endurance inválida:", err);
     }
@@ -704,6 +711,7 @@ function initFlowCenter() {
   });
 
   document.getElementById("toTrain").onclick = () => {
+    localStorage.removeItem("femflow_treino_endurance");
     const enfase = localStorage.getItem("femflow_enfase");
 
     /* 🧭 PRIORIDADE ABSOLUTA — MODO PERSONAL */
@@ -859,7 +867,8 @@ function initFlowCenter() {
     if (id) {
       const setupDone = localStorage.getItem("femflow_endurance_setup_done") === "true";
       const configRaw = localStorage.getItem("femflow_endurance_config");
-      if (!setupDone && !configRaw) {
+      const hasConfig = configRaw !== null && configRaw !== "";
+      if (!setupDone && !hasConfig) {
         abrirModalEndurance();
         return;
       }
