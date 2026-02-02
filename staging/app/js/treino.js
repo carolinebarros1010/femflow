@@ -689,7 +689,14 @@ const hasPersonal =
     if (!extraSessaoAtiva && isExtraTreino) {
       localStorage.removeItem("femflow_treino_extra");
     }
-    if (!personalFinal && enduranceAtivo) {
+    const enduranceSetupDone =
+      localStorage.getItem("femflow_endurance_setup_done") === "true";
+    const enduranceConfigRaw = localStorage.getItem("femflow_endurance_config");
+    const enduranceSetupExists =
+      (enduranceConfigRaw !== null && enduranceConfigRaw !== "") ||
+      enduranceSetupDone;
+
+    if (!enduranceSetupExists && enduranceAtivo) {
       enduranceAtivo = false;
       localStorage.removeItem("femflow_treino_endurance");
     }
