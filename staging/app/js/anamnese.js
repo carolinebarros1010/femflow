@@ -342,12 +342,10 @@ const loginResp = await FEMFLOW.post({
 });
 
 if (loginResp?.status === "ok") {
-  if (loginResp.deviceId) {
+  if (loginResp.deviceId && loginResp.deviceId !== deviceId) {
     localStorage.setItem("femflow_device_id", loginResp.deviceId);
   }
-  if (loginResp.sessionToken) {
-    localStorage.setItem("femflow_session_token", loginResp.sessionToken);
-  }
+  FEMFLOW.setSessionToken?.(loginResp.sessionToken);
   if (loginResp.sessionExpira) {
     localStorage.setItem("femflow_session_expira", String(loginResp.sessionExpira));
   }
