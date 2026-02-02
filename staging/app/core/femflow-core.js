@@ -333,11 +333,18 @@ FEMFLOW.post = async function (payload) {
     ...session
   };
 
-  const resp = await fetch(FEMFLOW.SCRIPT_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body)
-  }).then(r => r.json());
+  let resp;
+  try {
+    const response = await fetch(FEMFLOW.SCRIPT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+    resp = await response.json();
+  } catch (err) {
+    FEMFLOW.toast?.("Reconectando…");
+    throw err;
+  }
 
   // Sessão inválida ou bloqueada
   if (resp?.status === "blocked" || resp?.status === "denied") {
