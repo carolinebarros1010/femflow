@@ -115,6 +115,36 @@ function doPost(e) {
     return _json({ status: 'sac_registrado' });
   }
 
+  if (data.action === 'endurance_setup') {
+    const enduranceSheet = SpreadsheetApp.getActive().getSheetByName('EnduranceSetup')
+      || SpreadsheetApp.getActive().insertSheet('EnduranceSetup');
+    if (enduranceSheet.getLastRow() === 0) {
+      enduranceSheet.appendRow([
+        'Data',
+        'ID',
+        'Nome',
+        'Nivel',
+        'Modalidade',
+        'TreinosSemana',
+        'DiasSemana',
+        'RitmoMedio'
+      ]);
+    }
+
+    enduranceSheet.appendRow([
+      new Date(),
+      data.id || '',
+      data.nome || '',
+      data.nivel || '',
+      data.modalidade || '',
+      data.treinosSemana || '',
+      data.diasSemana || '',
+      data.ritmo || ''
+    ]);
+
+    return _json({ status: 'endurance_setup_registrado' });
+  }
+
   if (data.event === 'PURCHASE_APPROVED') {
     const newId = gerarID();
     const email = data.data?.buyer?.email || '';

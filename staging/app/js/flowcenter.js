@@ -462,7 +462,7 @@ function initFlowCenter() {
     });
   }
 
-  const salvarConfigEndurance = () => {
+  const salvarConfigEndurance = async () => {
     const modalidade = modalEnduranceModalidade?.value?.trim() || "";
     const treinosSemana = modalEnduranceTreinos?.dataset.value || "";
     const ritmo = modalEnduranceRitmo?.value?.trim() || "";
@@ -485,6 +485,21 @@ function initFlowCenter() {
     localStorage.setItem("femflow_endurance_config", JSON.stringify(config));
     localStorage.setItem("femflow_endurance_setup_done", "true");
     localStorage.setItem("femflow_endurance_dia", diasSemana[0]);
+
+    try {
+      await FEMFLOW.post({
+        action: "endurance_setup",
+        id: localStorage.getItem("femflow_id") || "",
+        nome: localStorage.getItem("femflow_nome") || "",
+        nivel: localStorage.getItem("femflow_nivel") || "",
+        modalidade,
+        treinosSemana: Number(treinosSemana),
+        diasSemana: diasSemana.join(", "),
+        ritmo
+      });
+    } catch (err) {
+      console.error("Erro ao salvar Endurance no GAS:", err);
+    }
     return config;
   };
 
@@ -690,8 +705,8 @@ function initFlowCenter() {
   };
 
   if (modalEnduranceSalvar) {
-    modalEnduranceSalvar.addEventListener("click", () => {
-      const config = salvarConfigEndurance();
+    modalEnduranceSalvar.addEventListener("click", async () => {
+      const config = await salvarConfigEndurance();
       if (!config) return;
       fecharModalEndurance();
       iniciarEndurance();
