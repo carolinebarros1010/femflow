@@ -219,6 +219,124 @@ h1 {
 }
 
 /* ==========================================================
+   MODAL ENDURANCE
+========================================================== */
+.modal-endurance {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 99999;
+}
+
+.modal-endurance.oculto {
+  display: none;
+}
+
+.modal-endurance-box {
+  background: #fff7f2;
+  padding: 24px;
+  border-radius: 22px;
+  width: min(90%, 420px);
+  box-shadow: 0 8px 22px rgba(0,0,0,0.15);
+  text-align: left;
+  font-family: "Lato", sans-serif;
+  animation: fadeIn .15s ease-out;
+}
+
+.modal-endurance-box h2 {
+  margin-bottom: 8px;
+  font-family: "Playfair Display", serif;
+  color: var(--terracota);
+  font-size: 1.2rem;
+}
+
+.modal-endurance-sub {
+  margin-bottom: 16px;
+  color: #7c6a65;
+  font-size: 0.9rem;
+}
+
+.endurance-field {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-bottom: 16px;
+  font-size: 0.9rem;
+  color: #5d4d48;
+}
+
+.endurance-field input {
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(204,106,90,0.25);
+  font-size: 0.9rem;
+  font-family: "Lato", sans-serif;
+}
+
+.endurance-options {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.endurance-chip {
+  border: 1px solid rgba(204,106,90,0.25);
+  background: #fff;
+  padding: 6px 12px;
+  border-radius: 999px;
+  font-size: 0.85rem;
+  cursor: pointer;
+  color: var(--terracota);
+  transition: 0.2s ease;
+}
+
+.endurance-chip.is-active {
+  background: var(--terracota);
+  color: #fff;
+  border-color: var(--terracota);
+}
+
+.endurance-info {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 1px solid rgba(204,106,90,0.35);
+  font-size: 0.75rem;
+  margin-left: 6px;
+  color: var(--terracota);
+  cursor: help;
+}
+
+.endurance-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 8px;
+}
+
+.endurance-btn {
+  padding: 10px 14px;
+  border-radius: 14px;
+  border: none;
+  background: var(--terracota);
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.endurance-btn.ghost {
+  background: transparent;
+  border: 1px solid rgba(204,106,90,0.35);
+  color: var(--terracota);
+}
+
+/* ==========================================================
    MODAL PRÓXIMO TREINO
 ========================================================== */
 .modal-proximo-overlay {
