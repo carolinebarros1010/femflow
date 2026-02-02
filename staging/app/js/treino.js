@@ -249,6 +249,38 @@ document.addEventListener("DOMContentLoaded", () => {
     return snapshot;
   }
 
+  let revalidatingPerfil = false;
+  async function revalidarPerfilTreino() {
+    if (revalidatingPerfil) return;
+    revalidatingPerfil = true;
+    try {
+      const perfil = await FEMFLOW.carregarPerfil?.();
+      if (!perfil || perfil.status !== "ok") return;
+      FEMFLOW.perfilAtual = perfil;
+      FEMFLOW.dispatch("femflow:ready", perfil);
+    } catch (err) {
+      FEMFLOW.warn?.("Falha ao revalidar perfil:", err);
+    } finally {
+      revalidatingPerfil = false;
+    }
+  }
+
+  function forceTreinoSnapshot() {
+    saveTreinoSnapshot();
+  }
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") {
+      forceTreinoSnapshot();
+      return;
+    }
+    if (document.visibilityState === "visible") {
+      revalidarPerfilTreino();
+    }
+  });
+
+  window.addEventListener("pagehide", forceTreinoSnapshot);
+
   function getPseEmoji(valor) {
     if (valor <= 2) return "😌";
     if (valor <= 4) return "🙂";
