@@ -855,7 +855,8 @@ function initFlowCenter() {
     const id = localStorage.getItem("femflow_id");
     if (id) {
       const setupDone = localStorage.getItem("femflow_endurance_setup_done") === "true";
-      if (!setupDone) {
+      const configRaw = localStorage.getItem("femflow_endurance_config");
+      if (!setupDone && !configRaw) {
         abrirModalEndurance();
         return;
       }
