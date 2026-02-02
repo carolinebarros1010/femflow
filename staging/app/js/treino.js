@@ -67,6 +67,220 @@ document.addEventListener("DOMContentLoaded", () => {
     localStorage.setItem("femflow_enfase", extraParamNorm);
   }
 
+  const treinoSnapshotState = {
+    timeout: null,
+    lastBoxIndex: null
+  };
+  let treinoSnapshotToScroll = null;
+
+  function getTreinoSnapshotContext() {
+    if (!id) return null;
+    const diaCiclo = Number(localStorage.getItem("femflow_diaCiclo") || 1);
+    const diaPrograma = Number(
+      localStorage.getItem("femflow_diaPrograma") || FEMFLOW.diaProgramaAtual || 1
+    );
+    const enfaseBase = FEMFLOW.enfaseAtual || (isPersonal ? "personal" : "");
+    const enfase = String(enfaseBase || "").trim();
+    if (!enfase) return null;
+
+    return {
+      id,
+      diaCiclo,
+      diaPrograma,
+      enfase
+    };
+  }
+
+  function getTreinoSnapshotKey() {
+    const context = getTreinoSnapshotContext();
+    if (!context) return null;
+    return `femflow_treino_progress_${context.id}_${context.enfase}_${context.diaCiclo}_${context.diaPrograma}`;
+  }
+
+  function getCurrentBoxIndex() {
+    if (!carousel || !track) return 0;
+    const items = Array.from(track.querySelectorAll(".carousel-item"));
+    if (!items.length) return 0;
+    const gap = parseFloat(getComputedStyle(track).gap || 0);
+    const step = items[0].getBoundingClientRect().width + gap;
+    if (!step) return 0;
+    return Math.max(0, Math.min(items.length - 1, Math.round(carousel.scrollLeft / step)));
+  }
+
+  function buildTreinoSnapshot() {
+    const context = getTreinoSnapshotContext();
+    if (!context) return null;
+
+    const doneExercises = [];
+    const seriesProgress = {};
+    const weights = {};
+
+    document.querySelectorAll(".ff-ex-item").forEach(item => {
+      const input = item.querySelector(".ff-ex-peso");
+      const exercicioId = input?.dataset.ex;
+      if (!exercicioId) return;
+
+      if (input?.value) {
+        weights[exercicioId] = input.value;
+      }
+
+      const progressEl = item.querySelector("[data-role='serie-progress']");
+      if (progressEl) {
+        const serieAtual = Number(progressEl.dataset.serieAtual || 1);
+        const serieTotal = Number(progressEl.dataset.serieTotal || 1);
+        seriesProgress[exercicioId] = {
+          serieAtual,
+          serieTotal
+        };
+      }
+
+      if (item.classList.contains("ff-ex-done")) {
+        doneExercises.push(exercicioId);
+      }
+    });
+
+    return {
+      version: 1,
+      id: context.id,
+      enfase: context.enfase,
+      diaCiclo: context.diaCiclo,
+      diaPrograma: context.diaPrograma,
+      timestamp: Date.now(),
+      currentBoxIndex: getCurrentBoxIndex(),
+      doneExercises,
+      seriesProgress,
+      weights
+    };
+  }
+
+  function saveTreinoSnapshot() {
+    const key = getTreinoSnapshotKey();
+    if (!key) return;
+    const payload = buildTreinoSnapshot();
+    if (!payload) return;
+    localStorage.setItem(key, JSON.stringify(payload));
+  }
+
+  function scheduleTreinoSnapshot() {
+    if (treinoSnapshotState.timeout) {
+      clearTimeout(treinoSnapshotState.timeout);
+    }
+    treinoSnapshotState.timeout = setTimeout(saveTreinoSnapshot, 200);
+  }
+
+  function clearTreinoSnapshot() {
+    const key = getTreinoSnapshotKey();
+    if (!key) return;
+    localStorage.removeItem(key);
+  }
+
+  function restoreTreinoSnapshot() {
+    const key = getTreinoSnapshotKey();
+    if (!key) return null;
+
+    const raw = localStorage.getItem(key);
+    if (!raw) return null;
+
+    let snapshot;
+    try {
+      snapshot = JSON.parse(raw);
+    } catch (err) {
+      console.warn("Snapshot inválido:", err);
+      localStorage.removeItem(key);
+      return null;
+    }
+
+    const context = getTreinoSnapshotContext();
+    if (!context) return null;
+    const isCompatible =
+      snapshot?.id === context.id &&
+      snapshot?.enfase === context.enfase &&
+      snapshot?.diaCiclo === context.diaCiclo &&
+      snapshot?.diaPrograma === context.diaPrograma;
+
+    if (!isCompatible) {
+      return null;
+    }
+
+    const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent || "");
+    const shouldRestore = isIOS || window.confirm("Continuar treino?");
+    if (!shouldRestore) {
+      localStorage.removeItem(key);
+      return null;
+    }
+
+    const doneSet = new Set(snapshot.doneExercises || []);
+    const weights = snapshot.weights || {};
+    const seriesProgress = snapshot.seriesProgress || {};
+
+    document.querySelectorAll(".ff-ex-item").forEach(item => {
+      const input = item.querySelector(".ff-ex-peso");
+      const exercicioId = input?.dataset.ex;
+      if (!exercicioId) return;
+
+      if (weights[exercicioId] !== undefined) {
+        input.value = weights[exercicioId];
+      }
+
+      const progress = seriesProgress[exercicioId];
+      const progressEl = item.querySelector("[data-role='serie-progress']");
+      const btnSerie = item.querySelector("[data-role='serie-next']");
+      if (progressEl) {
+        const total = Number(progressEl.dataset.serieTotal || progress?.serieTotal || 1);
+        const atual = Math.max(1, Math.min(Number(progress?.serieAtual || 1), total));
+        progressEl.dataset.serieAtual = String(atual);
+        progressEl.dataset.serieTotal = String(total);
+        progressEl.innerHTML = `Série <b>${atual}</b> / ${total}`;
+        if (atual === total && btnSerie) {
+          btnSerie.classList.add("done");
+        }
+      }
+
+      if (doneSet.has(exercicioId)) {
+        item.classList.add("ff-ex-done");
+        if (btnSerie) {
+          btnSerie.textContent = "✔️ Exercício concluído";
+          btnSerie.classList.add("done");
+          btnSerie.disabled = true;
+        }
+      }
+    });
+
+    return snapshot;
+  }
+
+  let revalidatingPerfil = false;
+  async function revalidarPerfilTreino() {
+    if (revalidatingPerfil) return;
+    revalidatingPerfil = true;
+    try {
+      const perfil = await FEMFLOW.carregarPerfil?.();
+      if (!perfil || perfil.status !== "ok") return;
+      FEMFLOW.perfilAtual = perfil;
+      FEMFLOW.dispatch("femflow:ready", perfil);
+    } catch (err) {
+      FEMFLOW.warn?.("Falha ao revalidar perfil:", err);
+    } finally {
+      revalidatingPerfil = false;
+    }
+  }
+
+  function forceTreinoSnapshot() {
+    saveTreinoSnapshot();
+  }
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState === "hidden") {
+      forceTreinoSnapshot();
+      return;
+    }
+    if (document.visibilityState === "visible") {
+      revalidarPerfilTreino();
+    }
+  });
+
+  window.addEventListener("pagehide", forceTreinoSnapshot);
+
   function getPseEmoji(valor) {
     if (valor <= 2) return "😌";
     if (valor <= 4) return "🙂";
@@ -311,6 +525,10 @@ document.addEventListener("DOMContentLoaded", () => {
         Math.min(total - 1, Math.round(carousel.scrollLeft / step))
       );
       updateCarouselIndicator({ index: idx, total });
+      if (treinoSnapshotState.lastBoxIndex !== idx) {
+        treinoSnapshotState.lastBoxIndex = idx;
+        scheduleTreinoSnapshot();
+      }
     };
 
     if (carouselScrollHandler) {
@@ -619,6 +837,7 @@ console.log("🧪 BOX KEYS ORDENADAS:", boxKeys);
     if (html) track.insertAdjacentHTML("beforeend", html);
   });
 
+treinoSnapshotToScroll = restoreTreinoSnapshot();
 initTimers();
   initHIIT();
   initClusterTimers(); // 🔥 CLUSTER TIMER REAL
@@ -627,6 +846,17 @@ initTimers();
   initPeso();
   void initPesoPrefill();
   initCarouselIndicator();
+  if (treinoSnapshotToScroll?.currentBoxIndex != null && carousel) {
+    const items = Array.from(track.querySelectorAll(".carousel-item"));
+    if (items.length) {
+      const gap = parseFloat(getComputedStyle(track).gap || 0);
+      const step = items[0].getBoundingClientRect().width + gap;
+      carousel.scrollTo({
+        left: step * Math.max(0, Math.min(items.length - 1, treinoSnapshotToScroll.currentBoxIndex)),
+        behavior: "auto"
+      });
+    }
+  }
 }
  /* ============================================================
      3) RENDER BOX
@@ -1330,6 +1560,7 @@ function initSeriesProgress() {
           btnSerie.disabled = true;
         }
 
+        scheduleTreinoSnapshot();
         return;
       }
 
@@ -1340,6 +1571,7 @@ function initSeriesProgress() {
         btnSerie.disabled = true;
 
         exItem.classList.add("ff-ex-done");
+        scheduleTreinoSnapshot();
       }
 
     });
@@ -1440,6 +1672,7 @@ function initPeso() {
 
       const exercicio = inp.dataset.ex;  // Nome oficial do exercício
       const peso      = inp.value.trim();
+      scheduleTreinoSnapshot();
 
       const card = inp.closest(".ff-ex-item");
 
@@ -1576,6 +1809,7 @@ treino,
           localStorage.setItem("femflow_diaCiclo", String(resp.novoDiaCiclo));
         }
 
+        clearTreinoSnapshot();
         FEMFLOW.toast("Treino salvo com sucesso! 💪");
         registrarEvolucao({ pse, diaPrograma: resp.diaPrograma || diaPrograma });
         encerrarTreino();
