@@ -282,6 +282,14 @@ h1 {
   gap: 8px;
 }
 
+.modal-endurance-selecao .endurance-options {
+  justify-content: flex-start;
+}
+
+.modal-endurance-selecao .endurance-actions {
+  justify-content: space-between;
+}
+
 .endurance-chip {
   border: 1px solid rgba(204,106,90,0.25);
   background: #fff;
@@ -297,6 +305,13 @@ h1 {
   background: var(--terracota);
   color: #fff;
   border-color: var(--terracota);
+}
+
+.endurance-chip.is-disabled {
+  opacity: 0.45;
+  pointer-events: none;
+  color: rgba(93, 77, 72, 0.6);
+  border-color: rgba(204,106,90,0.15);
 }
 
 .endurance-info {
