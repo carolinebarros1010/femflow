@@ -217,10 +217,13 @@ function initFlowCenter() {
   const ativa = parseBooleanish(perfil.ativa);
   const hasPersonal  = localStorage.getItem("femflow_has_personal") === "true";
   const modePersonal = localStorage.getItem("femflow_mode_personal") === "true";
+  const enduranceSetupExists =
+    localStorage.getItem("femflow_endurance_config") ||
+    localStorage.getItem("femflow_endurance_setup_done") === "true";
 
   // 🔥 regra canônica
   const personal = hasPersonal && modePersonal;
-  const enduranceEnabled = hasPersonal;
+  const enduranceEnabled = hasPersonal || Boolean(enduranceSetupExists);
 
   const isApp    = produtoRaw === "acesso_app" || isTrial;
   const isFollow = produtoRaw.startsWith("followme_");
@@ -377,12 +380,17 @@ function initFlowCenter() {
 
   const modalExtra = document.getElementById("modal-extra");
   const modalEndurance = document.getElementById("modal-endurance");
+  const modalEnduranceSelecao = document.getElementById("modal-endurance-selecao");
   const modalEnduranceModalidade = document.getElementById("enduranceModalidade");
   const modalEnduranceTreinos = document.getElementById("enduranceTreinosSemana");
   const modalEnduranceDias = document.getElementById("enduranceDiasSemana");
   const modalEnduranceRitmo = document.getElementById("enduranceRitmo");
   const modalEnduranceCancelar = document.getElementById("enduranceCancelar");
   const modalEnduranceSalvar = document.getElementById("enduranceSalvar");
+  const modalEnduranceSemana = document.getElementById("enduranceSemana");
+  const modalEnduranceDia = document.getElementById("enduranceDia");
+  const modalEnduranceSelecaoCancelar = document.getElementById("enduranceSelecaoCancelar");
+  const modalEnduranceSelecaoContinuar = document.getElementById("enduranceSelecaoContinuar");
   const extraBtn = document.getElementById("toExtraTrain");
   const extraClose = document.getElementById("fecharExtra");
 
@@ -422,6 +430,26 @@ function initFlowCenter() {
     modalEndurance.setAttribute("aria-hidden", "true");
   };
 
+  const abrirModalEnduranceSelecao = () => {
+    if (!modalEnduranceSelecao) return;
+    const { semana, dia } = getEnduranceSelecaoAtual();
+    const diasDisponiveis = getDiasEnduranceDisponiveis();
+    atualizarDiasEnduranceDisponiveis(diasDisponiveis);
+    const diaSelecionado = diasDisponiveis.length && !diasDisponiveis.includes(dia)
+      ? diasDisponiveis[0]
+      : dia;
+    toggleChipSingle(modalEnduranceSemana, semana);
+    toggleChipSingle(modalEnduranceDia, diaSelecionado);
+    modalEnduranceSelecao.classList.remove("oculto");
+    modalEnduranceSelecao.setAttribute("aria-hidden", "false");
+  };
+
+  const fecharModalEnduranceSelecao = () => {
+    if (!modalEnduranceSelecao) return;
+    modalEnduranceSelecao.classList.add("oculto");
+    modalEnduranceSelecao.setAttribute("aria-hidden", "true");
+  };
+
   const toggleChipSingle = (container, value) => {
     if (!container) return;
     const chips = Array.from(container.querySelectorAll(".endurance-chip"));
@@ -434,6 +462,28 @@ function initFlowCenter() {
   const toggleChipMulti = (chip) => {
     if (!chip) return;
     chip.classList.toggle("is-active");
+  };
+
+  const getDiasEnduranceDisponiveis = () => {
+    try {
+      const config = JSON.parse(localStorage.getItem("femflow_endurance_config") || "{}");
+      if (Array.isArray(config.diasSemana) && config.diasSemana.length) {
+        return config.diasSemana.map(String);
+      }
+    } catch (err) {
+      console.warn("Config Endurance inválida:", err);
+    }
+    return [];
+  };
+
+  const atualizarDiasEnduranceDisponiveis = (diasDisponiveis) => {
+    if (!modalEnduranceDia) return;
+    const chips = Array.from(modalEnduranceDia.querySelectorAll(".endurance-chip"));
+    chips.forEach(chip => {
+      const ativo = !diasDisponiveis.length || diasDisponiveis.includes(chip.dataset.value);
+      chip.classList.toggle("is-disabled", !ativo);
+      chip.setAttribute("aria-disabled", ativo ? "false" : "true");
+    });
   };
 
   if (modalEnduranceTreinos) {
@@ -452,6 +502,22 @@ function initFlowCenter() {
     });
   }
 
+  if (modalEnduranceSemana) {
+    modalEnduranceSemana.addEventListener("click", (event) => {
+      const target = event.target.closest(".endurance-chip");
+      if (!target) return;
+      toggleChipSingle(modalEnduranceSemana, target.dataset.value);
+    });
+  }
+
+  if (modalEnduranceDia) {
+    modalEnduranceDia.addEventListener("click", (event) => {
+      const target = event.target.closest(".endurance-chip");
+      if (!target) return;
+      toggleChipSingle(modalEnduranceDia, target.dataset.value);
+    });
+  }
+
   if (modalEnduranceCancelar) {
     modalEnduranceCancelar.addEventListener("click", fecharModalEndurance);
   }
@@ -459,6 +525,16 @@ function initFlowCenter() {
   if (modalEndurance) {
     modalEndurance.addEventListener("click", (event) => {
       if (event.target === modalEndurance) fecharModalEndurance();
+    });
+  }
+
+  if (modalEnduranceSelecaoCancelar) {
+    modalEnduranceSelecaoCancelar.addEventListener("click", fecharModalEnduranceSelecao);
+  }
+
+  if (modalEnduranceSelecao) {
+    modalEnduranceSelecao.addEventListener("click", (event) => {
+      if (event.target === modalEnduranceSelecao) fecharModalEnduranceSelecao();
     });
   }
 
@@ -485,6 +561,9 @@ function initFlowCenter() {
     localStorage.setItem("femflow_endurance_config", JSON.stringify(config));
     localStorage.setItem("femflow_endurance_setup_done", "true");
     localStorage.setItem("femflow_endurance_dia", diasSemana[0]);
+    if (!localStorage.getItem("femflow_endurance_semana")) {
+      localStorage.setItem("femflow_endurance_semana", "1");
+    }
 
     try {
       await FEMFLOW.post({
@@ -728,12 +807,46 @@ function initFlowCenter() {
     }
   };
 
+  const iniciarEnduranceComChecagem = async () => {
+    const checagem = await verificarEnduranceRealizado();
+    if (checagem?.realizado) {
+      const dataTexto = checagem.dataTreino
+        ? ` em ${new Date(checagem.dataTreino).toLocaleDateString("pt-BR")}`
+        : "";
+      const continuar = window.confirm(
+        `Você já realizou esse treino${dataTexto}. Deseja realizar novamente?`
+      );
+      if (!continuar) return;
+    }
+    iniciarEndurance();
+  };
+
   if (modalEnduranceSalvar) {
     modalEnduranceSalvar.addEventListener("click", async () => {
       const config = await salvarConfigEndurance();
       if (!config) return;
       fecharModalEndurance();
-      iniciarEndurance();
+      abrirModalEnduranceSelecao();
+    });
+  }
+
+  if (modalEnduranceSelecaoContinuar) {
+    modalEnduranceSelecaoContinuar.addEventListener("click", async () => {
+      const semana = modalEnduranceSemana?.dataset.value || "";
+      const dia = modalEnduranceDia?.dataset.value || "";
+      const diasDisponiveis = getDiasEnduranceDisponiveis();
+      if (diasDisponiveis.length && !diasDisponiveis.includes(dia)) {
+        FEMFLOW.toast("Selecione um dia disponível para continuar.");
+        return;
+      }
+      if (!semana || !dia) {
+        FEMFLOW.toast("Selecione semana e dia para continuar.");
+        return;
+      }
+      localStorage.setItem("femflow_endurance_semana", String(semana));
+      localStorage.setItem("femflow_endurance_dia", String(dia));
+      fecharModalEnduranceSelecao();
+      await iniciarEnduranceComChecagem();
     });
   }
 
@@ -745,21 +858,12 @@ function initFlowCenter() {
     const id = localStorage.getItem("femflow_id");
     if (id) {
       const setupDone = localStorage.getItem("femflow_endurance_setup_done") === "true";
-      if (!setupDone) {
+      const configRaw = localStorage.getItem("femflow_endurance_config");
+      if (!setupDone && !configRaw) {
         abrirModalEndurance();
         return;
       }
-      const checagem = await verificarEnduranceRealizado();
-      if (checagem?.realizado) {
-        const dataTexto = checagem.dataTreino
-          ? ` em ${new Date(checagem.dataTreino).toLocaleDateString("pt-BR")}`
-          : "";
-        const continuar = window.confirm(
-          `Você já realizou esse treino${dataTexto}. Deseja realizar novamente?`
-        );
-        if (!continuar) return;
-      }
-      iniciarEndurance();
+      abrirModalEnduranceSelecao();
     } else {
       FEMFLOW.openInternal("../#ofertas");
     }

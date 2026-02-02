@@ -155,6 +155,44 @@
   </div>
 </div>
 
+<!-- MODAL ENDURANCE — SELEÇÃO -->
+<div id="modal-endurance-selecao" class="modal-endurance modal-endurance-selecao oculto" aria-hidden="true">
+  <div class="modal-endurance-box" role="dialog" aria-modal="true">
+    <h2>🏃‍♂️ Escolha sua sessão</h2>
+    <p class="modal-endurance-sub">
+      Selecione a semana e o dia do treino que você vai realizar.
+    </p>
+
+    <div class="endurance-field">
+      <span>Semana</span>
+      <div class="endurance-options" id="enduranceSemana">
+        <button type="button" class="endurance-chip" data-value="1">1</button>
+        <button type="button" class="endurance-chip" data-value="2">2</button>
+        <button type="button" class="endurance-chip" data-value="3">3</button>
+        <button type="button" class="endurance-chip" data-value="4">4</button>
+      </div>
+    </div>
+
+    <div class="endurance-field">
+      <span>Dia</span>
+      <div class="endurance-options endurance-days" id="enduranceDia">
+        <button type="button" class="endurance-chip" data-value="segunda">Seg</button>
+        <button type="button" class="endurance-chip" data-value="terca">Ter</button>
+        <button type="button" class="endurance-chip" data-value="quarta">Qua</button>
+        <button type="button" class="endurance-chip" data-value="quinta">Qui</button>
+        <button type="button" class="endurance-chip" data-value="sexta">Sex</button>
+        <button type="button" class="endurance-chip" data-value="sabado">Sáb</button>
+        <button type="button" class="endurance-chip" data-value="domingo">Dom</button>
+      </div>
+    </div>
+
+    <div class="endurance-actions">
+      <button type="button" class="endurance-btn ghost" id="enduranceSelecaoCancelar">Cancelar</button>
+      <button type="button" class="endurance-btn" id="enduranceSelecaoContinuar">Continuar</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL PRÓXIMO TREINO -->
 <div id="modalProximoTreino" class="modal-proximo-overlay hidden" aria-hidden="true">
   <div class="modal-proximo-card" role="dialog" aria-modal="true">
