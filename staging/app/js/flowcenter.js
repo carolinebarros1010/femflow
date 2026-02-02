@@ -704,6 +704,30 @@ function initFlowCenter() {
     FEMFLOW.router("treino.html?endurance=1");
   };
 
+  const getEnduranceSelecaoAtual = () => {
+    const semana = localStorage.getItem("femflow_endurance_semana") || "1";
+    const dia = localStorage.getItem("femflow_endurance_dia") || getEnduranceDiaLabel();
+    return { semana, dia };
+  };
+
+  const verificarEnduranceRealizado = async () => {
+    const id = localStorage.getItem("femflow_id");
+    if (!id) return { realizado: false };
+    const { semana, dia } = getEnduranceSelecaoAtual();
+    try {
+      const resp = await FEMFLOW.post({
+        action: "endurance_check",
+        id,
+        semana,
+        dia
+      });
+      return resp || { realizado: false };
+    } catch (err) {
+      console.error("Erro ao checar Endurance:", err);
+      return { realizado: false };
+    }
+  };
+
   if (modalEnduranceSalvar) {
     modalEnduranceSalvar.addEventListener("click", async () => {
       const config = await salvarConfigEndurance();
@@ -713,7 +737,7 @@ function initFlowCenter() {
     });
   }
 
-  enduranceBtn.onclick = () => {
+  enduranceBtn.onclick = async () => {
     if (!enduranceEnabled) {
       FEMFLOW.toast("Endurance disponível apenas no Personal 🌸");
       return;
@@ -724,6 +748,16 @@ function initFlowCenter() {
       if (!setupDone) {
         abrirModalEndurance();
         return;
+      }
+      const checagem = await verificarEnduranceRealizado();
+      if (checagem?.realizado) {
+        const dataTexto = checagem.dataTreino
+          ? ` em ${new Date(checagem.dataTreino).toLocaleDateString("pt-BR")}`
+          : "";
+        const continuar = window.confirm(
+          `Você já realizou esse treino${dataTexto}. Deseja realizar novamente?`
+        );
+        if (!continuar) return;
       }
       iniciarEndurance();
     } else {

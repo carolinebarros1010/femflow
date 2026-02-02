@@ -127,7 +127,11 @@ function doPost(e) {
         'Modalidade',
         'TreinosSemana',
         'DiasSemana',
-        'RitmoMedio'
+        'RitmoMedio',
+        'DataTreino',
+        'Semana',
+        'Dia',
+        'StatusTreino'
       ]);
     }
 
@@ -139,10 +143,86 @@ function doPost(e) {
       data.modalidade || '',
       data.treinosSemana || '',
       data.diasSemana || '',
-      data.ritmo || ''
+      data.ritmo || '',
+      '',
+      '',
+      '',
+      ''
     ]);
 
     return _json({ status: 'endurance_setup_registrado' });
+  }
+
+  if (data.action === 'endurance_treino') {
+    const enduranceSheet = SpreadsheetApp.getActive().getSheetByName('EnduranceSetup')
+      || SpreadsheetApp.getActive().insertSheet('EnduranceSetup');
+    if (enduranceSheet.getLastRow() === 0) {
+      enduranceSheet.appendRow([
+        'Data',
+        'ID',
+        'Nome',
+        'Nivel',
+        'Modalidade',
+        'TreinosSemana',
+        'DiasSemana',
+        'RitmoMedio',
+        'DataTreino',
+        'Semana',
+        'Dia',
+        'StatusTreino'
+      ]);
+    }
+
+    enduranceSheet.appendRow([
+      new Date(),
+      data.id || '',
+      data.nome || '',
+      data.nivel || '',
+      data.modalidade || '',
+      data.treinosSemana || '',
+      data.diasSemana || '',
+      data.ritmo || '',
+      data.dataTreino || new Date(),
+      data.semana || '',
+      data.dia || '',
+      'realizado'
+    ]);
+
+    return _json({ status: 'endurance_treino_registrado' });
+  }
+
+  if (data.action === 'endurance_check') {
+    const enduranceSheet = SpreadsheetApp.getActive().getSheetByName('EnduranceSetup');
+    if (!enduranceSheet || enduranceSheet.getLastRow() < 2) {
+      return _json({ status: 'ok', realizado: false });
+    }
+
+    const values = enduranceSheet.getDataRange().getValues();
+    const id = String(data.id || '').trim();
+    const semana = String(data.semana || '').trim();
+    const dia = String(data.dia || '').trim();
+
+    let encontrado = null;
+    for (let i = 1; i < values.length; i++) {
+      const row = values[i];
+      const rowId = String(row[1] || '').trim();
+      const rowSemana = String(row[9] || '').trim();
+      const rowDia = String(row[10] || '').trim();
+      const status = String(row[11] || '').trim();
+      if (rowId === id && rowSemana === semana && rowDia === dia && status === 'realizado') {
+        encontrado = row;
+      }
+    }
+
+    if (!encontrado) {
+      return _json({ status: 'ok', realizado: false });
+    }
+
+    return _json({
+      status: 'ok',
+      realizado: true,
+      dataTreino: encontrado[8] || ''
+    });
   }
 
   if (data.event === 'PURCHASE_APPROVED') {

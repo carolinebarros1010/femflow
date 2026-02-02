@@ -1838,7 +1838,7 @@ if (btnConfirmarPSE) {
     }
 
     try {
-const treino = getTreinoKey({ diaCiclo });
+	const treino = getTreinoKey({ diaCiclo });
 
         const resp = await FEMFLOW.post({
       action: "salvartreino",
@@ -1855,6 +1855,38 @@ treino,
       FEMFLOW.log("📌 salvarTreino:", resp);
 
       if (resp?.status === "ok") {
+
+        if (enduranceAtivo) {
+          const semana = localStorage.getItem("femflow_endurance_semana") || "";
+          const dia = localStorage.getItem("femflow_endurance_dia") || "";
+          let modalidade = "";
+          let treinosSemana = "";
+          let diasSemana = "";
+          let ritmo = "";
+          try {
+            const config = JSON.parse(localStorage.getItem("femflow_endurance_config") || "{}");
+            modalidade = config.modalidade || "";
+            treinosSemana = config.treinosSemana || "";
+            diasSemana = Array.isArray(config.diasSemana) ? config.diasSemana.join(", ") : "";
+            ritmo = config.ritmo || "";
+          } catch (err) {
+            console.warn("Config Endurance inválida:", err);
+          }
+
+          await FEMFLOW.post({
+            action: "endurance_treino",
+            id,
+            nome: localStorage.getItem("femflow_nome") || "",
+            nivel: localStorage.getItem("femflow_nivel") || "",
+            modalidade,
+            treinosSemana,
+            diasSemana,
+            ritmo,
+            semana,
+            dia,
+            dataTreino: new Date().toISOString()
+          });
+        }
 
         // 🔥 BACKEND É A FONTE DA VERDADE
         if (resp.diaPrograma) {
