@@ -1,0 +1,353 @@
+/* ===========================================================
+   FEMFLOW — CORE.CSS (GLOBAL FOUNDATION)
+   Estrutura otimizada para PWA/TWA — 2025
+=========================================================== */
+
+/* ---------- VARIÁVEIS ---------- */
+:root {
+  --creme: #F4E1D7;
+  --pessego: #EFBDA6;
+  --terracota: #CC6A5A;
+  --teal: #335953;
+  --grafite: #2A2D2C;
+
+  --radius: 14px;
+  --radius-lg: 18px;
+
+  --shadow-soft: 0 4px 12px rgba(0,0,0,0.08);
+  --shadow-medium: 0 6px 18px rgba(0,0,0,0.10);
+}
+
+/* ---------- RESET ---------- */
+html, body {
+  margin: 0;
+  padding: 0;
+  font-family: "Lato", sans-serif;
+  color: var(--grafite);
+  background: var(--creme);
+  -webkit-font-smoothing: antialiased;
+}
+
+body {
+  min-height: 100vh;
+  overflow-x: hidden;
+  padding-top: 60px; /* espaço para header fixo */
+}
+
+/* ---------- UTILITÁRIOS ---------- */
+.hidden {
+  display: none !important;
+}
+
+/* ---------- CONTAINERS ---------- */
+.container {
+  width: 100%;
+  max-width: 420px;
+  padding: 1rem;
+  margin: 0 auto;
+  box-sizing: border-box;
+}
+
+.section {
+  background: rgba(255,255,255,0.6);
+  backdrop-filter: blur(12px);
+  border-radius: var(--radius-lg);
+  padding: 1.3rem;
+  box-shadow: var(--shadow-soft);
+  margin: 1.2rem auto;
+}
+
+/* ---------- TIPOGRAFIA ---------- */
+h1, h2, h3 {
+  font-family: "Playfair Display", serif;
+  color: var(--teal);
+}
+
+
+.subtitle {
+  color: var(--terracota);
+  font-size: 1rem;
+  margin-top: .2rem;
+}
+
+/* ---------- BOTÕES ---------- */
+.btn {
+  width: 100%;
+  padding: 0.9rem 1.2rem;
+  border: none;
+  border-radius: 18px;
+  font-weight: 600;
+  background: linear-gradient(135deg, var(--teal), #3b6a61);
+  color: white;
+  cursor: pointer;
+  transition: transform .2s, background .3s;
+}
+
+.btn:hover {
+  transform: scale(1.02);
+  background: linear-gradient(135deg, var(--terracota), #b65a48);
+}
+
+.btn-secondary {
+  background: var(--terracota);
+}
+
+/* ---------- INPUTS ---------- */
+input, select {
+  width: 100%;
+  padding: .8rem 1rem;
+  border: 1px solid rgba(0,0,0,0.1);
+  border-radius: 12px;
+  background: #fff;
+  box-sizing: border-box;
+}
+
+/* ---------- ANIMAÇÃO PADRÃO ---------- */
+.fadeIn {
+  animation: fadeIn .5s ease forwards;
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+.retomar-backdrop {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 99999;
+}
+
+.retomar-card {
+  background: #fff5ef;
+  padding: 24px;
+  width: 90%;
+  max-width: 350px;
+  border-radius: 16px;
+  text-align: center;
+  box-shadow: 0 8px 25px rgba(0,0,0,0.1);
+  color: #335953;
+}
+
+.retomar-card button {
+  width: 100%;
+  padding: 12px;
+  margin-top: 12px;
+  border-radius: 12px;
+  border: none;
+  font-size: 16px;
+}
+
+.recomecar-btn {
+  background: #cc6a5a;
+  color: white;
+}
+
+.continuar-btn {
+  background: #e5e5e5;
+  color: #333;
+}
+
+.cancelar-btn {
+  background: transparent;
+  color: #777;
+}
+.ff-close {
+  background: #eee;
+  color: #555;
+}
+
+.ff-close:active {
+  background: #ddd;
+}
+
+/* ============================================================
+   MODAL DE IDIOMA
+============================================================ */
+.ff-lang-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.45);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+  z-index: 160000;
+}
+
+.ff-lang-modal.hidden {
+  display: none;
+}
+
+.ff-lang-box {
+  width: min(420px, 92vw);
+  background: #fff;
+  border-radius: 18px;
+  padding: 22px;
+  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
+  text-align: center;
+}
+
+.ff-lang-box h2 {
+  margin: 0 0 16px;
+  color: var(--teal);
+  font-family: "Playfair Display", serif;
+}
+
+.ff-lang-btn {
+  width: 100%;
+  margin-top: 10px;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: 1px solid #e2d5cc;
+  background: #fff5ef;
+  color: #335953;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.ff-lang-btn:active {
+  background: #f2ded5;
+}
+
+.ff-lang-close {
+  margin-top: 16px;
+  width: 100%;
+  padding: 12px 14px;
+  border-radius: 14px;
+  border: none;
+  background: #cc6a5a;
+  color: #fff;
+  font-weight: 600;
+  cursor: pointer;
+}
+/* ============================================================
+   TOAST FEMFLOW — VISIBILIDADE 2025
+============================================================ */
+.toast-box {
+  position: fixed;
+  bottom: 22px;
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 14px 22px;
+  color: #ffffff !important; /* TEXTO BRANCO FORTE */
+  font-weight: 700;
+  font-size: 1rem;
+  border-radius: 14px;
+  background: #335953; /* padrão sucesso */
+  box-shadow: 0 6px 16px rgba(0,0,0,0.2);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .35s ease;
+  z-index: 9999;
+}
+
+.toast-box.visible {
+  opacity: 1;
+}
+
+/* Toast de erro */
+.toast-box.error {
+  background: #cc6a5a !important; /* terracota */
+  color: #ffffff !important;      /* texto branco */
+}
+/* ============================================================
+   MODAL NÍVEL — FemFlow Style
+============================================================ */
+
+.modal-nivel {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.45);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  z-index: 99999;
+}
+
+.modal-nivel.oculto {
+  display: none;
+}
+
+.modal-nivel-box {
+  background: #fff7f2;
+  padding: 28px;
+  border-radius: 22px;
+  width: 85%;
+  max-width: 360px;
+  box-shadow: 0 8px 22px rgba(0,0,0,0.15);
+  text-align: center;
+  animation: fadeIn .15s ease-out;
+}
+
+.modal-nivel-box h2 {
+  margin-top: 0;
+  font-family: "Playfair Display";
+  font-weight: 700;
+  color: #335953;
+  font-size: 1.4rem;
+}
+
+.nivel-btn {
+  display: block;
+  width: 100%;
+  padding: 12px;
+  margin-top: 10px;
+  background: #fff;
+  border: 2px solid #335953;
+  border-radius: 14px;
+  color: #335953;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: .25s;
+}
+
+.nivel-btn:hover {
+  background: #335953;
+  color: #fff;
+}
+
+.nivel-fechar {
+  margin-top: 18px;
+  border: none;
+  background: transparent;
+  color: #b56a57;
+  font-size: .9rem;
+  cursor: pointer;
+}
+.nivel-confirmar {
+  margin-top: 18px;
+  width: 100%;
+  padding: 12px;
+  background: #335953;
+  color: #fff;
+  border: none;
+  border-radius: 14px;
+  font-weight: 700;
+  font-size: 1rem;
+  cursor: pointer;
+  transition: background .25s, transform .15s, box-shadow .15s;
+  box-shadow: 0 6px 14px rgba(51, 89, 83, 0.35);
+}
+
+.nivel-confirmar:hover {
+  background: #2b4a45;
+  transform: translateY(-1px);
+  box-shadow: 0 8px 18px rgba(51, 89, 83, 0.45);
+}
+
+.nivel-confirmar:active {
+  transform: translateY(0);
+  box-shadow: 0 4px 10px rgba(51, 89, 83, 0.35);
+}
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+

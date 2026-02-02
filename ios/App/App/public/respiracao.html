@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="format-detection" content="telephone=no" />
+  <script src="./config/config.js"></script>
+  <title>Respiração • FemFlow</title>
+
+  <link rel="icon" href="favicon.ico">
+
+  <!-- CSS -->
+  <link rel="stylesheet" href="css/core.css">
+  <link rel="stylesheet" href="css/header.css">
+  <link rel="stylesheet" href="css/themes.css">
+  <link rel="stylesheet" href="css/respiracao.css">
+
+  <style>
+    :root {
+      --header-height: 78px;
+    }
+
+    #breathModal {
+      padding-top: calc(var(--header-height) + 10px) !important;
+      min-height: calc(100vh - var(--header-height));
+      box-sizing: border-box;
+    }
+
+    #descricaoRespModal {
+      font-size: 15px;
+      color: #6a4f47;
+      text-align: center;
+      max-width: 90%;
+      margin: 12px auto 20px auto;
+      line-height: 1.45;
+      opacity: 0.95;
+      font-style: italic;
+    }
+  </style>
+</head>
+
+<body class="pagina-respiracao">
+
+<h1 id="respTituloTopo">
+  <span id="respTitulo1">Respirações</span>
+  <span id="respTitulo2">FemFlow</span>
+</h1>
+<p class="sub" id="respSub">Escolha o protocolo conforme seu momento 🌿</p>
+
+<!-- ============================= -->
+<!--     GRUPOS DE PROTOCOLOS      -->
+<!-- ============================= -->
+<h2 class="grupo-titulo" id="grupoCiclo">Respirações do Ciclo</h2>
+
+<button class="btn-protocolo" onclick="abrirRespiracao('raiz')" id="btnRaiz">Respiração Raiz</button>
+<button class="btn-protocolo" onclick="abrirRespiracao('clareza')" id="btnClareza">Respiração Clareza</button>
+<button class="btn-protocolo" onclick="abrirRespiracao('brilho')" id="btnBrilho">Respiração Brilho</button>
+<button class="btn-protocolo" onclick="abrirRespiracao('sereno')" id="btnSereno">Respiração Sereno</button>
+
+<h2 class="grupo-titulo" id="grupoTreino">Respirações para Treinar</h2>
+
+<button class="btn-protocolo" onclick="abrirRespiracao('wake')" id="btnWake">Wake Flow</button>
+<button class="btn-protocolo" onclick="abrirRespiracao('charge')" id="btnCharge">Charge Flow</button>
+<button class="btn-protocolo" onclick="abrirRespiracao('release')" id="btnRelease">Release Flow</button>
+<button class="btn-protocolo" onclick="abrirRespiracao('restore')" id="btnRestore">Restore Flow</button>
+
+<h2 class="grupo-titulo" id="grupoUniversal">Respirações Universais</h2>
+
+<button class="btn-protocolo" onclick="abrirRespiracao('equilibrio')" id="btnEquilibrio">Respiração Equilíbrio</button>
+<button class="btn-protocolo" onclick="abrirRespiracao('transparencia')" id="btnTransparencia">Respiração Transparência</button>
+
+<button class="ff-voltar-treino" id="btnVoltarTreino">← voltar ao treino</button>
+
+<!-- ============================= -->
+<!--      DRAWER LATERAL           -->
+<!-- ============================= -->
+<div class="breath-drawer" id="breathDrawer">
+  <div class="drawer-header" id="drawerTitle">Respiração</div>
+  <div id="breathDrawerContent"></div>
+</div>
+
+<!-- ============================= -->
+<!--      MODAL DE RESPIRAÇÃO      -->
+<!-- ============================= -->
+<div id="breathModal">
+  <div id="breathCircle">5</div>
+  <div id="faseLabel">Preparar...</div>
+  <p id="descricaoRespModal"></p>
+
+  <div id="countdown"></div>
+  <button id="btnStart">Iniciar Respiração</button>
+  <button id="btnCloseModal">← voltar às respirações</button>
+</div>
+
+<footer id="respFooter">Inspire equilíbrio. Expire leveza.</footer>
+
+<!-- ============================= -->
+<!-- SCRIPTS FEMFLOW
+<!-- ============================= -->
+<script src="js/lang.js"></script>
+<script src="core/femflow-core.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", async () => {
+
+  /* ============================================================
+     🔥 PROTEÇÃO DE ACESSO → Se não tiver login ou produto, volta para HOME
+  ============================================================ */
+  const produto = localStorage.getItem("femflow_produto");
+  const produtoNorm = String(produto || "").toLowerCase();
+  const isVip = produtoNorm === "vip";
+  const ativa   = isVip || localStorage.getItem("femflow_ativa") === "true";
+
+  if (!produto || !ativa) {
+    FEMFLOW.toast("Acesse a Home para continuar 🌸");
+    return FEMFLOW.router("home");
+  }
+
+  /* ============================================================
+     HEADER / MENU / IDIOMA
+  ============================================================ */
+  FEMFLOW.inserirHeaderApp?.();
+  FEMFLOW.inserirMenuLateral?.();
+  FEMFLOW.inserirModalIdioma?.();
+
+  let cicloAtivo = false;
+  let protocoloAtual = null;
+  let protocoloAtualId = null;
+  let vibracaoAtiva = false;
+
+  const drawer     = document.getElementById("breathDrawer");
+  const modal      = document.getElementById("breathModal");
+  const drawerCt   = document.getElementById("breathDrawerContent");
+
+  const circle     = document.getElementById("breathCircle");
+  const label      = document.getElementById("faseLabel");
+  const descModal  = document.getElementById("descricaoRespModal");
+  const btnStart   = document.getElementById("btnStart");
+  const btnClose   = document.getElementById("btnCloseModal");
+
+  const protocolos = {
+    raiz:        { fases:[4,4,4,4], cor:"#CC6A5A" },
+    clareza:     { fases:[5,7,8,0], cor:"#E2B5A5" },
+    brilho:      { fases:[3,2,3,2], cor:"#FFB26B" },
+    sereno:      { fases:[6,2,6,2], cor:"#A4C3B2" },
+    wake:        { fases:[3,3,3,0], cor:"#88C1A7" },
+    charge:      { fases:[2,1,4,1], cor:"#B44C3B" },
+    release:     { fases:[4,2,6,0], cor:"#CBD6D6" },
+    restore:     { fases:[6,2,6,2], cor:"#8BAAAD" },
+    equilibrio:  { fases:[4,4,4,4], cor:"#6E8A9F" },
+    transparencia:{fases:[5,5,5,5], cor:"#D0C7E2" }
+  };
+
+  function obterTextosRespiracao(){
+    return {
+      titulo1: FEMFLOW.t("respiracao.titulo1"),
+      titulo2: FEMFLOW.t("respiracao.titulo2"),
+      sub: FEMFLOW.t("respiracao.sub"),
+      preparar: FEMFLOW.t("respiracao.preparar"),
+      footer: FEMFLOW.t("respiracao.footer"),
+      tituloModal: FEMFLOW.t("respiracao.tituloModal"),
+      fases: [
+        FEMFLOW.t("respiracao.fases.inspire"),
+        FEMFLOW.t("respiracao.fases.segure"),
+        FEMFLOW.t("respiracao.fases.expire"),
+        FEMFLOW.t("respiracao.fases.segure")
+      ],
+      grupos: {
+        ciclo: FEMFLOW.t("respiracao.grupos.ciclo"),
+        treino: FEMFLOW.t("respiracao.grupos.treino"),
+        universal: FEMFLOW.t("respiracao.grupos.universal")
+      },
+      botoes: {
+        iniciar: FEMFLOW.t("respiracao.botoes.iniciar"),
+        voltarRespiracoes: FEMFLOW.t("respiracao.botoes.voltarRespiracoes"),
+        voltarTreino: FEMFLOW.t("respiracao.botoes.voltarTreino")
+      },
+      protocolos: {
+        raiz: FEMFLOW.t("respiracao.protocolos.raiz"),
+        clareza: FEMFLOW.t("respiracao.protocolos.clareza"),
+        brilho: FEMFLOW.t("respiracao.protocolos.brilho"),
+        sereno: FEMFLOW.t("respiracao.protocolos.sereno"),
+        wake: FEMFLOW.t("respiracao.protocolos.wake"),
+        charge: FEMFLOW.t("respiracao.protocolos.charge"),
+        release: FEMFLOW.t("respiracao.protocolos.release"),
+        restore: FEMFLOW.t("respiracao.protocolos.restore"),
+        equilibrio: FEMFLOW.t("respiracao.protocolos.equilibrio"),
+        transparencia: FEMFLOW.t("respiracao.protocolos.transparencia")
+      },
+      descricoes: {
+        raiz: FEMFLOW.t("respiracao.descricoes.raiz"),
+        clareza: FEMFLOW.t("respiracao.descricoes.clareza"),
+        brilho: FEMFLOW.t("respiracao.descricoes.brilho"),
+        sereno: FEMFLOW.t("respiracao.descricoes.sereno"),
+        wake: FEMFLOW.t("respiracao.descricoes.wake"),
+        charge: FEMFLOW.t("respiracao.descricoes.charge"),
+        release: FEMFLOW.t("respiracao.descricoes.release"),
+        restore: FEMFLOW.t("respiracao.descricoes.restore"),
+        equilibrio: FEMFLOW.t("respiracao.descricoes.equilibrio"),
+        transparencia: FEMFLOW.t("respiracao.descricoes.transparencia")
+      }
+    };
+  }
+
+  function aplicarTextosRespiracao(){
+    const textos = obterTextosRespiracao();
+    const t1 = document.getElementById("respTitulo1");
+    const t2 = document.getElementById("respTitulo2");
+    const sub = document.getElementById("respSub");
+    const grupoCiclo = document.getElementById("grupoCiclo");
+    const grupoTreino = document.getElementById("grupoTreino");
+    const grupoUniversal = document.getElementById("grupoUniversal");
+    const btnVoltarTreino = document.getElementById("btnVoltarTreino");
+    const footer = document.getElementById("respFooter");
+
+    if (t1) t1.textContent = textos.titulo1;
+    if (t2) t2.textContent = textos.titulo2;
+    if (sub) sub.textContent = textos.sub;
+    if (grupoCiclo) grupoCiclo.textContent = textos.grupos.ciclo;
+    if (grupoTreino) grupoTreino.textContent = textos.grupos.treino;
+    if (grupoUniversal) grupoUniversal.textContent = textos.grupos.universal;
+    if (btnStart) btnStart.textContent = textos.botoes.iniciar;
+    if (btnClose) btnClose.textContent = textos.botoes.voltarRespiracoes;
+    if (btnVoltarTreino) btnVoltarTreino.textContent = textos.botoes.voltarTreino;
+    if (footer) footer.textContent = textos.footer;
+
+    const botoesProtocolos = {
+      btnRaiz: textos.protocolos.raiz,
+      btnClareza: textos.protocolos.clareza,
+      btnBrilho: textos.protocolos.brilho,
+      btnSereno: textos.protocolos.sereno,
+      btnWake: textos.protocolos.wake,
+      btnCharge: textos.protocolos.charge,
+      btnRelease: textos.protocolos.release,
+      btnRestore: textos.protocolos.restore,
+      btnEquilibrio: textos.protocolos.equilibrio,
+      btnTransparencia: textos.protocolos.transparencia
+    };
+
+    Object.entries(botoesProtocolos).forEach(([id, texto]) => {
+      const botao = document.getElementById(id);
+      if (botao) botao.textContent = texto;
+    });
+
+    if (protocoloAtualId) {
+      const titulo = textos.protocolos[protocoloAtualId] || textos.tituloModal;
+      const descricao = textos.descricoes[protocoloAtualId] || "";
+      const drawerTitle = document.getElementById("drawerTitle");
+      if (drawerTitle) drawerTitle.textContent = titulo;
+      if (descModal) descModal.textContent = descricao;
+    }
+
+    if (!cicloAtivo && label) {
+      label.textContent = textos.preparar;
+    }
+  }
+
+  document.addEventListener("femflow:langChange", aplicarTextosRespiracao);
+  aplicarTextosRespiracao();
+
+  /* ============================================================
+     ABRIR PROTOCOLO
+  ============================================================ */
+  window.abrirRespiracao = function(tipo){
+    const p = protocolos[tipo];
+    if (!p) return;
+
+    const textos = obterTextosRespiracao();
+
+    if (btnStart) btnStart.textContent = textos.botoes.iniciar;
+    if (btnClose) btnClose.textContent = textos.botoes.voltarRespiracoes;
+
+    protocoloAtual = p;
+    protocoloAtualId = tipo;
+    cicloAtivo = false;
+
+    document.getElementById("drawerTitle").textContent =
+      textos.protocolos[tipo] || textos.tituloModal;
+    descModal.textContent = textos.descricoes[tipo] || "";
+
+    circle.textContent = "5";
+    label.textContent = textos.preparar;
+
+    if (!drawerCt.contains(modal)) drawerCt.appendChild(modal);
+
+    modal.style.display = "flex";
+    drawer.classList.add("active");
+
+    btnStart.style.display = "block";
+    btnStart.onclick = () => {
+      vibracaoAtiva = true;
+      dispararVibracao("start");
+      startProtocolo(protocoloAtual);
+    };
+
+    modal.style.background = p.cor + "22";
+    circle.style.background = p.cor;
+  };
+
+  /* ============================================================
+     FECHAR MODAL / DRAWER
+  ============================================================ */
+  function fecharDrawer(){
+    cicloAtivo = false;
+    vibracaoAtiva = false;
+    pararVibracao();
+    drawer.classList.remove("active");
+  }
+
+  btnClose.onclick = fecharDrawer;
+
+  /* ============================================================
+     🔙 VOLTAR AO FLOWCENTER
+  ============================================================ */
+  document.getElementById("btnVoltarTreino").onclick =
+    () => FEMFLOW.router("flowcenter");
+
+  /* ============================================================
+     CONTAGEM E CICLOS
+  ============================================================ */
+  async function esperar(ms){ return new Promise(r => setTimeout(r, ms)); }
+
+  async function contagemInicial(){
+    for (let i = 5; i >= 1; i--){
+      circle.textContent = i;
+      await esperar(900);
+    }
+  }
+
+  async function animarContagem(segundos, faseIndex, cor){
+    const textos = obterTextosRespiracao();
+
+    label.textContent = textos.fases[faseIndex];
+    circle.style.background = cor;
+    dispararVibracao(faseIndex);
+
+    for (let s = segundos; s >= 1; s--){
+      if (!cicloAtivo) {
+        pararVibracao();
+        return;
+      }
+      circle.textContent = s;
+      await esperar(1000);
+    }
+  }
+
+  function dispararVibracao(faseIndex){
+    if (!vibracaoAtiva) return;
+    if (typeof navigator === "undefined" || typeof navigator.vibrate !== "function") return;
+
+    const vibracoes = {
+      start: 120,
+      0: 80,
+      1: 280,
+      2: 80,
+      3: 280
+    };
+
+    const duracao = vibracoes[faseIndex];
+    if (!duracao) return;
+
+    navigator.vibrate(duracao);
+  }
+
+  function pararVibracao(){
+    if (typeof navigator === "undefined" || typeof navigator.vibrate !== "function") return;
+    navigator.vibrate(0);
+  }
+
+  async function startProtocolo(p){
+    cicloAtivo = true;
+    btnStart.style.display = "none";
+
+    await contagemInicial();
+
+    let fase = 0;
+    async function cicloResp(){
+      const dur = p.fases[fase];
+      await animarContagem(dur, fase, p.cor);
+      fase = (fase + 1) % 4;
+
+      if (cicloAtivo) cicloResp();
+    }
+
+    cicloResp();
+  }
+
+});
+</script>
+
+<!-- ========================= -->
+<!--       MODAL NÍVEL        -->
+<!-- ========================= -->
+<div id="modal-nivel" class="modal-nivel oculto">
+  <div class="modal-nivel-box">
+    <h2>📊 Selecione seu nível</h2>
+
+    <button class="nivel-btn" data-nivel="iniciante">Iniciante</button>
+    <button class="nivel-btn" data-nivel="intermediaria">Intermediária</button>
+    <button class="nivel-btn" data-nivel="avancada">Avançada</button>
+
+    <button id="btnConfirmarNivel" class="nivel-confirmar">
+      Confirmar nível
+    </button>
+
+    <button id="fecharNivel" class="nivel-fechar">Fechar</button>
+  </div>
+</div>
+
+
+  <script src="/staging/app/js/env-staging.js"></script>
+</body>
+</html>

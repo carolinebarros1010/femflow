@@ -1,0 +1,584 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="format-detection" content="telephone=no" />
+  <script src="./config/config.js"></script>
+  <title>FemFlow • Flow Center</title>
+
+  <link rel="manifest" href="manifest.json" />
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+
+  <style>
+    :root {
+      --bege: #fff5ef;
+      --terracota: #cc6a5a;
+      --texto: #5b4f49;
+    }
+
+    body {
+      margin: 0;
+      background: var(--bege);
+      color: var(--texto);
+      font-family: "Lato", sans-serif;
+      text-align: center;
+      padding-top: 70px;
+    }
+
+    h1 {
+      font-family: 'Playfair Display', serif;
+      color: var(--terracota);
+      margin: 0;
+    }
+
+    h3 { margin-top: 5px; }
+
+    /* ================== CÍRCULO DE FASES =================== */
+    .phase-svg {
+      width: 280px;
+      height: 280px;
+      margin: 0 auto;
+      position: relative;
+    }
+
+    @keyframes pulseCenter {
+      0%,100% { transform: scale(1); opacity: 1; }
+      50% { transform: scale(1.05); opacity: 0.85; }
+    }
+
+    @keyframes glowPhase {
+      0%,100% { filter: brightness(1); }
+      50% { filter: brightness(1.4); }
+    }
+
+    .center-active {
+      fill: var(--terracota);
+      animation: pulseCenter 2.5s infinite ease-in-out;
+    }
+
+    .phase-active {
+      fill: var(--terracota) !important;
+      animation: glowPhase 2.3s infinite ease-in-out;
+    }
+
+    /* ================== BOTÕES =================== */
+    .toolbar {
+      display: flex;
+      gap: 12px;
+      justify-content: center;
+      margin: 25px 0;
+    }
+
+    .tool {
+      border: 1px solid rgba(204,106,90,0.25);
+      background: #fff;
+      color: var(--terracota);
+      padding: 8px 12px;
+      border-radius: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      font-family: "Lato", sans-serif;
+      font-size: 0.9rem;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      transition: all .3s ease;
+    }
+
+    .tool:hover {
+      background: var(--terracota);
+      color: #fff;
+      transform: scale(1.03);
+    }
+
+    /* ================== TEXTOS =================== */
+    .status-fase {
+      margin-top: 18px;
+      font-family: "Playfair Display", serif;
+      font-size: 1.2rem;
+      color: var(--terracota);
+      font-weight: 600;
+      animation: fadeIn .6s ease-in-out;
+    }
+
+    .fase-descricao {
+      margin: 8px auto 16px;
+      font-size: 0.95rem;
+      max-width: 310px;
+      color: #6d5b55;
+      line-height: 1.5;
+      animation: fadeIn .8s ease-in-out;
+    }
+
+    @keyframes fadeIn {
+      from {opacity: 0; transform: translateY(6px);}
+      to {opacity: 1; transform: translateY(0);}
+    }
+  </style>
+</head>
+
+<body>
+<h1 id="flowTitle">FemFlow</h1>
+<h3 id="flowSubtitle">Fase Hormonal</h3>
+<p id="flowDesc">Seu corpo tem um ritmo. Vamos segui-lo juntas.</p>
+
+<div class="phase-svg">
+  <svg viewBox="0 0 300 300" width="260" height="260">
+    <circle cx="150" cy="150" r="120" fill="#fff5ef"></circle>
+    <g stroke="#fff5ef" stroke-width="3">
+      <path id="seg-menstrual"  d="M150,150 L150,30 A120,120 0 0,1 270,150 Z" fill="#f9e0d8"></path>
+      <path id="seg-follicular" d="M150,150 L270,150 A120,120 0 0,1 150,270 Z" fill="#f9e0d8"></path>
+      <path id="seg-ovulatory"  d="M150,150 L150,270 A120,120 0 0,1 30,150 Z" fill="#f9e0d8"></path>
+      <path id="seg-luteal"     d="M150,150 L30,150 A120,120 0 0,1 150,30 Z" fill="#f9e0d8"></path>
+    </g>
+
+    <circle id="centerCircle" cx="150" cy="150" r="63" fill="#cc6a5a"></circle>
+    <text id="centerPhase" x="150" y="155" text-anchor="middle"
+      font-family="Playfair Display" font-size="18" font-weight="700" fill="#fff">—</text>
+  </svg>
+</div>
+
+<div id="flowStatus" class="status-fase">🌸 Você está na fase —</div>
+<p id="faseDescricao" class="fase-descricao"></p>
+
+<div class="toolbar">
+  <button class="tool" id="toBreath">💨 Respiração</button>
+  <button class="tool" id="toTrain">🏃 Treino</button>
+</div>
+
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script src="./core/femflow-core.js"></script>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+  console.log("🌸 FlowCenter v25 carregado e sincronizando com Core");
+  const SCRIPT_URL = FEMFLOW.SCRIPT_URL;
+
+  const lang = localStorage.getItem("femflow_lang") || "pt";
+  const T = {
+    pt: {
+      title: "FemFlow",
+      subtitle: "Fase Hormonal",
+      desc: "Seu corpo tem um ritmo. Vamos segui-lo juntas.",
+      status: "🌸 Você está na fase",
+      phases: {
+        menstrual: "Menstrual",
+        follicular: "Folicular",
+        ovulatory: "Ovulatória",
+        luteal: "Lútea"
+      },
+      descs: {
+        menstrual: "Momento de recolhimento e escuta. Movimentos suaves e autocuidado.",
+        follicular: "Energia crescente. Aumente carga e potência.",
+        ovulatory: "Pico de energia e confiança. Ideal para treinos intensos.",
+        luteal: "Introspecção e estabilidade. Priorize controle e recuperação."
+      }
+    },
+    en: {
+      title: "FemFlow",
+      subtitle: "Hormonal Phase",
+      desc: "Your body has a rhythm. Let's follow it together.",
+      status: "🌸 You are in the",
+      phases: {
+        menstrual: "Menstrual",
+        follicular: "Follicular",
+        ovulatory: "Ovulatory",
+        luteal: "Luteal"
+      },
+      descs: {
+        menstrual: "Time for rest and reflection.",
+        follicular: "Rising energy — increase load and focus.",
+        ovulatory: "Peak energy and confidence. Go intense.",
+        luteal: "Calm phase — balance and recovery."
+      }
+    }
+  };
+  const L = T[lang];
+
+  document.getElementById("flowTitle").textContent = L.title;
+  document.getElementById("flowSubtitle").textContent = L.subtitle;
+  document.getElementById("flowDesc").textContent = L.desc;
+
+  // === Determina a fase atual ===
+  const perfil = localStorage.getItem("femflow_perfilHormonal") || "regular";
+  const ciclo  = parseInt(localStorage.getItem("femflow_cycleLength") || 28);
+  const inicio = new Date(localStorage.getItem("femflow_startDate") || new Date());
+  const faseSugerida = localStorage.getItem("fase_sugerida");
+
+  let fase = "menstrual";
+  if (perfil === "regular") {
+    const diff = Math.floor((new Date() - inicio)/(1000*60*60*24));
+    const dia = (diff % ciclo) + 1;
+    if (dia>5 && dia<=13) fase="follicular";
+    else if (dia<=17) fase="ovulatory";
+    else fase="luteal";
+  } else if (faseSugerida) {
+    fase = faseSugerida.toLowerCase();
+  }
+
+  localStorage.setItem("fase_atual", fase);
+
+  // === Atualiza UI ===
+  document.getElementById("centerPhase").textContent = L.phases[fase];
+  document.getElementById("flowStatus").textContent = `${L.status} ${L.phases[fase]}`;
+  document.getElementById("faseDescricao").textContent = L.descs[fase];
+
+  ["menstrual","follicular","ovulatory","luteal"].forEach(s=>{
+    const el=document.getElementById(`seg-${s}`);
+    if (!el) return;
+    el.classList.toggle("phase-active", s===fase);
+  });
+
+  document.getElementById("centerCircle").classList.add("center-active");
+
+  // === Botões ===
+  document.getElementById("toBreath")?.addEventListener("click", () => FEMFLOW.router("respiracao"));
+  document.getElementById("toTrain")?.addEventListener("click", () => FEMFLOW.router("treino"));
+
+  window.addEventListener("femflow:langchange", () => location.reload());
+});
+</script>
+  <script>
+document.addEventListener("DOMContentLoaded", () => {
+  const atualizarUI = (lang) => {
+    const T = {
+      pt: {
+        title: "FemFlow",
+        subtitle: "Fase Hormonal",
+        desc: "Seu corpo tem um ritmo. Vamos segui-lo juntas.",
+        status: "🌸 Você está na fase",
+        phases: {
+          menstrual: "Menstrual",
+          follicular: "Folicular",
+          ovulatory: "Ovulatória",
+          luteal: "Lútea"
+        },
+        descs: {
+          menstrual: "Momento de recolhimento e escuta. Movimentos suaves e autocuidado.",
+          follicular: "Energia crescente. Aumente carga e potência.",
+          ovulatory: "Pico de energia e confiança. Ideal para treinos intensos.",
+          luteal: "Introspecção e estabilidade. Priorize controle e recuperação."
+        },
+        btns: { breath: "💨 Respiração", train: "🏃 Treino" }
+      },
+      en: {
+        title: "FemFlow",
+        subtitle: "Hormonal Phase",
+        desc: "Your body has a rhythm. Let's follow it together.",
+        status: "🌸 You are in the",
+        phases: {
+          menstrual: "Menstrual",
+          follicular: "Follicular",
+          ovulatory: "Ovulatory",
+          luteal: "Luteal"
+        },
+        descs: {
+          menstrual: "Time for rest and reflection.",
+          follicular: "Rising energy — increase load and focus.",
+          ovulatory: "Peak energy and confidence. Go intense.",
+          luteal: "Calm phase — balance and recovery."
+        },
+        btns: { breath: "💨 Breathing", train: "🏃 Training" }
+      }
+    };
+
+    const L = T[lang] || T.pt;
+    const fase = localStorage.getItem("fase_atual") || "menstrual";
+
+    document.getElementById("flowTitle").textContent = L.title;
+    document.getElementById("flowSubtitle").textContent = L.subtitle;
+    document.getElementById("flowDesc").textContent = L.desc;
+    document.getElementById("centerPhase").textContent = L.phases[fase];
+    document.getElementById("flowStatus").textContent = `${L.status} ${L.phases[fase]}`;
+    document.getElementById("faseDescricao").textContent = L.descs[fase];
+    document.getElementById("toBreath").textContent = L.btns.breath;
+    document.getElementById("toTrain").textContent  = L.btns.train;
+  };
+
+  // 🔁 Detecta troca de idioma emitida pelo core
+  window.addEventListener("femflow:langchange", () => {
+    const newLang = localStorage.getItem("femflow_lang") || "pt";
+    atualizarUI(newLang);
+  });
+});
+</script>
+  <script src="/staging/app/js/env-staging.js"></script>
+</body>
+</html>
+
+
+
+
+
+
+/* =======================================================================
+   FemFlow v05 — Treino Diário 2025
+   ENGINE HORMONAL 3.1 • TURNOVER • FIREBASE • SNAPSHOT OFFLINE
+======================================================================= */
+
+document.addEventListener("DOMContentLoaded", async () => {
+
+  const OFFLINE_KEY_TREINO = "femflow_offline_treino_v1";
+
+  /* -----------------------------------------------------------
+   * 1. LOGIN + CICLO
+   * ----------------------------------------------------------- */
+  const id = localStorage.getItem("femflow_id");
+  if (!id) {
+    FEMFLOW.toast("⚠️ Faça login novamente.");
+    return location.href = "index.html?ret=treino.html";
+  }
+
+  const cicloOK =
+    localStorage.getItem("femflow_cycle_configured") === "yes" &&
+    localStorage.getItem("femflow_startDate") &&
+    localStorage.getItem("femflow_cycleLength");
+
+  if (!cicloOK) {
+    FEMFLOW.toast("⚠️ Configure seu ciclo.");
+    return location.href = "ciclo.html";
+  }
+
+  /* -----------------------------------------------------------
+   * 2. ESTADO BASE
+   * ----------------------------------------------------------- */
+  const estado = (window.FEMFLOW && typeof FEMFLOW.getEstadoTreino === "function")
+    ? FEMFLOW.getEstadoTreino()
+    : {
+        enfase: "geral",
+        nivel: "iniciante",
+        fase: "menstrual",
+        diaCiclo: 1
+      };
+
+  /* -----------------------------------------------------------
+   * 3. ELEMENTOS
+   * ----------------------------------------------------------- */
+  const track = document.querySelector("#carouselTrack");
+  const bar   = document.querySelector("#progressBar");
+
+  if (!track || !bar) {
+    FEMFLOW.toast("❌ Estrutura interna ausente.");
+    return;
+  }
+
+  let boxes   = [];
+  let current = 0;
+
+  const diaPrograma = Number(localStorage.getItem("femflow_dia_treino") || 1);
+  document.querySelector("#tituloDiaTreino").textContent =
+    `Dia ${diaPrograma} do Programa`;
+
+  let metaTreino = {
+    fase: null,
+    diaCiclo: null,
+    diaPrograma
+  };
+
+  /* ============================================================
+   * 4. CARROSSEL
+   * ============================================================ */
+  const moveTo = (dir) => {
+    const total = boxes.length;
+
+    if (dir === "next" && current < total - 1) {
+      current++;
+      navigator.vibrate?.([30]);
+    } else if (dir === "prev" && current > 0) {
+      current--;
+      navigator.vibrate?.([20]);
+    }
+
+    const item = track.children[current];
+    if (!item) return;
+
+    track.scrollTo({
+      left: item.offsetLeft - 16,
+      behavior: "smooth"
+    });
+
+    bar.style.width = `${((current + 1) / total) * 100}%`;
+  };
+
+  let startX = 0, endX = 0;
+  track.addEventListener("touchstart", e => startX = e.touches[0].clientX);
+  track.addEventListener("touchmove",  e => endX   = e.touches[0].clientX);
+  track.addEventListener("touchend", () => {
+    if (Math.abs(startX - endX) > 40)
+      moveTo(startX > endX ? "next" : "prev");
+  });
+
+  /* ============================================================
+   * 5. TIMERS
+   * ============================================================ */
+  const fmt = s => `00:${String(s).padStart(2, "0")}`;
+  const intervals = new WeakMap();
+
+  function parseTempo(raw) {
+    const n = Number(String(raw).replace(/[^\d]/g, ""));
+    return n > 0 ? n : 45;
+  }
+
+  function bindTimers(root) {
+    root.querySelectorAll(".ff-timer-bar").forEach(el => {
+
+      const total = parseTempo(el.dataset.total);
+      el.dataset.total = total;
+
+      const fill  = el.querySelector(".ff-timer-fill");
+      const label = el.querySelector(".ff-timer-count");
+
+      let remain = total;
+
+      const start = () => {
+        clearInterval(intervals.get(el));
+        el.classList.add("running");
+
+        const int = setInterval(() => {
+          remain--;
+          fill.style.width = `${(remain / total) * 100}%`;
+          label.textContent = fmt(remain);
+
+          if (remain <= 0) {
+            clearInterval(int);
+            el.classList.remove("running");
+            el.classList.add("done");
+          }
+        }, 1000);
+
+        intervals.set(el, int);
+      };
+
+      el.addEventListener("click", () => {
+        if (el.classList.contains("running")) {
+          clearInterval(intervals.get(el));
+          el.classList.remove("running");
+        } else {
+          start();
+        }
+      });
+    });
+  }
+
+  /* ============================================================
+   * 6. ENGINE HORMONAL 3.1 — FINAL UNIFICADA (2025)
+   * ============================================================ */
+  // Função para calcular o ciclo hormonal, agora baseada no backend
+  async function calcularEngineHormonal() {
+    const id = localStorage.getItem("femflow_id");
+
+    const response = await fetch(`${SCRIPT_URL}?action=status&id=${id}`);
+    const data = await response.json();
+
+    if (data.status !== "ok") {
+      FEMFLOW.toast("⚠️ Não foi possível recuperar o ciclo da aluna.");
+      return null;
+    }
+
+    const fase = data.fase;
+    const diaCiclo = data.diaCiclo;
+
+    return {
+      faseFirebase: fase,
+      diaFirebase: diaCiclo,
+      diaKey: `dia_${diaCiclo}`
+    };
+  }
+
+  /* ============================================================
+   * 7. ENGINE ENERGÉTICA
+   * ============================================================ */
+  function engineEnergeticaAvancar() {
+    let dia = Number(localStorage.getItem("femflow_dia_energetico") || 1);
+    localStorage.setItem("femflow_dia_energetico", dia + 1);
+  }
+
+  function engineEnergeticaRetroalimentar() {
+    let dia = Number(localStorage.getItem("femflow_dia_energetico") || 1);
+    if (dia > 1) localStorage.setItem("femflow_dia_energetico", dia - 1);
+  }
+
+  /* ============================================================
+   * 8. EXECUÇÃO DO TREINO
+   * ============================================================ */
+  async function executarTreinoDia() {
+
+    const id = localStorage.getItem("femflow_id");
+
+    if (!id) {
+      FEMFLOW.toast("⚠️ Refaça o login.");
+      return location.href = "index.html?ret=treino.html";
+    }
+
+    const cicloData = await calcularEngineHormonal();
+
+    if (!cicloData) {
+      FEMFLOW.toast("⚠️ Não foi possível calcular o ciclo.");
+      return;
+    }
+
+    const { faseFirebase, diaFirebase, diaKey } = cicloData;
+
+    const firebaseQuery = {
+      fase: faseFirebase,
+      diaKey: diaKey
+    };
+
+    const url =
+      `${SCRIPT_URL}?action=treino` +
+      `&id=${encodeURIComponent(id)}` +
+      `&fase=${encodeURIComponent(faseFirebase)}` +
+      `&diaFirebase=${encodeURIComponent(diaFirebase)}` +
+      `&diaKey=${encodeURIComponent(diaKey)}` +
+      `&nivel=${encodeURIComponent(localStorage.getItem("femflow_nivel") || "")}` +
+      `&enfase=${encodeURIComponent(localStorage.getItem("femflow_enfase") || "")}` +
+      `&diaCiclo=${encodeURIComponent(localStorage.getItem("femflow_diaCiclo"))}`;
+
+    let j = null;
+
+    try {
+      const resp = await fetch(url);
+      j = await resp.json();
+    } catch (e) {
+      console.error("❌ GET treino falhou:", e);
+    }
+
+    if (!j || j.status !== "ok") {
+      FEMFLOW.toast("❌ Falha ao carregar treino.");
+      return;
+    }
+
+    console.log("🔥 DiaCiclo recebido do backend:", j.diaCiclo);
+
+    // Atualizando o valor de DiaCiclo no frontend (se necessário)
+    localStorage.setItem("femflow_diaCiclo", j.diaCiclo);
+
+    const box0 = j.boxes?.find(b => b.tipo === "texto") || null;
+    const boxFinal = j.boxes?.find(b => b.tipo === "resfriamento") || null;
+
+    const hiitCardio = j.hiitCardio || [];
+
+    const listaFinal = await gerarBoxesFinais(firebaseQuery, hiitCardio, box0, boxFinal);
+
+    if (!listaFinal.length) {
+      FEMFLOW.toast("Nenhum exercício encontrado.");
+    }
+
+    aplicarPerformanceView(faseFirebase);
+    render(listaFinal);
+
+    salvarSnapshotOffline({
+      fase: faseFirebase,
+      diaCiclo: cicloData.diaFirebase,
+      diaPrograma
+    }, listaFinal);
+
+    console.log("✅ Treino final renderizado!");
+  }
+  
+  /* Função que inicia o treino do dia */
+  executarTreinoDia();
+
+});

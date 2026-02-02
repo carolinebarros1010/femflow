@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="format-detection" content="telephone=no" />
+  <script src="./config/config.js"></script>
+  <title>FollowMe • Treino do Dia</title>
+
+  <link rel="stylesheet" href="css/followme_treino.css">
+</head>
+<body>
+
+<div class="fm-container">
+
+  <header class="fm-header">
+    <h2 id="fmCoachNome">Treinando com...</h2>
+    <p id="fmProgress">Dia 1 de 30 — Fase: Follicular</p>
+  </header>
+
+  <div class="fm-video-box">
+    <video id="fmVideo" controls playsinline></video>
+  </div>
+
+  <button id="fmReplayBtn" class="fm-btn replay">🔁 Assistir novamente</button>
+  <button id="fmVoltarBtn" class="fm-btn voltar">⬅ Voltar</button>
+
+</div>
+
+
+<!-- MODAL PSE -->
+<div id="fmModalPSE" class="fm-modal hidden">
+  <div class="fm-modal-content">
+    <h3>Como foi o treino?</h3>
+    <p>Dê uma nota de 1 a 10</p>
+
+    <div class="fm-pse-grid">
+      <button class="pse-val">1</button>
+      <button class="pse-val">2</button>
+      <button class="pse-val">3</button>
+      <button class="pse-val">4</button>
+      <button class="pse-val">5</button>
+      <button class="pse-val">6</button>
+      <button class="pse-val">7</button>
+      <button class="pse-val">8</button>
+      <button class="pse-val">9</button>
+      <button class="pse-val">10</button>
+    </div>
+
+    <button id="fmCancelarPSE" class="fm-btn cancelar">Cancelar</button>
+  </div>
+</div>
+
+<script src="js/followme_treino.js"></script>
+</body>
+</html>

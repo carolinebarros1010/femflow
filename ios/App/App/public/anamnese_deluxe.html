@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="format-detection" content="telephone=no" />
+  <script src="./config/config.js"></script>
+  <title>FemFlow • Anamnese Deluxe</title>
+
+  <!-- Favicons -->
+  <link rel="icon" type="image/x-icon" href="favicon.ico">
+  <link rel="apple-touch-icon" href="favicon.ico">
+  <meta name="theme-color" content="#cc6a5a">
+
+  <!-- Manifest -->
+  <link rel="manifest" href="manifest.json">
+
+  <!-- Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+
+  <!-- Core disabled (somente backend/infra) -->
+  <script>window.FEMFLOW_DISABLE_UI = true;</script>
+  <script defer src="core/femflow-core.js"></script>
+
+  <!-- Styles internas -->
+  <style>
+    :root {
+      --terracota:#cc6a5a; 
+      --bege:#fff5ef; 
+      --verde:#335953; 
+      --texto:#5b4f49;
+    }
+    body{
+      margin:0; min-height:100vh;
+      display:flex; flex-direction:column; align-items:center;
+      background:linear-gradient(180deg,var(--bege) 0%,#fae6dc 100%);
+      color:var(--texto);
+      font-family:"Lato",sans-serif; overflow-x:hidden;
+    }
+    h1{
+      font-family:'Playfair Display',serif;
+      color:var(--terracota);
+      font-size:2rem; margin:1rem 0 .4rem;
+    }
+    #btnLang{
+      background:none; border:none; color:var(--verde);
+      font-size:.9rem; font-weight:600; cursor:pointer;
+      margin-top:-10px; margin-bottom:8px;
+    }
+    .card{
+      background:#fff; border-radius:24px;
+      max-width:420px; width:90%;
+      padding:26px 22px; margin-top:1.2rem;
+      box-shadow:0 8px 20px rgba(0,0,0,.08);
+      text-align:center; animation:fadeIn .5s ease;
+    }
+    input{
+      width:78%; max-width:300px;
+      padding:.85rem 1rem; margin:.4rem 0 1rem;
+      border:1px solid #e6ddd8; border-radius:14px;
+      font-size:.95rem; background:#fff;
+      transition:border-color .2s, box-shadow .2s;
+    }
+    input:focus{ border-color:var(--terracota); box-shadow:0 0 0 3px rgba(204,106,90,.18) }
+    input[aria-invalid="true"]{ border-color:#d9534f }
+    label{
+      display:block;
+      margin:0.4rem auto -0.4rem;
+      width:78%; max-width:300px;
+      text-align:left;
+      font-size:.85rem;
+      color:var(--texto);
+    }
+    .err{ font-size:.9rem; color:#d9534f; min-height:1.1rem; }
+   button{
+  background:linear-gradient(135deg,var(--verde),var(--terracota));
+  color:#fff; border:none; border-radius:14px;
+  padding:12px 18px; font-size:1rem;
+  width:100%;               /* 🔥 ocupa o container */
+  max-width:300px;
+  cursor:pointer; transition:.25s;
+}
+
+    button[disabled]{opacity:.6; cursor:not-allowed;}
+    button:hover:not([disabled]){ transform:translateY(-2px); }
+
+    .gif{
+      width:180px; height:180px; object-fit:cover;
+      border-radius:20px; margin:1rem auto;
+      box-shadow:0 5px 15px rgba(0,0,0,.1);
+    }
+
+    .question{ font-size:1.1rem; font-weight:600; margin:1.2rem 0; }
+    .options{
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:10px;
+  width:100%;
+}
+
+
+
+    .hidden{ display:none!important }
+
+    @keyframes fadeIn {
+      from { opacity:0; transform:translateY(10px); }
+      to   { opacity:1; transform:translateY(0); }
+    }
+  </style>
+
+  <!-- Pré-load logo -->
+  <link rel="preload" href="./assets/logofemflowterracota.png" as="image">
+</head>
+
+<body>
+
+  <!-- Logo -->
+  <img src="./assets/logofemflowterracota.png" alt="FemFlow" style="width:120px;margin-top:10px;">
+
+  <!-- Título multilíngue -->
+  <h1 id="tituloAnamnese">Anamnese</h1>
+  <button id="btnLang">🌐 Idioma</button>
+
+  <!-- ============================
+        ETAPA 1 — CADASTRO
+  ============================ -->
+  <div id="cadastro" class="card">
+    <p id="cadHint" class="hint">🌸 Preencha seus dados para começar:</p>
+
+    <input id="nome" placeholder="Nome completo">
+    <div id="eNome" class="err"></div>
+
+    <input id="email" type="email" placeholder="E-mail">
+    <div id="eEmail" class="err"></div>
+
+    <input id="telefone" type="tel" placeholder="Telefone (opcional)">
+    <div id="eTel" class="err"></div>
+
+    <label id="labelDataNascimento" for="dataNascimento">Data de nascimento</label>
+    <input id="dataNascimento" type="date" required>
+    <div id="eDataNascimento" class="err"></div>
+
+    <input id="senha" type="password" placeholder="Crie uma senha (mín. 6)">
+    <div id="eSenha" class="err"></div>
+
+    <input id="confirma" type="password" placeholder="Confirme a senha">
+    <div id="eConf" class="err"></div>
+
+    <button id="btnIniciar" disabled>Iniciar Anamnese</button>
+  </div>
+
+  <!-- ============================
+        ETAPA 2 — QUIZ
+  ============================ -->
+  <div id="quiz" class="card hidden">
+    <img id="gif" class="gif" src="./assets/gifs/profile_form.webp">
+    <div id="question" class="question"></div>
+    <div id="options" class="options"></div>
+  </div>
+
+  <!-- ============================
+        ETAPA 3 — FINAL
+  ============================ -->
+  <div id="final" class="card hidden">
+    <img class="gif" src="./assets/gifs/success_flow.webp">
+    <p id="final-msg">✨ Análise concluída! Calculando seu perfil...</p>
+  </div>
+
+  <!-- ============================
+        SCRIPTS (todos externos)
+  ============================ -->
+  <script src="js/anamnese.js" defer></script>
+  <script src="js/anamnese_lang.js" defer></script>
+
+  <!-- Modal de Idioma -->
+  <div id="ff-lang-modal" class="hidden" style="
+    position:fixed; inset:0; background:rgba(0,0,0,.55);
+    display:flex; align-items:center; justify-content:center;
+    z-index:9999;
+  ">
+    <div style="
+      background:#fff; padding:22px; border-radius:18px;
+      width:90%; max-width:330px; text-align:center;
+    ">
+
+      <h3 style="margin:0 0 12px;color:#335953;">Selecione o idioma</h3>
+
+      <button onclick="FEMFLOW.setLang('pt'); this.closest('#ff-lang-modal').classList.add('hidden');"
+        style="margin:6px 0; padding:12px; width:100%; border-radius:12px; background:#335953; color:#fff;">
+        Português
+      </button>
+
+      <button onclick="FEMFLOW.setLang('en'); this.closest('#ff-lang-modal').classList.add('hidden');"
+        style="margin:6px 0; padding:12px; width:100%; border-radius:12px; background:#cc6a5a; color:#fff;">
+        English
+      </button>
+
+      <button onclick="FEMFLOW.setLang('fr'); this.closest('#ff-lang-modal').classList.add('hidden');"
+        style="margin:6px 0; padding:12px; width:100%; border-radius:12px; background:#e2b5a5; color:#573b2e;">
+        Français
+      </button>
+
+      <button onclick="this.closest('#ff-lang-modal').classList.add('hidden');"
+        style="margin-top:14px; padding:10px; width:100%; border-radius:12px; background:#ddd;">
+        Fechar
+      </button>
+
+    </div>
+  </div>
+
+  <script src="/staging/app/js/env-staging.js"></script>
+</body>
+</html>

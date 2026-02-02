@@ -1,0 +1,7 @@
+{
+	"appId": "com.femflow.app",
+	"appName": "FemFlow",
+	"webDir": "staging/app",
+	"bundledWebRuntime": false,
+	"packageClassList": []
+}

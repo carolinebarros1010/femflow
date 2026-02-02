@@ -22,6 +22,10 @@
   "homepage": "https://github.com/carolinebarros1010/femflow#readme",
   "dependencies": {
     "@capacitor/cli": "^8.0.2",
-    "@capacitor/core": "^8.0.2"
+    "@capacitor/core": "^8.0.2",
+    "@capacitor/ios": "^8.0.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.9.3"
   }
 }

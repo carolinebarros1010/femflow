@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="format-detection" content="telephone=no" />
+  <script src="./config/config.js"></script>
+  <title>FemFlow • Minha Evolução</title>
+
+  <link rel="icon" href="favicon.ico">
+  <link rel="apple-touch-icon" href="favicon.ico">
+  <link rel="manifest" href="manifest.json"/>
+
+  <!-- Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+
+  <!-- Core CSS -->
+  <link rel="stylesheet" href="css/core.css">
+  <link rel="stylesheet" href="css/header.css">
+  <link rel="stylesheet" href="css/themes.css">
+  <link rel="stylesheet" href="css/evolucao.css">
+
+  <!-- Chart.js -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+
+<body>
+
+<h1 id="tituloPagina">—</h1>
+<p id="subtituloPagina" class="evo-subtitle">—</p>
+
+<div class="evo-container">
+
+  <!-- PROGRESSO -->
+  <section class="evo-card">
+    <h2 id="tituloProgresso">—</h2>
+    <p id="progressoTexto" class="texto-progresso"></p>
+
+    <div class="evo-progress">
+      <div id="progressoBarra" class="evo-progress-fill"></div>
+    </div>
+  </section>
+
+  <!-- GRÁFICO PSE -->
+  <section class="evo-card evo-chart">
+    <h3 id="tituloPSE">—</h3>
+
+    <div class="chart-container">
+      <canvas id="graficoPSE"></canvas>
+    </div>
+
+    <p id="legendaPSE" class="evo-legend">
+      🩵 Leve • 🍑 Moderado • ❤️ Intenso
+    </p>
+  </section>
+
+  <!-- FINAL DO CICLO -->
+  <section id="mensagemFinal" class="mensagem-final" style="display:none">
+    <span id="textoMensagemFinal"></span>
+    <button id="novoCicloBtn" class="evo-btn"></button>
+  </section>
+
+  <button id="voltarFlow" class="evo-btn" style="margin-top:20px">—</button>
+
+</div>
+
+<script src="js/lang.js"></script>
+<script src="core/femflow-core.js"></script>
+
+<script>
+/* ============================================================
+   1) Aplicar Idioma
+============================================================ */
+function aplicarIdioma() {
+
+  if (!FEMFLOW.lang)
+    FEMFLOW.lang = localStorage.getItem("femflow_lang") || "pt";
+
+  const langSet = FEMFLOW.langs[FEMFLOW.lang] || FEMFLOW.langs.pt;
+  const L = langSet.evolucao;
+
+  if (!L) {
+    console.warn("⚠️ Dicionário 'evolucao' não encontrado.");
+    return;
+  }
+
+  const map = {
+    tituloPagina:    L.titulo,
+    subtituloPagina: L.sub,
+    tituloProgresso: L.treino,
+    tituloPSE:       L.pseMedia,
+    textoMensagemFinal: L.faseAtual,
+    novoCicloBtn:    L.descanso,
+    voltarFlow:      (langSet.menu && langSet.menu.voltar) || "Voltar"
+  };
+
+  for (const id in map) {
+    const el = document.getElementById(id);
+    if (el && map[id]) el.innerHTML = map[id];
+  }
+
+  // Progresso numérico
+  if (window.__prog !== undefined) {
+    const elProg = document.getElementById("progressoTexto");
+    if (elProg) elProg.innerText = window.__prog + "%";
+  }
+}
+
+document.addEventListener("femflow:langChange", aplicarIdioma);
+document.addEventListener("DOMContentLoaded", aplicarIdioma);
+
+
+/* ============================================================
+   2) Lógica da Página
+============================================================ */
+document.addEventListener("DOMContentLoaded", async () => {
+
+  FEMFLOW.inserirHeaderApp?.();
+
+  /* 🔐 Proteção de acesso */
+  const id = localStorage.getItem("femflow_id");
+  const produto = localStorage.getItem("femflow_produto");
+  const produtoNorm = String(produto || "").toLowerCase();
+  const isVip = produtoNorm === "vip";
+  const ativa   = isVip || localStorage.getItem("femflow_ativa") === "true";
+
+  if (!id || !produto || !ativa) {
+    FEMFLOW.toast("Acesse pela Home para continuar 🌸");
+    return FEMFLOW.router("home");
+  }
+
+  async function carregarEvolucaoBackend() {
+    try {
+      const resp = await FEMFLOW.post({
+        action: "getevolucao",
+        id
+      });
+
+      if (!resp || resp.status !== "ok") return null;
+
+      const hist =
+        (Array.isArray(resp.hist) && resp.hist) ||
+        (Array.isArray(resp.evolucao) && resp.evolucao) ||
+        (Array.isArray(resp.pseHist) && resp.pseHist) ||
+        (Array.isArray(resp.dados) && resp.dados) ||
+        null;
+
+      const diaPrograma =
+        Number(resp.diaPrograma || resp.dia_treino || resp.diaTreino || resp.dia || 0) ||
+        null;
+
+      return { hist, diaPrograma };
+    } catch (e) {
+      console.warn("⚠️ Erro ao buscar evolução no backend:", e);
+      return null;
+    }
+  }
+
+  function normalizarPse(item) {
+    if (!item) return 0;
+    const valor = item.pse ?? item.PSE ?? item.pseMedia ?? item.valor ?? 0;
+    return Number(valor) || 0;
+  }
+
+  const backend = await carregarEvolucaoBackend();
+
+  /* ============================================================
+     PROGRESSO 30 DIAS
+  ============================================================ */
+  const diaTreinoBackend = backend?.diaPrograma;
+  const diaTreinoLocal = Number(localStorage.getItem("femflow_dia_treino") || 1);
+  const dia = diaTreinoBackend || diaTreinoLocal || 1;
+
+  if (diaTreinoBackend) {
+    localStorage.setItem("femflow_dia_treino", String(diaTreinoBackend));
+  }
+
+  const prog = Math.min(100, Math.round(((dia - 1) / 30) * 100));
+  window.__prog = prog;
+
+  aplicarIdioma();
+
+  const barra = document.getElementById("progressoBarra");
+  if (barra) barra.style.width = prog + "%";
+
+  // FINAL DO CICLO
+  if (prog >= 100) {
+    const boxFinal = document.getElementById("mensagemFinal");
+    if (boxFinal) boxFinal.style.display = "block";
+
+    const btnNovo = document.getElementById("novoCicloBtn");
+    if (btnNovo) {
+      btnNovo.onclick = () => {
+        localStorage.setItem("femflow_dia_treino", "1");
+        FEMFLOW.router("ciclo.html");
+      };
+    }
+  }
+
+  /* ============================================================
+     HISTÓRICO PSE — localStorage
+  ============================================================ */
+  let hist = backend?.hist;
+
+  if (!Array.isArray(hist)) {
+    try {
+      hist = JSON.parse(localStorage.getItem("femflow_hist") || "[]");
+    } catch {
+      hist = [];
+    }
+  } else {
+    localStorage.setItem("femflow_hist", JSON.stringify(hist));
+  }
+
+  hist = hist.slice(-40);
+
+  const L = (FEMFLOW.langs[FEMFLOW.lang] || FEMFLOW.langs.pt).evolucao;
+  if (!hist.length && L && L.nenhumDado) {
+    FEMFLOW.toast(L.nenhumDado);
+  }
+
+  /* ============================================================
+     GRÁFICO
+  ============================================================ */
+  new Chart(document.getElementById("graficoPSE"), {
+    type: "line",
+    data: {
+      labels: hist.map((t, i) => i + 1),
+      datasets: [{
+        data: hist.map(normalizarPse),
+        borderColor: "#CC6A5A",
+        backgroundColor: "rgba(239,189,166,0.35)",
+        borderWidth: 2,
+        tension: 0.35,
+        fill: true
+      }]
+    },
+    options: {
+      plugins: { legend: { display: false } },
+      responsive: true,
+      maintainAspectRatio: false
+    }
+  });
+
+  /* ============================================================
+     BOTÃO VOLTAR
+  ============================================================ */
+  const voltar = document.getElementById("voltarFlow");
+  if (voltar) voltar.onclick = () => FEMFLOW.router("flowcenter.html");
+
+});
+</script>
+
+<!-- MODAL NÍVEL -->
+<div id="modal-nivel" class="modal-nivel oculto">
+  <div class="modal-nivel-box">
+    <h2>📊 Selecione seu nível</h2>
+
+    <button class="nivel-btn" data-nivel="iniciante">Iniciante</button>
+    <button class="nivel-btn" data-nivel="intermediaria">Intermediária</button>
+    <button class="nivel-btn" data-nivel="avancada">Avançada</button>
+
+    <button id="btnConfirmarNivel" class="nivel-confirmar">
+      Confirmar nível
+    </button>
+
+    <button id="fecharNivel" class="nivel-fechar">Fechar</button>
+  </div>
+</div>
+
+
+  <script src="/staging/app/js/env-staging.js"></script>
+</body>
+</html>
