@@ -62,9 +62,14 @@ document.addEventListener("DOMContentLoaded", () => {
     .trim()
     .split("?")[0]
     .replace(/\.html.*$/, "");
+  const enduranceParam = new URLSearchParams(window.location.search).get("endurance");
+  const enduranceParamActive = enduranceParam === "1";
   if (extraParamNorm.startsWith("extra_")) {
     localStorage.setItem("femflow_treino_extra", "true");
     localStorage.setItem("femflow_enfase", extraParamNorm);
+  }
+  if (enduranceParamActive) {
+    localStorage.setItem("femflow_treino_endurance", "true");
   }
 
   const treinoSnapshotState = {
@@ -72,6 +77,44 @@ document.addEventListener("DOMContentLoaded", () => {
     lastBoxIndex: null
   };
   let treinoSnapshotToScroll = null;
+  let enduranceAtivo = localStorage.getItem("femflow_treino_endurance") === "true";
+  let enduranceConfig = null;
+  let personalFinal = isPersonal;
+
+  const getEnduranceDiaLabel = (lang) => {
+    const labels = {
+      pt: ["domingo", "segunda", "terca", "quarta", "quinta", "sexta", "sabado"],
+      en: ["sunday", "monday", "tuesday", "wednesday", "thursday", "friday", "saturday"],
+      fr: ["dimanche", "lundi", "mardi", "mercredi", "jeudi", "vendredi", "samedi"]
+    };
+    const list = labels[lang] || labels.pt;
+    return list[new Date().getDay()] || list[1];
+  };
+
+  const getEnduranceConfig = () => {
+    const lang = FEMFLOW.lang || "pt";
+    const semanaRaw = localStorage.getItem("femflow_endurance_semana") || "1";
+    const semana = Number(semanaRaw) || 1;
+    let dia = localStorage.getItem("femflow_endurance_dia") || "";
+    if (!dia) {
+      dia = getEnduranceDiaLabel(lang);
+      localStorage.setItem("femflow_endurance_dia", dia);
+    }
+    if (!localStorage.getItem("femflow_endurance_semana")) {
+      localStorage.setItem("femflow_endurance_semana", String(semana));
+    }
+    return { semana, dia };
+  };
+
+  const getTreinoKey = ({ diaCiclo }) => {
+    if (enduranceAtivo && enduranceConfig) {
+      return `endurance_semana_${enduranceConfig.semana}_${enduranceConfig.dia}`;
+    }
+    if (personalFinal) {
+      return `personal_dia_${diaCiclo}`;
+    }
+    return `${FEMFLOW.enfaseAtual}_dia_${diaCiclo}`;
+  };
 
   function getTreinoSnapshotContext() {
     if (!id) return null;
@@ -81,13 +124,18 @@ document.addEventListener("DOMContentLoaded", () => {
     );
     const enfaseBase = FEMFLOW.enfaseAtual || (isPersonal ? "personal" : "");
     const enfase = String(enfaseBase || "").trim();
-    if (!enfase) return null;
+    if (!enfase && !enduranceAtivo) return null;
+    if (enduranceAtivo && !enduranceConfig) {
+      enduranceConfig = getEnduranceConfig();
+    }
 
     return {
       id,
       diaCiclo,
       diaPrograma,
-      enfase
+      enfase: enduranceAtivo
+        ? `endurance_${enduranceConfig?.semana}_${enduranceConfig?.dia}`
+        : enfase
     };
   }
 
@@ -301,6 +349,9 @@ document.addEventListener("DOMContentLoaded", () => {
   function encerrarTreino() {
     if (treinoExtraAtivo) {
       localStorage.removeItem("femflow_treino_extra");
+    }
+    if (enduranceAtivo) {
+      localStorage.removeItem("femflow_treino_endurance");
     }
     FEMFLOW.router("flowcenter.html");
   }
@@ -592,7 +643,7 @@ const hasPersonal =
 
     const modePersonal =
       localStorage.getItem("femflow_mode_personal") === "true";
-    const personalFinal = hasPersonal && modePersonal;
+    personalFinal = hasPersonal && modePersonal;
 
     if (personalFinal) {
       document.body.classList.add("personal-mode");
@@ -638,11 +689,18 @@ const hasPersonal =
     if (!extraSessaoAtiva && isExtraTreino) {
       localStorage.removeItem("femflow_treino_extra");
     }
+    if (!personalFinal && enduranceAtivo) {
+      enduranceAtivo = false;
+      localStorage.removeItem("femflow_treino_endurance");
+    }
+    if (enduranceAtivo) {
+      enduranceConfig = getEnduranceConfig();
+    }
 
     console.log("🧠 ÊNFASE RECEBIDA DO BACKEND:", perfil.enfase);
     FEMFLOW.enfaseAtual = enfaseFinal;
 
-    if (!personalFinal && !enfaseFinal) {
+    if (!personalFinal && !enfaseFinal && !enduranceAtivo) {
       FEMFLOW.toast("Escolha um treino na Home 🌸");
       FEMFLOW.router("home.html");
       return;
@@ -655,7 +713,15 @@ const hasPersonal =
       extra_mobilidade: t("treino.extraOpcoes.mobilidade")
     };
 
-    if (isExtraTreino) {
+    if (enduranceAtivo && enduranceConfig) {
+      const enduranceLabel = t("endurance") || "Endurance";
+      if (tituloTopo) {
+        tituloTopo.textContent = enduranceLabel;
+      }
+      if (tituloDia) {
+        tituloDia.textContent = `Semana ${enduranceConfig.semana} • ${enduranceConfig.dia}`;
+      }
+    } else if (isExtraTreino) {
       FEMFLOW.diaProgramaAtual = Number(localStorage.getItem("femflow_diaPrograma") || 1);
       if (tituloTopo) {
         tituloTopo.textContent = t("treino.tituloExtra");
@@ -674,14 +740,20 @@ const hasPersonal =
     }
 
     /* ================= TREINO ================= */
-    const lista = await FEMFLOW.engineTreino.montarTreinoFinal({
-      id,
-      nivel,
-      enfase: enfaseFinal,
-      fase,
-      diaCiclo,
-      personal: personalFinal && !isExtraTreino
-    });
+    const lista = enduranceAtivo
+      ? await FEMFLOW.engineTreino.montarTreinoEndurance({
+          id,
+          semana: enduranceConfig?.semana,
+          dia: enduranceConfig?.dia
+        })
+      : await FEMFLOW.engineTreino.montarTreinoFinal({
+          id,
+          nivel,
+          enfase: enfaseFinal,
+          fase,
+          diaCiclo,
+          personal: personalFinal && !isExtraTreino
+        });
 
     renderTreino(lista);
 
@@ -1688,13 +1760,7 @@ function initPeso() {
         return;
       }
       const diaCiclo = Number(localStorage.getItem("femflow_diaCiclo") || 1);
-const isPersonal =
-  localStorage.getItem("femflow_has_personal") === "true" &&
-  localStorage.getItem("femflow_mode_personal") === "true";
-
-const treino = isPersonal
-  ? `personal_dia_${diaCiclo}`
-  : `${FEMFLOW.enfaseAtual}_dia_${diaCiclo}`;
+const treino = getTreinoKey({ diaCiclo });
 
 
 
@@ -1772,13 +1838,7 @@ if (btnConfirmarPSE) {
     }
 
     try {
-      const isPersonal =
-  localStorage.getItem("femflow_has_personal") === "true" &&
-  localStorage.getItem("femflow_mode_personal") === "true";
-
-const treino = isPersonal
-  ? `personal_dia_${diaCiclo}`
-  : `${FEMFLOW.enfaseAtual}_dia_${diaCiclo}`;
+const treino = getTreinoKey({ diaCiclo });
 
         const resp = await FEMFLOW.post({
       action: "salvartreino",
