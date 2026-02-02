@@ -1,3 +1,15 @@
-.clasp.json
-# clasp local target (não versionar)
+﻿# Node
+node_modules/
+npm-debug.log*
+package-lock.json.tmp
+
+# Capacitor / iOS
+ios/App/build/
+ios/App/DerivedData/
+
+# Sistema
+.DS_Store
+Thumbs.db
+
+# GAS
 app/GAS/.clasp.json
