@@ -3,9 +3,16 @@ function doGet(e) {
   const action = String(params.action || "").toLowerCase().trim();
 
   if (!action) {
-  // GETs vazios (preload, health check, cache, etc)
-  return _json({ status: "ok", noop: true });
-}
+    if (params.id) {
+      return _json(legacyValidarId_(params.id));
+    }
+    // GETs vazios (preload, health check, cache, etc)
+    return _json({ status: "ok", noop: true });
+  }
+
+  if (action === "upgrade") {
+    return _json(legacyUpgrade_(params.id, params.nivel, "GET", params.token));
+  }
 
 
   if (action === "validar") {
