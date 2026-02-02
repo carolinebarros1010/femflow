@@ -22,6 +22,10 @@ function doPost(e) {
   const action = (data.action || "").toString().toLowerCase();
   let resposta = { status: "ignored" };
 
+  if (!action && data.id && data.pse !== undefined) {
+    return _json(legacyRegistrarPSE_(data));
+  }
+
   try {
     switch (action) {
 
@@ -148,6 +152,20 @@ function doPost(e) {
         break;
 
       /* ===========================
+         🔐 UPGRADE MANUAL (LEGACY)
+      ============================ */
+      case "upgrade":
+        resposta = legacyUpgrade_(data.id, data.nivel, "POST", data.token);
+        break;
+
+      /* ===========================
+         🧾 RECUPERAR ID (LEGACY)
+      ============================ */
+      case "recuperarid":
+        resposta = legacyRecuperarId_(data);
+        break;
+
+      /* ===========================
          🔄 SYNC CICLO
       ============================ */
       case "sync":
@@ -169,6 +187,13 @@ function doPost(e) {
         break;
 
       /* ===========================
+         😴 SALVAR DESCANSO (LEGACY)
+      ============================ */
+      case "descanso":
+        resposta = legacyRegistrarDescanso_(data);
+        break;
+
+      /* ===========================
          📌 DIA DO PROGRAMA
       ============================ */
       case "setdiaprograma":
@@ -180,6 +205,21 @@ function doPost(e) {
       ============================ */
       case "settreinossemana":
         resposta = setTreinosSemana_(data);
+        break;
+
+      /* ===========================
+         🏃 ENDURANCE (LEGACY)
+      ============================ */
+      case "endurance_setup":
+        resposta = legacyEnduranceSetup_(data);
+        break;
+
+      case "endurance_treino":
+        resposta = legacyEnduranceTreino_(data);
+        break;
+
+      case "endurance_check":
+        resposta = legacyEnduranceCheck_(data);
         break;
 
       /* ===========================
