@@ -31,10 +31,10 @@ function calcularCicloReal(params) {
   : null;
 
   if (!perfil) {
-  // Não inventar perfil
+  // Não inventar perfil, mas ainda avançar pelo startDate
   return {
-    fase: faseSalva || "menstrual",
-    dia: diaCicloSalvo || 1
+    fase: faseSalva || fasePorDiaCiclo_(dia),
+    dia
   };
 }
 
@@ -102,6 +102,17 @@ return { fase: faseSalva || "follicular", dia: diaCicloSalvo || 1 };
 
 }
 
+function _resolveHeaderIndex_(header, name, fallback) {
+  const target = String(name || "").trim().toLowerCase();
+  if (!header || !header.length || !target) return fallback;
+  for (let i = 0; i < header.length; i++) {
+    if (String(header[i] || "").trim().toLowerCase() === target) {
+      return i;
+    }
+  }
+  return fallback;
+}
+
 /* ======================================================
  * 🌸 SET CICLO — OPÇÃO A (STARTDATE RETROATIVO)
  * ------------------------------------------------------
@@ -125,6 +136,11 @@ function setCiclo_(data) {
   if (!id) return { status: "error", msg: "missing_id" };
 
   const values = sh.getDataRange().getValues();
+  const header = values[0] || [];
+  const idxCicloDuracao = _resolveHeaderIndex_(header, "CicloDuracao", 9);
+  const idxDataInicio = _resolveHeaderIndex_(header, "DataInicio", 10);
+  const idxFase = _resolveHeaderIndex_(header, "Fase", 13);
+  const idxDiaCiclo = _resolveHeaderIndex_(header, "DiaCiclo", 14);
 
   /* ===============================
      Helpers locais
@@ -164,11 +180,11 @@ function setCiclo_(data) {
        1) CicloDuracao (J)
     =============================== */
     const cicloDuracao = _clamp(
-      Number(data.cicloDuracao) || Number(r[9]) || 28,
+      Number(data.cicloDuracao) || Number(r[idxCicloDuracao]) || 28,
       21,
       35
     );
-    sh.getRange(linha, 10).setValue(cicloDuracao);
+    sh.getRange(linha, idxCicloDuracao + 1).setValue(cicloDuracao);
 
     /* ===============================
        2) Dia do ciclo (intenção explícita)
@@ -190,19 +206,19 @@ function setCiclo_(data) {
     }
 
     if (dataInicioFinal) {
-      sh.getRange(linha, 11).setValue(dataInicioFinal);
+      sh.getRange(linha, idxDataInicio + 1).setValue(dataInicioFinal);
     }
 
     /* ===============================
        4) Fase fisiológica (N)
     =============================== */
     const faseFinal = fasePorDia(diaCicloFinal);
-    sh.getRange(linha, 14).setValue(faseFinal);
+    sh.getRange(linha, idxFase + 1).setValue(faseFinal);
 
     /* ===============================
        5) DiaCiclo (O)
     =============================== */
-    sh.getRange(linha, 15).setValue(diaCicloFinal);
+    sh.getRange(linha, idxDiaCiclo + 1).setValue(diaCicloFinal);
 
     /* ===============================
        7) DiaPrograma
@@ -320,12 +336,16 @@ function calcularEFixarFase_(id) {
   if (!idNorm) return null;
 
   const vals = sh.getDataRange().getValues();
+  const header = vals[0] || [];
+  const idxDiaCiclo = _resolveHeaderIndex_(header, "DiaCiclo", 14);
+  const idxCicloDuracao = _resolveHeaderIndex_(header, "CicloDuracao", 9);
+  const idxFase = _resolveHeaderIndex_(header, "Fase", 13);
 
   for (let i = 1; i < vals.length; i++) {
     if (String(vals[i][0]).trim() !== idNorm) continue;
 
-    const diaCiclo       = Number(vals[i][14] || 1); // O
-    const cicloDuracao   = Number(vals[i][9]  || 28); // J
+    const diaCiclo       = Number(vals[i][idxDiaCiclo] || 1);
+    const cicloDuracao   = Number(vals[i][idxCicloDuracao] || 28);
 
     const d = Math.max(1, Math.min(diaCiclo, cicloDuracao));
 
@@ -338,7 +358,7 @@ function calcularEFixarFase_(id) {
     /* ============================
        ✍️ ESCREVER FASE
     ============================ */
-    sh.getRange(i + 1, 14).setValue(fase); // coluna N
+    sh.getRange(i + 1, idxFase + 1).setValue(fase);
 
     return fase;
   }
@@ -359,14 +379,19 @@ function sync(id) {
   if (!idNorm) return { status: "error", msg: "missing_id" };
 
   const vals = sh.getDataRange().getValues();
+  const header = vals[0] || [];
+  const idxDataInicio = _resolveHeaderIndex_(header, "DataInicio", 10);
+  const idxCicloDuracao = _resolveHeaderIndex_(header, "CicloDuracao", 9);
+  const idxFase = _resolveHeaderIndex_(header, "Fase", 13);
+  const idxDiaCiclo = _resolveHeaderIndex_(header, "DiaCiclo", 14);
 
   for (let i = 1; i < vals.length; i++) {
     if (String(vals[i][0]).trim() !== idNorm) continue;
 
     const linha = i + 1;
 
-    const dataInicio = vals[i][10]; // col 11
-    const cicloDuracao = Number(vals[i][9] || 28); // col 10
+    const dataInicio = vals[i][idxDataInicio];
+    const cicloDuracao = Number(vals[i][idxCicloDuracao] || 28);
     const dataInicioDate =
       dataInicio instanceof Date ? dataInicio : new Date(dataInicio);
     const hasDataInicio =
@@ -381,14 +406,14 @@ function sync(id) {
     const ciclo = calcularCicloReal({
       startDate: startBase,
       cicloDuracao,
-      faseSalva: vals[i][13],
-      diaCicloSalvo: vals[i][14]
+      faseSalva: vals[i][idxFase],
+      diaCicloSalvo: vals[i][idxDiaCiclo]
     });
 
-    sh.getRange(linha, 15).setValue(ciclo.dia);
+    sh.getRange(linha, idxDiaCiclo + 1).setValue(ciclo.dia);
 
     const faseAtual = fasePorDiaCiclo_(ciclo.dia);
-    sh.getRange(linha, 14).setValue(faseAtual);
+    sh.getRange(linha, idxFase + 1).setValue(faseAtual);
 
     return {
       status: "ok",
