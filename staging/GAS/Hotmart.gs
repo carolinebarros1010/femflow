@@ -189,6 +189,7 @@ function _processarHotmart(data) {
   const planId = getPlanId(data);
   const planName = getPlanName(data);
   const plano = _resolverPlanoHotmart(planId, planName);
+  const lang = _resolverLangHotmart_(data);
 
   /* ======================================================
      4) PLANILHA
@@ -246,16 +247,65 @@ function _processarHotmart(data) {
       }
     }
 
+    const eventoDisparaBoasVindas =
+      eventoCanon === "compra_aprovada" ||
+      eventoNorm.includes("download") ||
+      eventoNorm.includes("cadastro") ||
+      eventoNorm.includes("registration");
+    const produtoEmail = _resolverProdutoEmailHotmart_(data, plano);
+    let emailEnviado = false;
+    let emailTipo = "";
+    if (eventoDisparaBoasVindas) {
+      if (produtoEmail === "treino_personal") {
+        emailEnviado = _enviarBoasVindasPersonal_(email, nome, lang);
+        emailTipo = "personal";
+      } else if (["acesso_app", "trial_app", "follow_me"].includes(produtoEmail)) {
+        emailEnviado = _enviarBoasVindasNewsletter_(email, nome, lang);
+        emailTipo = "newsletter";
+      }
+    }
+
     return {
       status: "ok",
       produto: plano.produto,
       acesso_personal: plano.personal,
+      email_boas_vindas: emailEnviado,
+      email_tipo: emailTipo,
       evento
     };
   }
 
   /* ======================================================
-     6) EVENTOS SEM ALTERAR ACESSO
+     6) DOWNLOAD / CADASTRO — BOAS-VINDAS
+  ====================================================== */
+  if (
+    eventoNorm.includes("download") ||
+    eventoNorm.includes("cadastro") ||
+    eventoNorm.includes("registration")
+  ) {
+    const produtoEmail = _resolverProdutoEmailHotmart_(data, plano);
+    let emailEnviado = false;
+    let emailTipo = "";
+    if (produtoEmail === "treino_personal") {
+      emailEnviado = _enviarBoasVindasPersonal_(email, nome, lang);
+      emailTipo = "personal";
+    } else if (["acesso_app", "trial_app", "follow_me"].includes(produtoEmail)) {
+      emailEnviado = _enviarBoasVindasNewsletter_(email, nome, lang);
+      emailTipo = "newsletter";
+    }
+
+    return {
+      status: "ok",
+      msg: "download_boas_vindas",
+      email,
+      email_boas_vindas: emailEnviado,
+      email_tipo: emailTipo,
+      evento
+    };
+  }
+
+  /* ======================================================
+     7) EVENTOS SEM ALTERAR ACESSO
   ====================================================== */
   if (
     eventoCanon === "atualizacao_cobranca_assinatura" ||
@@ -273,7 +323,7 @@ function _processarHotmart(data) {
   }
 
   /* ======================================================
-     7) CANCELAMENTO / REEMBOLSO / EXPIRAÇÃO
+     8) CANCELAMENTO / REEMBOLSO / EXPIRAÇÃO
   ====================================================== */
   if (
     eventoCanon === "cancelamento_assinatura" ||
@@ -301,7 +351,7 @@ function _processarHotmart(data) {
   }
 
   /* ======================================================
-     8) FALLBACK
+     9) FALLBACK
   ====================================================== */
   return { status: "ignored", evento };
 }
@@ -340,4 +390,153 @@ function _canonicalizarEventoHotmart(eventoNorm) {
 
   if (!eventoNorm) return "";
   return map[eventoNorm] || "";
+}
+
+function _enviarBoasVindasPersonal_(email, nome, lang) {
+  const nomeFinal = String(nome || "").trim() || "aluna";
+  const whatsappLink = "https://wa.me/551151942268";
+  const copy = {
+    pt: {
+      subject: "Boas-vindas ao Plano Personal FemFlow",
+      intro: `Olá, ${nomeFinal}!`,
+      body1: "Sua compra do Plano Personal foi confirmada. 🎉",
+      body2: "Para receber mais informações sobre o treinamento personalizado, fale com a nossa equipe no WhatsApp:",
+      team: "Equipe FemFlow 💫"
+    },
+    en: {
+      subject: "Welcome to the FemFlow Personal Plan",
+      intro: `Hi, ${nomeFinal}!`,
+      body1: "Your Personal Plan purchase has been confirmed. 🎉",
+      body2: "For more information about your personalized training, talk to our team on WhatsApp:",
+      team: "FemFlow Team 💫"
+    },
+    fr: {
+      subject: "Bienvenue au Plan Personnel FemFlow",
+      intro: `Bonjour, ${nomeFinal} !`,
+      body1: "Votre achat du Plan Personnel a été confirmé. 🎉",
+      body2: "Pour recevoir plus d'informations sur l'entraînement personnalisé, contactez notre équipe sur WhatsApp :",
+      team: "Équipe FemFlow 💫"
+    }
+  };
+  const t = copy[lang] || copy.pt;
+  const subject = t.subject;
+  const htmlBody = [
+    `<p>${t.intro}</p>`,
+    `<p>${t.body1}</p>`,
+    `<p>${t.body2}</p>`,
+    `<p><a href="${whatsappLink}">${whatsappLink}</a></p>`,
+    `<p>${t.team}</p>`
+  ].join("");
+  const body = [
+    t.intro,
+    t.body1,
+    t.body2,
+    whatsappLink,
+    t.team
+  ].join("\n");
+
+  try {
+    MailApp.sendEmail({ to: email, subject, htmlBody, body });
+    return true;
+  } catch (err) {
+    console.log("Erro ao enviar e-mail de boas-vindas:", err);
+    return false;
+  }
+}
+
+function _enviarBoasVindasNewsletter_(email, nome, lang) {
+  const nomeFinal = String(nome || "").trim() || "aluna";
+  const whatsappLink = "https://chat.whatsapp.com/FPNeAa1OvaZEThWBKdYOQZ?mode=gi_t";
+  const copy = {
+    pt: {
+      subject: "Boas-vindas à FemFlow",
+      intro: `Olá, ${nomeFinal}!`,
+      body1: "Seu cadastro/compra foi confirmado. 🎉",
+      body2: "Entre no nosso grupo de newsletter no WhatsApp para receber novidades:",
+      team: "Equipe FemFlow 💫"
+    },
+    en: {
+      subject: "Welcome to FemFlow",
+      intro: `Hi, ${nomeFinal}!`,
+      body1: "Your registration/purchase has been confirmed. 🎉",
+      body2: "Join our WhatsApp newsletter group to receive updates:",
+      team: "FemFlow Team 💫"
+    },
+    fr: {
+      subject: "Bienvenue chez FemFlow",
+      intro: `Bonjour, ${nomeFinal} !`,
+      body1: "Votre inscription/achat a été confirmé. 🎉",
+      body2: "Rejoignez notre groupe WhatsApp newsletter pour recevoir les nouveautés :",
+      team: "Équipe FemFlow 💫"
+    }
+  };
+  const t = copy[lang] || copy.pt;
+  const subject = t.subject;
+  const htmlBody = [
+    `<p>${t.intro}</p>`,
+    `<p>${t.body1}</p>`,
+    `<p>${t.body2}</p>`,
+    `<p><a href="${whatsappLink}">${whatsappLink}</a></p>`,
+    `<p>${t.team}</p>`
+  ].join("");
+  const body = [
+    t.intro,
+    t.body1,
+    t.body2,
+    whatsappLink,
+    t.team
+  ].join("\n");
+
+  try {
+    MailApp.sendEmail({ to: email, subject, htmlBody, body });
+    return true;
+  } catch (err) {
+    console.log("Erro ao enviar e-mail de boas-vindas newsletter:", err);
+    return false;
+  }
+}
+
+function _resolverProdutoEmailHotmart_(data, plano) {
+  const nomeProduto = _getHotmartProductName_(data);
+  const nomeNorm = _norm(nomeProduto);
+
+  if (nomeNorm.includes("personal")) return "treino_personal";
+  if (nomeNorm.includes("trial")) return "trial_app";
+  if (nomeNorm.includes("follow")) return "follow_me";
+  if (nomeNorm.includes("acesso") || nomeNorm.includes("app")) return "acesso_app";
+
+  if (plano && plano.personal) return "treino_personal";
+  return (plano && plano.produto) || "acesso_app";
+}
+
+function _getHotmartProductName_(data) {
+  return String(
+    (data && data.data && data.data.product && data.data.product.name) ||
+    (data && data.product && data.product.name) ||
+    (data && data.data && data.data.product_name) ||
+    (data && data.product_name) ||
+    (data && data["product.name"]) ||
+    (data && data["product[name]"]) ||
+    ""
+  ).trim();
+}
+
+function _resolverLangHotmart_(data) {
+  const raw = String(
+    (data && data.lang) ||
+    (data && data.language) ||
+    (data && data.locale) ||
+    (data && data.data && data.data.buyer && (data.data.buyer.language || data.data.buyer.locale)) ||
+    (data && data.data && data.data.subscriber && (data.data.subscriber.language || data.data.subscriber.locale)) ||
+    (data && data.buyer && (data.buyer.language || data.buyer.locale)) ||
+    (data && data.subscriber && (data.subscriber.language || data.subscriber.locale)) ||
+    ""
+  )
+    .trim()
+    .toLowerCase();
+
+  if (raw.startsWith("en")) return "en";
+  if (raw.startsWith("fr")) return "fr";
+  if (raw.startsWith("pt")) return "pt";
+  return "pt";
 }
