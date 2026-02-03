@@ -455,6 +455,23 @@ document.addEventListener("DOMContentLoaded", () => {
     atualizarTourUI();
   }
 
+  function resolveTipoTreino() {
+    const enduranceFlag =
+      enduranceAtivo ||
+      localStorage.getItem("femflow_treino_endurance") === "true" ||
+      localStorage.getItem("femflow_endurance_pending") === "true";
+    const enfaseAtual = FEMFLOW.enfaseAtual || localStorage.getItem("femflow_enfase") || "";
+    const extraFlag =
+      treinoExtraAtivo ||
+      localStorage.getItem("femflow_treino_extra") === "true" ||
+      FEMFLOW.engineTreino?.isExtraEnfase?.(enfaseAtual) ||
+      String(enfaseAtual).toLowerCase().startsWith("extra_");
+
+    if (enduranceFlag) return "endurance";
+    if (extraFlag) return "extra";
+    return "regular";
+  }
+
   function registrarEvolucao({ pse, diaPrograma }) {
     const histRaw = localStorage.getItem("femflow_hist") || "[]";
     let hist;
@@ -465,10 +482,13 @@ document.addEventListener("DOMContentLoaded", () => {
       hist = [];
     }
 
+    const tipoTreino = resolveTipoTreino();
     const entry = {
       pse,
       data: new Date().toISOString(),
-      diaPrograma
+      diaPrograma,
+      tipo: tipoTreino,
+      enfase: localStorage.getItem("femflow_enfase") || ""
     };
 
     hist.push(entry);
@@ -1842,6 +1862,7 @@ if (btnConfirmarPSE) {
     const diaCiclo    = Number(localStorage.getItem("femflow_diaCiclo") || 1);
     const diaPrograma = Number(localStorage.getItem("femflow_diaPrograma") || 1);
     const pse         = Number(pseInput.value || 0);
+    const tipoTreino  = resolveTipoTreino();
 
     if (!id) {
       FEMFLOW.toast("Erro: sessão inválida.", true);
@@ -1858,6 +1879,7 @@ diaPrograma,
 diaCiclo,
 pse,
 treino,
+tipoTreino,
 
         deviceId: FEMFLOW.getDeviceId(),
         sessionToken: FEMFLOW.getSessionToken()
