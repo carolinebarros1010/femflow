@@ -1,0 +1,15 @@
+{
+  "name": "gas",
+  "version": "1.0.0",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+  "deploy:staging": "powershell -ExecutionPolicy Bypass -File scripts/deploy-staging.ps1"
+},
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "devDependencies": {
+    "@google/clasp": "^3.2.0"
+  }
+}

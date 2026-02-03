@@ -2,12 +2,15 @@ function doGet(e) {
   const params = e && e.parameter ? e.parameter : {};
   const action = String(params.action || "").toLowerCase().trim();
 
-  if (!action) {
+    if (!action) {
     if (params.id) {
-      return _json(legacyValidarId_(params.id));
+      // NOVO PADRÃO: carregar backend completo do app
+      // (mantém compatibilidade pois sync já calcula fase/dia/treino)
+      return _json(sync(params.id));
     }
+
     // GETs vazios (preload, health check, cache, etc)
-    return _json({ status: "ok", noop: true });
+    return _json({ status: "ok", noop: true, env: "staging" });
   }
 
   if (action === "upgrade") {
