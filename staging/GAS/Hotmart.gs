@@ -247,57 +247,18 @@ function _processarHotmart(data) {
       }
     }
 
-    const eventoDisparaBoasVindas =
-      eventoCanon === "compra_aprovada" ||
-      eventoNorm.includes("download") ||
-      eventoNorm.includes("cadastro") ||
-      eventoNorm.includes("registration");
-    const produtoEmail = _resolverProdutoEmailHotmart_(data, plano);
-    let emailEnviado = false;
-    let emailTipo = "";
-    if (eventoDisparaBoasVindas) {
-      if (produtoEmail === "treino_personal") {
-        emailEnviado = _enviarBoasVindasPersonal_(email, nome, lang);
-        emailTipo = "personal";
-      } else if (["acesso_app", "trial_app", "follow_me"].includes(produtoEmail)) {
-        emailEnviado = _enviarBoasVindasNewsletter_(email, nome, lang);
-        emailTipo = "newsletter";
-      }
-    }
-
-    return {
-      status: "ok",
-      produto: plano.produto,
-      acesso_personal: plano.personal,
-      email_boas_vindas: emailEnviado,
-      email_tipo: emailTipo,
-      evento
-    };
-  }
-
-  /* ======================================================
-     6) DOWNLOAD / CADASTRO — BOAS-VINDAS
-  ====================================================== */
-  if (
-    eventoNorm.includes("download") ||
-    eventoNorm.includes("cadastro") ||
-    eventoNorm.includes("registration")
-  ) {
     const produtoEmail = _resolverProdutoEmailHotmart_(data, plano);
     let emailEnviado = false;
     let emailTipo = "";
     if (produtoEmail === "treino_personal") {
       emailEnviado = _enviarBoasVindasPersonal_(email, nome, lang);
       emailTipo = "personal";
-    } else if (["acesso_app", "trial_app", "follow_me"].includes(produtoEmail)) {
-      emailEnviado = _enviarBoasVindasNewsletter_(email, nome, lang);
-      emailTipo = "newsletter";
     }
 
     return {
       status: "ok",
-      msg: "download_boas_vindas",
-      email,
+      produto: plano.produto,
+      acesso_personal: plano.personal,
       email_boas_vindas: emailEnviado,
       email_tipo: emailTipo,
       evento
