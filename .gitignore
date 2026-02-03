@@ -13,3 +13,6 @@ Thumbs.db
 
 # GAS
 app/GAS/.clasp.json
+
+*.bak
+
