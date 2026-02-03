@@ -31,10 +31,10 @@ function calcularCicloReal(params) {
   : null;
 
   if (!perfil) {
-  // Não inventar perfil
+  // Não inventar perfil, mas ainda avançar pelo startDate
   return {
-    fase: faseSalva || "menstrual",
-    dia: diaCicloSalvo || 1
+    fase: faseSalva || fasePorDiaCiclo_(dia),
+    dia
   };
 }
 
@@ -136,6 +136,11 @@ function setCiclo_(data) {
   if (!id) return { status: "error", msg: "missing_id" };
 
   const values = sh.getDataRange().getValues();
+  const header = values[0] || [];
+  const idxCicloDuracao = _resolveHeaderIndex_(header, "CicloDuracao", 9);
+  const idxDataInicio = _resolveHeaderIndex_(header, "DataInicio", 10);
+  const idxFase = _resolveHeaderIndex_(header, "Fase", 13);
+  const idxDiaCiclo = _resolveHeaderIndex_(header, "DiaCiclo", 14);
 
   /* ===============================
      Helpers locais
@@ -175,11 +180,11 @@ function setCiclo_(data) {
        1) CicloDuracao (J)
     =============================== */
     const cicloDuracao = _clamp(
-      Number(data.cicloDuracao) || Number(r[9]) || 28,
+      Number(data.cicloDuracao) || Number(r[idxCicloDuracao]) || 28,
       21,
       35
     );
-    sh.getRange(linha, 10).setValue(cicloDuracao);
+    sh.getRange(linha, idxCicloDuracao + 1).setValue(cicloDuracao);
 
     /* ===============================
        2) Dia do ciclo (intenção explícita)
@@ -201,19 +206,19 @@ function setCiclo_(data) {
     }
 
     if (dataInicioFinal) {
-      sh.getRange(linha, 11).setValue(dataInicioFinal);
+      sh.getRange(linha, idxDataInicio + 1).setValue(dataInicioFinal);
     }
 
     /* ===============================
        4) Fase fisiológica (N)
     =============================== */
     const faseFinal = fasePorDia(diaCicloFinal);
-    sh.getRange(linha, 14).setValue(faseFinal);
+    sh.getRange(linha, idxFase + 1).setValue(faseFinal);
 
     /* ===============================
        5) DiaCiclo (O)
     =============================== */
-    sh.getRange(linha, 15).setValue(diaCicloFinal);
+    sh.getRange(linha, idxDiaCiclo + 1).setValue(diaCicloFinal);
 
     /* ===============================
        7) DiaPrograma
