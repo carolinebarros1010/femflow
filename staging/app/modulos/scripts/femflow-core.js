@@ -5,10 +5,13 @@
 
 const FEMFLOW_ENV = window.FEMFLOW_ENV || "staging";
 const FEMFLOW = {
-  SCRIPT_URL:
+    SCRIPT_URL:
     window.FEMFLOW_ACTIVE?.scriptUrlModulos ||
+    window.FEMFLOW_ACTIVE?.scriptUrl ||
     window.FEMFLOW_CONFIG?.scriptUrlsModulos?.[FEMFLOW_ENV] ||
-    "https://script.google.com/macros/s/AKfycbyovJHpMBqGhKmGFSePjHk-v5xAk8XB9NEfBG735nZjSz08f-jMfKE3OMkPVIZHObb0/exec",
+    window.FEMFLOW_CONFIG?.scriptUrls?.[FEMFLOW_ENV] ||
+    "",
+
   LOGO: "../../assets/logofemlowverde.png",
 
   /* ----------- ⚙️ INICIALIZAÇÃO ------------ */

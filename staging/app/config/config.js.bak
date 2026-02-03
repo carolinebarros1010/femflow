@@ -2,13 +2,13 @@
   const ENV = "staging";
 
   const SCRIPT_URLS = {
-    staging: "https://femflowapi.falling-wildflower-a8c0.workers.dev/staging",
+    staging: "https://femflowapi.falling-wildflower-a8c0.workers.dev/",
     prod: ""
   };
 
   const SCRIPT_URLS_ADMIN = {
     staging:
-      "window.FEMFLOW_ACTIVE.scriptUrl",
+      "https://script.google.com/macros/s/AKfycbx0aIDqv8BkIaEKK-xxuN9VIY0w7D6APZ5f1FjQGxzqrzLhtd8JVKAF6_NWrifyr9CP/exec",
     prod: ""
   };
 
@@ -58,5 +58,3 @@
     firebaseConfig: activeFirebaseConfig
   };
 })(globalThis);
-
-

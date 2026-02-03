@@ -3,13 +3,16 @@
 <head>
   <meta charset="UTF-8">
   <title>Teste FemFlow + Apps Script</title>
+<script src="./config/config.js"></script>
+
 </head>
 <body>
   <h1>Teste de conexão com Apps Script</h1>
   <p>Abra o console do navegador (F12) para ver o resultado.</p>
 
   <script>
-    const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbwMdVo_TgYGg5mj5W4wcP1yD2PXRcLkA4tZRcc9TdSe363qIvm29odXkAGyPMIJR0xf/exec";
+    const URL_SCRIPT = window.FEMFLOW_ACTIVE?.scriptUrl || "";
+
 
     console.log("Iniciando teste de fetch...");
 

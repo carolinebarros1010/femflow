@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+  <base href="/">
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>MyFlowLife | Cadastro Central</title>
@@ -248,12 +249,8 @@ document.addEventListener('DOMContentLoaded', () => {
       ebook: localStorage.getItem("ebook") || "não informado"
     };
     try {
-     const CADASTRO_URL =
-  window.FEMFLOW_ACTIVE?.scriptUrl ||
-  "https://femflowapi.falling-wildflower-a8c0.workers.dev/";
-
-await fetch(CADASTRO_URL, {
-
+      await fetch("https://script.google.com/macros/s/AKfycbw1Rp4K3GKH-yruTV0gXboApxNUZcs1qLAYvvuAmZzj29Km6_rHbEJcAVokVnrbx16f/exec
+", {
         method: "POST",
         mode: "no-cors",
         headers: { "Content-Type": "application/json" },
@@ -300,9 +297,7 @@ const origemURL = urlParams.get("origemURL") || localStorage.getItem("origemURL"
 if (origem) localStorage.setItem("origem", origem);
 if (ebook) localStorage.setItem("ebook", ebook);
 if (origemURL) localStorage.setItem("origemURL", origemURL);
-const enfase = urlParams.get("enfase") || localStorage.getItem("enfase");
 if (enfase) localStorage.setItem("enfase", enfase);
-
 
 // 🔹 Envio do formulário
 form.addEventListener("submit", async (e) => {
@@ -319,8 +314,7 @@ form.addEventListener("submit", async (e) => {
   };
 
   try {
-    await fetch(CADASTRO_URL, {
-
+    await fetch("https://script.google.com/macros/s/AKfycbw1Rp4K3GKH-yruTV0gXboApxNUZcs1qLAYvvuAmZzj29Km6_rHbEJcAVokVnrbx16f/exec", {
       method: "POST",
       mode: "no-cors",
       headers: { "Content-Type": "application/json" },
@@ -347,3 +341,4 @@ form.addEventListener("submit", async (e) => {
 
 </body>
 </html>
+

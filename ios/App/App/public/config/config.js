@@ -8,7 +8,7 @@
 
   const SCRIPT_URLS_ADMIN = {
     staging:
-      "https://script.google.com/macros/s/AKfycbx0aIDqv8BkIaEKK-xxuN9VIY0w7D6APZ5f1FjQGxzqrzLhtd8JVKAF6_NWrifyr9CP/exec",
+      "window.FEMFLOW_ACTIVE.scriptUrl",
     prod: ""
   };
 
@@ -58,3 +58,4 @@
     firebaseConfig: activeFirebaseConfig
   };
 })(globalThis);
+

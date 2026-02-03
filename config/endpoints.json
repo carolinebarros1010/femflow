@@ -1,0 +1,6 @@
+{
+  "GAS_WEBAPP_URL": {
+    "STAGING": "https://script.google.com/macros/s/AKfycbw1Rp4K3GKH-yruTV0gXboApxNUZcs1qLAYvvuAmZzj29Km6_rHbEJcAVokVnrbx16f/exec",
+    "PROD": "https://script.google.com/macros/s/AKfycbx0aIDqv8BkIaEKK-xxuN9VIY0w7D6APZ5f1FjQGxzqrzLhtd8JVKAF6_NWrifyr9CP/exec"
+  }
+}
