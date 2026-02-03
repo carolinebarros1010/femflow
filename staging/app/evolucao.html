@@ -183,6 +183,10 @@ document.addEventListener("DOMContentLoaded", async () => {
     const tipo = String(tipoRaw).toLowerCase();
     if (tipo.includes("endurance")) return "endurance";
     if (tipo.includes("extra")) return "extra";
+    const treinoRaw = String(item.treino || item.treinoId || item.enfase || "");
+    const treino = treinoRaw.toLowerCase();
+    if (treino.includes("endurance_")) return "endurance";
+    if (treino.includes("extra_")) return "extra";
     return "regular";
   }
 
