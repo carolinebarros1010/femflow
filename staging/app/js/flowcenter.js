@@ -868,8 +868,14 @@ function initFlowCenter() {
       const setupDone = localStorage.getItem("femflow_endurance_setup_done") === "true";
       const configRaw = localStorage.getItem("femflow_endurance_config");
       const hasConfig = configRaw !== null && configRaw !== "";
+      const endurancePendente =
+        localStorage.getItem("femflow_endurance_pending") === "true";
       if (!setupDone && !hasConfig) {
         abrirModalEndurance();
+        return;
+      }
+      if (endurancePendente) {
+        await iniciarEnduranceComChecagem();
         return;
       }
       abrirModalEnduranceSelecao();

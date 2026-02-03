@@ -70,6 +70,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   if (enduranceParamActive) {
     localStorage.setItem("femflow_treino_endurance", "true");
+    localStorage.setItem("femflow_endurance_pending", "true");
   } else {
     localStorage.removeItem("femflow_treino_endurance");
   }
@@ -1867,6 +1868,7 @@ treino,
       if (resp?.status === "ok") {
 
         if (enduranceAtivo) {
+          localStorage.setItem("femflow_endurance_pending", "false");
           const semana = localStorage.getItem("femflow_endurance_semana") || "";
           const dia = localStorage.getItem("femflow_endurance_dia") || "";
           let modalidade = "";
