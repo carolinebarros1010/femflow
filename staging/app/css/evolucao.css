@@ -116,6 +116,35 @@ canvas {
   color: #666;
   font-size: 0.85rem;
   margin-top: 8px;
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 10px 14px;
+}
+
+.evo-legend .legend-item {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.evo-legend .legend-dot {
+  width: 10px;
+  height: 10px;
+  border-radius: 999px;
+  background: #ccc;
+}
+
+.evo-legend .legend-regular .legend-dot {
+  background: #CC6A5A;
+}
+
+.evo-legend .legend-extra .legend-dot {
+  background: #6F8AC9;
+}
+
+.evo-legend .legend-endurance .legend-dot {
+  background: #2A9D8F;
 }
 
 /* ============================

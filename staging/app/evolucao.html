@@ -52,7 +52,18 @@
     </div>
 
     <p id="legendaPSE" class="evo-legend">
-      🩵 Leve • 🍑 Moderado • ❤️ Intenso
+      <span class="legend-item legend-regular">
+        <span class="legend-dot"></span>
+        <span id="legendaRegular">—</span>
+      </span>
+      <span class="legend-item legend-extra">
+        <span class="legend-dot"></span>
+        <span id="legendaExtra">—</span>
+      </span>
+      <span class="legend-item legend-endurance">
+        <span class="legend-dot"></span>
+        <span id="legendaEndurance">—</span>
+      </span>
     </p>
   </section>
 
@@ -93,7 +104,10 @@ function aplicarIdioma() {
     tituloPSE:       L.pseMedia,
     textoMensagemFinal: L.faseAtual,
     novoCicloBtn:    L.descanso,
-    voltarFlow:      (langSet.menu && langSet.menu.voltar) || "Voltar"
+    voltarFlow:      (langSet.menu && langSet.menu.voltar) || "Voltar",
+    legendaRegular:  L.pseRegular || "Treino base",
+    legendaExtra:    L.pseExtra || "Treino extra (Flow Center)",
+    legendaEndurance: L.pseEndurance || "Treino endurance"
   };
 
   for (const id in map) {
@@ -163,6 +177,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     const valor = item.pse ?? item.PSE ?? item.pseMedia ?? item.valor ?? 0;
     return Number(valor) || 0;
   }
+  function normalizarTipo(item) {
+    if (!item) return "regular";
+    const tipoRaw = item.tipo || item.tipoTreino || item.origem || "";
+    const tipo = String(tipoRaw).toLowerCase();
+    if (tipo.includes("endurance")) return "endurance";
+    if (tipo.includes("extra")) return "extra";
+    return "regular";
+  }
 
   const backend = await carregarEvolucaoBackend();
 
@@ -211,6 +233,34 @@ document.addEventListener("DOMContentLoaded", async () => {
       hist = [];
     }
   } else {
+    let localHist = [];
+    try {
+      localHist = JSON.parse(localStorage.getItem("femflow_hist") || "[]");
+    } catch {
+      localHist = [];
+    }
+
+    const extraHist = localHist.filter((item) => {
+      const tipo = normalizarTipo(item);
+      return tipo === "extra" || tipo === "endurance";
+    });
+
+    if (extraHist.length) {
+      const existing = new Set(
+        hist.map((item) =>
+          `${item.data || ""}|${normalizarPse(item)}|${normalizarTipo(item)}`
+        )
+      );
+      extraHist.forEach((item) => {
+        const key = `${item.data || ""}|${normalizarPse(item)}|${normalizarTipo(item)}`;
+        if (!existing.has(key)) {
+          hist.push(item);
+          existing.add(key);
+        }
+      });
+    }
+
+    hist.sort((a, b) => new Date(a.data || 0) - new Date(b.data || 0));
     localStorage.setItem("femflow_hist", JSON.stringify(hist));
   }
 
@@ -224,18 +274,53 @@ document.addEventListener("DOMContentLoaded", async () => {
   /* ============================================================
      GRÁFICO
   ============================================================ */
+  const labels = hist.map((t, i) => i + 1);
+  const dataRegular = hist.map((item) =>
+    normalizarTipo(item) === "regular" ? normalizarPse(item) : null
+  );
+  const dataExtra = hist.map((item) =>
+    normalizarTipo(item) === "extra" ? normalizarPse(item) : null
+  );
+  const dataEndurance = hist.map((item) =>
+    normalizarTipo(item) === "endurance" ? normalizarPse(item) : null
+  );
+
   new Chart(document.getElementById("graficoPSE"), {
     type: "line",
     data: {
-      labels: hist.map((t, i) => i + 1),
-      datasets: [{
-        data: hist.map(normalizarPse),
-        borderColor: "#CC6A5A",
-        backgroundColor: "rgba(239,189,166,0.35)",
-        borderWidth: 2,
-        tension: 0.35,
-        fill: true
-      }]
+      labels,
+      datasets: [
+        {
+          label: "Regular",
+          data: dataRegular,
+          borderColor: "#CC6A5A",
+          backgroundColor: "rgba(239,189,166,0.35)",
+          borderWidth: 2,
+          tension: 0.35,
+          fill: true,
+          spanGaps: true
+        },
+        {
+          label: "Extra",
+          data: dataExtra,
+          borderColor: "#6F8AC9",
+          backgroundColor: "rgba(111,138,201,0.15)",
+          borderWidth: 2,
+          tension: 0.35,
+          fill: false,
+          spanGaps: true
+        },
+        {
+          label: "Endurance",
+          data: dataEndurance,
+          borderColor: "#2A9D8F",
+          backgroundColor: "rgba(42,157,143,0.15)",
+          borderWidth: 2,
+          tension: 0.35,
+          fill: false,
+          spanGaps: true
+        }
+      ]
     },
     options: {
       plugins: { legend: { display: false } },
