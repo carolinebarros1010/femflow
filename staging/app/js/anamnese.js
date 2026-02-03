@@ -316,7 +316,9 @@ async function finalizarAnamnese() {
       dataNascimento,
       senha,
       nivel,
-      anamnese: JSON.stringify(respostas)
+      anamnese: JSON.stringify(respostas),
+      enviarBoasVindasTrial: true,
+      lang
     });
   } catch (e) {
     console.error(e);

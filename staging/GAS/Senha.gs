@@ -42,6 +42,12 @@ function _loginOuCadastro(data) {
   const dataNascimento  = String(data.dataNascimento || "").trim();
   const senha           = String(data.senha || "").trim();
   const anamnese        = data.anamnese || "";
+  const lang            = typeof _resolverLangHotmart_ === "function"
+    ? _resolverLangHotmart_(data)
+    : "pt";
+  const enviarBoasVindasTrial = String(data.enviarBoasVindasTrial || "")
+    .trim()
+    .toLowerCase() === "true";
 
   if (!nome || !email || !senha) {
     return { status: "error", msg: "Nome, e-mail e senha são obrigatórios." };
@@ -149,12 +155,19 @@ function _loginOuCadastro(data) {
     dataNascimento          // DataNascimento (AI)
   ]);
 
+  let emailEnviado = false;
+  if (enviarBoasVindasTrial && typeof _enviarBoasVindasNewsletter_ === "function") {
+    emailEnviado = _enviarBoasVindasNewsletter_(email, nome, lang);
+  }
+
   return {
     status: "created",
     id: novoID,
     email,
     nivel: nivelDetectado,
-    pontuacao: pont
+    pontuacao: pont,
+    email_boas_vindas: emailEnviado,
+    email_tipo: emailEnviado ? "newsletter" : ""
   };
 }
 
