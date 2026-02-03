@@ -544,12 +544,15 @@ resp: {
   footer: "FemFlow • Respiração Consciente"
 },
 
-   evolucao: {
+ evolucao: {
   titulo: "Evolução",
   sub: "Veja sua jornada de progresso",
   treino: "Treinos",
   descanso: "Dias de descanso",
   pseMedia: "PSE média",
+  pseRegular: "Treino base",
+  pseExtra: "Treino extra (Flow Center)",
+  pseEndurance: "Treino endurance",
   faseAtual: "Fase atual",
   nenhumDado: "Nenhum dado registrado ainda."
 },
@@ -849,12 +852,15 @@ resp: {
   footer: "FemFlow • Conscious Breathing"
 },
 
-   evolucao: {
+ evolucao: {
   titulo: "Evolution",
   sub: "Track your progress journey",
   treino: "Workouts",
   descanso: "Rest days",
   pseMedia: "Average RPE",
+  pseRegular: "Base workout",
+  pseExtra: "Extra workout (Flow Center)",
+  pseEndurance: "Endurance workout",
   faseAtual: "Current phase",
   nenhumDado: "No data recorded yet."
 },
@@ -1163,6 +1169,9 @@ resp: {
   treino: "Entraînements",
   descanso: "Jours de repos",
   pseMedia: "PSE moyen",
+  pseRegular: "Entraînement de base",
+  pseExtra: "Entraînement extra (Flow Center)",
+  pseEndurance: "Entraînement endurance",
   faseAtual: "Phase actuelle",
   nenhumDado: "Aucune donnée enregistrée."
 },

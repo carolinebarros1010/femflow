@@ -465,10 +465,15 @@ document.addEventListener("DOMContentLoaded", () => {
       hist = [];
     }
 
+    const tipoTreino = enduranceAtivo
+      ? "endurance"
+      : (treinoExtraAtivo ? "extra" : "regular");
     const entry = {
       pse,
       data: new Date().toISOString(),
-      diaPrograma
+      diaPrograma,
+      tipo: tipoTreino,
+      enfase: localStorage.getItem("femflow_enfase") || ""
     };
 
     hist.push(entry);
