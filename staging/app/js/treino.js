@@ -70,6 +70,9 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   if (enduranceParamActive) {
     localStorage.setItem("femflow_treino_endurance", "true");
+    localStorage.setItem("femflow_endurance_pending", "true");
+  } else {
+    localStorage.removeItem("femflow_treino_endurance");
   }
 
   const treinoSnapshotState = {
@@ -77,7 +80,7 @@ document.addEventListener("DOMContentLoaded", () => {
     lastBoxIndex: null
   };
   let treinoSnapshotToScroll = null;
-  let enduranceAtivo = localStorage.getItem("femflow_treino_endurance") === "true";
+  let enduranceAtivo = enduranceParamActive;
   let enduranceConfig = null;
   let personalFinal = isPersonal;
 
@@ -689,7 +692,15 @@ const hasPersonal =
     if (!extraSessaoAtiva && isExtraTreino) {
       localStorage.removeItem("femflow_treino_extra");
     }
-    if (!personalFinal && enduranceAtivo) {
+    const enduranceSetupDone =
+      localStorage.getItem("femflow_endurance_setup_done") === "true";
+    const enduranceConfigRaw = localStorage.getItem("femflow_endurance_config");
+    const enduranceSetupExists =
+      (enduranceConfigRaw !== null && enduranceConfigRaw !== "") ||
+      enduranceSetupDone;
+    const enduranceAllowed = hasPersonalStorage || enduranceSetupExists;
+
+    if (!enduranceAllowed && enduranceAtivo) {
       enduranceAtivo = false;
       localStorage.removeItem("femflow_treino_endurance");
     }
@@ -1857,6 +1868,7 @@ treino,
       if (resp?.status === "ok") {
 
         if (enduranceAtivo) {
+          localStorage.setItem("femflow_endurance_pending", "false");
           const semana = localStorage.getItem("femflow_endurance_semana") || "";
           const dia = localStorage.getItem("femflow_endurance_dia") || "";
           let modalidade = "";
