@@ -70,6 +70,8 @@ document.addEventListener("DOMContentLoaded", () => {
   }
   if (enduranceParamActive) {
     localStorage.setItem("femflow_treino_endurance", "true");
+  } else {
+    localStorage.removeItem("femflow_treino_endurance");
   }
 
   const treinoSnapshotState = {
@@ -77,7 +79,7 @@ document.addEventListener("DOMContentLoaded", () => {
     lastBoxIndex: null
   };
   let treinoSnapshotToScroll = null;
-  let enduranceAtivo = localStorage.getItem("femflow_treino_endurance") === "true";
+  let enduranceAtivo = enduranceParamActive;
   let enduranceConfig = null;
   let personalFinal = isPersonal;
 
@@ -695,8 +697,9 @@ const hasPersonal =
     const enduranceSetupExists =
       (enduranceConfigRaw !== null && enduranceConfigRaw !== "") ||
       enduranceSetupDone;
+    const enduranceAllowed = hasPersonalStorage || enduranceSetupExists;
 
-    if (!enduranceSetupExists && enduranceAtivo) {
+    if (!enduranceAllowed && enduranceAtivo) {
       enduranceAtivo = false;
       localStorage.removeItem("femflow_treino_endurance");
     }
