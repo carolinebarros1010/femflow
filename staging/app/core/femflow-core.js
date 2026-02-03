@@ -444,13 +444,20 @@ FEMFLOW.reiniciarDiaPrograma = async function () {
 =========================================================== */
 
 FEMFLOW.router = pag => {
-  const destino = pag.endsWith(".html") ? pag : pag + ".html";
+  const [beforeHash, hashPart] = String(pag || "").split("#");
+  const [pathPart, queryPart] = beforeHash.split("?");
+  const destinoBase = pathPart.endsWith(".html")
+    ? pathPart
+    : `${pathPart}.html`;
+  const params = new URLSearchParams(queryPart || "");
 
   if (localStorage.getItem("femflow_mode_personal") === "true") {
-    location.href = `${destino}?personal=1`;
-  } else {
-    location.href = destino;
+    params.set("personal", "1");
   }
+
+  const queryString = params.toString();
+  const destino = queryString ? `${destinoBase}?${queryString}` : destinoBase;
+  location.href = hashPart ? `${destino}#${hashPart}` : destino;
 };
 
 
