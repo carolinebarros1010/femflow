@@ -79,6 +79,10 @@ const ASSETS = [
   "./manifest.json",
 
   "./css/style.css",
+  "./css/core.css",
+  "./css/header.css",
+  "./css/themes.css",
+  "./css/login.css",
 
   "./femflow-core.js",
   "./js/ciclo.js",
