@@ -65,6 +65,22 @@ const envPath = path.join(toDir, "js", "env.js");
 if (!fs.existsSync(envPath)) {
   throw new Error("app/js/env.js não existe após cópia. Garanta staging/app/js/env.js");
 }
+// --- ENFORCE PROD env.js (never copy staging env into /app) ---
+const prodEnv = `(() => {
+  const PROD_EXEC =
+    "https://femflowapi.falling-wildflower-a8c0.workers.dev/prod";
+
+  window.FEMFLOW = window.FEMFLOW || {};
+  window.FEMFLOW.SCRIPT_URL = PROD_EXEC;
+  window.FEMFLOW.API_URL = PROD_EXEC;
+  window.SCRIPT_URL = PROD_EXEC;
+})();\n`;
+
+fs.writeFileSync(path.join(toDir, "js", "env.js"), prodEnv, "utf8");
+
+// Remove any accidental env-staging.js in /app output
+const envStagingOut = path.join(toDir, "js", "env-staging.js");
+if (fs.existsSync(envStagingOut)) fs.rmSync(envStagingOut, { force: true });
 
 console.log("OK: /app gerado e ajustado para PROD (base + env.js).");
 
