@@ -1,9 +1,13 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <title>FemFlow • Minha Evolução</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="format-detection" content="telephone=no" />
+  <script src="./config/config.js"></script>
+  <title>FemFlow â€¢ Minha EvoluÃ§Ã£o</title>
 
   <link rel="icon" href="favicon.ico">
   <link rel="apple-touch-icon" href="favicon.ico">
@@ -24,14 +28,14 @@
 
 <body>
 
-<h1 id="tituloPagina">—</h1>
-<p id="subtituloPagina" class="evo-subtitle">—</p>
+<h1 id="tituloPagina">â€”</h1>
+<p id="subtituloPagina" class="evo-subtitle">â€”</p>
 
 <div class="evo-container">
 
   <!-- PROGRESSO -->
   <section class="evo-card">
-    <h2 id="tituloProgresso">—</h2>
+    <h2 id="tituloProgresso">â€”</h2>
     <p id="progressoTexto" class="texto-progresso"></p>
 
     <div class="evo-progress">
@@ -39,16 +43,27 @@
     </div>
   </section>
 
-  <!-- GRÁFICO PSE -->
+  <!-- GRÃFICO PSE -->
   <section class="evo-card evo-chart">
-    <h3 id="tituloPSE">—</h3>
+    <h3 id="tituloPSE">â€”</h3>
 
     <div class="chart-container">
       <canvas id="graficoPSE"></canvas>
     </div>
 
     <p id="legendaPSE" class="evo-legend">
-      🩵 Leve • 🍑 Moderado • ❤️ Intenso
+      <span class="legend-item legend-regular">
+        <span class="legend-dot"></span>
+        <span id="legendaRegular">â€”</span>
+      </span>
+      <span class="legend-item legend-extra">
+        <span class="legend-dot"></span>
+        <span id="legendaExtra">â€”</span>
+      </span>
+      <span class="legend-item legend-endurance">
+        <span class="legend-dot"></span>
+        <span id="legendaEndurance">â€”</span>
+      </span>
     </p>
   </section>
 
@@ -58,12 +73,12 @@
     <button id="novoCicloBtn" class="evo-btn"></button>
   </section>
 
-  <button id="voltarFlow" class="evo-btn" style="margin-top:20px">—</button>
+  <button id="voltarFlow" class="evo-btn" style="margin-top:20px">â€”</button>
 
 </div>
 
 <script src="js/lang.js"></script>
-<script src="femflow-core.js"></script>
+<script src="core/femflow-core.js"></script>
 
 <script>
 /* ============================================================
@@ -78,7 +93,7 @@ function aplicarIdioma() {
   const L = langSet.evolucao;
 
   if (!L) {
-    console.warn("⚠️ Dicionário 'evolucao' não encontrado.");
+    console.warn("âš ï¸ DicionÃ¡rio 'evolucao' nÃ£o encontrado.");
     return;
   }
 
@@ -89,7 +104,10 @@ function aplicarIdioma() {
     tituloPSE:       L.pseMedia,
     textoMensagemFinal: L.faseAtual,
     novoCicloBtn:    L.descanso,
-    voltarFlow:      (langSet.menu && langSet.menu.voltar) || "Voltar"
+    voltarFlow:      (langSet.menu && langSet.menu.voltar) || "Voltar",
+    legendaRegular:  L.pseRegular || "Treino base",
+    legendaExtra:    L.pseExtra || "Treino extra (Flow Center)",
+    legendaEndurance: L.pseEndurance || "Treino endurance"
   };
 
   for (const id in map) {
@@ -97,7 +115,7 @@ function aplicarIdioma() {
     if (el && map[id]) el.innerHTML = map[id];
   }
 
-  // Progresso numérico
+  // Progresso numÃ©rico
   if (window.__prog !== undefined) {
     const elProg = document.getElementById("progressoTexto");
     if (elProg) elProg.innerText = window.__prog + "%";
@@ -109,13 +127,13 @@ document.addEventListener("DOMContentLoaded", aplicarIdioma);
 
 
 /* ============================================================
-   2) Lógica da Página
+   2) LÃ³gica da PÃ¡gina
 ============================================================ */
 document.addEventListener("DOMContentLoaded", async () => {
 
   FEMFLOW.inserirHeaderApp?.();
 
-  /* 🔐 Proteção de acesso */
+  /* ðŸ” ProteÃ§Ã£o de acesso */
   const id = localStorage.getItem("femflow_id");
   const produto = localStorage.getItem("femflow_produto");
   const produtoNorm = String(produto || "").toLowerCase();
@@ -123,7 +141,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const ativa   = isVip || localStorage.getItem("femflow_ativa") === "true";
 
   if (!id || !produto || !ativa) {
-    FEMFLOW.toast("Acesse pela Home para continuar 🌸");
+    FEMFLOW.toast("Acesse pela Home para continuar ðŸŒ¸");
     return FEMFLOW.router("home");
   }
 
@@ -149,7 +167,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       return { hist, diaPrograma };
     } catch (e) {
-      console.warn("⚠️ Erro ao buscar evolução no backend:", e);
+      console.warn("âš ï¸ Erro ao buscar evoluÃ§Ã£o no backend:", e);
       return null;
     }
   }
@@ -158,6 +176,18 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!item) return 0;
     const valor = item.pse ?? item.PSE ?? item.pseMedia ?? item.valor ?? 0;
     return Number(valor) || 0;
+  }
+  function normalizarTipo(item) {
+    if (!item) return "regular";
+    const tipoRaw = item.tipo || item.tipoTreino || item.origem || "";
+    const tipo = String(tipoRaw).toLowerCase();
+    if (tipo.includes("endurance")) return "endurance";
+    if (tipo.includes("extra")) return "extra";
+    const treinoRaw = String(item.treino || item.treinoId || item.enfase || "");
+    const treino = treinoRaw.toLowerCase();
+    if (treino.includes("endurance_")) return "endurance";
+    if (treino.includes("extra_")) return "extra";
+    return "regular";
   }
 
   const backend = await carregarEvolucaoBackend();
@@ -196,7 +226,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   /* ============================================================
-     HISTÓRICO PSE — localStorage
+     HISTÃ“RICO PSE â€” localStorage
   ============================================================ */
   let hist = backend?.hist;
 
@@ -207,6 +237,34 @@ document.addEventListener("DOMContentLoaded", async () => {
       hist = [];
     }
   } else {
+    let localHist = [];
+    try {
+      localHist = JSON.parse(localStorage.getItem("femflow_hist") || "[]");
+    } catch {
+      localHist = [];
+    }
+
+    const extraHist = localHist.filter((item) => {
+      const tipo = normalizarTipo(item);
+      return tipo === "extra" || tipo === "endurance";
+    });
+
+    if (extraHist.length) {
+      const existing = new Set(
+        hist.map((item) =>
+          `${item.data || ""}|${normalizarPse(item)}|${normalizarTipo(item)}`
+        )
+      );
+      extraHist.forEach((item) => {
+        const key = `${item.data || ""}|${normalizarPse(item)}|${normalizarTipo(item)}`;
+        if (!existing.has(key)) {
+          hist.push(item);
+          existing.add(key);
+        }
+      });
+    }
+
+    hist.sort((a, b) => new Date(a.data || 0) - new Date(b.data || 0));
     localStorage.setItem("femflow_hist", JSON.stringify(hist));
   }
 
@@ -218,20 +276,55 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   /* ============================================================
-     GRÁFICO
+     GRÃFICO
   ============================================================ */
+  const labels = hist.map((t, i) => i + 1);
+  const dataRegular = hist.map((item) =>
+    normalizarTipo(item) === "regular" ? normalizarPse(item) : null
+  );
+  const dataExtra = hist.map((item) =>
+    normalizarTipo(item) === "extra" ? normalizarPse(item) : null
+  );
+  const dataEndurance = hist.map((item) =>
+    normalizarTipo(item) === "endurance" ? normalizarPse(item) : null
+  );
+
   new Chart(document.getElementById("graficoPSE"), {
     type: "line",
     data: {
-      labels: hist.map((t, i) => i + 1),
-      datasets: [{
-        data: hist.map(normalizarPse),
-        borderColor: "#CC6A5A",
-        backgroundColor: "rgba(239,189,166,0.35)",
-        borderWidth: 2,
-        tension: 0.35,
-        fill: true
-      }]
+      labels,
+      datasets: [
+        {
+          label: "Regular",
+          data: dataRegular,
+          borderColor: "#CC6A5A",
+          backgroundColor: "rgba(239,189,166,0.35)",
+          borderWidth: 2,
+          tension: 0.35,
+          fill: true,
+          spanGaps: true
+        },
+        {
+          label: "Extra",
+          data: dataExtra,
+          borderColor: "#6F8AC9",
+          backgroundColor: "rgba(111,138,201,0.15)",
+          borderWidth: 2,
+          tension: 0.35,
+          fill: false,
+          spanGaps: true
+        },
+        {
+          label: "Endurance",
+          data: dataEndurance,
+          borderColor: "#2A9D8F",
+          backgroundColor: "rgba(42,157,143,0.15)",
+          borderWidth: 2,
+          tension: 0.35,
+          fill: false,
+          spanGaps: true
+        }
+      ]
     },
     options: {
       plugins: { legend: { display: false } },
@@ -241,7 +334,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   /* ============================================================
-     BOTÃO VOLTAR
+     BOTÃƒO VOLTAR
   ============================================================ */
   const voltar = document.getElementById("voltarFlow");
   if (voltar) voltar.onclick = () => FEMFLOW.router("flowcenter.html");
@@ -249,17 +342,17 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 </script>
 
-<!-- MODAL NÍVEL -->
+<!-- MODAL NÃVEL -->
 <div id="modal-nivel" class="modal-nivel oculto">
   <div class="modal-nivel-box">
-    <h2>📊 Selecione seu nível</h2>
+    <h2>ðŸ“Š Selecione seu nÃ­vel</h2>
 
     <button class="nivel-btn" data-nivel="iniciante">Iniciante</button>
-    <button class="nivel-btn" data-nivel="intermediaria">Intermediária</button>
-    <button class="nivel-btn" data-nivel="avancada">Avançada</button>
+    <button class="nivel-btn" data-nivel="intermediaria">IntermediÃ¡ria</button>
+    <button class="nivel-btn" data-nivel="avancada">AvanÃ§ada</button>
 
     <button id="btnConfirmarNivel" class="nivel-confirmar">
-      Confirmar nível
+      Confirmar nÃ­vel
     </button>
 
     <button id="fecharNivel" class="nivel-fechar">Fechar</button>
@@ -267,5 +360,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 </div>
 
 
+  <script src="/app/js/env.js"></script>
 </body>
 </html>
+
+

@@ -1,9 +1,13 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
-  <title>Redefinir senha • FemFlow</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="format-detection" content="telephone=no" />
+  <script src="./config/config.js"></script>
+  <title>Redefinir senha â€¢ FemFlow</title>
 
   <link rel="stylesheet" href="css/style.css"/>
 
@@ -116,7 +120,7 @@
   <div class="card">
     <img src="assets/logofemflowterracotasf.png" alt="FemFlow" class="logo"/>
     <h2>Redefinir senha</h2>
-    <p class="subtitle">Informe sua nova senha para continuar 💫</p>
+    <p class="subtitle">Informe sua nova senha para continuar ðŸ’«</p>
 
     <div class="form-group">
       <label for="email">E-mail</label>
@@ -138,17 +142,17 @@
   </div>
 
   <script>
-  // Desliga logo e botão Voltar nesta página
+  // Desliga logo e botÃ£o Voltar nesta pÃ¡gina
   window.FEMFLOW_SUPPRESS_UI = true;
   </script>
-  <script src="./femflow-core.js"></script>
+  <script src="./core/femflow-core.js"></script>
  <script>
 const $ = s => document.querySelector(s);
 const msg = $("#mensagem");
 const i18n = {
   pt: {
     title: "Redefinir senha",
-    subtitle: "Informe sua nova senha para continuar 💫",
+    subtitle: "Informe sua nova senha para continuar ðŸ’«",
     emailLabel: "E-mail",
     emailPlaceholder: "seu@email.com",
     senha1Label: "Nova senha",
@@ -158,16 +162,16 @@ const i18n = {
     save: "Salvar nova senha",
     msgFill: "Preencha todos os campos.",
     msgLength: "A senha deve ter ao menos 6 caracteres.",
-    msgMatch: "As senhas não coincidem.",
-    msgInvalid: "Link inválido ou expirado.",
-    msgUpdating: "Atualizando senha…",
-    msgSuccess: "✔️ Senha atualizada! Voltando ao login…",
+    msgMatch: "As senhas nÃ£o coincidem.",
+    msgInvalid: "Link invÃ¡lido ou expirado.",
+    msgUpdating: "Atualizando senhaâ€¦",
+    msgSuccess: "âœ”ï¸ Senha atualizada! Voltando ao loginâ€¦",
     msgError: "Erro ao redefinir senha.",
-    msgConnection: "❌ Falha na conexão."
+    msgConnection: "âŒ Falha na conexÃ£o."
   },
   en: {
     title: "Reset password",
-    subtitle: "Enter your new password to continue 💫",
+    subtitle: "Enter your new password to continue ðŸ’«",
     emailLabel: "Email",
     emailPlaceholder: "you@email.com",
     senha1Label: "New password",
@@ -179,29 +183,29 @@ const i18n = {
     msgLength: "Password must be at least 6 characters.",
     msgMatch: "Passwords do not match.",
     msgInvalid: "Invalid or expired link.",
-    msgUpdating: "Updating password…",
-    msgSuccess: "✔️ Password updated! Returning to login…",
+    msgUpdating: "Updating passwordâ€¦",
+    msgSuccess: "âœ”ï¸ Password updated! Returning to loginâ€¦",
     msgError: "Error resetting password.",
-    msgConnection: "❌ Connection failed."
+    msgConnection: "âŒ Connection failed."
   },
   fr: {
-    title: "Réinitialiser le mot de passe",
-    subtitle: "Saisissez votre nouveau mot de passe pour continuer 💫",
+    title: "RÃ©initialiser le mot de passe",
+    subtitle: "Saisissez votre nouveau mot de passe pour continuer ðŸ’«",
     emailLabel: "E-mail",
     emailPlaceholder: "vous@email.com",
     senha1Label: "Nouveau mot de passe",
-    senha1Placeholder: "Créez un mot de passe",
+    senha1Placeholder: "CrÃ©ez un mot de passe",
     senha2Label: "Confirmez le mot de passe",
-    senha2Placeholder: "Répétez le mot de passe",
+    senha2Placeholder: "RÃ©pÃ©tez le mot de passe",
     save: "Enregistrer le nouveau mot de passe",
     msgFill: "Veuillez remplir tous les champs.",
-    msgLength: "Le mot de passe doit comporter au moins 6 caractères.",
+    msgLength: "Le mot de passe doit comporter au moins 6 caractÃ¨res.",
     msgMatch: "Les mots de passe ne correspondent pas.",
-    msgInvalid: "Lien invalide ou expiré.",
-    msgUpdating: "Mise à jour du mot de passe…",
-    msgSuccess: "✔️ Mot de passe mis à jour ! Retour à la connexion…",
-    msgError: "Erreur lors de la réinitialisation du mot de passe.",
-    msgConnection: "❌ Échec de la connexion."
+    msgInvalid: "Lien invalide ou expirÃ©.",
+    msgUpdating: "Mise Ã  jour du mot de passeâ€¦",
+    msgSuccess: "âœ”ï¸ Mot de passe mis Ã  jour ! Retour Ã  la connexionâ€¦",
+    msgError: "Erreur lors de la rÃ©initialisation du mot de passe.",
+    msgConnection: "âŒ Ã‰chec de la connexion."
   }
 };
 const getLang = () => {
@@ -289,11 +293,14 @@ async function salvar() {
   }
 }
 
-// 🚀 AQUI ESTÁ A LINHA QUE FALTAVA!!! 
+// ðŸš€ AQUI ESTÃ A LINHA QUE FALTAVA!!! 
 $("#btnSalvar").onclick = salvar;
 
 </script>
 
 
+  <script src="/app/js/env.js"></script>
 </body>
 </html>
+
+

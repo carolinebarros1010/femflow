@@ -1,10 +1,14 @@
-<!doctype html>
+﻿<!doctype html>
 <html>
 <head>
   <base target="_top">
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>FemFlow — Dashboard</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="format-detection" content="telephone=no" />
+  <script src="./config/config.js"></script>
+  <title>FemFlow â€” Dashboard</title>
   <style>
     body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;margin:0;background:#0f0f10;color:#f3f3f3}
     header{position:sticky;top:0;background:#151518;padding:14px 16px;border-bottom:1px solid #26262b;z-index:2}
@@ -29,8 +33,8 @@
 <header>
   <div class="wrap row" style="align-items:center;justify-content:space-between">
     <div>
-      <div style="font-weight:800">FemFlow — Dashboard Operacional</div>
-      <div class="muted" id="sub">Conectando…</div>
+      <div style="font-weight:800">FemFlow â€” Dashboard Operacional</div>
+      <div class="muted" id="sub">Conectandoâ€¦</div>
     </div>
 
     <div class="row" style="align-items:center">
@@ -49,18 +53,18 @@
       <div class="row">
         <div class="card" style="background:#0f0f10">
           <div class="muted">Alertas</div>
-          <div style="font-size:28px;font-weight:800" id="kpiAlertas">—</div>
+          <div style="font-size:28px;font-weight:800" id="kpiAlertas">â€”</div>
         </div>
         <div class="card" style="background:#0f0f10">
           <div class="muted">SAC Total</div>
-          <div style="font-size:28px;font-weight:800" id="kpiSac">—</div>
+          <div style="font-size:28px;font-weight:800" id="kpiSac">â€”</div>
         </div>
       </div>
-      <div class="muted" style="margin-top:8px">Dica: use “Alertas” para ver quem precisa de ação agora.</div>
+      <div class="muted" style="margin-top:8px">Dica: use â€œAlertasâ€ para ver quem precisa de aÃ§Ã£o agora.</div>
     </div>
 
     <div class="card">
-      <div style="font-weight:700;margin-bottom:8px">Última consulta</div>
+      <div style="font-weight:700;margin-bottom:8px">Ãšltima consulta</div>
       <div id="lastBox" class="muted">Nenhuma ainda.</div>
     </div>
   </section>
@@ -68,7 +72,7 @@
   <section class="card" style="margin-top:12px">
     <div class="row" style="align-items:center;justify-content:space-between">
       <div style="font-weight:700">Resultado</div>
-      <div id="statusPill" class="pill">—</div>
+      <div id="statusPill" class="pill">â€”</div>
     </div>
     <div id="result" class="muted" style="margin-top:10px">Use a busca por ID ou clique em Alertas.</div>
   </section>
@@ -94,7 +98,7 @@
 </main>
 
 <script>
-  // 🔧 coloque aqui seu endpoint atual
+  // ðŸ”§ coloque aqui seu endpoint atual
   const BASE = "<?= ScriptApp.getService().getUrl() ?>";
 
   const el = (id) => document.getElementById(id);
@@ -122,10 +126,10 @@
     alertas.forEach(a=>{
       const det =
         a.tipo === "inatividade"
-          ? `Inativa há ${a.diasSemTreinar} dias • nível=${a.nivel||"-"} • fase=${a.fase||"-"}`
+          ? `Inativa hÃ¡ ${a.diasSemTreinar} dias â€¢ nÃ­vel=${a.nivel||"-"} â€¢ fase=${a.fase||"-"}`
           : a.tipo === "sac_humano_recorrente"
-            ? `SAC total=${a.sacTotal} • humano=${a.humano}`
-            : `—`;
+            ? `SAC total=${a.sacTotal} â€¢ humano=${a.humano}`
+            : `â€”`;
       const tr = document.createElement("tr");
       tr.innerHTML = `
         <td><span class="pill warn">${a.tipo}</span></td>
@@ -138,19 +142,19 @@
   }
 
   function renderAluna(r){
-    // aqui você vai evoluir depois pra cards completos (status pagamento, produto, anamnese etc)
+    // aqui vocÃª vai evoluir depois pra cards completos (status pagamento, produto, anamnese etc)
     el("result").innerHTML = `
       <div><b>ID:</b> ${r?.id||"-"}</div>
       <div><b>Nome:</b> ${r?.nome||"-"}</div>
       <div><b>Email:</b> ${r?.email||"-"}</div>
-      <div><b>Produto:</b> ${r?.produto||"-"} • <b>Ativa:</b> ${String(r?.ativa)}</div>
-      <div><b>Nível:</b> ${r?.nivel||"-"} • <b>Fase:</b> ${r?.fase||"-"} • <b>DiaCiclo:</b> ${r?.diaCiclo||"-"}</div>
-      <div><b>PerfilHormonal:</b> ${r?.perfilHormonal||"-"} • <b>DiaPrograma:</b> ${r?.diaPrograma||"-"}</div>
+      <div><b>Produto:</b> ${r?.produto||"-"} â€¢ <b>Ativa:</b> ${String(r?.ativa)}</div>
+      <div><b>NÃ­vel:</b> ${r?.nivel||"-"} â€¢ <b>Fase:</b> ${r?.fase||"-"} â€¢ <b>DiaCiclo:</b> ${r?.diaCiclo||"-"}</div>
+      <div><b>PerfilHormonal:</b> ${r?.perfilHormonal||"-"} â€¢ <b>DiaPrograma:</b> ${r?.diaPrograma||"-"}</div>
     `;
   }
 
   async function loadAlertas(){
-    setPill("Carregando…");
+    setPill("Carregandoâ€¦");
     const resp = await api("dashboard_alertas");
     if (resp.status !== "ok"){ setPill("Erro", "bad"); return; }
     el("kpiAlertas").textContent = resp.total || 0;
@@ -163,18 +167,18 @@
     const id = el("id").value.trim();
     if (!id) return;
 
-    setPill("Carregando…");
-    // usa sua action validar (fonte única)
+    setPill("Carregandoâ€¦");
+    // usa sua action validar (fonte Ãºnica)
     const url = new URL(BASE);
     url.searchParams.set("action", "validar");
     url.searchParams.set("id", id);
 
     const resp = await fetch(url.toString()).then(r=>r.json());
-    if (resp.status !== "ok"){ setPill("Não encontrado", "bad"); return; }
+    if (resp.status !== "ok"){ setPill("NÃ£o encontrado", "bad"); return; }
 
     setPill("OK", "ok");
     renderAluna(resp);
-    el("lastBox").textContent = `Última busca: ${id}`;
+    el("lastBox").textContent = `Ãšltima busca: ${id}`;
   }
 
   el("btnAlertas").onclick = loadAlertas;
@@ -187,3 +191,5 @@
 </script>
 </body>
 </html>
+
+

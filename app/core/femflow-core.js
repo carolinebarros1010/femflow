@@ -4,13 +4,20 @@
 ======================================================================= */
 
 window.FEMFLOW = window.FEMFLOW || {};
+const FEMFLOW_ENV = window.FEMFLOW_ENV || "staging";
+const FEMFLOW_ACTIVE = window.FEMFLOW_ACTIVE || {};
+const FEMFLOW_CONFIG = window.FEMFLOW_CONFIG || {};
 
 /* ===========================================================
    1. CONFIG GLOBAL
 =========================================================== */
 
-FEMFLOW.SCRIPT_URL = "https://femflowapi.falling-wildflower-a8c0.workers.dev/";
+FEMFLOW.SCRIPT_URL =
+  FEMFLOW_ACTIVE.scriptUrl ||
+  FEMFLOW_CONFIG?.scriptUrls?.[FEMFLOW_ENV] ||
+  "https://femflowapi.falling-wildflower-a8c0.workers.dev/";
 FEMFLOW.API_URL = FEMFLOW.SCRIPT_URL;
+FEMFLOW.ENV = FEMFLOW_ENV;
 
 FEMFLOW.lang = localStorage.getItem("femflow_lang") || "pt";
 FEMFLOW.setLang = function (lang) {
@@ -82,6 +89,24 @@ FEMFLOW.setSessionToken = function (token) {
 
 FEMFLOW.clearSession = function () {
   localStorage.removeItem("femflow_session_token");
+};
+
+FEMFLOW.sessionTransport = {
+  type: "localStorage",
+  postMessageFallback: null,
+  setPostMessageBridge(fn) {
+    this.postMessageFallback = typeof fn === "function" ? fn : null;
+  }
+};
+
+FEMFLOW.openExternal = function (url) {
+  if (!url) return;
+  window.location.href = url;
+};
+
+FEMFLOW.openInternal = function (path) {
+  if (!path) return;
+  window.location.href = path;
 };
 
 
@@ -308,11 +333,18 @@ FEMFLOW.post = async function (payload) {
     ...session
   };
 
-  const resp = await fetch(FEMFLOW.SCRIPT_URL, {
-    method: "POST",
-    headers: { "Content-Type": "application/json" },
-    body: JSON.stringify(body)
-  }).then(r => r.json());
+  let resp;
+  try {
+    const response = await fetch(FEMFLOW.SCRIPT_URL, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body)
+    });
+    resp = await response.json();
+  } catch (err) {
+    FEMFLOW.toast?.("Reconectando…");
+    throw err;
+  }
 
   // Sessão inválida ou bloqueada
   if (resp?.status === "blocked" || resp?.status === "denied") {
@@ -412,13 +444,20 @@ FEMFLOW.reiniciarDiaPrograma = async function () {
 =========================================================== */
 
 FEMFLOW.router = pag => {
-  const destino = pag.endsWith(".html") ? pag : pag + ".html";
+  const [beforeHash, hashPart] = String(pag || "").split("#");
+  const [pathPart, queryPart] = beforeHash.split("?");
+  const destinoBase = pathPart.endsWith(".html")
+    ? pathPart
+    : `${pathPart}.html`;
+  const params = new URLSearchParams(queryPart || "");
 
   if (localStorage.getItem("femflow_mode_personal") === "true") {
-    location.href = `${destino}?personal=1`;
-  } else {
-    location.href = destino;
+    params.set("personal", "1");
   }
+
+  const queryString = params.toString();
+  const destino = queryString ? `${destinoBase}?${queryString}` : destinoBase;
+  location.href = hashPart ? `${destino}#${hashPart}` : destino;
 };
 
 

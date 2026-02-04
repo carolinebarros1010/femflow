@@ -1,9 +1,15 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 
 <head>
+<base href="/app/" />
+
   <meta charset="UTF-8"/>
-  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="format-detection" content="telephone=no" />
+  <script src="./config/config.js"></script>
   <title>Entrar no FemFlow</title>
 
   <link rel="icon" type="image/x-icon" href="favicon.ico">
@@ -17,9 +23,8 @@
   <link rel="dns-prefetch" href="https://cdn.jsdelivr.net">
   <link rel="preconnect" href="https://femflowapi.falling-wildflower-a8c0.workers.dev" crossorigin>
   <link rel="dns-prefetch" href="https://femflowapi.falling-wildflower-a8c0.workers.dev">
-
   <script>window.FEMFLOW_DISABLE_UI = true;</script>
-  <script defer src="./femflow-core.js"></script>
+  <script defer src="./core/femflow-core.js"></script>
 
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script defer src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
@@ -42,7 +47,7 @@
       <h2 id="tLoginBemVinda">Bem-vinda</h2>
       <p class="subtitle" id="tLoginSub">Acesse ou crie sua conta para iniciar seu ciclo</p>
 
-      <button id="btnLoginLang" class="login-lang-btn">🌐 Português</button>
+      <button id="btnLoginLang" class="login-lang-btn">ðŸŒ PortuguÃªs</button>
 
       <input id="loginEmail" type="email" placeholder="Seu e-mail"/>
 
@@ -57,7 +62,7 @@
       <button id="btnEntrar" type="button">Entrar</button>
       <p id="mensagem" class="message"></p>
 
-      <a id="linkCadastro" class="toggle" href="anamnese_deluxe.html">Ainda não tem conta? Cadastre-se</a>
+      <a id="linkCadastro" class="toggle" href="anamnese_deluxe.html">Ainda nÃ£o tem conta? Cadastre-se</a>
       <p id="goRecuperar" class="toggle">Esqueci minha senha</p>
 
       <div class="social-row boho">
@@ -69,7 +74,7 @@
           <img src="assets/icons/apple.svg">
         </div>
 
-        <div class="social-icon boho bio" id="bioSignIn">🔒</div>
+        <div class="social-icon boho bio" id="bioSignIn">ðŸ”’</div>
       </div>
 
     </div>
@@ -80,10 +85,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   window.FEMFLOW = window.FEMFLOW || {};
 
-  const scriptURL =
-    FEMFLOW.SCRIPT_URL ||
-    localStorage.getItem("femflow_script") ||
-    "https://femflowapi.falling-wildflower-a8c0.workers.dev/";
+  const scriptURL = FEMFLOW.SCRIPT_URL;
 
   const $ = sel => document.querySelector(sel);
   const msg = $("#mensagem");
@@ -105,18 +107,18 @@ document.addEventListener("DOMContentLoaded", () => {
       throw new Error(`HTTP ${r.status}: ${text.slice(0, 160)}`);
     }
     if (!text.trim().startsWith("{")) {
-      console.error("❌ Resposta não-JSON:", text);
+      console.error("âŒ Resposta nÃ£o-JSON:", text);
       throw new Error("Servidor retornou HTML");
     }
     try {
       return JSON.parse(text);
     } catch (err) {
-      throw new Error(`Resposta inválida do servidor: ${text.slice(0, 160)}`);
+      throw new Error(`Resposta invÃ¡lida do servidor: ${text.slice(0, 160)}`);
     }
   }
 
   /* ============================================================
-     LOGIN NORMAL — FINAL
+     LOGIN NORMAL â€” FINAL
   ============================================================ */
   async function syncCiclo(id) {
     if (!id) return null;
@@ -155,7 +157,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (res.status !== "ok") {
       if (res.status === "blocked") {
-        setErr("Esta conta já está conectada em outro dispositivo.");
+        setErr("Esta conta jÃ¡ estÃ¡ conectada em outro dispositivo.");
         FEMFLOW.clearSession?.();
         return;
       }
@@ -171,12 +173,12 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       if (res.status === "error" && res.msg === "device_required") {
-        setErr("Não foi possível identificar o dispositivo. Tente novamente.");
+        setErr("NÃ£o foi possÃ­vel identificar o dispositivo. Tente novamente.");
         return;
       }
 
       if (res.status === "senha_incorreta" || res.status === "not_registered") {
-        setMsg("Complete seu cadastro para continuar ✨");
+        setMsg("Complete seu cadastro para continuar âœ¨");
         setTimeout(() => location.href = "anamnese_deluxe.html", 600);
         return;
       }
@@ -185,7 +187,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    /* ===== SESSÃO MÍNIMA ===== */
+    /* ===== SESSÃƒO MÃNIMA ===== */
     localStorage.setItem("femflow_auth", "yes");
     localStorage.setItem("femflow_id", res.id);
     localStorage.setItem("femflow_email", res.email || email);
@@ -203,12 +205,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
     await syncCiclo(res.id);
     
-// 🧠 NOVO — reconciliação silenciosa
+// ðŸ§  NOVO â€” reconciliaÃ§Ã£o silenciosa
 if (res.deviceUpdated) {
-  console.info("🔁 Device atualizado automaticamente pelo backend");
+  console.info("ðŸ” Device atualizado automaticamente pelo backend");
 }
     
-    setMsg("Acesso liberado ✨", true);
+    setMsg("Acesso liberado âœ¨", true);
     setTimeout(() => location.href = "home.html", 500);
   }
 
@@ -218,7 +220,7 @@ if (res.deviceUpdated) {
   });
 
   /* ============================================================
-     BARRA DE FORÇA DA SENHA
+     BARRA DE FORÃ‡A DA SENHA
   ============================================================ */
   const senhaInput = $("#loginSenha");
   const toggleEye  = $("#toggleSenha");
@@ -250,7 +252,7 @@ if (res.deviceUpdated) {
   });
 
   /* ============================================================
-     LOGIN GOOGLE — FINAL
+     LOGIN GOOGLE â€” FINAL
   ============================================================ */
   $("#googleSignIn").onclick = () => google.accounts.id.prompt();
 
@@ -297,7 +299,7 @@ if (res.deviceUpdated) {
   window.preencherComGoogle = preencherComGoogle;
 
   /* ============================================================
-     LOGIN BIOMETRIA — FINAL
+     LOGIN BIOMETRIA â€” FINAL
   ============================================================ */
   const bio = $("#bioSignIn");
 
@@ -363,7 +365,7 @@ if (res.deviceUpdated) {
 
       await syncCiclo(res.id);
 
-      setMsg("Acesso liberado ✨", true);
+      setMsg("Acesso liberado âœ¨", true);
       setTimeout(() => location.href = "home.html", 600);
 
     } catch (e) {
@@ -382,7 +384,7 @@ if (res.deviceUpdated) {
       return;
     }
 
-    setMsg("Enviando instruções...");
+    setMsg("Enviando instruÃ§Ãµes...");
 
     try {
       const r = await fetch(scriptURL, {
@@ -392,13 +394,13 @@ if (res.deviceUpdated) {
       });
 
       const data = await r.json();
-      if (data.status === "ok") setMsg("📬 Verifique seu e-mail!", true);
-      else if (data.status === "notfound") setErr("E-mail não encontrado.");
-      else setErr("Erro ao solicitar redefinição.");
+      if (data.status === "ok") setMsg("ðŸ“¬ Verifique seu e-mail!", true);
+      else if (data.status === "notfound") setErr("E-mail nÃ£o encontrado.");
+      else setErr("Erro ao solicitar redefiniÃ§Ã£o.");
 
     } catch (e){
       console.error(e);
-      setErr("Erro ao enviar solicitação.");
+      setErr("Erro ao enviar solicitaÃ§Ã£o.");
     }
   };
 
@@ -412,14 +414,14 @@ if (res.deviceUpdated) {
 
   function aplicarIdiomaLogin(lang){
     const T = {
-      pt:{ bem:"Bem-vinda", sub:"Acesse ou crie sua conta para iniciar seu ciclo", email:"Seu e-mail", senha:"Sua senha", entrar:"Entrar", cad:"Ainda não tem conta? Cadastre-se", esq:"Esqueci minha senha" },
-      en:{ bem:"Welcome", sub:"Access or create your account to start your cycle", email:"Your email", senha:"Your password", entrar:"Login", cad:"Don’t have an account? Sign up", esq:"Forgot my password" },
-      fr:{ bem:"Bienvenue", sub:"Accédez ou créez votre compte pour commencer votre cycle", email:"Votre e-mail", senha:"Votre mot de passe", entrar:"Entrer", cad:"Pas de compte ? S'inscrire", esq:"J’ai oublié mon mot de passe" }
+      pt:{ bem:"Bem-vinda", sub:"Acesse ou crie sua conta para iniciar seu ciclo", email:"Seu e-mail", senha:"Sua senha", entrar:"Entrar", cad:"Ainda nÃ£o tem conta? Cadastre-se", esq:"Esqueci minha senha" },
+      en:{ bem:"Welcome", sub:"Access or create your account to start your cycle", email:"Your email", senha:"Your password", entrar:"Login", cad:"Donâ€™t have an account? Sign up", esq:"Forgot my password" },
+      fr:{ bem:"Bienvenue", sub:"AccÃ©dez ou crÃ©ez votre compte pour commencer votre cycle", email:"Votre e-mail", senha:"Votre mot de passe", entrar:"Entrer", cad:"Pas de compte ? S'inscrire", esq:"Jâ€™ai oubliÃ© mon mot de passe" }
     }[lang] || T.pt;
     const labels = {
-      pt: "Português",
+      pt: "PortuguÃªs",
       en: "English",
-      fr: "Français"
+      fr: "FranÃ§ais"
     };
 
     $("#tLoginBemVinda").textContent = T.bem;
@@ -429,7 +431,7 @@ if (res.deviceUpdated) {
     $("#btnEntrar").textContent      = T.entrar;
     $("#linkCadastro").textContent   = T.cad;
     $("#goRecuperar").textContent    = T.esq;
-    btnLang.textContent              = `🌐 ${labels[lang] || labels.pt}`;
+    btnLang.textContent              = `ðŸŒ ${labels[lang] || labels.pt}`;
   }
 
   window.setLoginLang = lang => {
@@ -452,9 +454,9 @@ if (res.deviceUpdated) {
   <div class="ff-lang-box">
     <h3 style="margin:0 0 14px; color:#335953;">Selecione o idioma</h3>
 
-    <button onclick="setLoginLang('pt')" class="ff-lang-btn" style="background:#335953;">Português</button>
+    <button onclick="setLoginLang('pt')" class="ff-lang-btn" style="background:#335953;">PortuguÃªs</button>
     <button onclick="setLoginLang('en')" class="ff-lang-btn" style="background:#cc6a5a;">English</button>
-    <button onclick="setLoginLang('fr')" class="ff-lang-btn" style="background:#e2b5a5; color:#573b2e;">Français</button>
+    <button onclick="setLoginLang('fr')" class="ff-lang-btn" style="background:#e2b5a5; color:#573b2e;">FranÃ§ais</button>
 
     <button class="ff-lang-close"
       onclick="document.getElementById('ff-lang-modal').classList.add('hidden')">
@@ -463,5 +465,8 @@ if (res.deviceUpdated) {
   </div>
 </div>
 
+  <script src="/app/js/env.js"></script>
 </body>
 </html>
+
+

@@ -1,9 +1,13 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-  <title>FemFlow • Offline</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="format-detection" content="telephone=no" />
+  <script src="./config/config.js"></script>
+  <title>FemFlow â€¢ Offline</title>
 
   <link rel="manifest" href="manifest.json" />
   <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
@@ -81,7 +85,7 @@
       color: #9a8e89;
     }
 
-    /* 🔹 Banner de reconexão */
+    /* ðŸ”¹ Banner de reconexÃ£o */
     #onlineBanner {
       position: fixed;
       bottom: 0;
@@ -107,24 +111,24 @@
 
 <body>
   <img src="./assets/logofemflowterracota.png" alt="FemFlow" />
-  <h1>Você está offline 🌸</h1>
-  <p>Sem conexão com a internet.<br>
-     Respire, mantenha a calma e volte quando a rede estiver disponível.</p>
+  <h1>VocÃª estÃ¡ offline ðŸŒ¸</h1>
+  <p>Sem conexÃ£o com a internet.<br>
+     Respire, mantenha a calma e volte quando a rede estiver disponÃ­vel.</p>
   <button onclick="location.reload()">Tentar novamente</button>
-  <footer>FemFlow • Ciclo Inteligente</footer>
+  <footer>FemFlow â€¢ Ciclo Inteligente</footer>
 
-  <div id="onlineBanner">Conectado novamente 🌿 Recarregando...</div>
+  <div id="onlineBanner">Conectado novamente ðŸŒ¿ Recarregando...</div>
 
   <script>
-    // 🔹 Detecção automática de reconexão
+    // ðŸ”¹ DetecÃ§Ã£o automÃ¡tica de reconexÃ£o
     window.addEventListener("online", () => {
       const banner = document.getElementById("onlineBanner");
       banner.classList.add("active");
 
-      // Vibração leve (se disponível)
+      // VibraÃ§Ã£o leve (se disponÃ­vel)
       if (navigator.vibrate) navigator.vibrate([60, 30, 60]);
 
-      // Recarrega automaticamente após 2 segundos
+      // Recarrega automaticamente apÃ³s 2 segundos
       setTimeout(() => {
         location.reload();
       }, 2000);
@@ -132,4 +136,6 @@
   </script>
 </body>
 </html>
+
+
 

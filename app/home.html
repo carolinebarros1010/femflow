@@ -1,10 +1,14 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="format-detection" content="telephone=no" />
+  <script src="./config/config.js"></script>
 
-  <title>FemFlow • Home</title>
+  <title>FemFlow â€¢ Home</title>
 
   <link rel="icon" href="favicon.ico">
   <link rel="manifest" href="manifest.json">
@@ -26,7 +30,7 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-messaging-compat.js"></script>
 
 <!-- INIT DO FIREBASE -->
-<script src="js/firebase-init.js?v=20250127"></script>
+<script src="services/firebase-init.js?v=20250127"></script>
 
   
   <!-- BEM-VINDA -->
@@ -39,14 +43,14 @@
     <iframe
       id="homeVideoFrame"
       src="https://www.youtube-nocookie.com/embed/pAifTtNF9sQ?controls=0&modestbranding=1&rel=0&playsinline=1"
-      title="Vídeo de boas-vindas do FemFlow"
+      title="VÃ­deo de boas-vindas do FemFlow"
       allowfullscreen
       loading="lazy">
     </iframe>
   </div>
 </div>
 
-  <!-- BOTÃO FLOW CENTER -->
+  <!-- BOTÃƒO FLOW CENTER -->
   <div class="home-top-buttons">
     <button id="btnFlow" class="home-btn">Continue seu treino</button>
   </div>
@@ -78,30 +82,30 @@
   <!-- MODAL TREINOS POR SEMANA -->
   <div id="treinosSemanaModal" class="ff-modal-overlay hidden" aria-hidden="true">
     <div class="ff-modal-card" role="dialog" aria-modal="true">
-      <h3 class="ff-modal-title" id="treinosSemanaTitulo">Quantos dias por semana você pretende treinar?</h3>
+      <h3 class="ff-modal-title" id="treinosSemanaTitulo">Quantos dias por semana vocÃª pretende treinar?</h3>
       <p class="ff-modal-subtitle" id="treinosSemanaSub">
-        Isso ajuda a identificar descanso e ausência corretamente.
+        Isso ajuda a identificar descanso e ausÃªncia corretamente.
       </p>
       <div class="ff-modal-options" id="treinosSemanaOptions"></div>
       <div class="ff-modal-actions">
-        <button class="ff-modal-btn ghost" id="treinosSemanaCancelar">Agora não</button>
+        <button class="ff-modal-btn ghost" id="treinosSemanaCancelar">Agora nÃ£o</button>
         <button class="ff-modal-btn" id="treinosSemanaSalvar">Salvar</button>
       </div>
     </div>
   </div>
 
-  <!-- MODAL CONFIRMAÇÃO NOVO PROGRAMA -->
+  <!-- MODAL CONFIRMAÃ‡ÃƒO NOVO PROGRAMA -->
   <div id="novoProgramaModal" class="ff-modal-overlay hidden" aria-hidden="true">
     <div class="ff-modal-card" role="dialog" aria-modal="true">
       <h3 class="ff-modal-title">Quer realmente iniciar um novo programa?</h3>
       <p class="ff-modal-subtitle">
-        Ao confirmar, o programa atual será reiniciado.
+        Ao confirmar, o programa atual serÃ¡ reiniciado.
       </p>
       <p class="ff-modal-note">
         Para retomar seu treino clique em "<strong>Continue seu treino</strong>".
       </p>
       <div class="ff-modal-actions">
-        <button class="ff-modal-btn ghost" id="novoProgramaCancelar">Não</button>
+        <button class="ff-modal-btn ghost" id="novoProgramaCancelar">NÃ£o</button>
         <button class="ff-modal-btn" id="novoProgramaConfirmar">Sim, iniciar</button>
       </div>
     </div>
@@ -109,9 +113,9 @@
 
   
  <script src="js/lang.js"></script>
-<script src="femflow-core.js"></script>
+<script src="core/femflow-core.js"></script>
 
-<!-- Só agora o home -->
+<!-- SÃ³ agora o home -->
 <script src="js/home.js"></script>
 
 
@@ -119,5 +123,8 @@
     document.getElementById("btnFlow").onclick = () => FEMFLOW.router("flowcenter");
   </script>
 
+  <script src="/app/js/env.js"></script>
 </body>
 </html>
+
+

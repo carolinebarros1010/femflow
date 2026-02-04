@@ -123,8 +123,8 @@ function getPerguntasTraduzidas() {
 
   const SCRIPT_URL =
     FEMFLOW?.SCRIPT_URL ||
-    localStorage.getItem("femflow_script") ||
-    "https://femflowapi.falling-wildflower-a8c0.workers.dev/";
+    window.FEMFLOW_ACTIVE?.scriptUrl ||
+    "";
 
   // ------------------------------------------------------------
   //  VALIDAÇÃO
@@ -316,7 +316,9 @@ async function finalizarAnamnese() {
       dataNascimento,
       senha,
       nivel,
-      anamnese: JSON.stringify(respostas)
+      anamnese: JSON.stringify(respostas),
+      enviarBoasVindasTrial: true,
+      lang
     });
   } catch (e) {
     console.error(e);
@@ -342,12 +344,10 @@ const loginResp = await FEMFLOW.post({
 });
 
 if (loginResp?.status === "ok") {
-  if (loginResp.deviceId) {
+  if (loginResp.deviceId && loginResp.deviceId !== deviceId) {
     localStorage.setItem("femflow_device_id", loginResp.deviceId);
   }
-  if (loginResp.sessionToken) {
-    localStorage.setItem("femflow_session_token", loginResp.sessionToken);
-  }
+  FEMFLOW.setSessionToken?.(loginResp.sessionToken);
   if (loginResp.sessionExpira) {
     localStorage.setItem("femflow_session_expira", String(loginResp.sessionExpira));
   }

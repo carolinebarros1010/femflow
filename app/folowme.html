@@ -1,9 +1,13 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width,initial-scale=1.0">
-  <title>FemFlow • Treine Junto</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="format-detection" content="telephone=no" />
+  <script src="./config/config.js"></script>
+  <title>FemFlow â€¢ Treine Junto</title>
 
   <link rel="icon" href="favicon.ico">
   <link rel="manifest" href="manifest.json">
@@ -24,10 +28,10 @@
 
 <!-- HEADER -->
 <script src="js/lang.js"></script>
-<script src="femflow-core.js"></script>
+<script src="core/femflow-core.js"></script>
 
-<h1 id="followTitulo">—</h1>
-<p id="followSub">—</p>
+<h1 id="followTitulo">â€”</h1>
+<p id="followSub">â€”</p>
 
 <!-- ===========================
      GRID DE COACHES
@@ -43,19 +47,22 @@
   
 <div id="modal-nivel" class="modal-nivel oculto">
   <div class="modal-nivel-box">
-    <h2>📊 Selecione seu nível</h2>
+    <h2>ðŸ“Š Selecione seu nÃ­vel</h2>
 
     <button class="nivel-btn" data-nivel="iniciante">Iniciante</button>
-    <button class="nivel-btn" data-nivel="intermediaria">Intermediária</button>
-    <button class="nivel-btn" data-nivel="avancada">Avançada</button>
+    <button class="nivel-btn" data-nivel="intermediaria">IntermediÃ¡ria</button>
+    <button class="nivel-btn" data-nivel="avancada">AvanÃ§ada</button>
 
     <button id="btnConfirmarNivel" class="nivel-confirmar">
-      Confirmar nível
+      Confirmar nÃ­vel
     </button>
 
     <button id="fecharNivel" class="nivel-fechar">Fechar</button>
   </div>
 </div>
 
+  <script src="/app/js/env.js"></script>
 </body>
 </html>
+
+

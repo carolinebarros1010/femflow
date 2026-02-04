@@ -1,7 +1,7 @@
 (() => {
   const BASE =
     window.FEMFLOW_ADMIN_BASE ||
-    localStorage.getItem("femflow_script") ||
+    window.FEMFLOW_ACTIVE?.scriptUrlAdmin ||
     "";
   const TOKEN_KEY = "femflow_admin_token";
 

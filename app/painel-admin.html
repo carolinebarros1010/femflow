@@ -1,13 +1,17 @@
-<!doctype html>
+﻿<!doctype html>
 <html lang="pt-BR">
 <head>
-  <base target="_top">
+  <base href="/app/" />
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="format-detection" content="telephone=no" />
+  <script src="./config/config.js"></script>
   <meta name="theme-color" content="#111114" />
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="favicon.ico" />
-  <title>FemFlow — Painel PWA</title>
+  <title>FemFlow â€” Painel PWA</title>
   <style>
     :root {
       color-scheme: dark;
@@ -113,8 +117,8 @@
   <header>
     <div class="wrap row" style="align-items:center;justify-content:space-between">
       <div>
-        <div style="font-weight:800;font-size:18px">FemFlow — Painel PWA</div>
-        <div class="muted">Gestão de alunas, pagamentos e plano.</div>
+        <div style="font-weight:800;font-size:18px">FemFlow â€” Painel PWA</div>
+        <div class="muted">GestÃ£o de alunas, pagamentos e plano.</div>
       </div>
       <div class="pill" id="status">Pronto</div>
     </div>
@@ -128,11 +132,11 @@
 
   <main class="wrap">
     <section class="card" style="margin-bottom:16px">
-      <h2>Configuração</h2>
+      <h2>ConfiguraÃ§Ã£o</h2>
       <div class="row" style="align-items:flex-end">
         <div>
           <label for="token">Token admin</label>
-          <input id="token" type="password" placeholder="Informe o token de segurança" />
+          <input id="token" type="password" placeholder="Informe o token de seguranÃ§a" />
         </div>
         <button id="saveToken">Salvar token</button>
         <div class="status" id="tokenStatus"></div>
@@ -152,7 +156,7 @@
         </div>
         <div>
           <label>Telefone</label>
-          <input id="newTelefone" placeholder="DDD + número" />
+          <input id="newTelefone" placeholder="DDD + nÃºmero" />
         </div>
         <div>
           <label>Produto</label>
@@ -163,7 +167,7 @@
           <input id="newDataCompra" type="date" />
         </div>
         <div>
-          <label>Licença ativa</label>
+          <label>LicenÃ§a ativa</label>
           <select id="newLicenca">
             <option value="true">Ativa</option>
             <option value="false">Inativa</option>
@@ -214,7 +218,7 @@
           <input id="editDataCompra" type="date" />
         </div>
         <div>
-          <label>Licença ativa</label>
+          <label>LicenÃ§a ativa</label>
           <select id="editLicenca">
             <option value="true">Ativa</option>
             <option value="false">Inativa</option>
@@ -229,7 +233,7 @@
         </div>
       </div>
       <div style="margin-top:12px">
-        <button class="primary" id="salvarEdicao">Salvar alterações</button>
+        <button class="primary" id="salvarEdicao">Salvar alteraÃ§Ãµes</button>
         <span class="muted" id="editStatus"></span>
       </div>
     </section>
@@ -238,11 +242,11 @@
       <h2>Novas alunas</h2>
       <div class="row" style="align-items:flex-end">
         <div>
-          <label>Período (dias)</label>
+          <label>PerÃ­odo (dias)</label>
           <select id="sinceDays">
-            <option value="7">Últimos 7 dias</option>
-            <option value="14">Últimos 14 dias</option>
-            <option value="30">Últimos 30 dias</option>
+            <option value="7">Ãšltimos 7 dias</option>
+            <option value="14">Ãšltimos 14 dias</option>
+            <option value="30">Ãšltimos 30 dias</option>
             <option value="0" selected>Todas</option>
           </select>
         </div>
@@ -264,7 +268,7 @@
               <th>Nome</th>
               <th>Email</th>
               <th>Produto</th>
-              <th>Licença</th>
+              <th>LicenÃ§a</th>
               <th>Personal</th>
             </tr>
           </thead>
@@ -277,13 +281,17 @@
   </main>
 
   <script>
-    const BASE = "window.FEMFLOW_ACTIVE.scriptUrl";
+    const BASE =
+      window.FEMFLOW_ACTIVE?.scriptUrlAdmin ||
+      window.FEMFLOW_CONFIG?.scriptUrlsAdmin?.[window.FEMFLOW_ENV || "staging"] ||
+      "";
     window.FEMFLOW_ADMIN_BASE = BASE;
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("service-worker.js");
+      navigator.serviceWorker.register("/app/service-worker.js");
     }
   </script>
-  <script src="js/painel-admin.js"></script>
+  <script src="/app/js/painel-admin.js"></script>
 </body>
 </html>
+
 

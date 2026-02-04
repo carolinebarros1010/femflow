@@ -1,9 +1,13 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
-  <title>FemFlow • Flow Center</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="format-detection" content="telephone=no" />
+  <script src="./config/config.js"></script>
+  <title>FemFlow â€¢ Flow Center</title>
 
   <link rel="manifest" href="manifest.json" />
   <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
@@ -32,7 +36,7 @@
 
     h3 { margin-top: 5px; }
 
-    /* ================== CÍRCULO DE FASES =================== */
+    /* ================== CÃRCULO DE FASES =================== */
     .phase-svg {
       width: 280px;
       height: 280px;
@@ -60,7 +64,7 @@
       animation: glowPhase 2.3s infinite ease-in-out;
     }
 
-    /* ================== BOTÕES =================== */
+    /* ================== BOTÃ•ES =================== */
     .toolbar {
       display: flex;
       gap: 12px;
@@ -131,25 +135,26 @@
 
     <circle id="centerCircle" cx="150" cy="150" r="63" fill="#cc6a5a"></circle>
     <text id="centerPhase" x="150" y="155" text-anchor="middle"
-      font-family="Playfair Display" font-size="18" font-weight="700" fill="#fff">—</text>
+      font-family="Playfair Display" font-size="18" font-weight="700" fill="#fff">â€”</text>
   </svg>
 </div>
 
-<div id="flowStatus" class="status-fase">🌸 Você está na fase —</div>
+<div id="flowStatus" class="status-fase">ðŸŒ¸ VocÃª estÃ¡ na fase â€”</div>
 <p id="faseDescricao" class="fase-descricao"></p>
 
 <div class="toolbar">
-  <button class="tool" id="toBreath">💨 Respiração</button>
-  <button class="tool" id="toTrain">🏃 Treino</button>
+  <button class="tool" id="toBreath">ðŸ’¨ RespiraÃ§Ã£o</button>
+  <button class="tool" id="toTrain">ðŸƒ Treino</button>
 </div>
 
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
-<script src="./femflow-core.js"></script>
+<script src="./core/femflow-core.js"></script>
 
 <script>
 document.addEventListener("DOMContentLoaded", () => {
-  console.log("🌸 FlowCenter v25 carregado e sincronizando com Core");
+  console.log("ðŸŒ¸ FlowCenter v25 carregado e sincronizando com Core");
+  const SCRIPT_URL = FEMFLOW.SCRIPT_URL;
 
   const lang = localStorage.getItem("femflow_lang") || "pt";
   const T = {
@@ -157,25 +162,25 @@ document.addEventListener("DOMContentLoaded", () => {
       title: "FemFlow",
       subtitle: "Fase Hormonal",
       desc: "Seu corpo tem um ritmo. Vamos segui-lo juntas.",
-      status: "🌸 Você está na fase",
+      status: "ðŸŒ¸ VocÃª estÃ¡ na fase",
       phases: {
         menstrual: "Menstrual",
         follicular: "Folicular",
-        ovulatory: "Ovulatória",
-        luteal: "Lútea"
+        ovulatory: "OvulatÃ³ria",
+        luteal: "LÃºtea"
       },
       descs: {
         menstrual: "Momento de recolhimento e escuta. Movimentos suaves e autocuidado.",
-        follicular: "Energia crescente. Aumente carga e potência.",
-        ovulatory: "Pico de energia e confiança. Ideal para treinos intensos.",
-        luteal: "Introspecção e estabilidade. Priorize controle e recuperação."
+        follicular: "Energia crescente. Aumente carga e potÃªncia.",
+        ovulatory: "Pico de energia e confianÃ§a. Ideal para treinos intensos.",
+        luteal: "IntrospecÃ§Ã£o e estabilidade. Priorize controle e recuperaÃ§Ã£o."
       }
     },
     en: {
       title: "FemFlow",
       subtitle: "Hormonal Phase",
       desc: "Your body has a rhythm. Let's follow it together.",
-      status: "🌸 You are in the",
+      status: "ðŸŒ¸ You are in the",
       phases: {
         menstrual: "Menstrual",
         follicular: "Follicular",
@@ -184,9 +189,9 @@ document.addEventListener("DOMContentLoaded", () => {
       },
       descs: {
         menstrual: "Time for rest and reflection.",
-        follicular: "Rising energy — increase load and focus.",
+        follicular: "Rising energy â€” increase load and focus.",
         ovulatory: "Peak energy and confidence. Go intense.",
-        luteal: "Calm phase — balance and recovery."
+        luteal: "Calm phase â€” balance and recovery."
       }
     }
   };
@@ -228,7 +233,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   document.getElementById("centerCircle").classList.add("center-active");
 
-  // === Botões ===
+  // === BotÃµes ===
   document.getElementById("toBreath")?.addEventListener("click", () => FEMFLOW.router("respiracao"));
   document.getElementById("toTrain")?.addEventListener("click", () => FEMFLOW.router("treino"));
 
@@ -243,26 +248,26 @@ document.addEventListener("DOMContentLoaded", () => {
         title: "FemFlow",
         subtitle: "Fase Hormonal",
         desc: "Seu corpo tem um ritmo. Vamos segui-lo juntas.",
-        status: "🌸 Você está na fase",
+        status: "ðŸŒ¸ VocÃª estÃ¡ na fase",
         phases: {
           menstrual: "Menstrual",
           follicular: "Folicular",
-          ovulatory: "Ovulatória",
-          luteal: "Lútea"
+          ovulatory: "OvulatÃ³ria",
+          luteal: "LÃºtea"
         },
         descs: {
           menstrual: "Momento de recolhimento e escuta. Movimentos suaves e autocuidado.",
-          follicular: "Energia crescente. Aumente carga e potência.",
-          ovulatory: "Pico de energia e confiança. Ideal para treinos intensos.",
-          luteal: "Introspecção e estabilidade. Priorize controle e recuperação."
+          follicular: "Energia crescente. Aumente carga e potÃªncia.",
+          ovulatory: "Pico de energia e confianÃ§a. Ideal para treinos intensos.",
+          luteal: "IntrospecÃ§Ã£o e estabilidade. Priorize controle e recuperaÃ§Ã£o."
         },
-        btns: { breath: "💨 Respiração", train: "🏃 Treino" }
+        btns: { breath: "ðŸ’¨ RespiraÃ§Ã£o", train: "ðŸƒ Treino" }
       },
       en: {
         title: "FemFlow",
         subtitle: "Hormonal Phase",
         desc: "Your body has a rhythm. Let's follow it together.",
-        status: "🌸 You are in the",
+        status: "ðŸŒ¸ You are in the",
         phases: {
           menstrual: "Menstrual",
           follicular: "Follicular",
@@ -271,11 +276,11 @@ document.addEventListener("DOMContentLoaded", () => {
         },
         descs: {
           menstrual: "Time for rest and reflection.",
-          follicular: "Rising energy — increase load and focus.",
+          follicular: "Rising energy â€” increase load and focus.",
           ovulatory: "Peak energy and confidence. Go intense.",
-          luteal: "Calm phase — balance and recovery."
+          luteal: "Calm phase â€” balance and recovery."
         },
-        btns: { breath: "💨 Breathing", train: "🏃 Training" }
+        btns: { breath: "ðŸ’¨ Breathing", train: "ðŸƒ Training" }
       }
     };
 
@@ -292,13 +297,14 @@ document.addEventListener("DOMContentLoaded", () => {
     document.getElementById("toTrain").textContent  = L.btns.train;
   };
 
-  // 🔁 Detecta troca de idioma emitida pelo core
+  // ðŸ” Detecta troca de idioma emitida pelo core
   window.addEventListener("femflow:langchange", () => {
     const newLang = localStorage.getItem("femflow_lang") || "pt";
     atualizarUI(newLang);
   });
 });
 </script>
+  <script src="/app/js/env.js"></script>
 </body>
 </html>
 
@@ -308,8 +314,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 
 /* =======================================================================
-   FemFlow v05 — Treino Diário 2025
-   ENGINE HORMONAL 3.1 • TURNOVER • FIREBASE • SNAPSHOT OFFLINE
+   FemFlow v05 â€” Treino DiÃ¡rio 2025
+   ENGINE HORMONAL 3.1 â€¢ TURNOVER â€¢ FIREBASE â€¢ SNAPSHOT OFFLINE
 ======================================================================= */
 
 document.addEventListener("DOMContentLoaded", async () => {
@@ -321,7 +327,7 @@ document.addEventListener("DOMContentLoaded", async () => {
    * ----------------------------------------------------------- */
   const id = localStorage.getItem("femflow_id");
   if (!id) {
-    FEMFLOW.toast("⚠️ Faça login novamente.");
+    FEMFLOW.toast("âš ï¸ FaÃ§a login novamente.");
     return location.href = "index.html?ret=treino.html";
   }
 
@@ -331,7 +337,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     localStorage.getItem("femflow_cycleLength");
 
   if (!cicloOK) {
-    FEMFLOW.toast("⚠️ Configure seu ciclo.");
+    FEMFLOW.toast("âš ï¸ Configure seu ciclo.");
     return location.href = "ciclo.html";
   }
 
@@ -354,7 +360,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const bar   = document.querySelector("#progressBar");
 
   if (!track || !bar) {
-    FEMFLOW.toast("❌ Estrutura interna ausente.");
+    FEMFLOW.toast("âŒ Estrutura interna ausente.");
     return;
   }
 
@@ -457,9 +463,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   /* ============================================================
-   * 6. ENGINE HORMONAL 3.1 — FINAL UNIFICADA (2025)
+   * 6. ENGINE HORMONAL 3.1 â€” FINAL UNIFICADA (2025)
    * ============================================================ */
-  // Função para calcular o ciclo hormonal, agora baseada no backend
+  // FunÃ§Ã£o para calcular o ciclo hormonal, agora baseada no backend
   async function calcularEngineHormonal() {
     const id = localStorage.getItem("femflow_id");
 
@@ -467,7 +473,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const data = await response.json();
 
     if (data.status !== "ok") {
-      FEMFLOW.toast("⚠️ Não foi possível recuperar o ciclo da aluna.");
+      FEMFLOW.toast("âš ï¸ NÃ£o foi possÃ­vel recuperar o ciclo da aluna.");
       return null;
     }
 
@@ -482,7 +488,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   /* ============================================================
-   * 7. ENGINE ENERGÉTICA
+   * 7. ENGINE ENERGÃ‰TICA
    * ============================================================ */
   function engineEnergeticaAvancar() {
     let dia = Number(localStorage.getItem("femflow_dia_energetico") || 1);
@@ -495,21 +501,21 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   /* ============================================================
-   * 8. EXECUÇÃO DO TREINO
+   * 8. EXECUÃ‡ÃƒO DO TREINO
    * ============================================================ */
   async function executarTreinoDia() {
 
     const id = localStorage.getItem("femflow_id");
 
     if (!id) {
-      FEMFLOW.toast("⚠️ Refaça o login.");
+      FEMFLOW.toast("âš ï¸ RefaÃ§a o login.");
       return location.href = "index.html?ret=treino.html";
     }
 
     const cicloData = await calcularEngineHormonal();
 
     if (!cicloData) {
-      FEMFLOW.toast("⚠️ Não foi possível calcular o ciclo.");
+      FEMFLOW.toast("âš ï¸ NÃ£o foi possÃ­vel calcular o ciclo.");
       return;
     }
 
@@ -536,17 +542,17 @@ document.addEventListener("DOMContentLoaded", async () => {
       const resp = await fetch(url);
       j = await resp.json();
     } catch (e) {
-      console.error("❌ GET treino falhou:", e);
+      console.error("âŒ GET treino falhou:", e);
     }
 
     if (!j || j.status !== "ok") {
-      FEMFLOW.toast("❌ Falha ao carregar treino.");
+      FEMFLOW.toast("âŒ Falha ao carregar treino.");
       return;
     }
 
-    console.log("🔥 DiaCiclo recebido do backend:", j.diaCiclo);
+    console.log("ðŸ”¥ DiaCiclo recebido do backend:", j.diaCiclo);
 
-    // Atualizando o valor de DiaCiclo no frontend (se necessário)
+    // Atualizando o valor de DiaCiclo no frontend (se necessÃ¡rio)
     localStorage.setItem("femflow_diaCiclo", j.diaCiclo);
 
     const box0 = j.boxes?.find(b => b.tipo === "texto") || null;
@@ -557,7 +563,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     const listaFinal = await gerarBoxesFinais(firebaseQuery, hiitCardio, box0, boxFinal);
 
     if (!listaFinal.length) {
-      FEMFLOW.toast("Nenhum exercício encontrado.");
+      FEMFLOW.toast("Nenhum exercÃ­cio encontrado.");
     }
 
     aplicarPerformanceView(faseFirebase);
@@ -569,10 +575,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       diaPrograma
     }, listaFinal);
 
-    console.log("✅ Treino final renderizado!");
+    console.log("âœ… Treino final renderizado!");
   }
   
-  /* Função que inicia o treino do dia */
+  /* FunÃ§Ã£o que inicia o treino do dia */
   executarTreinoDia();
 
 });
+
+

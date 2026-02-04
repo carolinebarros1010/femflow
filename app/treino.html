@@ -1,10 +1,14 @@
-<!DOCTYPE html>
+﻿<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="format-detection" content="telephone=no" />
+  <script src="./config/config.js"></script>
 
-  <title>FemFlow — Treino Diário</title>
+  <title>FemFlow â€” Treino DiÃ¡rio</title>
 
   <link rel="icon" href="favicon.ico">
   <link rel="manifest" href="manifest.json">
@@ -29,7 +33,7 @@
 
   <!-- Header -->
   <header class="treino-header">
-    <h1 id="tituloTreinoTopo">Treino Diário</h1>
+    <h1 id="tituloTreinoTopo">Treino DiÃ¡rio</h1>
 
     <h2 id="tituloDiaTreino"
         style="text-align:center;
@@ -52,22 +56,22 @@
   <div class="carousel-container">
     <div class="carousel-track" id="carouselTrack">
      <div class="carousel-item ff-box">
-  <!-- título do box -->
-  <h2 class="ff-ex-titulo">Carregando treino…</h2>
+  <!-- tÃ­tulo do box -->
+  <h2 class="ff-ex-titulo">Carregando treinoâ€¦</h2>
 
-  <!-- 🔥 área reservada para série especial -->
+  <!-- ðŸ”¥ Ã¡rea reservada para sÃ©rie especial -->
   <div class="ff-serie-info" hidden></div>
 
-  <!-- exercícios entram aqui -->
+  <!-- exercÃ­cios entram aqui -->
   <div class="ff-exercicios"></div>
 </div>
 
     </div>
   </div>
 
-  <!-- Rodapé -->
+  <!-- RodapÃ© -->
   <div class="fix-footer">
-    <button id="salvarTreinoBtn" class="btn-primary-clean">💾 Salvar treino</button>
+    <button id="salvarTreinoBtn" class="btn-primary-clean">ðŸ’¾ Salvar treino</button>
     <button id="cancelarTreinoBtn" class="btn-tertiary-clean">Cancelar</button>
   </div>
 
@@ -79,7 +83,7 @@
       <label class="modal-label" id="pseLabel">PSE (0 a 10)</label>
       <div class="pse-slider-wrapper">
         <div class="pse-emoji" id="pseEmojiWrap" aria-live="polite">
-          <span id="pseEmoji">😴</span>
+          <span id="pseEmoji">ðŸ˜´</span>
           <span class="pse-emoji-value" id="pseEmojiValue">0</span>
         </div>
         <input type="range" min="0" max="10" value="0" id="pseInput" class="modal-slider"/>
@@ -92,12 +96,12 @@
     </div>
   </div>
 
-  <!-- MODAL PRÓXIMO TREINO -->
+  <!-- MODAL PRÃ“XIMO TREINO -->
   <div id="modalProximoTreino" class="modal-proximo-overlay hidden" aria-hidden="true">
     <div class="modal-proximo-card" role="dialog" aria-modal="true">
-      <h3 class="modal-proximo-title" id="modalProximoTitulo">Próximo treino</h3>
+      <h3 class="modal-proximo-title" id="modalProximoTitulo">PrÃ³ximo treino</h3>
       <p class="modal-proximo-subtitle" id="modalProximoSub">
-        Veja os exercícios para se programar.
+        Veja os exercÃ­cios para se programar.
       </p>
       <ul class="modal-proximo-list" id="modalProximoLista"></ul>
     </div>
@@ -109,11 +113,11 @@
       <div class="treino-tour-step" id="treinoTourStep">1/3</div>
       <h3 class="treino-tour-title" id="treinoTourTitle">Salve seu treino</h3>
       <p class="treino-tour-text" id="treinoTourText">
-        Ao finalizar, salve para registrar seu PSE e evolução.
+        Ao finalizar, salve para registrar seu PSE e evoluÃ§Ã£o.
       </p>
       <div class="treino-tour-actions">
         <button id="treinoTourSkip" class="treino-tour-skip">Pular</button>
-        <button id="treinoTourNext" class="treino-tour-next">Próximo</button>
+        <button id="treinoTourNext" class="treino-tour-next">PrÃ³ximo</button>
       </div>
     </div>
   </div>
@@ -125,18 +129,18 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-messaging-compat.js"></script>
 
 
-<script src="js/firebase-init.js?v=20250127"></script>
+<script src="services/firebase-init.js?v=20250127"></script>
 <script>
   if (firebase.auth) {
     firebase.auth().signInAnonymously().catch((err) => {
-      console.warn("[FemFlow] Auth anônimo falhou:", err);
+      console.warn("[FemFlow] Auth anÃ´nimo falhou:", err);
     });
   }
 </script>
 
 <!-- SCRIPTS FEMFLOW -->
 <script src="js/lang.js"></script>
-<script src="femflow-core.js"></script>
+<script src="core/femflow-core.js"></script>
 <script src="./js/treino-engine.js"></script>
 <script src="./js/treino.js"></script>
 
@@ -147,7 +151,7 @@
 document.addEventListener("DOMContentLoaded", () => {
 
   /* ------------------------------------------------------------
-     🔐 MIDDLEWARE — Impede acesso direto por URL
+     ðŸ” MIDDLEWARE â€” Impede acesso direto por URL
   ------------------------------------------------------------ */
   const id       = localStorage.getItem("femflow_id");
   const produto  = localStorage.getItem("femflow_produto");
@@ -179,7 +183,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* ------------------------------------------------------------
-     Inicialização do núcleo
+     InicializaÃ§Ã£o do nÃºcleo
   ------------------------------------------------------------ */
   if (window.FEMFLOW && typeof FEMFLOW.init === "function") {
     FEMFLOW.init();
@@ -190,7 +194,7 @@ document.addEventListener("DOMContentLoaded", () => {
   document.addEventListener("femflow:langChange", aplicarIdioma);
 
   /* ============================================================
-     ATUALIZAR NÍVEL AUTOMATICAMENTE
+     ATUALIZAR NÃVEL AUTOMATICAMENTE
   ============================================================ */
   document.addEventListener("femflow:ready", (ev) => {
     const resp = ev.detail;
@@ -209,7 +213,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 
   /* ============================================================
-     2) FUNÇÃO DE IDIOMA — Treino Diário
+     2) FUNÃ‡ÃƒO DE IDIOMA â€” Treino DiÃ¡rio
   ============================================================ */
   function aplicarIdioma() {
     const L = FEMFLOW?.langs?.[FEMFLOW.lang] || FEMFLOW.langs.pt;
@@ -241,7 +245,7 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   /* ============================================================
-     3) BOTÃO CANCELAR — volta para FlowCenter
+     3) BOTÃƒO CANCELAR â€” volta para FlowCenter
   ============================================================ */
   document.getElementById("cancelarTreinoBtn").onclick = () => {
     FEMFLOW.router("flowcenter.html");
@@ -250,17 +254,17 @@ document.addEventListener("DOMContentLoaded", () => {
 });
 </script>
 
-<!-- MODAL DE NÍVEL (TREINO) -->
+<!-- MODAL DE NÃVEL (TREINO) -->
 <div id="modal-nivel" class="modal-nivel oculto">
   <div class="modal-nivel-box">
-    <h2>📊 Selecione seu nível</h2>
+    <h2>ðŸ“Š Selecione seu nÃ­vel</h2>
 
     <button class="nivel-btn" data-nivel="iniciante">Iniciante</button>
-    <button class="nivel-btn" data-nivel="intermediaria">Intermediária</button>
-    <button class="nivel-btn" data-nivel="avancada">Avançada</button>
+    <button class="nivel-btn" data-nivel="intermediaria">IntermediÃ¡ria</button>
+    <button class="nivel-btn" data-nivel="avancada">AvanÃ§ada</button>
 
     <button id="btnConfirmarNivel" class="nivel-confirmar">
-      Confirmar nível
+      Confirmar nÃ­vel
     </button>
 
     <button id="fecharNivel" class="nivel-fechar">Fechar</button>
@@ -268,5 +272,8 @@ document.addEventListener("DOMContentLoaded", () => {
 </div>
 
 
+  <script src="/app/js/env.js"></script>
 </body>
 </html>
+
+

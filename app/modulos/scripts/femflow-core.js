@@ -3,17 +3,16 @@
    Autor: Ricardo Fernandes
    ========================== */
 
-const FEMFLOW_ENV = window.FEMFLOW_ENV || "prod";
-
+const FEMFLOW_ENV = window.FEMFLOW_ENV || "staging";
 const FEMFLOW = {
-  SCRIPT_URL:
+    SCRIPT_URL:
     window.FEMFLOW_ACTIVE?.scriptUrlModulos ||
     window.FEMFLOW_ACTIVE?.scriptUrl ||
     window.FEMFLOW_CONFIG?.scriptUrlsModulos?.[FEMFLOW_ENV] ||
     window.FEMFLOW_CONFIG?.scriptUrls?.[FEMFLOW_ENV] ||
     "",
-  LOGO: "../../assets/logofemlowverde.png",
 
+  LOGO: "../../assets/logofemlowverde.png",
 
   /* ----------- ⚙️ INICIALIZAÇÃO ------------ */
   initTreino() {
@@ -21,9 +20,6 @@ const FEMFLOW = {
     this.inserirLogo();
     this.criarModalPSE();
     this.inserirBotaoVoltar();
-if (!FEMFLOW.SCRIPT_URL) {
-  throw new Error("FemFlow: SCRIPT_URL não configurada. Verifique app/config/config.js");
-}
   },
 
   inserirLogo() {
