@@ -862,19 +862,7 @@ function initFlowCenter() {
     });
   }
 
-// ... depois de definir enduranceBtn
-if (enduranceBtn) {
-  enduranceBtn.disabled = !enduranceEnabled;
-
-  // remove qualquer onclick antigo
-  enduranceBtn.onclick = null;
-
-  // adiciona handler em capture para vencer listeners antigos
-  enduranceBtn.addEventListener("click", async (e) => {
-    e.preventDefault();
-    e.stopPropagation();
-    if (e.stopImmediatePropagation) e.stopImmediatePropagation();
-
+  enduranceBtn.onclick = async () => {
     if (!enduranceEnabled) {
       FEMFLOW.toast("Endurance disponível apenas no Personal 🌸");
       return;
@@ -898,8 +886,7 @@ if (enduranceBtn) {
     } else {
       FEMFLOW.openInternal("../#ofertas");
     }
-  }, true);
-}
+  };
 
       FEMFLOW.loading.hide();
     });
