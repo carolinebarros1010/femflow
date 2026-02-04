@@ -7,9 +7,10 @@
     "doc": "docs"
   },
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
-"promote:prod": "node ./tools/promote-front.mjs"
-  },
+  "test": "echo \"Error: no test specified\" && exit 1",
+  "promote:prod": "node ./tools/promote-front.mjs"
+},
+
   "repository": {
     "type": "git",
     "url": "git+https://github.com/carolinebarros1010/femflow.git"
