@@ -595,3 +595,17 @@ body.personal-mode #tituloApp::after {
   text-transform: uppercase;
   letter-spacing: 0.06em;
 }
+/* ===== GARANTIA: nada passa por cima disso ===== */
+.oculto { display: none !important; }
+.modal-endurance.oculto,
+.modal-extra.oculto,
+.modal-nivel.oculto { display: none !important; }
+
+/* e reforça o overlay (caso algum CSS tenha mudado) */
+.modal-endurance,
+.modal-extra {
+  position: fixed !important;
+  inset: 0 !important;
+  display: flex;
+  z-index: 99999;
+}
