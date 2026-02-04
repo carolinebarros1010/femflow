@@ -423,12 +423,14 @@ function initFlowCenter() {
     if (!modalEndurance) return;
     modalEndurance.classList.remove("oculto");
     modalEndurance.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
   };
 
   const fecharModalEndurance = () => {
     if (!modalEndurance) return;
     modalEndurance.classList.add("oculto");
     modalEndurance.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
   };
 
   const abrirModalEnduranceSelecao = () => {
@@ -443,12 +445,14 @@ function initFlowCenter() {
     toggleChipSingle(modalEnduranceDia, diaSelecionado);
     modalEnduranceSelecao.classList.remove("oculto");
     modalEnduranceSelecao.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
   };
 
   const fecharModalEnduranceSelecao = () => {
     if (!modalEnduranceSelecao) return;
     modalEnduranceSelecao.classList.add("oculto");
     modalEnduranceSelecao.setAttribute("aria-hidden", "true");
+    document.body.style.overflow = "";
   };
 
   const toggleChipSingle = (container, value) => {

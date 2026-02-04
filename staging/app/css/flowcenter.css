@@ -224,15 +224,24 @@ h1 {
 .modal-endurance {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
+  z-index: 9999;
   display: flex;
-  justify-content: center;
   align-items: center;
-  z-index: 99999;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.55);
 }
 
 .modal-endurance.oculto {
   display: none;
+}
+
+.modal-endurance[aria-hidden="true"] {
+  display: none;
+}
+
+.oculto {
+  display: none !important;
 }
 
 .modal-endurance-box {
@@ -240,6 +249,8 @@ h1 {
   padding: 24px;
   border-radius: 22px;
   width: min(90%, 420px);
+  max-height: 85vh;
+  overflow: auto;
   box-shadow: 0 8px 22px rgba(0,0,0,0.15);
   text-align: left;
   font-family: "Lato", sans-serif;
