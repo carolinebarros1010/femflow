@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8">
@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="format-detection" content="telephone=no" />
   <script src="./config/config.js"></script>
-  <title>FemFlow â€¢ Anamnese Deluxe</title>
+  <title>FemFlow • Anamnese Deluxe</title>
 
   <!-- Favicons -->
   <link rel="icon" type="image/x-icon" href="favicon.ico">
@@ -80,7 +80,7 @@
   background:linear-gradient(135deg,var(--verde),var(--terracota));
   color:#fff; border:none; border-radius:14px;
   padding:12px 18px; font-size:1rem;
-  width:100%;               /* ðŸ”¥ ocupa o container */
+  width:100%;               /* 🔥 ocupa o container */
   max-width:300px;
   cursor:pointer; transition:.25s;
 }
@@ -113,7 +113,7 @@
     }
   </style>
 
-  <!-- PrÃ©-load logo -->
+  <!-- Pré-load logo -->
   <link rel="preload" href="./assets/logofemflowterracota.png" as="image">
 </head>
 
@@ -122,15 +122,15 @@
   <!-- Logo -->
   <img src="./assets/logofemflowterracota.png" alt="FemFlow" style="width:120px;margin-top:10px;">
 
-  <!-- TÃ­tulo multilÃ­ngue -->
+  <!-- Título multilíngue -->
   <h1 id="tituloAnamnese">Anamnese</h1>
-  <button id="btnLang">ðŸŒ Idioma</button>
+  <button id="btnLang">🌐 Idioma</button>
 
   <!-- ============================
-        ETAPA 1 â€” CADASTRO
+        ETAPA 1 — CADASTRO
   ============================ -->
   <div id="cadastro" class="card">
-    <p id="cadHint" class="hint">ðŸŒ¸ Preencha seus dados para comeÃ§ar:</p>
+    <p id="cadHint" class="hint">🌸 Preencha seus dados para começar:</p>
 
     <input id="nome" placeholder="Nome completo">
     <div id="eNome" class="err"></div>
@@ -145,7 +145,7 @@
     <input id="dataNascimento" type="date" required>
     <div id="eDataNascimento" class="err"></div>
 
-    <input id="senha" type="password" placeholder="Crie uma senha (mÃ­n. 6)">
+    <input id="senha" type="password" placeholder="Crie uma senha (mín. 6)">
     <div id="eSenha" class="err"></div>
 
     <input id="confirma" type="password" placeholder="Confirme a senha">
@@ -155,7 +155,7 @@
   </div>
 
   <!-- ============================
-        ETAPA 2 â€” QUIZ
+        ETAPA 2 — QUIZ
   ============================ -->
   <div id="quiz" class="card hidden">
     <img id="gif" class="gif" src="./assets/gifs/profile_form.webp">
@@ -164,11 +164,11 @@
   </div>
 
   <!-- ============================
-        ETAPA 3 â€” FINAL
+        ETAPA 3 — FINAL
   ============================ -->
   <div id="final" class="card hidden">
     <img class="gif" src="./assets/gifs/success_flow.webp">
-    <p id="final-msg">âœ¨ AnÃ¡lise concluÃ­da! Calculando seu perfil...</p>
+    <p id="final-msg">✨ Análise concluída! Calculando seu perfil...</p>
   </div>
 
   <!-- ============================
@@ -192,7 +192,7 @@
 
       <button onclick="FEMFLOW.setLang('pt'); this.closest('#ff-lang-modal').classList.add('hidden');"
         style="margin:6px 0; padding:12px; width:100%; border-radius:12px; background:#335953; color:#fff;">
-        PortuguÃªs
+        Português
       </button>
 
       <button onclick="FEMFLOW.setLang('en'); this.closest('#ff-lang-modal').classList.add('hidden');"
@@ -202,7 +202,7 @@
 
       <button onclick="FEMFLOW.setLang('fr'); this.closest('#ff-lang-modal').classList.add('hidden');"
         style="margin:6px 0; padding:12px; width:100%; border-radius:12px; background:#e2b5a5; color:#573b2e;">
-        FranÃ§ais
+        Français
       </button>
 
       <button onclick="this.closest('#ff-lang-modal').classList.add('hidden');"
@@ -216,5 +216,3 @@
   <script src="/app/js/env.js"></script>
 </body>
 </html>
-
-

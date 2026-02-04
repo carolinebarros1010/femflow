@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="format-detection" content="telephone=no" />
   <script src="./config/config.js"></script>
-  <title>FemFlow â€¢ Offline</title>
+  <title>FemFlow • Offline</title>
 
   <link rel="manifest" href="manifest.json" />
   <link href="https://fonts.googleapis.com/css2?family=Lato:wght@400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet" />
@@ -85,7 +85,7 @@
       color: #9a8e89;
     }
 
-    /* ðŸ”¹ Banner de reconexÃ£o */
+    /* 🔹 Banner de reconexão */
     #onlineBanner {
       position: fixed;
       bottom: 0;
@@ -111,24 +111,24 @@
 
 <body>
   <img src="./assets/logofemflowterracota.png" alt="FemFlow" />
-  <h1>VocÃª estÃ¡ offline ðŸŒ¸</h1>
-  <p>Sem conexÃ£o com a internet.<br>
-     Respire, mantenha a calma e volte quando a rede estiver disponÃ­vel.</p>
+  <h1>Você está offline 🌸</h1>
+  <p>Sem conexão com a internet.<br>
+     Respire, mantenha a calma e volte quando a rede estiver disponível.</p>
   <button onclick="location.reload()">Tentar novamente</button>
-  <footer>FemFlow â€¢ Ciclo Inteligente</footer>
+  <footer>FemFlow • Ciclo Inteligente</footer>
 
-  <div id="onlineBanner">Conectado novamente ðŸŒ¿ Recarregando...</div>
+  <div id="onlineBanner">Conectado novamente 🌿 Recarregando...</div>
 
   <script>
-    // ðŸ”¹ DetecÃ§Ã£o automÃ¡tica de reconexÃ£o
+    // 🔹 Detecção automática de reconexão
     window.addEventListener("online", () => {
       const banner = document.getElementById("onlineBanner");
       banner.classList.add("active");
 
-      // VibraÃ§Ã£o leve (se disponÃ­vel)
+      // Vibração leve (se disponível)
       if (navigator.vibrate) navigator.vibrate([60, 30, 60]);
 
-      // Recarrega automaticamente apÃ³s 2 segundos
+      // Recarrega automaticamente após 2 segundos
       setTimeout(() => {
         location.reload();
       }, 2000);
@@ -136,6 +136,4 @@
   </script>
 </body>
 </html>
-
-
 

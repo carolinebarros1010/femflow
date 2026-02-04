@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8"/>
@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="format-detection" content="telephone=no" />
   <script src="./config/config.js"></script>
-  <title>FemFlow â€¢ Minha EvoluÃ§Ã£o</title>
+  <title>FemFlow • Minha Evolução</title>
 
   <link rel="icon" href="favicon.ico">
   <link rel="apple-touch-icon" href="favicon.ico">
@@ -28,14 +28,14 @@
 
 <body>
 
-<h1 id="tituloPagina">â€”</h1>
-<p id="subtituloPagina" class="evo-subtitle">â€”</p>
+<h1 id="tituloPagina">—</h1>
+<p id="subtituloPagina" class="evo-subtitle">—</p>
 
 <div class="evo-container">
 
   <!-- PROGRESSO -->
   <section class="evo-card">
-    <h2 id="tituloProgresso">â€”</h2>
+    <h2 id="tituloProgresso">—</h2>
     <p id="progressoTexto" class="texto-progresso"></p>
 
     <div class="evo-progress">
@@ -43,9 +43,9 @@
     </div>
   </section>
 
-  <!-- GRÃFICO PSE -->
+  <!-- GRÁFICO PSE -->
   <section class="evo-card evo-chart">
-    <h3 id="tituloPSE">â€”</h3>
+    <h3 id="tituloPSE">—</h3>
 
     <div class="chart-container">
       <canvas id="graficoPSE"></canvas>
@@ -54,15 +54,15 @@
     <p id="legendaPSE" class="evo-legend">
       <span class="legend-item legend-regular">
         <span class="legend-dot"></span>
-        <span id="legendaRegular">â€”</span>
+        <span id="legendaRegular">—</span>
       </span>
       <span class="legend-item legend-extra">
         <span class="legend-dot"></span>
-        <span id="legendaExtra">â€”</span>
+        <span id="legendaExtra">—</span>
       </span>
       <span class="legend-item legend-endurance">
         <span class="legend-dot"></span>
-        <span id="legendaEndurance">â€”</span>
+        <span id="legendaEndurance">—</span>
       </span>
     </p>
   </section>
@@ -73,7 +73,7 @@
     <button id="novoCicloBtn" class="evo-btn"></button>
   </section>
 
-  <button id="voltarFlow" class="evo-btn" style="margin-top:20px">â€”</button>
+  <button id="voltarFlow" class="evo-btn" style="margin-top:20px">—</button>
 
 </div>
 
@@ -93,7 +93,7 @@ function aplicarIdioma() {
   const L = langSet.evolucao;
 
   if (!L) {
-    console.warn("âš ï¸ DicionÃ¡rio 'evolucao' nÃ£o encontrado.");
+    console.warn("⚠️ Dicionário 'evolucao' não encontrado.");
     return;
   }
 
@@ -115,7 +115,7 @@ function aplicarIdioma() {
     if (el && map[id]) el.innerHTML = map[id];
   }
 
-  // Progresso numÃ©rico
+  // Progresso numérico
   if (window.__prog !== undefined) {
     const elProg = document.getElementById("progressoTexto");
     if (elProg) elProg.innerText = window.__prog + "%";
@@ -127,13 +127,13 @@ document.addEventListener("DOMContentLoaded", aplicarIdioma);
 
 
 /* ============================================================
-   2) LÃ³gica da PÃ¡gina
+   2) Lógica da Página
 ============================================================ */
 document.addEventListener("DOMContentLoaded", async () => {
 
   FEMFLOW.inserirHeaderApp?.();
 
-  /* ðŸ” ProteÃ§Ã£o de acesso */
+  /* 🔐 Proteção de acesso */
   const id = localStorage.getItem("femflow_id");
   const produto = localStorage.getItem("femflow_produto");
   const produtoNorm = String(produto || "").toLowerCase();
@@ -141,7 +141,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const ativa   = isVip || localStorage.getItem("femflow_ativa") === "true";
 
   if (!id || !produto || !ativa) {
-    FEMFLOW.toast("Acesse pela Home para continuar ðŸŒ¸");
+    FEMFLOW.toast("Acesse pela Home para continuar 🌸");
     return FEMFLOW.router("home");
   }
 
@@ -167,7 +167,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       return { hist, diaPrograma };
     } catch (e) {
-      console.warn("âš ï¸ Erro ao buscar evoluÃ§Ã£o no backend:", e);
+      console.warn("⚠️ Erro ao buscar evolução no backend:", e);
       return null;
     }
   }
@@ -226,7 +226,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   /* ============================================================
-     HISTÃ“RICO PSE â€” localStorage
+     HISTÓRICO PSE — localStorage
   ============================================================ */
   let hist = backend?.hist;
 
@@ -276,7 +276,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   /* ============================================================
-     GRÃFICO
+     GRÁFICO
   ============================================================ */
   const labels = hist.map((t, i) => i + 1);
   const dataRegular = hist.map((item) =>
@@ -334,7 +334,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   /* ============================================================
-     BOTÃƒO VOLTAR
+     BOTÃO VOLTAR
   ============================================================ */
   const voltar = document.getElementById("voltarFlow");
   if (voltar) voltar.onclick = () => FEMFLOW.router("flowcenter.html");
@@ -342,17 +342,17 @@ document.addEventListener("DOMContentLoaded", async () => {
 });
 </script>
 
-<!-- MODAL NÃVEL -->
+<!-- MODAL NÍVEL -->
 <div id="modal-nivel" class="modal-nivel oculto">
   <div class="modal-nivel-box">
-    <h2>ðŸ“Š Selecione seu nÃ­vel</h2>
+    <h2>📊 Selecione seu nível</h2>
 
     <button class="nivel-btn" data-nivel="iniciante">Iniciante</button>
-    <button class="nivel-btn" data-nivel="intermediaria">IntermediÃ¡ria</button>
-    <button class="nivel-btn" data-nivel="avancada">AvanÃ§ada</button>
+    <button class="nivel-btn" data-nivel="intermediaria">Intermediária</button>
+    <button class="nivel-btn" data-nivel="avancada">Avançada</button>
 
     <button id="btnConfirmarNivel" class="nivel-confirmar">
-      Confirmar nÃ­vel
+      Confirmar nível
     </button>
 
     <button id="fecharNivel" class="nivel-fechar">Fechar</button>
@@ -363,5 +363,3 @@ document.addEventListener("DOMContentLoaded", async () => {
   <script src="/app/js/env.js"></script>
 </body>
 </html>
-
-

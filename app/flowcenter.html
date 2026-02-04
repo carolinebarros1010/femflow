@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="format-detection" content="telephone=no" />
   <script src="./config/config.js"></script>
-  <title>FemFlow â€¢ Flow Center</title>
+  <title>FemFlow • Flow Center</title>
 
   <link rel="icon" href="favicon.ico">
   <link rel="manifest" href="manifest.json">
@@ -26,11 +26,11 @@
   FemFlow <span id="nivelTag"></span>
 </h1>
 
-<h3 id="tituloFlow">â€”</h3>
-<p class="subtitle" id="subFlow">â€”</p>
+<h3 id="tituloFlow">—</h3>
+<p class="subtitle" id="subFlow">—</p>
 
 <!-- ================================
-     CÃRCULO HORMONAL
+     CÍRCULO HORMONAL
 ================================= -->
 <div class="phase-wrapper">
   <div class="phase-svg">
@@ -47,39 +47,39 @@
         <circle cx="150" cy="150" r="65" fill="none" stroke="#fff5ef" stroke-width="2"></circle>
         <circle cx="150" cy="150" r="63" fill="#cc6a5a"></circle>
 
-        <text id="lbl-menstrual"  x="215" y="95"  font-family="Playfair Display" font-size="14" font-weight="700" fill="#cc6a5a" text-anchor="middle" transform="rotate(45,215,95)">â€”</text>
-        <text id="lbl-follicular" x="215" y="215" font-family="Playfair Display" font-size="14" font-weight="700" fill="#cc6a5a" text-anchor="middle" transform="rotate(135,215,215)">â€”</text>
-        <text id="lbl-ovulatory"  x="85"  y="215" font-family="Playfair Display" font-size="14" font-weight="700" fill="#cc6a5a" text-anchor="middle" transform="rotate(225,85,215)">â€”</text>
-        <text id="lbl-luteal"     x="85"  y="85"  font-family="Playfair Display" font-size="14" font-weight="700" fill="#cc6a5a" text-anchor="middle" transform="rotate(315,85,85)">â€”</text>
+        <text id="lbl-menstrual"  x="215" y="95"  font-family="Playfair Display" font-size="14" font-weight="700" fill="#cc6a5a" text-anchor="middle" transform="rotate(45,215,95)">—</text>
+        <text id="lbl-follicular" x="215" y="215" font-family="Playfair Display" font-size="14" font-weight="700" fill="#cc6a5a" text-anchor="middle" transform="rotate(135,215,215)">—</text>
+        <text id="lbl-ovulatory"  x="85"  y="215" font-family="Playfair Display" font-size="14" font-weight="700" fill="#cc6a5a" text-anchor="middle" transform="rotate(225,85,215)">—</text>
+        <text id="lbl-luteal"     x="85"  y="85"  font-family="Playfair Display" font-size="14" font-weight="700" fill="#cc6a5a" text-anchor="middle" transform="rotate(315,85,85)">—</text>
 
-        <text id="centerPhase" x="150" y="155" text-anchor="middle" font-family="Playfair Display" font-size="18" font-weight="700" fill="#fff">â€”</text>
+        <text id="centerPhase" x="150" y="155" text-anchor="middle" font-family="Playfair Display" font-size="18" font-weight="700" fill="#fff">—</text>
       </svg>
   </div>
 </div>
 
-<div class="current-phase" id="t_current">â€”</div>
+<div class="current-phase" id="t_current">—</div>
 
 <!-- NAV -->
 <div class="toolbar">
-  <button class="tool" id="toBreath">ðŸ’¨ â€”</button>
-  <button class="tool" id="toTrain">ðŸƒ â€”</button>
-  <button class="tool" id="toExtraTrain">âœ¨ â€”</button>
-  <button class="tool" id="toEvolution">ðŸ“ˆ â€”</button>
-  <button class="tool" id="toEndurance">ðŸƒâ€â™‚ï¸ Endurance</button>
-  <button class="tool" id="toNextTreino">ðŸ—“ï¸ Ver prÃ³ximo treino</button>
+  <button class="tool" id="toBreath">💨 —</button>
+  <button class="tool" id="toTrain">🏃 —</button>
+  <button class="tool" id="toExtraTrain">✨ —</button>
+  <button class="tool" id="toEvolution">📈 —</button>
+  <button class="tool" id="toEndurance">🏃‍♂️ Endurance</button>
+  <button class="tool" id="toNextTreino">🗓️ Ver próximo treino</button>
 </div>
 
-<!-- MODAL DE NÃVEL -->
+<!-- MODAL DE NÍVEL -->
 <div id="modal-nivel" class="modal-nivel oculto">
   <div class="modal-nivel-box">
-    <h2>ðŸ“Š Selecione seu nÃ­vel</h2>
+    <h2>📊 Selecione seu nível</h2>
 
     <button class="nivel-btn" data-nivel="iniciante">Iniciante</button>
-    <button class="nivel-btn" data-nivel="intermediaria">IntermediÃ¡ria</button>
-    <button class="nivel-btn" data-nivel="avancada">AvanÃ§ada</button>
+    <button class="nivel-btn" data-nivel="intermediaria">Intermediária</button>
+    <button class="nivel-btn" data-nivel="avancada">Avançada</button>
 
     <button id="btnConfirmarNivel" class="nivel-confirmar">
-      Confirmar nÃ­vel
+      Confirmar nível
     </button>
 
     <button id="fecharNivel" class="nivel-fechar">Fechar</button>
@@ -89,12 +89,12 @@
 <!-- MODAL DE TREINO EXTRA -->
 <div id="modal-extra" class="modal-extra oculto">
   <div class="modal-extra-box">
-    <h2 id="extraTitle">âœ¨ Treino Extra</h2>
-    <p id="extraSub" class="modal-extra-sub">Escolha a Ã¡rea que deseja focar hoje.</p>
+    <h2 id="extraTitle">✨ Treino Extra</h2>
+    <p id="extraSub" class="modal-extra-sub">Escolha a área que deseja focar hoje.</p>
 
     <button class="extra-btn" data-extra-enfase="extra_superior">Superior</button>
     <button class="extra-btn" data-extra-enfase="extra_inferior">Inferior</button>
-    <button class="extra-btn" data-extra-enfase="extra_abdomen">AbdÃ´men</button>
+    <button class="extra-btn" data-extra-enfase="extra_abdomen">Abdômen</button>
     <button class="extra-btn" data-extra-enfase="extra_mobilidade">Mobilidade</button>
 
     <button id="fecharExtra" class="extra-close">Fechar</button>
@@ -104,14 +104,14 @@
 <!-- MODAL ENDURANCE -->
 <div id="modal-endurance" class="modal-endurance oculto" aria-hidden="true">
   <div class="modal-endurance-box" role="dialog" aria-modal="true">
-    <h2>ðŸƒâ€â™‚ï¸ Defina seu Endurance</h2>
+    <h2>🏃‍♂️ Defina seu Endurance</h2>
     <p class="modal-endurance-sub">
       Responda para personalizarmos o seu treino de cardio.
     </p>
 
     <label class="endurance-field">
       <span>Qual modalidade?</span>
-      <input type="text" id="enduranceModalidade" placeholder="Ex: corrida, bike, nataÃ§Ã£o">
+      <input type="text" id="enduranceModalidade" placeholder="Ex: corrida, bike, natação">
     </label>
 
     <div class="endurance-field">
@@ -135,15 +135,15 @@
         <button type="button" class="endurance-chip" data-value="quarta">Qua</button>
         <button type="button" class="endurance-chip" data-value="quinta">Qui</button>
         <button type="button" class="endurance-chip" data-value="sexta">Sex</button>
-        <button type="button" class="endurance-chip" data-value="sabado">SÃ¡b</button>
+        <button type="button" class="endurance-chip" data-value="sabado">Sáb</button>
         <button type="button" class="endurance-chip" data-value="domingo">Dom</button>
       </div>
     </div>
 
     <label class="endurance-field">
       <span>
-        Qual ritmo mÃ©dio?
-        <span class="endurance-info" title="Minutos para cada 100m em nataÃ§Ã£o, velocidade mÃ©dia em bike, pace em corrida.">i</span>
+        Qual ritmo médio?
+        <span class="endurance-info" title="Minutos para cada 100m em natação, velocidade média em bike, pace em corrida.">i</span>
       </span>
       <input type="text" id="enduranceRitmo" placeholder="Ex: 2:10/100m, 25 km/h, 5:20 min/km">
     </label>
@@ -155,12 +155,12 @@
   </div>
 </div>
 
-<!-- MODAL ENDURANCE â€” SELEÃ‡ÃƒO -->
+<!-- MODAL ENDURANCE — SELEÇÃO -->
 <div id="modal-endurance-selecao" class="modal-endurance modal-endurance-selecao oculto" aria-hidden="true">
   <div class="modal-endurance-box" role="dialog" aria-modal="true">
-    <h2>ðŸƒâ€â™‚ï¸ Escolha sua sessÃ£o</h2>
+    <h2>🏃‍♂️ Escolha sua sessão</h2>
     <p class="modal-endurance-sub">
-      Selecione a semana e o dia do treino que vocÃª vai realizar.
+      Selecione a semana e o dia do treino que você vai realizar.
     </p>
 
     <div class="endurance-field">
@@ -181,7 +181,7 @@
         <button type="button" class="endurance-chip" data-value="quarta">Qua</button>
         <button type="button" class="endurance-chip" data-value="quinta">Qui</button>
         <button type="button" class="endurance-chip" data-value="sexta">Sex</button>
-        <button type="button" class="endurance-chip" data-value="sabado">SÃ¡b</button>
+        <button type="button" class="endurance-chip" data-value="sabado">Sáb</button>
         <button type="button" class="endurance-chip" data-value="domingo">Dom</button>
       </div>
     </div>
@@ -193,15 +193,15 @@
   </div>
 </div>
 
-<!-- MODAL PRÃ“XIMO TREINO -->
+<!-- MODAL PRÓXIMO TREINO -->
 <div id="modalProximoTreino" class="modal-proximo-overlay hidden" aria-hidden="true">
   <div class="modal-proximo-card" role="dialog" aria-modal="true">
-    <h3 class="modal-proximo-title" id="modalProximoTitulo">PrÃ³ximo treino</h3>
+    <h3 class="modal-proximo-title" id="modalProximoTitulo">Próximo treino</h3>
     <p class="modal-proximo-subtitle" id="modalProximoSub">
-      Veja os exercÃ­cios para se programar.
+      Veja os exercícios para se programar.
     </p>
     <div class="modal-proximo-list-title" id="modalProximoListaTitulo">
-      Treino de amanhÃ£
+      Treino de amanhã
     </div>
     <ul class="modal-proximo-list" id="modalProximoLista"></ul>
   </div>
@@ -211,7 +211,7 @@
 <div id="ff-loading" class="ff-loading">
   <div class="ff-loading-box">
     <div class="ff-spinner"></div>
-    <p>Carregandoâ€¦</p>
+    <p>Carregando…</p>
   </div>
 </div>
 
@@ -225,7 +225,7 @@
 <script>
   if (firebase.auth) {
     firebase.auth().signInAnonymously().catch((err) => {
-      console.warn("[FemFlow] Auth anÃ´nimo falhou:", err);
+      console.warn("[FemFlow] Auth anônimo falhou:", err);
     });
   }
 </script>
@@ -238,5 +238,3 @@
   <script src="/app/js/env.js"></script>
 </body>
 </html>
-
-

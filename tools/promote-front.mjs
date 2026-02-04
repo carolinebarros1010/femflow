@@ -1,64 +1,71 @@
+// tools/promote-front.mjs
 import fs from "fs";
 import path from "path";
 
-const SRC = path.resolve("staging/app");
-const DST = path.resolve("app");
+const root = process.cwd();
+const fromDir = path.join(root, "staging", "app");
+const toDir = path.join(root, "app");
 
-// staging -> prod
-const FROM_BASE = /<base\s+href="\/staging\/app\/"\s*\/?>/g;
-const TO_BASE   = '<base href="/app/" />';
-
-
-const FROM_ENV  = /\/staging\/app\/js\/env-staging\.js/g;
-const TO_ENV    = "/app/js/env-prod.js";
-
-// se tiver hardcode do worker em algum arquivo
-const FROM_ENDPOINT = /workers\.dev\/staging/g;
-const TO_ENDPOINT   = "workers.dev/prod";
-
-function rm(dir) {
-  if (fs.existsSync(dir)) fs.rmSync(dir, { recursive: true, force: true });
+function rmDirSafe(p) {
+  if (fs.existsSync(p)) fs.rmSync(p, { recursive: true, force: true });
 }
-function cpDir(src, dst) {
+function copyDir(src, dst) {
   fs.mkdirSync(dst, { recursive: true });
-  for (const entry of fs.readdirSync(src, { withFileTypes: true })) {
-    const s = path.join(src, entry.name);
-    const d = path.join(dst, entry.name);
-    if (entry.isDirectory()) cpDir(s, d);
+  for (const ent of fs.readdirSync(src, { withFileTypes: true })) {
+    const s = path.join(src, ent.name);
+    const d = path.join(dst, ent.name);
+    if (ent.isDirectory()) copyDir(s, d);
     else fs.copyFileSync(s, d);
   }
 }
-function walk(dir, out = []) {
-  for (const entry of fs.readdirSync(dir, { withFileTypes: true })) {
-    const p = path.join(dir, entry.name);
-    if (entry.isDirectory()) walk(p, out);
-    else out.push(p);
-  }
-  return out;
+function globHtml(dir) {
+  return fs.readdirSync(dir)
+    .filter(f => f.toLowerCase().endsWith(".html"))
+    .map(f => path.join(dir, f));
 }
-function patch(file) {
-  const ext = path.extname(file).toLowerCase();
-  if (![".html", ".js", ".css"].includes(ext)) return;
-
-  let s = fs.readFileSync(file, "utf8");
-  const before = s;
-
-  s = s.replace(FROM_BASE, TO_BASE);
-  s = s.replace(FROM_ENV, TO_ENV);
-  s = s.replace(FROM_ENDPOINT, TO_ENDPOINT);
-
-  if (s !== before) fs.writeFileSync(file, s, "utf8");
-}
-
-if (!fs.existsSync(SRC)) {
-  console.error("ERRO: staging/app não existe:", SRC);
-  process.exit(1);
+function replaceAllInFile(file, pairs) {
+  let c = fs.readFileSync(file, "utf8");
+  for (const [a, b] of pairs) c = c.split(a).join(b);
+  fs.writeFileSync(file, c, "utf8");
 }
 
 console.log("Promoting FRONT: staging/app -> app");
-rm(DST);
-cpDir(SRC, DST);
 
-for (const f of walk(DST)) patch(f);
+// 1) recria /app a partir do staging/app
+rmDirSafe(toDir);
+copyDir(fromDir, toDir);
 
-console.log("OK: /app gerado a partir de /staging/app");
+// 2) Ajustar base href de /staging/app/ -> /app/
+for (const f of globHtml(toDir)) {
+  replaceAllInFile(f, [
+    ['<base href="/staging/app/" />', '<base href="/app/" />'],
+    ['<base href="/staging/app/">', '<base href="/app/">'],
+  ]);
+}
+
+// 3) Garantir env.js em /app e trocar referências antigas
+for (const f of globHtml(toDir)) {
+  const content = fs.readFileSync(f, "utf8");
+  const updated = content
+    .split("/staging/app/js/env-staging.js").join("/app/js/env.js")
+    .split("/app/js/env-prod.js").join("/app/js/env.js")
+    .split("/app/js/env-staging.js").join("/app/js/env.js");
+  fs.writeFileSync(f, updated, "utf8");
+}
+
+// 4) Sanity checks
+for (const f of globHtml(toDir)) {
+  const c = fs.readFileSync(f, "utf8");
+  if (c.includes("/staging/app/")) throw new Error(`Ainda existe /staging/app/ em ${path.basename(f)}`);
+  if (c.includes("env-staging.js")) throw new Error(`Ainda existe env-staging.js em ${path.basename(f)}`);
+  if (c.includes("env-prod.js")) throw new Error(`Ainda existe env-prod.js em ${path.basename(f)}`);
+}
+
+const envPath = path.join(toDir, "js", "env.js");
+if (!fs.existsSync(envPath)) {
+  throw new Error("app/js/env.js não existe após cópia. Garanta staging/app/js/env.js");
+}
+
+console.log("OK: /app gerado e ajustado para PROD (base + env.js).");
+
+

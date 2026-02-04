@@ -1,4 +1,4 @@
-﻿<!doctype html>
+<!doctype html>
 <html lang="pt-BR">
 <head>
   <base href="/app/" />
@@ -11,7 +11,7 @@
   <meta name="theme-color" content="#111114" />
   <link rel="manifest" href="manifest.json" />
   <link rel="icon" href="favicon.ico" />
-  <title>FemFlow â€” Painel PWA</title>
+  <title>FemFlow — Painel PWA</title>
   <style>
     :root {
       color-scheme: dark;
@@ -117,8 +117,8 @@
   <header>
     <div class="wrap row" style="align-items:center;justify-content:space-between">
       <div>
-        <div style="font-weight:800;font-size:18px">FemFlow â€” Painel PWA</div>
-        <div class="muted">GestÃ£o de alunas, pagamentos e plano.</div>
+        <div style="font-weight:800;font-size:18px">FemFlow — Painel PWA</div>
+        <div class="muted">Gestão de alunas, pagamentos e plano.</div>
       </div>
       <div class="pill" id="status">Pronto</div>
     </div>
@@ -132,11 +132,11 @@
 
   <main class="wrap">
     <section class="card" style="margin-bottom:16px">
-      <h2>ConfiguraÃ§Ã£o</h2>
+      <h2>Configuração</h2>
       <div class="row" style="align-items:flex-end">
         <div>
           <label for="token">Token admin</label>
-          <input id="token" type="password" placeholder="Informe o token de seguranÃ§a" />
+          <input id="token" type="password" placeholder="Informe o token de segurança" />
         </div>
         <button id="saveToken">Salvar token</button>
         <div class="status" id="tokenStatus"></div>
@@ -156,7 +156,7 @@
         </div>
         <div>
           <label>Telefone</label>
-          <input id="newTelefone" placeholder="DDD + nÃºmero" />
+          <input id="newTelefone" placeholder="DDD + número" />
         </div>
         <div>
           <label>Produto</label>
@@ -167,7 +167,7 @@
           <input id="newDataCompra" type="date" />
         </div>
         <div>
-          <label>LicenÃ§a ativa</label>
+          <label>Licença ativa</label>
           <select id="newLicenca">
             <option value="true">Ativa</option>
             <option value="false">Inativa</option>
@@ -218,7 +218,7 @@
           <input id="editDataCompra" type="date" />
         </div>
         <div>
-          <label>LicenÃ§a ativa</label>
+          <label>Licença ativa</label>
           <select id="editLicenca">
             <option value="true">Ativa</option>
             <option value="false">Inativa</option>
@@ -233,7 +233,7 @@
         </div>
       </div>
       <div style="margin-top:12px">
-        <button class="primary" id="salvarEdicao">Salvar alteraÃ§Ãµes</button>
+        <button class="primary" id="salvarEdicao">Salvar alterações</button>
         <span class="muted" id="editStatus"></span>
       </div>
     </section>
@@ -242,11 +242,11 @@
       <h2>Novas alunas</h2>
       <div class="row" style="align-items:flex-end">
         <div>
-          <label>PerÃ­odo (dias)</label>
+          <label>Período (dias)</label>
           <select id="sinceDays">
-            <option value="7">Ãšltimos 7 dias</option>
-            <option value="14">Ãšltimos 14 dias</option>
-            <option value="30">Ãšltimos 30 dias</option>
+            <option value="7">Últimos 7 dias</option>
+            <option value="14">Últimos 14 dias</option>
+            <option value="30">Últimos 30 dias</option>
             <option value="0" selected>Todas</option>
           </select>
         </div>
@@ -268,7 +268,7 @@
               <th>Nome</th>
               <th>Email</th>
               <th>Produto</th>
-              <th>LicenÃ§a</th>
+              <th>Licença</th>
               <th>Personal</th>
             </tr>
           </thead>
@@ -293,5 +293,3 @@
   <script src="/app/js/painel-admin.js"></script>
 </body>
 </html>
-
-

@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="format-detection" content="telephone=no" />
   <script src="./config/config.js"></script>
-  <title>RespiraÃ§Ã£o â€¢ FemFlow</title>
+  <title>Respiração • FemFlow</title>
 
   <link rel="icon" href="favicon.ico">
 
@@ -44,45 +44,45 @@
 <body class="pagina-respiracao">
 
 <h1 id="respTituloTopo">
-  <span id="respTitulo1">RespiraÃ§Ãµes</span>
+  <span id="respTitulo1">Respirações</span>
   <span id="respTitulo2">FemFlow</span>
 </h1>
-<p class="sub" id="respSub">Escolha o protocolo conforme seu momento ðŸŒ¿</p>
+<p class="sub" id="respSub">Escolha o protocolo conforme seu momento 🌿</p>
 
 <!-- ============================= -->
 <!--     GRUPOS DE PROTOCOLOS      -->
 <!-- ============================= -->
-<h2 class="grupo-titulo" id="grupoCiclo">RespiraÃ§Ãµes do Ciclo</h2>
+<h2 class="grupo-titulo" id="grupoCiclo">Respirações do Ciclo</h2>
 
-<button class="btn-protocolo" onclick="abrirRespiracao('raiz')" id="btnRaiz">RespiraÃ§Ã£o Raiz</button>
-<button class="btn-protocolo" onclick="abrirRespiracao('clareza')" id="btnClareza">RespiraÃ§Ã£o Clareza</button>
-<button class="btn-protocolo" onclick="abrirRespiracao('brilho')" id="btnBrilho">RespiraÃ§Ã£o Brilho</button>
-<button class="btn-protocolo" onclick="abrirRespiracao('sereno')" id="btnSereno">RespiraÃ§Ã£o Sereno</button>
+<button class="btn-protocolo" onclick="abrirRespiracao('raiz')" id="btnRaiz">Respiração Raiz</button>
+<button class="btn-protocolo" onclick="abrirRespiracao('clareza')" id="btnClareza">Respiração Clareza</button>
+<button class="btn-protocolo" onclick="abrirRespiracao('brilho')" id="btnBrilho">Respiração Brilho</button>
+<button class="btn-protocolo" onclick="abrirRespiracao('sereno')" id="btnSereno">Respiração Sereno</button>
 
-<h2 class="grupo-titulo" id="grupoTreino">RespiraÃ§Ãµes para Treinar</h2>
+<h2 class="grupo-titulo" id="grupoTreino">Respirações para Treinar</h2>
 
 <button class="btn-protocolo" onclick="abrirRespiracao('wake')" id="btnWake">Wake Flow</button>
 <button class="btn-protocolo" onclick="abrirRespiracao('charge')" id="btnCharge">Charge Flow</button>
 <button class="btn-protocolo" onclick="abrirRespiracao('release')" id="btnRelease">Release Flow</button>
 <button class="btn-protocolo" onclick="abrirRespiracao('restore')" id="btnRestore">Restore Flow</button>
 
-<h2 class="grupo-titulo" id="grupoUniversal">RespiraÃ§Ãµes Universais</h2>
+<h2 class="grupo-titulo" id="grupoUniversal">Respirações Universais</h2>
 
-<button class="btn-protocolo" onclick="abrirRespiracao('equilibrio')" id="btnEquilibrio">RespiraÃ§Ã£o EquilÃ­brio</button>
-<button class="btn-protocolo" onclick="abrirRespiracao('transparencia')" id="btnTransparencia">RespiraÃ§Ã£o TransparÃªncia</button>
+<button class="btn-protocolo" onclick="abrirRespiracao('equilibrio')" id="btnEquilibrio">Respiração Equilíbrio</button>
+<button class="btn-protocolo" onclick="abrirRespiracao('transparencia')" id="btnTransparencia">Respiração Transparência</button>
 
-<button class="ff-voltar-treino" id="btnVoltarTreino">â† voltar ao treino</button>
+<button class="ff-voltar-treino" id="btnVoltarTreino">← voltar ao treino</button>
 
 <!-- ============================= -->
 <!--      DRAWER LATERAL           -->
 <!-- ============================= -->
 <div class="breath-drawer" id="breathDrawer">
-  <div class="drawer-header" id="drawerTitle">RespiraÃ§Ã£o</div>
+  <div class="drawer-header" id="drawerTitle">Respiração</div>
   <div id="breathDrawerContent"></div>
 </div>
 
 <!-- ============================= -->
-<!--      MODAL DE RESPIRAÃ‡ÃƒO      -->
+<!--      MODAL DE RESPIRAÇÃO      -->
 <!-- ============================= -->
 <div id="breathModal">
   <div id="breathCircle">5</div>
@@ -90,11 +90,11 @@
   <p id="descricaoRespModal"></p>
 
   <div id="countdown"></div>
-  <button id="btnStart">Iniciar RespiraÃ§Ã£o</button>
-  <button id="btnCloseModal">â† voltar Ã s respiraÃ§Ãµes</button>
+  <button id="btnStart">Iniciar Respiração</button>
+  <button id="btnCloseModal">← voltar às respirações</button>
 </div>
 
-<footer id="respFooter">Inspire equilÃ­brio. Expire leveza.</footer>
+<footer id="respFooter">Inspire equilíbrio. Expire leveza.</footer>
 
 <!-- ============================= -->
 <!-- SCRIPTS FEMFLOW
@@ -106,7 +106,7 @@
 document.addEventListener("DOMContentLoaded", async () => {
 
   /* ============================================================
-     ðŸ”¥ PROTEÃ‡ÃƒO DE ACESSO â†’ Se nÃ£o tiver login ou produto, volta para HOME
+     🔥 PROTEÇÃO DE ACESSO → Se não tiver login ou produto, volta para HOME
   ============================================================ */
   const produto = localStorage.getItem("femflow_produto");
   const produtoNorm = String(produto || "").toLowerCase();
@@ -114,7 +114,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   const ativa   = isVip || localStorage.getItem("femflow_ativa") === "true";
 
   if (!produto || !ativa) {
-    FEMFLOW.toast("Acesse a Home para continuar ðŸŒ¸");
+    FEMFLOW.toast("Acesse a Home para continuar 🌸");
     return FEMFLOW.router("home");
   }
 
@@ -312,7 +312,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   btnClose.onclick = fecharDrawer;
 
   /* ============================================================
-     ðŸ”™ VOLTAR AO FLOWCENTER
+     🔙 VOLTAR AO FLOWCENTER
   ============================================================ */
   document.getElementById("btnVoltarTreino").onclick =
     () => FEMFLOW.router("flowcenter");
@@ -391,18 +391,18 @@ document.addEventListener("DOMContentLoaded", async () => {
 </script>
 
 <!-- ========================= -->
-<!--       MODAL NÃVEL        -->
+<!--       MODAL NÍVEL        -->
 <!-- ========================= -->
 <div id="modal-nivel" class="modal-nivel oculto">
   <div class="modal-nivel-box">
-    <h2>ðŸ“Š Selecione seu nÃ­vel</h2>
+    <h2>📊 Selecione seu nível</h2>
 
     <button class="nivel-btn" data-nivel="iniciante">Iniciante</button>
-    <button class="nivel-btn" data-nivel="intermediaria">IntermediÃ¡ria</button>
-    <button class="nivel-btn" data-nivel="avancada">AvanÃ§ada</button>
+    <button class="nivel-btn" data-nivel="intermediaria">Intermediária</button>
+    <button class="nivel-btn" data-nivel="avancada">Avançada</button>
 
     <button id="btnConfirmarNivel" class="nivel-confirmar">
-      Confirmar nÃ­vel
+      Confirmar nível
     </button>
 
     <button id="fecharNivel" class="nivel-fechar">Fechar</button>
@@ -413,5 +413,3 @@ document.addEventListener("DOMContentLoaded", async () => {
   <script src="/app/js/env.js"></script>
 </body>
 </html>
-
-

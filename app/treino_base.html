@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="pt-BR">
 <head>
   <meta charset="UTF-8" />
@@ -7,52 +7,52 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="format-detection" content="telephone=no" />
   <script src="./config/config.js"></script>
-  <title>FemFlow Â· Treino Base</title>
+  <title>FemFlow · Treino Base</title>
   <link rel="stylesheet" href="css/style.css" />
   <script src="core/femflow-core.js" defer></script>
 </head>
 
 <body>
-  <!-- CabeÃ§alho dinÃ¢mico FemFlow (logo e botÃ£o de voltar) serÃ£o inseridos via script -->
+  <!-- Cabeçalho dinâmico FemFlow (logo e botão de voltar) serão inseridos via script -->
 
-  <!-- SeÃ§Ã£o de introduÃ§Ã£o ao treino -->
+  <!-- Seção de introdução ao treino -->
   <section class="intro">
-    <h1 id="tituloTreino">ðŸŒ¸ Treino do Dia</h1>
-    <p id="faseInfo">Fase: <b>Folicular</b> Â· NÃ­vel: <b>IntermediÃ¡rio</b></p>
+    <h1 id="tituloTreino">🌸 Treino do Dia</h1>
+    <p id="faseInfo">Fase: <b>Folicular</b> · Nível: <b>Intermediário</b></p>
   </section>
 
   <!-- Container principal para boxes estilo Netflix -->
   <section class="box-scroll" id="boxesContainer">
-    <!-- Os boxes de treino, aquecimento e resfriamento serÃ£o inseridos dinamicamente -->
+    <!-- Os boxes de treino, aquecimento e resfriamento serão inseridos dinamicamente -->
   </section>
 
-  <!-- RodapÃ© fixo com aÃ§Ãµes do usuÃ¡rio -->
+  <!-- Rodapé fixo com ações do usuário -->
   <footer class="footerActions">
-    <button class="btn-hiit" onclick="FEMFLOW.iniciarHIIT(30,30,6)">ðŸ”¥ HIIT</button>
-    <button class="btn-save" onclick="abrirPSEModal()">ðŸ’¾ Salvar</button>
-    <button class="btn-descanso" onclick="FEMFLOW.salvarDescanso()">ðŸ©¶ Descanso</button>
+    <button class="btn-hiit" onclick="FEMFLOW.iniciarHIIT(30,30,6)">🔥 HIIT</button>
+    <button class="btn-save" onclick="abrirPSEModal()">💾 Salvar</button>
+    <button class="btn-descanso" onclick="FEMFLOW.salvarDescanso()">🩶 Descanso</button>
   </footer>
 
   <!-- Script para carregar dados do treino dinamicamente -->
   <script>
-    // SimulaÃ§Ã£o de carregamento: no futuro, os dados virÃ£o do Apps Script ou JSON
+    // Simulação de carregamento: no futuro, os dados virão do Apps Script ou JSON
     document.addEventListener("DOMContentLoaded", async () => {
       const exemploTreino = {
         fase: "Folicular",
-        nivel: "IntermediÃ¡rio",
+        nivel: "Intermediário",
         exercicios: [
           {
-            nome: "Agachamento SumÃ´ com Halter (Ãªnfase em glÃºteo)",
+            nome: "Agachamento Sumô com Halter (ênfase em glúteo)",
             link: "https://www.youtube.com/shorts/cK24WR3Cg6c",
             series: 3,
-            reps: "12â€“15",
+            reps: "12–15",
             descanso: 45
           },
           {
-            nome: "Ponte GlÃºteo",
+            nome: "Ponte Glúteo",
             link: "https://www.youtube.com/shorts/E8UAqAY700o",
             series: 3,
-            reps: "15â€“20",
+            reps: "15–20",
             descanso: 60
           }
         ]
@@ -60,22 +60,22 @@
       carregarTreino(exemploTreino);
     });
 
-    // FunÃ§Ã£o que gera os boxes de treino com base no objeto recebido
+    // Função que gera os boxes de treino com base no objeto recebido
     function carregarTreino(data) {
       const container = document.getElementById("boxesContainer");
       container.innerHTML = "";
 
-      // Exemplo de um Ãºnico box; no futuro pode haver mais de um
+      // Exemplo de um único box; no futuro pode haver mais de um
       const box = document.createElement("div");
       box.className = "box-treino";
       box.innerHTML = `
-        <h2>Box 1 Â· GlÃºteos</h2>
+        <h2>Box 1 · Glúteos</h2>
         <div class="ex-list">
           ${data.exercicios.map(ex => `
             <div class="ex-item">
               <a href="${ex.link}" target="_blank">${ex.nome}</a>
-              <p>${ex.series} sÃ©ries Â· ${ex.reps} reps</p>
-              <span class="timer">â±ï¸ ${ex.descanso}s descanso</span>
+              <p>${ex.series} séries · ${ex.reps} reps</p>
+              <span class="timer">⏱️ ${ex.descanso}s descanso</span>
             </div>
           `).join("")}
         </div>
@@ -83,7 +83,7 @@
       container.appendChild(box);
     }
 
-    // Envolve a funÃ§Ã£o PSE do script global para salvar o treino
+    // Envolve a função PSE do script global para salvar o treino
     function abrirPSEModal() {
       FEMFLOW.abrirPSE((valor) => FEMFLOW.salvarTreino({
         id: "FF001",
@@ -97,5 +97,3 @@
   <script src="/app/js/env.js"></script>
 </body>
 </html>
-
-

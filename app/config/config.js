@@ -2,7 +2,7 @@
   const ENV = "staging";
 
   const SCRIPT_URLS = {
-    staging: "https://femflowapi.falling-wildflower-a8c0.workers.dev/prod",
+    staging: "https://femflowapi.falling-wildflower-a8c0.workers.dev/staging",
     prod: ""
   };
 
