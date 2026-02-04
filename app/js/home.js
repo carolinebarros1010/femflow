@@ -940,6 +940,7 @@ async function selecionarEnfase(enfase) {
 
   // 2) reset explícito do programa (REGRA FEMFLOW)
   localStorage.setItem("femflow_diaPrograma", "1");
+  localStorage.setItem("femflow_dia_treino", "1");
 
   if (id) {
     // 3) backend: salvar ênfase
@@ -976,6 +977,7 @@ async function selecionarCoach(coach) {
 
   localStorage.setItem("femflow_mode_personal", "false");
   localStorage.setItem("femflow_enfase", coach);
+  localStorage.setItem("femflow_dia_treino", "1");
 
   if (id) {
     await fetch(FEMFLOW.SCRIPT_URL, {
