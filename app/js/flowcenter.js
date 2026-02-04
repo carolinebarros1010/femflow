@@ -898,7 +898,7 @@ if (enduranceBtn) {
     } else {
       FEMFLOW.openInternal("../#ofertas");
     }
-  }, true):
+  }, true);
 }
 
       FEMFLOW.loading.hide();
