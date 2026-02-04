@@ -10,8 +10,9 @@ function doGet(e) {
     }
 
     // GETs vazios (preload, health check, cache, etc)
-    return _json({ status: "ok", noop: true, env: "staging" });
-  }
+     const ENV = (PropertiesService.getScriptProperties().getProperty("ENV") || "staging").toLowerCase();
+  return _json({ status: "ok", noop: true, env: ENV });
+}
 
   if (action === "upgrade") {
     return _json(legacyUpgrade_(params.id, params.nivel, "GET", params.token));
