@@ -8,7 +8,10 @@
   },
   "scripts": {
   "test": "echo \"Error: no test specified\" && exit 1",
-  "promote:prod": "node ./tools/promote-front.mjs"
+  "promote:prod": "node ./tools/promote-front.mjs",
+"build:cap": "node ./tools/build-capacitor.mjs",
+"ios:copy": "npx cap copy ios",
+"ios:open": "npx cap open ios"
 },
 
   "repository": {

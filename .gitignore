@@ -14,5 +14,13 @@ Thumbs.db
 # GAS
 app/GAS/.clasp.json
 
+# Capacitor build output
+cap/
+
+# Native projects (generated)
+ios/
+android/
+
+
 *.bak
 
