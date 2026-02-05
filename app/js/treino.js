@@ -2103,8 +2103,34 @@ window.t = function (path, vars = {}) {
 
 
 /* =========================================================
-     2️⃣ BOOTSTRAP — GARANTE CONTEXTO (NOVO)
-  ========================================================= */
+    2️⃣ BOOTSTRAP — GARANTE CONTEXTO (NOVO)
+ ========================================================= */
+  function buildPerfilFromStorage() {
+    const id = localStorage.getItem("femflow_id") || "";
+    const email = localStorage.getItem("femflow_email") || "";
+    if (!id && !email) return null;
+
+    return {
+      status: "ok",
+      id,
+      email,
+      nome: localStorage.getItem("femflow_nome") || "Aluna",
+      fase: localStorage.getItem("femflow_fase") || "follicular",
+      diaCiclo: Number(localStorage.getItem("femflow_diaCiclo") || 1),
+      diaPrograma: Number(localStorage.getItem("femflow_diaPrograma") || 1),
+      nivel: localStorage.getItem("femflow_nivel") || "iniciante",
+      produto: localStorage.getItem("femflow_produto") || "",
+      ativa: localStorage.getItem("femflow_ativa") === "true",
+      perfilHormonal: localStorage.getItem("femflow_perfilHormonal") || "regular",
+      ciclo_duracao: Number(localStorage.getItem("femflow_cycleLength") || 28),
+      data_inicio: localStorage.getItem("femflow_startDate") || "",
+      enfase: localStorage.getItem("femflow_enfase") || "",
+      acessos: {
+        personal: localStorage.getItem("femflow_has_personal") === "true"
+      }
+    };
+  }
+
   (async function bootstrapPerfilTreino() {
 
     // evita duplicar evento
@@ -2116,11 +2142,33 @@ window.t = function (path, vars = {}) {
 
     console.log("🚀 carregando perfil para treino…");
 
-    const perfil = await FEMFLOW.carregarPerfil();
-    if (!perfil || perfil.status !== "ok") {
+    let perfil = await FEMFLOW.carregarPerfil();
+    if (!perfil) {
+      const perfilLocal = buildPerfilFromStorage();
+      if (!perfilLocal) {
+        FEMFLOW.toast("Sessão inválida");
+        location.href = "index.html";
+        return;
+      }
+      FEMFLOW.toast("Sem conexão agora. Usando dados salvos.");
+      perfil = perfilLocal;
+    }
+
+    if (perfil.status === "blocked" || perfil.status === "denied") {
       FEMFLOW.toast("Sessão inválida");
       location.href = "index.html";
       return;
+    }
+
+    if (perfil.status && perfil.status !== "ok") {
+      const perfilLocal = buildPerfilFromStorage();
+      if (!perfilLocal) {
+        FEMFLOW.toast("Sessão inválida");
+        location.href = "index.html";
+        return;
+      }
+      FEMFLOW.toast("Sem conexão agora. Usando dados salvos.");
+      perfil = perfilLocal;
     }
 
     FEMFLOW.perfilAtual = perfil;
