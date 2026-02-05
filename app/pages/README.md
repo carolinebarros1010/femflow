@@ -1,4 +1,4 @@
-# FemFlow Pages (Staging)
+# FemFlow Pages (Prod)
 
-Este diretório organiza as páginas do app no ambiente staging para o empacotamento iOS.
-As páginas atuais continuam em `/staging/app` para manter compatibilidade de URLs.
+Este diretório organiza as páginas do app no ambiente de produção para o empacotamento iOS.
+As páginas atuais continuam em `/app` para manter compatibilidade de URLs.
