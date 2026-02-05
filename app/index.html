@@ -2,7 +2,7 @@
 <html lang="pt-BR">
 
 <head>
-<base href="/app/" />
+<base href="/staging/app/" />
 
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
@@ -86,12 +86,6 @@
 document.addEventListener("DOMContentLoaded", () => {
 
   window.FEMFLOW = window.FEMFLOW || {};
-
-  if (FEMFLOW.bootstrapApp) {
-    FEMFLOW.bootstrapApp().then((booted) => {
-      if (booted) return;
-    });
-  }
 
   const scriptURL = FEMFLOW.SCRIPT_URL;
 
@@ -450,6 +444,7 @@ if (res.deviceUpdated) {
   };
 
   aplicarIdiomaLogin(localStorage.getItem("femflow_lang") || "pt");
+
 });
 </script>
 

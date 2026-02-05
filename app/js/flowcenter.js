@@ -176,34 +176,16 @@ function initFlowCenter() {
       if (!perfilBase || perfilBase.status === "blocked") {
         FEMFLOW.toast("Sessão inválida.");
         FEMFLOW.clearSession();
-        FEMFLOW.dispatch("stateChanged", {
-          type: "auth",
-          impact: "estrutural",
-          source: "home"
-        });
+        FEMFLOW.dispatch("stateChanged", { type: "auth", impact: "estrutural" });
         return null;
       }
 
       return flowcenterSyncPerfil().then((perfilFresh) => {
-        if (!perfilFresh) {
-          FEMFLOW.toast("Erro ao atualizar dados. Usando dados salvos.");
-          return perfilBase;
-        }
-
-        if (perfilFresh.status === "no_auth") {
-          FEMFLOW.toast("Sessão inválida.");
+        if (!perfilFresh || perfilFresh.status !== "ok") {
+          FEMFLOW.toast("Erro ao atualizar dados.");
           FEMFLOW.clearSession();
-          FEMFLOW.dispatch("stateChanged", {
-            type: "auth",
-            impact: "estrutural",
-            source: "home"
-          });
+          FEMFLOW.dispatch("stateChanged", { type: "auth", impact: "estrutural" });
           return null;
-        }
-
-        if (perfilFresh.status !== "ok") {
-          FEMFLOW.toast("Erro ao atualizar dados. Usando dados salvos.");
-          return perfilBase;
         }
 
         flowcenterPersistPerfil(perfilFresh);
@@ -222,7 +204,8 @@ function initFlowCenter() {
 
   if (!localStorage.getItem("femflow_cycle_configured")) {
     FEMFLOW.toast("Configure seu ciclo antes 🌸");
-    return FEMFLOW.router("ciclo?ret=flowcenter.html");
+    FEMFLOW.dispatch("stateChanged", { type: "ciclo", impact: "estrutural" });
+    return;
   }
 
   /* ============================================================
@@ -905,12 +888,6 @@ function initFlowCenter() {
     }
   };
 
-    })
-    .catch((err) => {
-      console.error("Erro ao carregar FlowCenter:", err);
-      FEMFLOW.toast("Erro ao carregar o FlowCenter.");
-    })
-    .finally(() => {
       FEMFLOW.loading.hide();
     });
 }
