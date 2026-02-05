@@ -91,57 +91,6 @@ FEMFLOW.clearSession = function () {
   localStorage.removeItem("femflow_session_token");
 };
 
-FEMFLOW.hasSessaoValida = function () {
-  const id = localStorage.getItem("femflow_id");
-  const token = localStorage.getItem("femflow_session_token");
-  const deviceId = FEMFLOW.getDeviceId();
-  return !!(id && token && deviceId);
-};
-
-FEMFLOW.persistPerfil = function (perfil) {
-  localStorage.setItem("femflow_fase", perfil.fase);
-  localStorage.setItem("femflow_diaCiclo", perfil.diaCiclo);
-  localStorage.setItem("femflow_diaPrograma", perfil.diaPrograma);
-  localStorage.setItem("femflow_nivel", perfil.nivel);
-  localStorage.setItem("femflow_enfase", perfil.enfase || "");
-  localStorage.setItem("femflow_perfilHormonal", perfil.perfilHormonal);
-  localStorage.setItem("femflow_produto", perfil.produto);
-  localStorage.setItem("femflow_ativa", String(!!perfil.ativa));
-  localStorage.setItem("femflow_personal", String(!!perfil.personal));
-  localStorage.setItem(
-    "femflow_free_access",
-    perfil.free_access ? JSON.stringify(perfil.free_access) : ""
-  );
-  localStorage.setItem(
-    "femflow_dataInicioPrograma",
-    perfil.dataInicioPrograma || ""
-  );
-};
-
-FEMFLOW.bootstrapApp = async function () {
-  if (!FEMFLOW.hasSessaoValida()) return false;
-
-  try {
-    const id = localStorage.getItem("femflow_id");
-    const payload = { action: "validar" };
-    if (id) payload.id = id;
-    const perfil = await FEMFLOW.post(payload);
-
-    if (perfil?.status === "ok") {
-      FEMFLOW.persistPerfil(perfil);
-      const pagina = (location.pathname.split("/").pop() || "").toLowerCase();
-      if (pagina === "" || pagina === "index.html") {
-        FEMFLOW.router("flowcenter");
-      }
-      return true;
-    }
-    FEMFLOW.clearSession?.();
-    FEMFLOW.router("index");
-  } catch (e) {}
-
-  return false;
-};
-
 FEMFLOW.sessionTransport = {
   type: "localStorage",
   postMessageFallback: null,
