@@ -426,6 +426,9 @@ function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, pers
 
     let url = "";
 
+    const diaKeyEncoded = encodeURIComponent(diaKey);
+    const enfaseEncoded = encodeURIComponent(enfase);
+
     if (isPersonal) {
       if (usaCicloDiaTreino) {
         url =
@@ -436,25 +439,25 @@ function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, pers
       } else if (isEndurancePersonal) {
         url =
           `${baseURL}/personal_trainings/${personalId}` +
-          `/endurance/enfase/${enfase}` +
+          `/endurance/enfase/${enfaseEncoded}` +
           `/semana/${String(r[idx.semana] || "").trim()}` +
-          `/dias/${diaKey}/blocos/${docId}`;
+          `/dias/${diaKeyEncoded}/blocos/${docId}`;
       } else {
-        url = `${baseURL}/personal_trainings/${personalId}/${enfase}/${fase}/dias/${diaKey}/blocos/${docId}`;
+        url = `${baseURL}/personal_trainings/${personalId}/${enfaseEncoded}/${fase}/dias/${diaKeyEncoded}/blocos/${docId}`;
       }
     } else if (isExtra) {
-      url = `${baseURL}/exercicios_extra/${enfase}/blocos/${docId}`;
+      url = `${baseURL}/exercicios_extra/${enfaseEncoded}/blocos/${docId}`;
     } else {
       if (usaCicloDiaTreino) {
         // ✅ MALEFLOW
         url =
-          `${baseURL}/exercicios/${nivel}_${enfase}` +
+          `${baseURL}/exercicios/${nivel}_${enfaseEncoded}` +
           `/ciclo/${ciclo}` +
           `/diatreino/diatreino_${diatreino}` +
           `/blocos/${docId}`;
       } else {
         // ✅ FEMFLOW (LEGADO)
-        url = `${baseURL}/exercicios/${nivel}_${enfase}/fases/${fase}/dias/${diaKey}/blocos/${docId}`;
+        url = `${baseURL}/exercicios/${nivel}_${enfaseEncoded}/fases/${fase}/dias/${diaKeyEncoded}/blocos/${docId}`;
       }
     }
 
@@ -526,13 +529,13 @@ function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, pers
         } else if (isEndurancePersonal) {
           historyUrl =
             `${baseURL}/personal_trainings/${personalId}` +
-            `/endurance/enfase/${enfase}` +
+            `/endurance/enfase/${enfaseEncoded}` +
             `/semana/${String(r[idx.semana] || "").trim()}` +
-            `/dias/${diaKey}/history/${importId}/blocos/${docId}`;
+            `/dias/${diaKeyEncoded}/history/${importId}/blocos/${docId}`;
         } else {
           historyUrl =
-            `${baseURL}/personal_trainings/${personalId}/${enfase}/${fase}` +
-            `/dias/${diaKey}/history/${importId}/blocos/${docId}`;
+            `${baseURL}/personal_trainings/${personalId}/${enfaseEncoded}/${fase}` +
+            `/dias/${diaKeyEncoded}/history/${importId}/blocos/${docId}`;
         }
 
         const historyPayload = {
