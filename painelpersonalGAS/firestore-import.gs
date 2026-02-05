@@ -312,6 +312,8 @@ function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, pers
     distancia: col("distancia"),
     intervalo: col("intervalo"),
     ritmo: col("ritmo"),
+    semana: col("semana"),
+    dias: col("dias"),
 
     forte: col("forte"),
     leve: col("leve"),
@@ -322,8 +324,29 @@ function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, pers
 
   // validações mínimas
   const obrigatoriasBase = ["tipo", "enfase", "titulo_pt", "box", "ordem"];
+  const obrigatoriasEndurance = [
+    "tipo",
+    "box",
+    "ordem",
+    "enfase",
+    "semana",
+    "dias",
+    "titulo_pt",
+    "titulo_en",
+    "titulo_fr",
+    "link",
+    "series",
+    "reps",
+    "tempo",
+    "ritmo",
+    "distancia",
+    "intervalo"
+  ];
+  const isEndurancePersonal = isPersonal && idx.semana !== -1 && idx.dias !== -1;
   const obrigatorias = isExtra
     ? obrigatoriasBase
+    : isEndurancePersonal
+    ? obrigatoriasEndurance
     : usaCicloDiaTreino
     ? obrigatoriasBase.concat(["ciclo", "diatreino", "link"])
     : obrigatoriasBase.concat(["dia", "fase", "link"]);
@@ -363,6 +386,14 @@ function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, pers
       if (!ciclo || !diatreino) return;
 
       dayCounterKey = `ciclo:${ciclo}|dia:${diatreino}`;
+    } else if (isEndurancePersonal) {
+      const semanaValor = String(r[idx.semana] || "").trim();
+      const diasValor = String(r[idx.dias] || "").trim();
+      if (!semanaValor || !diasValor) return;
+
+      fase = `semana_${semanaValor}`;
+      diaKey = diasValor;
+      dayCounterKey = `semana:${fase}|dia:${diaKey.toLowerCase()}`;
     } else {
       fase = r[idx.fase] ? normalizarFase(r[idx.fase]) : "";
       diaKey = r[idx.dia] ? `dia_${r[idx.dia]}` : "";
@@ -402,6 +433,12 @@ function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, pers
           `/ciclo/${ciclo}` +
           `/diatreino/diatreino_${diatreino}` +
           `/blocos/${docId}`;
+      } else if (isEndurancePersonal) {
+        url =
+          `${baseURL}/personal_trainings/${personalId}` +
+          `/endurance/enfase/${enfase}` +
+          `/semana/${String(r[idx.semana] || "").trim()}` +
+          `/dias/${diaKey}/blocos/${docId}`;
       } else {
         url = `${baseURL}/personal_trainings/${personalId}/${enfase}/${fase}/dias/${diaKey}/blocos/${docId}`;
       }
@@ -459,8 +496,13 @@ function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, pers
 
     // FemFlow fields
     if (!usaCicloDiaTreino) {
-      payload.fields.fase = { stringValue: fase };
-      payload.fields.dia = { integerValue: Number(r[idx.dia] || 0) };
+      if (isEndurancePersonal) {
+        payload.fields.semana = { integerValue: Number(r[idx.semana] || 0) };
+        payload.fields.dias = { stringValue: String(r[idx.dias] || "") };
+      } else {
+        payload.fields.fase = { stringValue: fase };
+        payload.fields.dia = { integerValue: Number(r[idx.dia] || 0) };
+      }
     } else {
       // MaleFlow fields
       payload.fields.ciclo = { stringValue: ciclo };
@@ -481,6 +523,12 @@ function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, pers
             `/ciclo/${ciclo}` +
             `/diatreino/diatreino_${diatreino}` +
             `/history/${importId}/blocos/${docId}`;
+        } else if (isEndurancePersonal) {
+          historyUrl =
+            `${baseURL}/personal_trainings/${personalId}` +
+            `/endurance/enfase/${enfase}` +
+            `/semana/${String(r[idx.semana] || "").trim()}` +
+            `/dias/${diaKey}/history/${importId}/blocos/${docId}`;
         } else {
           historyUrl =
             `${baseURL}/personal_trainings/${personalId}/${enfase}/${fase}` +
