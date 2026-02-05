@@ -204,7 +204,11 @@ function initFlowCenter() {
 
   if (!localStorage.getItem("femflow_cycle_configured")) {
     FEMFLOW.toast("Configure seu ciclo antes 🌸");
-    FEMFLOW.dispatch("stateChanged", { type: "ciclo", impact: "estrutural" });
+    FEMFLOW.dispatch("stateChanged", {
+      type: "ciclo",
+      impact: "estrutural",
+      source: "ciclo.html"
+    });
     return;
   }
 

@@ -4,7 +4,7 @@
 ======================================================================= */
 
 window.FEMFLOW = window.FEMFLOW || {};
-const FEMFLOW_ENV = window.FEMFLOW_ENV || "staging";
+const FEMFLOW_ENV = window.FEMFLOW_ENV || "prod";
 const FEMFLOW_ACTIVE = window.FEMFLOW_ACTIVE || {};
 const FEMFLOW_CONFIG = window.FEMFLOW_CONFIG || {};
 

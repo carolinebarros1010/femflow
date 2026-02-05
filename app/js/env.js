@@ -1,6 +1,6 @@
-(() => {
+(function () {
   const PROD_EXEC =
-    "https://femflowapi.falling-wildflower-a8c0.workers.dev/prod";
+    "https://femflowapi.falling-wildflower-a8c0.workers.dev/";
 
   window.FEMFLOW = window.FEMFLOW || {};
   window.FEMFLOW.SCRIPT_URL = PROD_EXEC;
