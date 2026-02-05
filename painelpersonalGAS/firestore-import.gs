@@ -393,7 +393,7 @@ function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, pers
 
       fase = `semana_${semanaValor}`;
       diaKey = diasValor;
-      dayCounterKey = `semana:${fase}|dia:${diaKey.toLowerCase()}`;
+      dayCounterKey = `semana:${fase}|dia:${removerAcentos(diaKey).toLowerCase()}`;
     } else {
       fase = r[idx.fase] ? normalizarFase(r[idx.fase]) : "";
       diaKey = r[idx.dia] ? `dia_${r[idx.dia]}` : "";
@@ -426,7 +426,10 @@ function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, pers
 
     let url = "";
 
-    const diaKeyEncoded = encodeURIComponent(diaKey);
+    const diaKeySafe = isEndurancePersonal
+      ? removerAcentos(diaKey).toLowerCase()
+      : diaKey;
+    const diaKeyEncoded = encodeURIComponent(diaKeySafe);
     const enfaseEncoded = encodeURIComponent(enfase);
 
     if (isPersonal) {
