@@ -160,6 +160,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const hasPersonal  = localStorage.getItem("femflow_has_personal") === "true";
   const modePersonal = localStorage.getItem("femflow_mode_personal") === "true";
   const personal     = hasPersonal && modePersonal;
+  const urlParams = new URLSearchParams(window.location.search);
+  const enduranceFlag =
+    urlParams.get("endurance") === "1" ||
+    localStorage.getItem("femflow_treino_endurance") === "true" ||
+    localStorage.getItem("femflow_endurance_pending") === "true";
   const acessoValido = Boolean(id && produto);
 
   if (!acessoValido) {
@@ -175,7 +180,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    if (!enfase) {
+    if (!enfase && !enduranceFlag) {
       FEMFLOW.toast("Acesse o treino pelo painel do FemFlow.");
       FEMFLOW.router("home.html");
       return;
