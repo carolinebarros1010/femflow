@@ -975,6 +975,12 @@ function TEST_importar_tudo_femflow() {
   const r = importarTreinosFEMFLOW({ target: "femflow" });
   Logger.log(JSON.stringify(r, null, 2));
 }
+
+function TEST_importar_endurance_femflow() {
+  const r = importarTreinosFEMFLOW_aba("Endurance_FF-260125-4Q8L", { target: "femflow" });
+  Logger.log(JSON.stringify(r, null, 2));
+}
+
 function TEST_importar_iniciante_femflow() {
   const r = importarTreinosFEMFLOW_aba("Iniciante", { target: "femflow" });
   Logger.log(JSON.stringify(r, null, 2));
