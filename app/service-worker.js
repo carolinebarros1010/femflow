@@ -11,7 +11,7 @@ importScripts(
 
 importScripts("config/config.js");
 
-const ENV = self.FEMFLOW_ENV || "staging";
+const ENV = self.FEMFLOW_ENV || "prod";
 const firebaseConfig =
   self.FEMFLOW_ACTIVE?.firebaseConfig ||
   self.FEMFLOW_CONFIG?.firebaseConfigs?.[ENV];
