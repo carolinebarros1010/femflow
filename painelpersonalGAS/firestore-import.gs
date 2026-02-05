@@ -442,8 +442,7 @@ function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, pers
       } else if (isEndurancePersonal) {
         url =
          `${baseURL}/personal_trainings/${personalId}` +
-`/endurance/enfase` +
-`/${enfaseEncoded}` +
+`/endurance/${enfaseEncoded}` +
 `/treinos/base` +                      // 🧠 documento fixo
 `/semana/${String(r[idx.semana] || "").trim()}` +
 `/dias/${diaKeyEncoded}/blocos/${docId}`;
@@ -534,8 +533,7 @@ function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, pers
         } else if (isEndurancePersonal) {
   historyUrl =
    `${baseURL}/personal_trainings/${personalId}` +
-`/endurance/enfase` +
-`/${enfaseEncoded}` +
+`/endurance/${enfaseEncoded}` +
 `/treinos/base` +                      // 🧠 MESMO doc fixo
 `/semana/${String(r[idx.semana] || "").trim()}` +
 `/dias/${diaKeyEncoded}/history/${importId}/blocos/${docId}`;
