@@ -197,7 +197,12 @@ function doPost(e) {
          📌 DIA DO PROGRAMA
       ============================ */
       case "setdiaprograma":
+      case "setDiaPrograma":
         resposta = setDiaPrograma_(data.id, data.diaPrograma);
+        break;
+
+      case "getdiaprograma":
+        resposta = getDiaPrograma_(data.id);
         break;
 
       /* ===========================
