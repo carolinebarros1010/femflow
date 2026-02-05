@@ -91,6 +91,15 @@ document.addEventListener("DOMContentLoaded", () => {
       .trim()
       .toLowerCase();
 
+  const normalizeEnduranceSemana = (value) => {
+    const raw = String(value || "").trim().toLowerCase();
+    if (!raw) return 1;
+    const match = raw.match(/\d+/);
+    if (match) return Number(match[0]) || 1;
+    const num = Number(raw);
+    return Number.isFinite(num) && num > 0 ? num : 1;
+  };
+
   const getEnduranceDiaLabel = (lang) => {
     const labels = {
       pt: ["domingo", "segunda", "terca", "quarta", "quinta", "sexta", "sabado"],
@@ -104,7 +113,7 @@ document.addEventListener("DOMContentLoaded", () => {
   const getEnduranceConfig = () => {
     const lang = FEMFLOW.lang || "pt";
     const semanaRaw = localStorage.getItem("femflow_endurance_semana") || "1";
-    const semana = Number(semanaRaw) || 1;
+    const semana = normalizeEnduranceSemana(semanaRaw);
     let dia = localStorage.getItem("femflow_endurance_dia") || "";
     let enfase = "";
     try {
@@ -123,9 +132,7 @@ document.addEventListener("DOMContentLoaded", () => {
       dia = getEnduranceDiaLabel(lang);
       localStorage.setItem("femflow_endurance_dia", dia);
     }
-    if (!localStorage.getItem("femflow_endurance_semana")) {
-      localStorage.setItem("femflow_endurance_semana", String(semana));
-    }
+    localStorage.setItem("femflow_endurance_semana", String(semana));
     return { semana, dia, enfase };
   };
 
