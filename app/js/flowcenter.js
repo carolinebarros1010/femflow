@@ -181,11 +181,21 @@ function initFlowCenter() {
       }
 
       return flowcenterSyncPerfil().then((perfilFresh) => {
-        if (!perfilFresh || perfilFresh.status !== "ok") {
-          FEMFLOW.toast("Erro ao atualizar dados.");
+        if (!perfilFresh) {
+          FEMFLOW.toast("Erro ao atualizar dados. Usando dados salvos.");
+          return perfilBase;
+        }
+
+        if (perfilFresh.status === "no_auth") {
+          FEMFLOW.toast("Sessão inválida.");
           FEMFLOW.clearSession();
           FEMFLOW.dispatch("stateChanged", { type: "auth", impact: "estrutural" });
           return null;
+        }
+
+        if (perfilFresh.status !== "ok") {
+          FEMFLOW.toast("Erro ao atualizar dados. Usando dados salvos.");
+          return perfilBase;
         }
 
         flowcenterPersistPerfil(perfilFresh);
@@ -888,6 +898,12 @@ function initFlowCenter() {
     }
   };
 
+    })
+    .catch((err) => {
+      console.error("Erro ao carregar FlowCenter:", err);
+      FEMFLOW.toast("Erro ao carregar o FlowCenter.");
+    })
+    .finally(() => {
       FEMFLOW.loading.hide();
     });
 }
