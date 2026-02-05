@@ -18,6 +18,7 @@ const COL_TREINOS_SEMANA    = 31; // AF
 const COL_AUSENCIA_ATIVA    = 32; // AG
 const COL_AUSENCIA_INICIO   = 33; // AH
 const COL_DATA_NASCIMENTO   = 34; // AI
+const COL_NOVO_TREINO_ENDURANCE = 35; // AJ
 
 /**
  * ✅ HEADER OFICIAL (corrigido)
@@ -29,7 +30,7 @@ const HEADER_ALUNAS = [
   "Pontuacao","AnamneseJSON","TokenReset","TokenExpira","Perfil_Hormonal","ciclodate","DiaPrograma",
   "DeviceId","SessionToken","SessionExpira",
   "DataInicioPrograma","UltimaAtividade", "FreeEnabled" , "FreeEnfases", "FreeUntil", "acesso_personal",
-  "TreinosSemana","AusenciaAtiva","AusenciaInicio","DataNascimento","TokenReset","TokenExpira"
+  "TreinosSemana","AusenciaAtiva","AusenciaInicio","DataNascimento","novo_treino_endurance"
 ];
 
 // índices (0-based) para leitura rápida

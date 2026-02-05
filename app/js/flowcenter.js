@@ -232,7 +232,7 @@ function initFlowCenter() {
         return { ...perfilBase, ...perfilFresh };
       });
     })
-    .then((perfil) => {
+    .then(async (perfil) => {
       if (!perfil) return;
 
   /* ============================================================
@@ -255,6 +255,54 @@ function initFlowCenter() {
   /* ============================================================
      4) PRODUTO / ACESSOS (CORRETO)
   ============================================================ */
+  const resetEnduranceConfig = () => {
+    [
+      "femflow_endurance_dia",
+      "femflow_endurance_semana",
+      "femflow_endurance_modalidade",
+      "femflow_endurance_config",
+      "femflow_endurance_pending",
+      "femflow_endurance_setup_done",
+      "femflow_treino_endurance"
+    ].forEach((key) => localStorage.removeItem(key));
+  };
+
+  const fetchEndurancePlanToken = async () => {
+    const id = localStorage.getItem("femflow_id") || perfil.id || "";
+    if (!id || !FEMFLOW.post) return "";
+    try {
+      const resp = await FEMFLOW.post({
+        action: "endurance_plan_token",
+        id
+      });
+      return String(resp?.token || resp?.endurance_plan_token || "").trim();
+    } catch (err) {
+      console.warn("Falha ao buscar token de Endurance:", err);
+      return "";
+    }
+  };
+
+  const applyEnduranceResetIfNeeded = async () => {
+    let token = String(
+      perfil.novo_treino_endurance ??
+      perfil.novo_treino ??
+      perfil.endurance_updated_at ??
+      perfil.endurance_plan_version ??
+      ""
+    ).trim();
+    if (!token) {
+      token = await fetchEndurancePlanToken();
+    }
+    if (!token) return;
+    const lastToken = localStorage.getItem("femflow_endurance_plan_token") || "";
+    if (token !== lastToken) {
+      resetEnduranceConfig();
+      localStorage.setItem("femflow_endurance_plan_token", token);
+    }
+  };
+
+  await applyEnduranceResetIfNeeded();
+
   const produtoRaw   = String(perfil.produto || "").toLowerCase();
   const isVip = produtoRaw === "vip";
   const isTrial = produtoRaw === "trial_app";
