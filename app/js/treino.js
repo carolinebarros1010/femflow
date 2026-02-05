@@ -305,10 +305,28 @@ document.addEventListener("DOMContentLoaded", () => {
     if (revalidatingPerfil) return;
     revalidatingPerfil = true;
     try {
+      const diaProgramaAtual = Number(localStorage.getItem("femflow_diaPrograma") || 1);
+      const diaCicloAtual = Number(localStorage.getItem("femflow_diaCiclo") || 1);
+      const faseAtual = localStorage.getItem("femflow_fase") || "";
       const perfil = await FEMFLOW.carregarPerfil?.();
       if (!perfil || perfil.status !== "ok") return;
       FEMFLOW.perfilAtual = perfil;
       FEMFLOW.dispatch("femflow:ready", perfil);
+
+      const diaProgramaNovo = Number(perfil.diaPrograma || localStorage.getItem("femflow_diaPrograma") || 1);
+      const diaCicloNovo = Number(perfil.diaCiclo || localStorage.getItem("femflow_diaCiclo") || 1);
+      const faseNova = String(perfil.fase || localStorage.getItem("femflow_fase") || "");
+      const treinoAtualizado =
+        diaProgramaNovo !== diaProgramaAtual ||
+        diaCicloNovo !== diaCicloAtual ||
+        (faseAtual && faseNova && faseAtual !== faseNova);
+
+      if (treinoAtualizado) {
+        clearTreinoSnapshot();
+        FEMFLOW.toast("Seu treino foi atualizado. Voltando ao FlowCenter.");
+        encerrarTreino();
+        return;
+      }
     } catch (err) {
       FEMFLOW.warn?.("Falha ao revalidar perfil:", err);
     } finally {
