@@ -888,6 +888,12 @@ function initFlowCenter() {
     }
   };
 
+    })
+    .catch((err) => {
+      console.error("Erro ao carregar FlowCenter:", err);
+      FEMFLOW.toast("Erro ao carregar o FlowCenter.");
+    })
+    .finally(() => {
       FEMFLOW.loading.hide();
     });
 }
