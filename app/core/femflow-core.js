@@ -187,6 +187,39 @@ FEMFLOW.listenForUpdates = function () {
 
 FEMFLOW.listenForUpdates();
 
+FEMFLOW.setupServiceWorkerUpdates = function (registration) {
+  if (!registration) return;
+
+  let refreshing = false;
+  navigator.serviceWorker.addEventListener("controllerchange", () => {
+    if (refreshing) return;
+    refreshing = true;
+    window.location.reload();
+  });
+
+  registration.addEventListener("updatefound", () => {
+    const newWorker = registration.installing;
+    if (!newWorker) return;
+
+    newWorker.addEventListener("statechange", () => {
+      if (newWorker.state !== "installed") return;
+      if (!navigator.serviceWorker.controller) return;
+
+      const waitingWorker = registration.waiting;
+      if (waitingWorker) {
+        waitingWorker.postMessage({ type: "SKIP_WAITING" });
+      }
+    });
+  });
+
+  registration.update().catch(() => {});
+
+  document.addEventListener("visibilitychange", () => {
+    if (document.visibilityState !== "visible") return;
+    registration.update().catch(() => {});
+  });
+};
+
 /* ============================================================
    🔔 PUSH NOTIFICATIONS (FCM)
 ============================================================ */
@@ -195,6 +228,7 @@ FEMFLOW.registerServiceWorker = async function () {
 
   try {
     const registration = await navigator.serviceWorker.register("service-worker.js");
+    FEMFLOW.setupServiceWorkerUpdates(registration);
     return registration;
   } catch (err) {
     console.warn("[FemFlow] Falha ao registrar Service Worker:", err);

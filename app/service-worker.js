@@ -124,14 +124,16 @@ self.addEventListener("install", (event) => {
   console.log("📦 Instalando FemFlow PWA…");
 
   event.waitUntil(
-    caches.open(CACHE_NAME)
+    caches
+      .open(CACHE_NAME)
       .then((cache) =>
         Promise.all(
-          ASSETS.map((url) =>
-            cache.add(url).catch((err) => {
+          ASSETS.map((url) => {
+            const request = new Request(url, { cache: "reload" });
+            return cache.add(request).catch((err) => {
               console.warn("[SW] Falha ao cachear:", url, err);
-            })
-          )
+            });
+          })
         )
       )
       .then(() => self.skipWaiting())
@@ -203,7 +205,7 @@ self.addEventListener("fetch", (event) => {
 
       if (cached) {
         // atualiza silenciosamente
-        fetch(req)
+        fetch(new Request(req.url, { cache: "no-store" }))
           .then((resp) => {
             if (resp && resp.ok) cache.put(req, resp.clone());
           })
