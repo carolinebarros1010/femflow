@@ -119,8 +119,6 @@ FEMFLOW.persistPerfil = function (perfil) {
 };
 
 FEMFLOW.bootstrapApp = async function () {
-  if (!FEMFLOW.hasSessaoValida()) return false;
-
   try {
     const id = localStorage.getItem("femflow_id");
     const payload = { action: "validar" };
