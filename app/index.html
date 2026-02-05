@@ -87,6 +87,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
   window.FEMFLOW = window.FEMFLOW || {};
 
+  if (FEMFLOW.bootstrapApp) {
+    FEMFLOW.bootstrapApp().then((booted) => {
+      if (booted) return;
+    });
+  }
+
   const scriptURL = FEMFLOW.SCRIPT_URL;
 
   const $ = sel => document.querySelector(sel);
@@ -444,7 +450,6 @@ if (res.deviceUpdated) {
   };
 
   aplicarIdiomaLogin(localStorage.getItem("femflow_lang") || "pt");
-
 });
 </script>
 
