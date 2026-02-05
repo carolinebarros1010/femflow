@@ -723,7 +723,7 @@
           </div>
           <div>
             <label for="destino">Destino (distribuir/importar)</label>
-            <input id="destino" name="destino" placeholder="Iniciante" />
+            <input id="destino" name="destino" placeholder="Endurance_FF-251204-G5U8" />
           </div>
           <div>
             <label for="idAluna">ID Aluna (opcional)</label>
@@ -1026,7 +1026,7 @@
       const target = qs("targetApp").value.trim() || "femflow";
       const destinoField = qs("destino").value.trim();
       const idAluna = qs("idAluna").value.trim();
-      const destino = idAluna ? `personal_${idAluna}` : destinoField;
+      const destino = destinoField || (idAluna ? `Endurance_${idAluna}` : "");
       const serieEspecialAtiva = qs("serieEspecialAtiva").value.trim();
       const serieEspecialFase = qs("serieEspecialFase").value.trim();
       const serieEspecialTipo = qs("serieEspecialTipo").value.trim();
