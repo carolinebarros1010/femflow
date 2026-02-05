@@ -192,6 +192,10 @@ function importarTreinosFEMFLOW(opts = {}) {
       isPersonal = true;
       personalId = nomeAba.replace(/personal_/i, "").trim();
       Logger.log("🎨 Aba PERSONAL detectada → ID = " + personalId);
+    } else if (nomeAba.toLowerCase().startsWith("endurance_")) {
+      isPersonal = true;
+      personalId = nomeAba.replace(/endurance_/i, "").trim();
+      Logger.log("🏃‍♀️ Aba ENDURANCE detectada → ID = " + personalId);
     }
     // ------------------------------------------------------------
     // 2) DETECTAR ABA NORMAL
@@ -307,6 +311,9 @@ function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, pers
     tempo: col("tempo"),
     distancia: col("distancia"),
     intervalo: col("intervalo"),
+    ritmo: col("ritmo"),
+    semana: col("semana"),
+    dias: col("dias"),
 
     forte: col("forte"),
     leve: col("leve"),
@@ -317,8 +324,29 @@ function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, pers
 
   // validações mínimas
   const obrigatoriasBase = ["tipo", "enfase", "titulo_pt", "box", "ordem"];
+  const obrigatoriasEndurance = [
+    "tipo",
+    "box",
+    "ordem",
+    "enfase",
+    "semana",
+    "dias",
+    "titulo_pt",
+    "titulo_en",
+    "titulo_fr",
+    "link",
+    "series",
+    "reps",
+    "tempo",
+    "ritmo",
+    "distancia",
+    "intervalo"
+  ];
+  const isEndurancePersonal = isPersonal && idx.semana !== -1 && idx.dias !== -1;
   const obrigatorias = isExtra
     ? obrigatoriasBase
+    : isEndurancePersonal
+    ? obrigatoriasEndurance
     : usaCicloDiaTreino
     ? obrigatoriasBase.concat(["ciclo", "diatreino", "link"])
     : obrigatoriasBase.concat(["dia", "fase", "link"]);
@@ -358,6 +386,14 @@ function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, pers
       if (!ciclo || !diatreino) return;
 
       dayCounterKey = `ciclo:${ciclo}|dia:${diatreino}`;
+    } else if (isEndurancePersonal) {
+      const semanaValor = String(r[idx.semana] || "").trim();
+      const diasValor = String(r[idx.dias] || "").trim();
+      if (!semanaValor || !diasValor) return;
+
+      fase = `semana_${semanaValor}`;
+      diaKey = diasValor;
+      dayCounterKey = `semana:${fase}|dia:${diaKey.toLowerCase()}`;
     } else {
       fase = r[idx.fase] ? normalizarFase(r[idx.fase]) : "";
       diaKey = r[idx.dia] ? `dia_${r[idx.dia]}` : "";
@@ -397,6 +433,12 @@ function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, pers
           `/ciclo/${ciclo}` +
           `/diatreino/diatreino_${diatreino}` +
           `/blocos/${docId}`;
+      } else if (isEndurancePersonal) {
+        url =
+          `${baseURL}/personal_trainings/${personalId}` +
+          `/endurance/enfase/${enfase}` +
+          `/semana/${String(r[idx.semana] || "").trim()}` +
+          `/dias/${diaKey}/blocos/${docId}`;
       } else {
         url = `${baseURL}/personal_trainings/${personalId}/${enfase}/${fase}/dias/${diaKey}/blocos/${docId}`;
       }
@@ -440,6 +482,7 @@ function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, pers
         tempo: { stringValue: String(r[idx.tempo] || "") },
         distancia: { stringValue: String(r[idx.distancia] || "") },
         intervalo: { stringValue: String(r[idx.intervalo] || "") },
+        ritmo: { stringValue: String(idx.ritmo !== -1 ? (r[idx.ritmo] || "") : "") },
 
         forte: { stringValue: String(r[idx.forte] || "") },
         leve: { stringValue: String(r[idx.leve] || "") },
@@ -453,8 +496,13 @@ function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, pers
 
     // FemFlow fields
     if (!usaCicloDiaTreino) {
-      payload.fields.fase = { stringValue: fase };
-      payload.fields.dia = { integerValue: Number(r[idx.dia] || 0) };
+      if (isEndurancePersonal) {
+        payload.fields.semana = { integerValue: Number(r[idx.semana] || 0) };
+        payload.fields.dias = { stringValue: String(r[idx.dias] || "") };
+      } else {
+        payload.fields.fase = { stringValue: fase };
+        payload.fields.dia = { integerValue: Number(r[idx.dia] || 0) };
+      }
     } else {
       // MaleFlow fields
       payload.fields.ciclo = { stringValue: ciclo };
@@ -475,6 +523,12 @@ function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, pers
             `/ciclo/${ciclo}` +
             `/diatreino/diatreino_${diatreino}` +
             `/history/${importId}/blocos/${docId}`;
+        } else if (isEndurancePersonal) {
+          historyUrl =
+            `${baseURL}/personal_trainings/${personalId}` +
+            `/endurance/enfase/${enfase}` +
+            `/semana/${String(r[idx.semana] || "").trim()}` +
+            `/dias/${diaKey}/history/${importId}/blocos/${docId}`;
         } else {
           historyUrl =
             `${baseURL}/personal_trainings/${personalId}/${enfase}/${fase}` +
@@ -810,6 +864,7 @@ function buildMaleFlowItemFromRow_(row, idx) {
   if (idx.tempo !== -1) item.tempo = String(row[idx.tempo] || "");
   if (idx.distancia !== -1) item.distancia = String(row[idx.distancia] || "");
   if (idx.intervalo !== -1) item.intervalo = String(row[idx.intervalo] || "");
+  if (idx.ritmo !== -1) item.ritmo = String(row[idx.ritmo] || "");
   if (idx.forte !== -1) item.forte = String(row[idx.forte] || "");
   if (idx.leve !== -1) item.leve = String(row[idx.leve] || "");
   if (idx.ciclos !== -1) item.ciclos = String(row[idx.ciclos] || "");
@@ -834,6 +889,7 @@ function buildMaleFlowItemFields_(item) {
   if (item.tempo !== undefined) fields.tempo = { stringValue: String(item.tempo || "") };
   if (item.distancia !== undefined) fields.distancia = { stringValue: String(item.distancia || "") };
   if (item.intervalo !== undefined) fields.intervalo = { stringValue: String(item.intervalo || "") };
+  if (item.ritmo !== undefined) fields.ritmo = { stringValue: String(item.ritmo || "") };
   if (item.forte !== undefined) fields.forte = { stringValue: String(item.forte || "") };
   if (item.leve !== undefined) fields.leve = { stringValue: String(item.leve || "") };
   if (item.ciclos !== undefined) fields.ciclos = { stringValue: String(item.ciclos || "") };
