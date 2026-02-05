@@ -442,8 +442,9 @@ function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, pers
       } else if (isEndurancePersonal) {
         url =
          `${baseURL}/personal_trainings/${personalId}` +
-`/endurance/enfase` +                 // ← documento fixo
-`/${enfaseEncoded}` +                 // ← coleção (corrida)
+`/endurance/enfase` +
+`/${enfaseEncoded}` +
+`/treinos/base` +                      // 🧠 documento fixo
 `/semana/${String(r[idx.semana] || "").trim()}` +
 `/dias/${diaKeyEncoded}/blocos/${docId}`;
       } else {
@@ -532,11 +533,12 @@ function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, pers
             `/history/${importId}/blocos/${docId}`;
         } else if (isEndurancePersonal) {
   historyUrl =
-    `${baseURL}/personal_trainings/${personalId}` +
-    `/endurance/enfase` +
-    `/${enfaseEncoded}` +
-    `/semana/${String(r[idx.semana] || "").trim()}` +
-    `/dias/${diaKeyEncoded}/history/${importId}/blocos/${docId}`;
+   `${baseURL}/personal_trainings/${personalId}` +
+`/endurance/enfase` +
+`/${enfaseEncoded}` +
+`/treinos/base` +                      // 🧠 MESMO doc fixo
+`/semana/${String(r[idx.semana] || "").trim()}` +
+`/dias/${diaKeyEncoded}/history/${importId}/blocos/${docId}`;
         } else {
           historyUrl =
             `${baseURL}/personal_trainings/${personalId}/${enfaseEncoded}/${fase}` +
@@ -985,7 +987,7 @@ function TEST_importar_tudo_femflow() {
 }
 
 function TEST_importar_endurance_femflow() {
-  const r = importarTreinosFEMFLOW_aba("Endurance_FF-260125-4Q8L", { target: "femflow" });
+  const r = importarTreinosFEMFLOW_aba("Endurance_FF-251204-G5U8", { target: "femflow" });
   Logger.log(JSON.stringify(r, null, 2));
 }
 
