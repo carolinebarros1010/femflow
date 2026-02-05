@@ -119,10 +119,11 @@ FEMFLOW.persistPerfil = function (perfil) {
 };
 
 FEMFLOW.bootstrapApp = async function () {
-  if (!FEMFLOW.hasSessaoValida()) return false;
-
   try {
-    const perfil = await FEMFLOW.post({ action: "validar" });
+    const id = localStorage.getItem("femflow_id");
+    const payload = { action: "validar" };
+    if (id) payload.id = id;
+    const perfil = await FEMFLOW.post(payload);
 
     if (perfil?.status === "ok") {
       FEMFLOW.persistPerfil(perfil);
