@@ -11,7 +11,7 @@ importScripts(
 
 importScripts("config/config.js");
 
-const ENV = self.FEMFLOW_ENV || "staging";
+const ENV = self.FEMFLOW_ENV || "prod";
 const firebaseConfig =
   self.FEMFLOW_ACTIVE?.firebaseConfig ||
   self.FEMFLOW_CONFIG?.firebaseConfigs?.[ENV];
@@ -124,16 +124,14 @@ self.addEventListener("install", (event) => {
   console.log("📦 Instalando FemFlow PWA…");
 
   event.waitUntil(
-    caches
-      .open(CACHE_NAME)
+    caches.open(CACHE_NAME)
       .then((cache) =>
         Promise.all(
-          ASSETS.map((url) => {
-            const request = new Request(url, { cache: "reload" });
-            return cache.add(request).catch((err) => {
+          ASSETS.map((url) =>
+            cache.add(url).catch((err) => {
               console.warn("[SW] Falha ao cachear:", url, err);
-            });
-          })
+            })
+          )
         )
       )
       .then(() => self.skipWaiting())
@@ -205,7 +203,7 @@ self.addEventListener("fetch", (event) => {
 
       if (cached) {
         // atualiza silenciosamente
-        fetch(new Request(req.url, { cache: "no-store" }))
+        fetch(req)
           .then((resp) => {
             if (resp && resp.ok) cache.put(req, resp.clone());
           })

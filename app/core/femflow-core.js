@@ -4,7 +4,7 @@
 ======================================================================= */
 
 window.FEMFLOW = window.FEMFLOW || {};
-const FEMFLOW_ENV = window.FEMFLOW_ENV || "staging";
+const FEMFLOW_ENV = window.FEMFLOW_ENV || "prod";
 const FEMFLOW_ACTIVE = window.FEMFLOW_ACTIVE || {};
 const FEMFLOW_CONFIG = window.FEMFLOW_CONFIG || {};
 
@@ -194,39 +194,6 @@ FEMFLOW.listenForUpdates = function () {
 
 FEMFLOW.listenForUpdates();
 
-FEMFLOW.setupServiceWorkerUpdates = function (registration) {
-  if (!registration) return;
-
-  let refreshing = false;
-  navigator.serviceWorker.addEventListener("controllerchange", () => {
-    if (refreshing) return;
-    refreshing = true;
-    window.location.reload();
-  });
-
-  registration.addEventListener("updatefound", () => {
-    const newWorker = registration.installing;
-    if (!newWorker) return;
-
-    newWorker.addEventListener("statechange", () => {
-      if (newWorker.state !== "installed") return;
-      if (!navigator.serviceWorker.controller) return;
-
-      const waitingWorker = registration.waiting;
-      if (waitingWorker) {
-        waitingWorker.postMessage({ type: "SKIP_WAITING" });
-      }
-    });
-  });
-
-  registration.update().catch(() => {});
-
-  document.addEventListener("visibilitychange", () => {
-    if (document.visibilityState !== "visible") return;
-    registration.update().catch(() => {});
-  });
-};
-
 /* ============================================================
    🔔 PUSH NOTIFICATIONS (FCM)
 ============================================================ */
@@ -235,7 +202,6 @@ FEMFLOW.registerServiceWorker = async function () {
 
   try {
     const registration = await navigator.serviceWorker.register("service-worker.js");
-    FEMFLOW.setupServiceWorkerUpdates(registration);
     return registration;
   } catch (err) {
     console.warn("[FemFlow] Falha ao registrar Service Worker:", err);
@@ -769,7 +735,6 @@ FEMFLOW.renderMenuLateral = function () {
       <button class="ff-menu-op" data-go="ciclo">🎯 ${FEMFLOW.t("menu.ciclo")}</button>
       <button class="ff-menu-op" data-go="respiracao">💨 ${FEMFLOW.t("menu.respiracao")}</button>
       <button class="ff-menu-op" data-go="treinos">🏃 ${FEMFLOW.t("menu.treinos")}</button>
-      <button class="ff-menu-op" data-go="trocarTreino">🔁 ${FEMFLOW.t("menu.trocarTreino")}</button>
       <button class="ff-menu-op" data-go="nivel">📊 ${FEMFLOW.t("menu.nivel")}</button>
       <button class="ff-menu-op" data-go="tema">🌓 ${FEMFLOW.t("menu.tema")}</button>
       <button class="ff-menu-op" data-go="voltar">🔙 ${FEMFLOW.t("menu.voltar")}</button>
@@ -991,10 +956,6 @@ FEMFLOW.dispatch("stateChanged", {
       FEMFLOW.router("evolucao");
       break;
 
-    case "trocarTreino":
-      FEMFLOW.router("home");
-      break;
-
     case "nivel":
       // ⚠️ apenas abre modal
       // o dispatch estrutural acontece SOMENTE na confirmação do nível
@@ -1116,13 +1077,30 @@ FEMFLOW.carregarPerfil = async function () {
   if (!id) return null;
 
   try {
-    const r = await FEMFLOW.post({ action: "validar", id });
+    const r = await fetch(`${FEMFLOW.SCRIPT_URL}?action=validar&id=${id}`).then(r => r.json());
     if (r.status !== "ok") return null;
 
     localStorage.setItem("femflow_nome", r.nome || "Aluna");
-    FEMFLOW.persistPerfil(r);
+    localStorage.setItem("femflow_fase", r.fase);
+    const enfaseAtual = localStorage.getItem("femflow_enfase");
+    const extraAtivo = localStorage.getItem("femflow_treino_extra") === "true";
+    const enfaseAtualExtra = String(enfaseAtual || "").toLowerCase().startsWith("extra_");
+    const enfaseBackend = String(r.enfase || "").toLowerCase().trim();
+    const enfaseValida = Boolean(enfaseBackend && enfaseBackend !== "nenhuma");
+    if (extraAtivo && enfaseAtualExtra) {
+      if (enfaseValida && !localStorage.getItem("femflow_enfase_base")) {
+        localStorage.setItem("femflow_enfase_base", enfaseBackend);
+      }
+    } else if (enfaseValida) {
+      localStorage.setItem("femflow_enfase", enfaseBackend);
+    }
+    localStorage.setItem("femflow_diaCiclo", r.diaCiclo);
+    if (r.nivel) {
+      localStorage.setItem("femflow_nivel", r.nivel);
+    }
     localStorage.setItem("femflow_startDate", r.data_inicio);
     localStorage.setItem("femflow_cycleLength", r.ciclo_duracao);
+    localStorage.setItem("femflow_perfilHormonal", r.perfilHormonal);
 
     const produtoRaw = (r.produto || "").toLowerCase().trim();
     const isVip = produtoRaw === "vip";
@@ -1145,6 +1123,7 @@ FEMFLOW.carregarPerfil = async function () {
       personalRaw === "1" ||
       isVip;
     localStorage.setItem("femflow_has_personal", hasPersonal ? "true" : "false");
+    localStorage.removeItem("femflow_personal");
     FEMFLOW.renderVipBadge?.();
 
     return r;

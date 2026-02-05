@@ -16,7 +16,7 @@
   <script>
     const URL_SCRIPT =
       window.FEMFLOW_ACTIVE?.scriptUrl ||
-      window.FEMFLOW_CONFIG?.scriptUrls?.[window.FEMFLOW_ENV || "staging"] ||
+      window.FEMFLOW_CONFIG?.scriptUrls?.[window.FEMFLOW_ENV || "prod"] ||
       "";
 
     console.log("Iniciando teste de fetch...");
