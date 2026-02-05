@@ -954,15 +954,8 @@ async function selecionarEnfase(enfase) {
       })
     });
 
-    // 4) backend: resetar programa
-    await fetch(FEMFLOW.SCRIPT_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "resetprograma",
-        id
-      })
-    });
+    // 4) backend: resetar somente o DiaPrograma
+    await FEMFLOW.reiniciarDiaPrograma();
   }
 
   // 5) seguir fluxo normal
