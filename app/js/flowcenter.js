@@ -102,6 +102,29 @@ function normalizarFreeAccess(perfil) {
   };
 }
 
+function buildPerfilFromStorage() {
+  const id = localStorage.getItem("femflow_id") || "";
+  const email = localStorage.getItem("femflow_email") || "";
+  if (!id && !email) return null;
+
+  return {
+    id,
+    email,
+    nome: localStorage.getItem("femflow_nome") || "Aluna",
+    fase: localStorage.getItem("femflow_fase") || "follicular",
+    diaCiclo: Number(localStorage.getItem("femflow_diaCiclo") || 1),
+    diaPrograma: Number(localStorage.getItem("femflow_diaPrograma") || 1),
+    ciclo_duracao: Number(localStorage.getItem("femflow_cycleLength") || 28),
+    enfase: localStorage.getItem("femflow_enfase") || "",
+    produto: localStorage.getItem("femflow_produto") || "",
+    ativa: localStorage.getItem("femflow_ativa") === "true",
+    acessos: {
+      personal: localStorage.getItem("femflow_has_personal") === "true"
+    },
+    free_access: localStorage.getItem("femflow_free_access") || ""
+  };
+}
+
 /* ============================================================
    🔄 PERFIL — VALIDAR (fonte da verdade)
 =========================================================== */
@@ -173,7 +196,19 @@ function initFlowCenter() {
   ============================================================ */
   FEMFLOW.carregarPerfil()
     .then((perfilBase) => {
-      if (!perfilBase || perfilBase.status === "blocked") {
+      if (!perfilBase) {
+        const perfilLocal = buildPerfilFromStorage();
+        if (!perfilLocal) {
+          FEMFLOW.toast("Sessão inválida.");
+          FEMFLOW.clearSession();
+          FEMFLOW.dispatch("stateChanged", { type: "auth", impact: "estrutural" });
+          return null;
+        }
+        FEMFLOW.toast("Sem conexão agora. Usando dados salvos.");
+        return perfilLocal;
+      }
+
+      if (perfilBase.status === "blocked" || perfilBase.status === "denied") {
         FEMFLOW.toast("Sessão inválida.");
         FEMFLOW.clearSession();
         FEMFLOW.dispatch("stateChanged", { type: "auth", impact: "estrutural" });
@@ -182,10 +217,15 @@ function initFlowCenter() {
 
       return flowcenterSyncPerfil().then((perfilFresh) => {
         if (!perfilFresh || perfilFresh.status !== "ok") {
-          FEMFLOW.toast("Erro ao atualizar dados.");
-          FEMFLOW.clearSession();
-          FEMFLOW.dispatch("stateChanged", { type: "auth", impact: "estrutural" });
-          return null;
+          if (perfilFresh?.status === "blocked" || perfilFresh?.status === "denied") {
+            FEMFLOW.toast("Sessão inválida.");
+            FEMFLOW.clearSession();
+            FEMFLOW.dispatch("stateChanged", { type: "auth", impact: "estrutural" });
+            return null;
+          }
+
+          FEMFLOW.toast("Sem conexão agora. Usando dados salvos.");
+          return perfilBase;
         }
 
         flowcenterPersistPerfil(perfilFresh);
