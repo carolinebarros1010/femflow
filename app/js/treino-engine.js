@@ -612,6 +612,7 @@ if (b.tipo === "hiit") {
         series: b.series ?? b.serie ?? "",
         tempo: b.tempo ?? "",
         distancia: b.distancia ?? b.reps ?? "",
+        ritmo: b.ritmo ?? "",
         intervalo: Number(b.intervalo) || 0,
         duracao: Number(b.tempo) || 0
       });
@@ -630,6 +631,7 @@ if (b.tipo === "hiit") {
         series: b.series ?? b.serie ?? "",
         tempo: b.tempo ?? "",
         distancia: b.distancia ?? b.reps ?? "",
+        ritmo: b.ritmo ?? "",
         intervalo: Number(b.intervalo) || 0,
         duracao: Number(b.tempo) || 0
       });
