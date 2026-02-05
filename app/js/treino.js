@@ -113,6 +113,12 @@ document.addEventListener("DOMContentLoaded", () => {
     } catch (err) {
       console.warn("Config Endurance inválida:", err);
     }
+    if (!enfase) {
+      enfase = localStorage.getItem("femflow_endurance_modalidade") || "";
+    }
+    if (enfase) {
+      localStorage.setItem("femflow_endurance_modalidade", enfase);
+    }
     if (!dia) {
       dia = getEnduranceDiaLabel(lang);
       localStorage.setItem("femflow_endurance_dia", dia);
