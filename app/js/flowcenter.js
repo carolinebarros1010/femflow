@@ -176,7 +176,11 @@ function initFlowCenter() {
       if (!perfilBase || perfilBase.status === "blocked") {
         FEMFLOW.toast("Sessão inválida.");
         FEMFLOW.clearSession();
-        FEMFLOW.dispatch("stateChanged", { type: "auth", impact: "estrutural" });
+        FEMFLOW.dispatch("stateChanged", {
+          type: "auth",
+          impact: "estrutural",
+          source: "home"
+        });
         return null;
       }
 
@@ -189,7 +193,11 @@ function initFlowCenter() {
         if (perfilFresh.status === "no_auth") {
           FEMFLOW.toast("Sessão inválida.");
           FEMFLOW.clearSession();
-          FEMFLOW.dispatch("stateChanged", { type: "auth", impact: "estrutural" });
+          FEMFLOW.dispatch("stateChanged", {
+            type: "auth",
+            impact: "estrutural",
+            source: "home"
+          });
           return null;
         }
 
@@ -214,8 +222,7 @@ function initFlowCenter() {
 
   if (!localStorage.getItem("femflow_cycle_configured")) {
     FEMFLOW.toast("Configure seu ciclo antes 🌸");
-    FEMFLOW.dispatch("stateChanged", { type: "ciclo", impact: "estrutural" });
-    return;
+    return FEMFLOW.router("ciclo?ret=flowcenter.html");
   }
 
   /* ============================================================
