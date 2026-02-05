@@ -132,6 +132,7 @@ function _validarPerfil_(params) {
         data_inicio: row[10] || "",
         diaPrograma: Number(row[COL_DIA_PROGRAMA] || 1),
         dataInicioPrograma: row[COL_DATA_INICIO_PROGRAMA] || "",
+        novo_treino_endurance: row[COL_NOVO_TREINO_ENDURANCE] || "",
         acessos: {
           personal: row[COL_ACESSO_PERSONAL] === true || isVip
         },
@@ -144,4 +145,25 @@ function _validarPerfil_(params) {
   }
 
   return { status: "notfound" };
+}
+
+function getEndurancePlanToken_(params) {
+  const sh = _sheet(SHEET_ALUNAS);
+  if (!sh) return { status: "error", msg: "sheet_not_found" };
+
+  const id = String(params?.id || "").trim();
+  const email = String(params?.email || "").toLowerCase().trim();
+  if (!id && !email) return { status: "error", msg: "missing_id" };
+
+  const rows = sh.getDataRange().getValues();
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i];
+    const rowId = String(row[0] || "").trim();
+    const rowEmail = String(row[2] || "").toLowerCase().trim();
+    if ((id && rowId === id) || (email && rowEmail === email)) {
+      return { status: "ok", token: row[COL_NOVO_TREINO_ENDURANCE] || "" };
+    }
+  }
+
+  return { status: "notfound", token: "" };
 }

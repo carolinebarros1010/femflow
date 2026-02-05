@@ -227,6 +227,10 @@ function doPost(e) {
         resposta = legacyEnduranceCheck_(data);
         break;
 
+      case "endurance_plan_token":
+        resposta = getEndurancePlanToken_(data);
+        break;
+
       /* ===========================
          🔔 PUSH — REGISTRO TOKEN
       ============================ */
