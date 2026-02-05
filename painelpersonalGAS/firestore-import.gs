@@ -192,6 +192,10 @@ function importarTreinosFEMFLOW(opts = {}) {
       isPersonal = true;
       personalId = nomeAba.replace(/personal_/i, "").trim();
       Logger.log("🎨 Aba PERSONAL detectada → ID = " + personalId);
+    } else if (nomeAba.toLowerCase().startsWith("endurance_")) {
+      isPersonal = true;
+      personalId = nomeAba.replace(/endurance_/i, "").trim();
+      Logger.log("🏃‍♀️ Aba ENDURANCE detectada → ID = " + personalId);
     }
     // ------------------------------------------------------------
     // 2) DETECTAR ABA NORMAL
