@@ -283,7 +283,7 @@
   <script>
     const BASE =
       window.FEMFLOW_ACTIVE?.scriptUrlAdmin ||
-      window.FEMFLOW_CONFIG?.scriptUrlsAdmin?.[window.FEMFLOW_ENV || "staging"] ||
+      window.FEMFLOW_CONFIG?.scriptUrlsAdmin?.[window.FEMFLOW_ENV || "prod"] ||
       "";
     window.FEMFLOW_ADMIN_BASE = BASE;
     if ("serviceWorker" in navigator) {

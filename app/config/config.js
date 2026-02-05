@@ -1,21 +1,22 @@
 (function initFemFlowConfig(global) {
-  const ENV = "staging";
+  const ENV = "prod";
 
   const SCRIPT_URLS = {
     staging: "https://femflowapi.falling-wildflower-a8c0.workers.dev/staging",
-    prod: ""
+    prod: "https://femflowapi.falling-wildflower-a8c0.workers.dev/"
   };
 
   const SCRIPT_URLS_ADMIN = {
     staging:
       "window.FEMFLOW_ACTIVE.scriptUrl",
-    prod: ""
+    prod: "https://femflowapi.falling-wildflower-a8c0.workers.dev/"
   };
 
   const SCRIPT_URLS_MODULOS = {
     staging:
       "https://script.google.com/macros/s/AKfycbyovJHpMBqGhKmGFSePjHk-v5xAk8XB9NEfBG735nZjSz08f-jMfKE3OMkPVIZHObb0/exec",
-    prod: ""
+    prod:
+      "https://script.google.com/macros/s/AKfycbyovJHpMBqGhKmGFSePjHk-v5xAk8XB9NEfBG735nZjSz08f-jMfKE3OMkPVIZHObb0/exec"
   };
 
   const FIREBASE_CONFIGS = {
@@ -29,13 +30,13 @@
       measurementId: "G-6F644L5VTW"
     },
     prod: {
-      apiKey: "",
-      authDomain: "",
-      projectId: "",
-      storageBucket: "",
-      messagingSenderId: "",
-      appId: "",
-      measurementId: ""
+      apiKey: "AIzaSyB675lX-la7dGkZP1tfvzlPZ4oxvMPLBh0",
+      authDomain: "femflow-ebec2.firebaseapp.com",
+      projectId: "femflow-ebec2",
+      storageBucket: "femflow-ebec2.firebasestorage.app",
+      messagingSenderId: "1043953159611",
+      appId: "1:1043953159611:web:d12b82f744740f3124c89e",
+      measurementId: "G-6F644L5VTW"
     }
   };
 
@@ -58,5 +59,4 @@
     firebaseConfig: activeFirebaseConfig
   };
 })(globalThis);
-
 

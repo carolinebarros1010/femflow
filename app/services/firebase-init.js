@@ -1,5 +1,5 @@
 (function initFirebaseFemFlow() {
-  const env = window.FEMFLOW_ENV || "staging";
+  const env = window.FEMFLOW_ENV || "prod";
   const activeConfig =
     window.FEMFLOW_ACTIVE?.firebaseConfig ||
     window.FEMFLOW_CONFIG?.firebaseConfigs?.[env];

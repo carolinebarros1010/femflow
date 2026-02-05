@@ -3,7 +3,7 @@
    Autor: Ricardo Fernandes
    ========================== */
 
-const FEMFLOW_ENV = window.FEMFLOW_ENV || "staging";
+const FEMFLOW_ENV = window.FEMFLOW_ENV || "prod";
 const FEMFLOW = {
     SCRIPT_URL:
     window.FEMFLOW_ACTIVE?.scriptUrlModulos ||
