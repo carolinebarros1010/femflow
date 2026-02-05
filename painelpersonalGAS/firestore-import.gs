@@ -441,10 +441,11 @@ function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, pers
           `/blocos/${docId}`;
       } else if (isEndurancePersonal) {
         url =
-          `${baseURL}/personal_trainings/${personalId}` +
-          `/endurance/enfase/${enfaseEncoded}` +
-          `/semana/${String(r[idx.semana] || "").trim()}` +
-          `/dias/${diaKeyEncoded}/blocos/${docId}`;
+         `${baseURL}/personal_trainings/${personalId}` +
+`/endurance/enfase` +                 // ← documento fixo
+`/${enfaseEncoded}` +                 // ← coleção (corrida)
+`/semana/${String(r[idx.semana] || "").trim()}` +
+`/dias/${diaKeyEncoded}/blocos/${docId}`;
       } else {
         url = `${baseURL}/personal_trainings/${personalId}/${enfaseEncoded}/${fase}/dias/${diaKeyEncoded}/blocos/${docId}`;
       }
@@ -530,11 +531,12 @@ function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, pers
             `/diatreino/diatreino_${diatreino}` +
             `/history/${importId}/blocos/${docId}`;
         } else if (isEndurancePersonal) {
-          historyUrl =
-            `${baseURL}/personal_trainings/${personalId}` +
-            `/endurance/enfase/${enfaseEncoded}` +
-            `/semana/${String(r[idx.semana] || "").trim()}` +
-            `/dias/${diaKeyEncoded}/history/${importId}/blocos/${docId}`;
+  historyUrl =
+    `${baseURL}/personal_trainings/${personalId}` +
+    `/endurance/enfase` +
+    `/${enfaseEncoded}` +
+    `/semana/${String(r[idx.semana] || "").trim()}` +
+    `/dias/${diaKeyEncoded}/history/${importId}/blocos/${docId}`;
         } else {
           historyUrl =
             `${baseURL}/personal_trainings/${personalId}/${enfaseEncoded}/${fase}` +
