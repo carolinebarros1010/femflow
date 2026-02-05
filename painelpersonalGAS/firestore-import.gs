@@ -307,6 +307,7 @@ function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, pers
     tempo: col("tempo"),
     distancia: col("distancia"),
     intervalo: col("intervalo"),
+    ritmo: col("ritmo"),
 
     forte: col("forte"),
     leve: col("leve"),
@@ -440,6 +441,7 @@ function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, pers
         tempo: { stringValue: String(r[idx.tempo] || "") },
         distancia: { stringValue: String(r[idx.distancia] || "") },
         intervalo: { stringValue: String(r[idx.intervalo] || "") },
+        ritmo: { stringValue: String(idx.ritmo !== -1 ? (r[idx.ritmo] || "") : "") },
 
         forte: { stringValue: String(r[idx.forte] || "") },
         leve: { stringValue: String(r[idx.leve] || "") },
@@ -810,6 +812,7 @@ function buildMaleFlowItemFromRow_(row, idx) {
   if (idx.tempo !== -1) item.tempo = String(row[idx.tempo] || "");
   if (idx.distancia !== -1) item.distancia = String(row[idx.distancia] || "");
   if (idx.intervalo !== -1) item.intervalo = String(row[idx.intervalo] || "");
+  if (idx.ritmo !== -1) item.ritmo = String(row[idx.ritmo] || "");
   if (idx.forte !== -1) item.forte = String(row[idx.forte] || "");
   if (idx.leve !== -1) item.leve = String(row[idx.leve] || "");
   if (idx.ciclos !== -1) item.ciclos = String(row[idx.ciclos] || "");
@@ -834,6 +837,7 @@ function buildMaleFlowItemFields_(item) {
   if (item.tempo !== undefined) fields.tempo = { stringValue: String(item.tempo || "") };
   if (item.distancia !== undefined) fields.distancia = { stringValue: String(item.distancia || "") };
   if (item.intervalo !== undefined) fields.intervalo = { stringValue: String(item.intervalo || "") };
+  if (item.ritmo !== undefined) fields.ritmo = { stringValue: String(item.ritmo || "") };
   if (item.forte !== undefined) fields.forte = { stringValue: String(item.forte || "") };
   if (item.leve !== undefined) fields.leve = { stringValue: String(item.leve || "") };
   if (item.ciclos !== undefined) fields.ciclos = { stringValue: String(item.ciclos || "") };

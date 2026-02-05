@@ -489,6 +489,8 @@ home: {
     cardio: {
     descricao:
       "Complete {series} série(s) de {tempo} com {intervalo} de intervalo. Mantenha um ritmo confortável.",
+    descricaoRitmo:
+      "Complete {series} série(s) de {tempo} com {intervalo} de intervalo. Mantenha um ritmo de {ritmo} confortável.",
     fallbackTempo: "30 min",
     fallback:
       "Realize um cardio de 30 min seguidos em um ritmo leve/moderado. Utilize o aparelho que mais gostas. Se academia: esteira, bicicleta, remo, escada. Se em casa: corrida, caminhada, corda, dança.",
@@ -797,6 +799,8 @@ home: {
     cardio: {
   descricao:
     "Complete {series} set(s) of {tempo} with {intervalo} of rest. Keep a comfortable pace.",
+  descricaoRitmo:
+    "Complete {series} set(s) of {tempo} with {intervalo} of rest. Keep a comfortable pace of {ritmo}.",
   fallbackTempo: "30 min",
   fallback:
     "Do 30 minutes of steady cardio at a light/moderate pace. Use the equipment you like most. At the gym: treadmill, bike, rower, stairs. At home: running, walking, jump rope, dance.",
@@ -1107,6 +1111,8 @@ fr: {
     cardio: {
   descricao:
     "Complétez {series} série(s) de {tempo} avec {intervalo} de repos. Gardez un rythme confortable.",
+  descricaoRitmo:
+    "Complétez {series} série(s) de {tempo} avec {intervalo} de repos. Gardez un rythme confortable de {ritmo}.",
   fallbackTempo: "30 min",
   fallback:
     "Réalise 30 min de cardio continu à un rythme léger/modéré. Utilise l’appareil que tu préfères. En salle : tapis, vélo, rameur, escaliers. À la maison : course, marche, corde à sauter, danse.",
