@@ -91,6 +91,57 @@ FEMFLOW.clearSession = function () {
   localStorage.removeItem("femflow_session_token");
 };
 
+FEMFLOW.hasSessaoValida = function () {
+  const id = localStorage.getItem("femflow_id");
+  const token = localStorage.getItem("femflow_session_token");
+  const deviceId = FEMFLOW.getDeviceId();
+  return !!(id && token && deviceId);
+};
+
+FEMFLOW.persistPerfil = function (perfil) {
+  localStorage.setItem("femflow_fase", perfil.fase);
+  localStorage.setItem("femflow_diaCiclo", perfil.diaCiclo);
+  localStorage.setItem("femflow_diaPrograma", perfil.diaPrograma);
+  localStorage.setItem("femflow_nivel", perfil.nivel);
+  localStorage.setItem("femflow_enfase", perfil.enfase || "");
+  localStorage.setItem("femflow_perfilHormonal", perfil.perfilHormonal);
+  localStorage.setItem("femflow_produto", perfil.produto);
+  localStorage.setItem("femflow_ativa", String(!!perfil.ativa));
+  localStorage.setItem("femflow_personal", String(!!perfil.personal));
+  localStorage.setItem(
+    "femflow_free_access",
+    perfil.free_access ? JSON.stringify(perfil.free_access) : ""
+  );
+  localStorage.setItem(
+    "femflow_dataInicioPrograma",
+    perfil.dataInicioPrograma || ""
+  );
+};
+
+FEMFLOW.bootstrapApp = async function () {
+  if (!FEMFLOW.hasSessaoValida()) return false;
+
+  try {
+    const id = localStorage.getItem("femflow_id");
+    const payload = { action: "validar" };
+    if (id) payload.id = id;
+    const perfil = await FEMFLOW.post(payload);
+
+    if (perfil?.status === "ok") {
+      FEMFLOW.persistPerfil(perfil);
+      const pagina = (location.pathname.split("/").pop() || "").toLowerCase();
+      if (pagina === "" || pagina === "index.html") {
+        FEMFLOW.router("flowcenter");
+      }
+      return true;
+    }
+    FEMFLOW.clearSession?.();
+    FEMFLOW.router("index");
+  } catch (e) {}
+
+  return false;
+};
+
 FEMFLOW.sessionTransport = {
   type: "localStorage",
   postMessageFallback: null,
@@ -684,6 +735,7 @@ FEMFLOW.renderMenuLateral = function () {
       <button class="ff-menu-op" data-go="ciclo">🎯 ${FEMFLOW.t("menu.ciclo")}</button>
       <button class="ff-menu-op" data-go="respiracao">💨 ${FEMFLOW.t("menu.respiracao")}</button>
       <button class="ff-menu-op" data-go="treinos">🏃 ${FEMFLOW.t("menu.treinos")}</button>
+      <button class="ff-menu-op" data-go="trocarTreino">🔁 ${FEMFLOW.t("menu.trocarTreino")}</button>
       <button class="ff-menu-op" data-go="nivel">📊 ${FEMFLOW.t("menu.nivel")}</button>
       <button class="ff-menu-op" data-go="tema">🌓 ${FEMFLOW.t("menu.tema")}</button>
       <button class="ff-menu-op" data-go="voltar">🔙 ${FEMFLOW.t("menu.voltar")}</button>
@@ -905,6 +957,10 @@ FEMFLOW.dispatch("stateChanged", {
       FEMFLOW.router("evolucao");
       break;
 
+    case "trocarTreino":
+      FEMFLOW.router("home");
+      break;
+
     case "nivel":
       // ⚠️ apenas abre modal
       // o dispatch estrutural acontece SOMENTE na confirmação do nível
@@ -1026,30 +1082,13 @@ FEMFLOW.carregarPerfil = async function () {
   if (!id) return null;
 
   try {
-    const r = await fetch(`${FEMFLOW.SCRIPT_URL}?action=validar&id=${id}`).then(r => r.json());
+    const r = await FEMFLOW.post({ action: "validar", id });
     if (r.status !== "ok") return null;
 
     localStorage.setItem("femflow_nome", r.nome || "Aluna");
-    localStorage.setItem("femflow_fase", r.fase);
-    const enfaseAtual = localStorage.getItem("femflow_enfase");
-    const extraAtivo = localStorage.getItem("femflow_treino_extra") === "true";
-    const enfaseAtualExtra = String(enfaseAtual || "").toLowerCase().startsWith("extra_");
-    const enfaseBackend = String(r.enfase || "").toLowerCase().trim();
-    const enfaseValida = Boolean(enfaseBackend && enfaseBackend !== "nenhuma");
-    if (extraAtivo && enfaseAtualExtra) {
-      if (enfaseValida && !localStorage.getItem("femflow_enfase_base")) {
-        localStorage.setItem("femflow_enfase_base", enfaseBackend);
-      }
-    } else if (enfaseValida) {
-      localStorage.setItem("femflow_enfase", enfaseBackend);
-    }
-    localStorage.setItem("femflow_diaCiclo", r.diaCiclo);
-    if (r.nivel) {
-      localStorage.setItem("femflow_nivel", r.nivel);
-    }
+    FEMFLOW.persistPerfil(r);
     localStorage.setItem("femflow_startDate", r.data_inicio);
     localStorage.setItem("femflow_cycleLength", r.ciclo_duracao);
-    localStorage.setItem("femflow_perfilHormonal", r.perfilHormonal);
 
     const produtoRaw = (r.produto || "").toLowerCase().trim();
     const isVip = produtoRaw === "vip";
@@ -1072,7 +1111,6 @@ FEMFLOW.carregarPerfil = async function () {
       personalRaw === "1" ||
       isVip;
     localStorage.setItem("femflow_has_personal", hasPersonal ? "true" : "false");
-    localStorage.removeItem("femflow_personal");
     FEMFLOW.renderVipBadge?.();
 
     return r;
