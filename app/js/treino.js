@@ -839,26 +839,36 @@ const hasPersonal =
     const distanciaValor = c.distancia;
     const tempoValor = c.tempo || c.duracao;
     const intervaloValor = c.intervalo;
+    const ritmoValor = c.ritmo;
 
     const series = serieValor !== undefined && serieValor !== null ? String(serieValor) : "";
     const tempoOuDistancia = distanciaValor
       ? String(distanciaValor)
       : formatCardioTempo(tempoValor);
     const intervaloTexto = formatCardioTempo(intervaloValor);
+    const ritmoTexto = ritmoValor !== undefined && ritmoValor !== null ? String(ritmoValor).trim() : "";
 
     const hasSeries = series && series !== "0";
     const hasTempo = tempoOuDistancia && tempoOuDistancia !== "0";
     const hasIntervalo = intervaloTexto && intervaloTexto !== "0";
+    const hasRitmo = Boolean(ritmoTexto);
     const usarFallback = !(hasSeries && hasTempo && hasIntervalo);
     const fallbackTempo = t("treino.cardio.fallbackTempo");
 
     const descricao = usarFallback
       ? t("treino.cardio.fallback")
-      : t("treino.cardio.descricao", {
-          series: series || "-",
-          tempo: tempoOuDistancia || "-",
-          intervalo: intervaloTexto || "-"
-        });
+      : hasRitmo
+        ? t("treino.cardio.descricaoRitmo", {
+            series: series || "-",
+            tempo: tempoOuDistancia || "-",
+            intervalo: intervaloTexto || "-",
+            ritmo: ritmoTexto
+          })
+        : t("treino.cardio.descricao", {
+            series: series || "-",
+            tempo: tempoOuDistancia || "-",
+            intervalo: intervaloTexto || "-"
+          });
 
     const detalhes = [];
     if (hasSeries) {
