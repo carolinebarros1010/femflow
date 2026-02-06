@@ -258,6 +258,8 @@ function persistPerfil(perfil) {
   localStorage.setItem("femflow_fase", String(perfil.fase || "follicular").toLowerCase());
   localStorage.setItem("femflow_diaCiclo", String(perfil.diaCiclo || 1));
   localStorage.setItem("femflow_diaPrograma", String(perfil.diaPrograma || 1));
+
+  FEMFLOW.push?.flushPendingToken?.();
   localStorage.setItem("femflow_dataInicioPrograma", perfil.dataInicioPrograma ? String(perfil.dataInicioPrograma) : "");
 
   localStorage.setItem(
