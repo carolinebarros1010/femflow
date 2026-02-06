@@ -78,7 +78,10 @@ function listNotifications_() {
 
   const rows = values
     .slice(1)
-    .filter(row => String(row[idx.status] || "").toLowerCase() === "sent");
+    .filter(row => {
+      const status = String(row[idx.status] || "").toLowerCase();
+      return status === "published" || status === "sent";
+    });
 
   rows.sort((a, b) => new Date(b[idx.createdAt]) - new Date(a[idx.createdAt]));
 
@@ -95,4 +98,41 @@ function listNotifications_() {
     status: row[idx.status],
     deeplink: row[idx.deeplink]
   }));
+}
+
+function publishNotification_(data) {
+  const notificationId = String(data.notificationId || "").trim();
+  if (!notificationId) {
+    return { status: "error", msg: "missing_notification_id" };
+  }
+
+  const sheet = getNotificationsSheet_();
+  const values = sheet.getDataRange().getValues();
+  if (values.length <= 1) {
+    return { status: "error", msg: "not_found" };
+  }
+
+  const header = values[0];
+  const idIndex = header.indexOf("Id");
+  const statusIndex = header.indexOf("Status");
+
+  if (idIndex === -1 || statusIndex === -1) {
+    return { status: "error", msg: "invalid_header" };
+  }
+
+  for (let i = 1; i < values.length; i++) {
+    const row = values[i];
+    if (String(row[idIndex]).trim() !== notificationId) continue;
+
+    const currentStatus = String(row[statusIndex] || "").toLowerCase();
+    if (currentStatus !== "draft") {
+      return { status: "error", msg: "invalid_status", currentStatus };
+    }
+
+    // Atualiza para published sem enviar push.
+    sheet.getRange(i + 1, statusIndex + 1).setValue("published");
+    return { status: "published", id: notificationId };
+  }
+
+  return { status: "error", msg: "not_found" };
 }
