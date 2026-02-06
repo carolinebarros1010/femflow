@@ -21,7 +21,6 @@ function getNotificationsSheet_() {
 }
 
 function createNotification_(data) {
-  const sheet = getNotificationsSheet_();
   const now = new Date();
   const id = Utilities.getUuid();
 
@@ -34,20 +33,25 @@ function createNotification_(data) {
     deeplink: data.deeplink || ""
   };
 
-  // Salva como draft e não envia push agora.
-  sheet.appendRow([
-    id,
-    payload.title,
-    payload.message,
-    payload.type,
-    "admin",
-    payload.push,
-    payload.target,
-    now,
-    "",
-    "draft",
-    payload.deeplink
-  ]);
+  try {
+    const sheet = getNotificationsSheet_();
+    // Salva como draft e não envia push agora.
+    sheet.appendRow([
+      id,
+      payload.title,
+      payload.message,
+      payload.type,
+      "admin",
+      payload.push,
+      payload.target,
+      now,
+      "",
+      "draft",
+      payload.deeplink
+    ]);
+  } catch (err) {
+    return { status: "error", msg: "sheet_error" };
+  }
 
   return {
     status: "draft",
@@ -57,8 +61,13 @@ function createNotification_(data) {
 }
 
 function listNotifications_() {
-  const sheet = getNotificationsSheet_();
-  const values = sheet.getDataRange().getValues();
+  let values = [];
+  try {
+    const sheet = getNotificationsSheet_();
+    values = sheet.getDataRange().getValues();
+  } catch (err) {
+    return { status: "error", msg: "sheet_error" };
+  }
   if (values.length <= 1) return [];
 
   const header = values[0];
@@ -76,12 +85,7 @@ function listNotifications_() {
     deeplink: header.indexOf("Deeplink")
   };
 
-  const rows = values
-    .slice(1)
-    .filter(row => {
-      const status = String(row[idx.status] || "").toLowerCase();
-      return status === "published" || status === "sent";
-    });
+  const rows = values.slice(1);
 
   rows.sort((a, b) => new Date(b[idx.createdAt]) - new Date(a[idx.createdAt]));
 
