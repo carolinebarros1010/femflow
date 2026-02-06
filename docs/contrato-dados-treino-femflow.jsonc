@@ -1,0 +1,135 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://femflow.com.br/schemas/contrato-dados-treino-femflow.json",
+  "title": "Contrato de dados - entrada de treinos FemFlow",
+  "description": "Contrato oficial de dados para entrada de treinos FemFlow.",
+  "type": "object",
+  "additionalProperties": false,
+  "properties": {
+    // Valores permitidos para o tipo de sessão.
+    "tipo": {
+      "type": "string",
+      "enum": [
+        "aquecimento",
+        "treino",
+        "hiit",
+        "cardio_final",
+        "cardio_intermediario",
+        "resfriamento"
+      ],
+      "examples": ["treino"]
+    },
+    // Identificador do box/grupo.
+    "box": {
+      "type": "integer",
+      "examples": [1]
+    },
+    // Ordem do item dentro do dia.
+    "ordem": {
+      "type": "integer",
+      "examples": [1]
+    },
+    // Enfoque principal.
+    "enfase": {
+      "type": "string",
+      "examples": ["forca"]
+    },
+    // Fase do treino.
+    "fase": {
+      "type": "string",
+      "examples": ["fase_1"]
+    },
+    // Dia do ciclo/plano.
+    "dia": {
+      "type": "integer",
+      "examples": [1]
+    },
+    // Título em português.
+    "titulo_pt": {
+      "type": "string",
+      "examples": ["Agachamento livre"]
+    },
+    // Título em inglês.
+    "titulo_en": {
+      "type": "string",
+      "examples": ["Back squat"]
+    },
+    // Título em francês.
+    "titulo_fr": {
+      "type": "string",
+      "examples": ["Squat arrière"]
+    },
+    // Link de referência.
+    "link": {
+      "type": "string",
+      "format": "uri",
+      "examples": ["https://exemplo.com/treino"]
+    },
+    // Número de séries.
+    "series": {
+      "type": "integer",
+      "examples": [3]
+    },
+    // Número de repetições.
+    "reps": {
+      "type": "integer",
+      "examples": [12]
+    },
+    // Observações especiais.
+    "especial": {
+      "type": "string",
+      "examples": ["com pausa"]
+    },
+    // Duração/tempo.
+    "tempo": {
+      "type": "string",
+      "examples": ["00:30"]
+    },
+    // Distância.
+    "distancia": {
+      "type": "string",
+      "examples": ["500m"]
+    },
+    // Intervalo/descanso.
+    "intervalo": {
+      "type": "string",
+      "examples": ["60s"]
+    },
+    // Indicador de intensidade forte.
+    "forte": {
+      "type": "boolean",
+      "examples": [true]
+    },
+    // Indicador de intensidade leve.
+    "leve": {
+      "type": "boolean",
+      "examples": [false]
+    },
+    // Quantidade de ciclos.
+    "ciclos": {
+      "type": "integer",
+      "examples": [2]
+    }
+  },
+  "required": [
+    "tipo",
+    "box",
+    "ordem",
+    "enfase",
+    "fase",
+    "dia",
+    "titulo_pt",
+    "titulo_en",
+    "titulo_fr",
+    "link",
+    "series",
+    "reps",
+    "especial",
+    "tempo",
+    "distancia",
+    "intervalo",
+    "forte",
+    "leve",
+    "ciclos"
+  ]
+}
