@@ -70,6 +70,10 @@ function doPost(e) {
         resposta = publishNotification_(data);
         break;
 
+      case "send_notification":
+        resposta = sendNotification_(data);
+        break;
+
       /* ===========================
          🔄 RECUPERAR SENHA
       ============================ */
