@@ -60,6 +60,13 @@ function doPost(e) {
         break;
 
       /* ===========================
+         🔔 NOTIFICATIONS
+      ============================ */
+      case "create_notification":
+        resposta = createNotification_(data);
+        break;
+
+      /* ===========================
          🔄 RECUPERAR SENHA
       ============================ */
       case "solicitarreset":

@@ -35,6 +35,10 @@ function doGet(e) {
     return _json(adminGetAluna_(params));
   }
 
+  if (action === "list_notifications") {
+    return _json({ notifications: listNotifications_() });
+  }
+
   return _json({ status: "ignored", msg: "unknown_action", action });
 }
 
