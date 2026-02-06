@@ -1,0 +1,539 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>FemFlow • Admin de Notificações</title>
+    <style>
+      :root {
+        color-scheme: light;
+        --bg: #fff8f4;
+        --card: #ffffff;
+        --text: #1d1b1b;
+        --muted: #6b625f;
+        --primary: #ff6b6b;
+        --primary-dark: #e75656;
+        --success: #2f8f5f;
+        --error: #d64545;
+        --border: #f0e6e0;
+        --radius: 14px;
+      }
+
+      * {
+        box-sizing: border-box;
+        margin: 0;
+        padding: 0;
+      }
+
+      body {
+        font-family: "Inter", "Segoe UI", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        padding: 20px;
+      }
+
+      header {
+        margin-bottom: 18px;
+      }
+
+      h1 {
+        font-size: 22px;
+        margin-bottom: 6px;
+      }
+
+      p {
+        color: var(--muted);
+        font-size: 14px;
+      }
+
+      .container {
+        max-width: 780px;
+        margin: 0 auto;
+        display: flex;
+        flex-direction: column;
+        gap: 20px;
+      }
+
+      .card {
+        background: var(--card);
+        border-radius: var(--radius);
+        border: 1px solid var(--border);
+        padding: 18px;
+        box-shadow: 0 10px 25px rgba(0, 0, 0, 0.05);
+      }
+
+      form {
+        display: flex;
+        flex-direction: column;
+        gap: 14px;
+      }
+
+      label {
+        font-weight: 600;
+        font-size: 14px;
+      }
+
+      input,
+      textarea,
+      select {
+        width: 100%;
+        padding: 12px 14px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        font-size: 14px;
+        font-family: inherit;
+        background: #fff;
+      }
+
+      textarea {
+        min-height: 100px;
+        resize: vertical;
+      }
+
+      .row {
+        display: grid;
+        grid-template-columns: 1fr;
+        gap: 12px;
+      }
+
+      .row.inline {
+        grid-template-columns: 1fr 1fr;
+      }
+
+      .checkbox {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+
+      .actions {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+
+      button {
+        border: none;
+        border-radius: 999px;
+        padding: 12px 16px;
+        font-weight: 700;
+        font-size: 15px;
+        cursor: pointer;
+        background: var(--primary);
+        color: #fff;
+        transition: background 0.2s ease;
+      }
+
+      button.secondary {
+        background: #ffffff;
+        color: var(--text);
+        border: 1px solid var(--border);
+      }
+
+      button:disabled {
+        opacity: 0.6;
+        cursor: not-allowed;
+      }
+
+      .feedback {
+        font-size: 13px;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid transparent;
+        display: none;
+      }
+
+      .feedback.show {
+        display: block;
+      }
+
+      .feedback.success {
+        color: var(--success);
+        border-color: rgba(47, 143, 95, 0.2);
+        background: rgba(47, 143, 95, 0.08);
+      }
+
+      .feedback.error {
+        color: var(--error);
+        border-color: rgba(214, 69, 69, 0.2);
+        background: rgba(214, 69, 69, 0.08);
+      }
+
+      .list {
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .notification {
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 14px;
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .notification-header {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 8px;
+      }
+
+      .status {
+        font-size: 12px;
+        text-transform: uppercase;
+        font-weight: 700;
+        letter-spacing: 0.04em;
+      }
+
+      .status.draft {
+        color: #a16322;
+      }
+
+      .status.published {
+        color: #1c7f7a;
+      }
+
+      .status.sent {
+        color: #2f8f5f;
+      }
+
+      .meta {
+        font-size: 13px;
+        color: var(--muted);
+      }
+
+      .notification-actions {
+        display: flex;
+        flex-direction: column;
+        gap: 8px;
+      }
+
+      .loading {
+        opacity: 0.7;
+      }
+
+      @media (min-width: 720px) {
+        body {
+          padding: 32px;
+        }
+
+        .actions {
+          flex-direction: row;
+        }
+
+        .notification-actions {
+          flex-direction: row;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="container">
+      <header>
+        <h1>Painel de Notificações</h1>
+        <p>Crie, publique e envie pushes em menos de 1 minuto.</p>
+      </header>
+
+      <section class="card">
+        <form id="notificationForm">
+          <div>
+            <label for="title">Título</label>
+            <input id="title" name="title" type="text" required />
+          </div>
+
+          <div>
+            <label for="message">Mensagem</label>
+            <textarea id="message" name="message" required></textarea>
+          </div>
+
+          <div class="row inline">
+            <div>
+              <label for="type">Tipo</label>
+              <select id="type" name="type" required>
+                <option value="treino">treino</option>
+                <option value="ciclo">ciclo</option>
+                <option value="editorial">editorial</option>
+                <option value="evento">evento</option>
+              </select>
+            </div>
+
+            <div>
+              <label for="target">Target</label>
+              <select id="target" name="target" required>
+                <option value="all">all</option>
+                <option value="followme">followme</option>
+                <option value="personal">personal</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="row inline">
+            <div class="checkbox">
+              <input id="push" name="push" type="checkbox" />
+              <label for="push">Enviar Push</label>
+            </div>
+
+            <div>
+              <label for="deeplink">Deeplink (opcional)</label>
+              <input id="deeplink" name="deeplink" type="text" placeholder="app://rota" />
+            </div>
+          </div>
+
+          <div class="actions">
+            <button type="submit" id="saveDraft">Salvar como rascunho</button>
+            <button type="button" class="secondary" id="refreshList">Atualizar lista</button>
+          </div>
+
+          <div id="formFeedback" class="feedback" role="status" aria-live="polite"></div>
+        </form>
+      </section>
+
+      <section class="card">
+        <div class="notification-header">
+          <h2>Últimas notificações</h2>
+          <button type="button" class="secondary" id="reloadButton">Recarregar</button>
+        </div>
+
+        <div id="listFeedback" class="feedback" role="status" aria-live="polite"></div>
+        <div id="notificationList" class="list"></div>
+      </section>
+    </div>
+
+    <script>
+      const API_BASE = window.location.href.split("?")[0];
+
+      const form = document.getElementById("notificationForm");
+      const formFeedback = document.getElementById("formFeedback");
+      const listFeedback = document.getElementById("listFeedback");
+      const notificationList = document.getElementById("notificationList");
+      const refreshList = document.getElementById("refreshList");
+      const reloadButton = document.getElementById("reloadButton");
+      const saveDraft = document.getElementById("saveDraft");
+
+      const showFeedback = (element, message, type) => {
+        element.textContent = message;
+        element.className = `feedback show ${type || ""}`.trim();
+      };
+
+      const clearFeedback = (element) => {
+        element.textContent = "";
+        element.className = "feedback";
+      };
+
+      const setLoading = (button, isLoading, label) => {
+        if (!button) return;
+        button.disabled = isLoading;
+        if (label) {
+          button.textContent = isLoading ? "Carregando..." : label;
+        }
+        button.classList.toggle("loading", isLoading);
+      };
+
+      // TODO: aqui entra a validação admin futura (token, header ou check de sessão).
+      const postAction = async (action, payload) => {
+        const response = await fetch(API_BASE, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ action, ...payload }),
+        });
+        return response.json();
+      };
+
+      const getNotifications = async () => {
+        const response = await fetch(`${API_BASE}?action=list_notifications`);
+        return response.json();
+      };
+
+      const renderNotifications = (notifications) => {
+        notificationList.innerHTML = "";
+
+        if (!notifications || notifications.length === 0) {
+          notificationList.innerHTML =
+            "<p class='meta'>Nenhuma notificação encontrada.</p>";
+          return;
+        }
+
+        notifications
+          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+          .forEach((item) => {
+            const status = String(item.status || "draft").toLowerCase();
+            const card = document.createElement("div");
+            card.className = "notification";
+            card.innerHTML = `
+              <div class="notification-header">
+                <strong>${item.title || "Sem título"}</strong>
+                <span class="status ${status}">${status}</span>
+              </div>
+              <div class="meta">Tipo: ${item.type || "-"}</div>
+              <div class="meta">Criada em: ${formatDate(item.createdAt)}</div>
+            `;
+
+            const actions = document.createElement("div");
+            actions.className = "notification-actions";
+
+            if (status === "draft") {
+              actions.appendChild(
+                buildActionButton("Publicar", (event) =>
+                  handlePublish(item, event)
+                )
+              );
+            } else if (status === "published") {
+              actions.appendChild(
+                buildActionButton("Enviar Push", (event) =>
+                  handleSend(item, event)
+                )
+              );
+            }
+
+            if (actions.children.length > 0) {
+              card.appendChild(actions);
+            }
+
+            notificationList.appendChild(card);
+          });
+      };
+
+      const formatDate = (value) => {
+        if (!value) return "-";
+        const date = new Date(value);
+        if (Number.isNaN(date.getTime())) return String(value);
+        return date.toLocaleString("pt-BR");
+      };
+
+      const buildActionButton = (label, handler) => {
+        const button = document.createElement("button");
+        button.type = "button";
+        button.textContent = label;
+        button.addEventListener("click", handler);
+        return button;
+      };
+
+      const handlePublish = async (item, event) => {
+        clearFeedback(listFeedback);
+        const button = event?.target;
+        setLoading(button, true, "Publicar");
+        try {
+          const result = await postAction("publish_notification", {
+            notificationId: item.id,
+          });
+          if (result.status === "published") {
+            showFeedback(listFeedback, "Notificação publicada!", "success");
+            await loadNotifications();
+          } else {
+            showFeedback(
+              listFeedback,
+              `Erro ao publicar: ${result.msg || "tente novamente"}`,
+              "error"
+            );
+          }
+        } catch (error) {
+          showFeedback(
+            listFeedback,
+            "Erro ao publicar. Verifique sua conexão.",
+            "error"
+          );
+        } finally {
+          setLoading(button, false, "Publicar");
+        }
+      };
+
+      const handleSend = async (item, event) => {
+        clearFeedback(listFeedback);
+        const confirmSend = window.confirm(
+          "Tem certeza que deseja enviar este push agora?"
+        );
+        if (!confirmSend) return;
+
+        const button = event?.target;
+        setLoading(button, true, "Enviar Push");
+        try {
+          const result = await postAction("send_notification", {
+            notificationId: item.id,
+          });
+          if (result.status === "sent") {
+            showFeedback(listFeedback, "Push enviado!", "success");
+            await loadNotifications();
+          } else {
+            showFeedback(
+              listFeedback,
+              `Erro ao enviar: ${result.msg || "tente novamente"}`,
+              "error"
+            );
+          }
+        } catch (error) {
+          showFeedback(
+            listFeedback,
+            "Erro ao enviar. Verifique sua conexão.",
+            "error"
+          );
+        } finally {
+          setLoading(button, false, "Enviar Push");
+        }
+      };
+
+      const loadNotifications = async () => {
+        clearFeedback(listFeedback);
+        notificationList.innerHTML =
+          "<p class='meta'>Carregando notificações...</p>";
+        try {
+          const data = await getNotifications();
+          renderNotifications(data.notifications || []);
+        } catch (error) {
+          notificationList.innerHTML = "";
+          showFeedback(
+            listFeedback,
+            "Não foi possível carregar as notificações.",
+            "error"
+          );
+        }
+      };
+
+      form.addEventListener("submit", async (event) => {
+        event.preventDefault();
+        clearFeedback(formFeedback);
+
+        const formData = new FormData(form);
+        const payload = {
+          title: formData.get("title"),
+          message: formData.get("message"),
+          type: formData.get("type"),
+          target: formData.get("target"),
+          push: formData.get("push") === "on",
+          deeplink: formData.get("deeplink"),
+        };
+
+        setLoading(saveDraft, true, "Salvar como rascunho");
+        try {
+          const result = await postAction("create_notification", payload);
+          if (result.status === "draft") {
+            showFeedback(formFeedback, "Rascunho salvo com sucesso!", "success");
+            form.reset();
+            await loadNotifications();
+          } else {
+            showFeedback(
+              formFeedback,
+              `Erro ao salvar: ${result.msg || "tente novamente"}`,
+              "error"
+            );
+          }
+        } catch (error) {
+          showFeedback(
+            formFeedback,
+            "Erro ao salvar. Verifique sua conexão.",
+            "error"
+          );
+        } finally {
+          setLoading(saveDraft, false, "Salvar como rascunho");
+        }
+      });
+
+      refreshList.addEventListener("click", loadNotifications);
+      reloadButton.addEventListener("click", loadNotifications);
+
+      loadNotifications();
+    </script>
+  </body>
+</html>
