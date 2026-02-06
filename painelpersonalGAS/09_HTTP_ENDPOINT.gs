@@ -229,6 +229,14 @@ function doPost(e) {
         const submissionId = salvarPersonalSubmission_(validated);
         return jsonOK_({ ok: true, submission_id: submissionId });
 
+      case 'review_personal_submission':
+        const reviewPayload = parsePostJsonStrict_(e);
+        result = revisarPersonalSubmission_(reviewPayload);
+        return jsonOK_({
+          submission_id: result.submission_id,
+          status: result.status
+        });
+
       default:
         throw new Error('action inválida: ' + action);
     }
@@ -526,6 +534,105 @@ function obterPersonalSubmission_(params) {
     enfase: String(matchRow[headerIndex.enfase] || ''),
     status: String(matchRow[headerIndex.status] || ''),
     payload: payloadObj
+  };
+}
+
+function revisarPersonalSubmission_(payload) {
+  if (!payload || typeof payload !== 'object') {
+    throw new Error('body JSON inválido');
+  }
+
+  const submissionId = payload.submission_id != null
+    ? String(payload.submission_id).trim()
+    : '';
+  if (!submissionId) {
+    throw new Error('submission_id ausente');
+  }
+
+  const decision = payload.decision != null
+    ? String(payload.decision).trim().toLowerCase()
+    : '';
+  if (!decision || (decision !== 'approved' && decision !== 'rejected')) {
+    throw new Error('decisão inválida');
+  }
+
+  const admin = payload.admin != null
+    ? String(payload.admin).trim()
+    : '';
+  if (!admin) {
+    throw new Error('admin ausente');
+  }
+
+  const commentProvided = Object.prototype.hasOwnProperty.call(payload, 'comment');
+  const comment = commentProvided ? String(payload.comment || '') : '';
+
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName('PERSONAL_SUBMISSIONS');
+  if (!sheet) {
+    throw new Error('submissão não encontrada');
+  }
+
+  const lastRow = sheet.getLastRow();
+  let lastCol = sheet.getLastColumn();
+  if (lastRow <= 1 || lastCol === 0) {
+    throw new Error('submissão não encontrada');
+  }
+
+  const headerRow = sheet.getRange(1, 1, 1, lastCol).getValues()[0] || [];
+  const headerIndex = headerRow.reduce((acc, header, idx) => {
+    if (header != null && header !== '') {
+      acc[String(header).trim()] = idx;
+    }
+    return acc;
+  }, {});
+
+  if (headerIndex.submission_id == null) {
+    throw new Error('submissão não encontrada');
+  }
+
+  const reviewHeaders = ['reviewed_at', 'reviewed_by', 'review_comment'];
+  let headerUpdated = false;
+  reviewHeaders.forEach((header) => {
+    if (headerIndex[header] == null) {
+      headerRow.push(header);
+      headerIndex[header] = headerRow.length - 1;
+      headerUpdated = true;
+    }
+  });
+
+  if (headerUpdated) {
+    sheet.getRange(1, 1, 1, headerRow.length).setValues([headerRow]);
+    lastCol = headerRow.length;
+  }
+
+  const dataValues = sheet.getRange(2, 1, lastRow - 1, lastCol).getValues();
+  let matchRowIndex = -1;
+  for (let i = 0; i < dataValues.length; i += 1) {
+    const value = dataValues[i][headerIndex.submission_id];
+    if (String(value || '').trim() === submissionId) {
+      matchRowIndex = i + 2;
+      break;
+    }
+  }
+
+  if (matchRowIndex < 0) {
+    throw new Error('submissão não encontrada');
+  }
+
+  const reviewedAt = new Date().toISOString();
+  const statusValue = decision === 'approved' ? 'approved' : 'rejected';
+
+  sheet.getRange(matchRowIndex, headerIndex.status + 1).setValue(statusValue);
+  sheet.getRange(matchRowIndex, headerIndex.reviewed_at + 1).setValue(reviewedAt);
+  sheet.getRange(matchRowIndex, headerIndex.reviewed_by + 1).setValue(admin);
+
+  if (commentProvided) {
+    sheet.getRange(matchRowIndex, headerIndex.review_comment + 1).setValue(comment);
+  }
+
+  return {
+    submission_id: submissionId,
+    status: statusValue
   };
 }
 
