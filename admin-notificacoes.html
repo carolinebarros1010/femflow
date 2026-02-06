@@ -215,6 +215,30 @@
         opacity: 0.7;
       }
 
+      button.loading::after {
+        content: "";
+        width: 14px;
+        height: 14px;
+        border-radius: 50%;
+        border: 2px solid rgba(255, 255, 255, 0.5);
+        border-top-color: #ffffff;
+        display: inline-block;
+        margin-left: 8px;
+        animation: spin 0.8s linear infinite;
+        vertical-align: middle;
+      }
+
+      button.secondary.loading::after {
+        border-color: rgba(29, 27, 27, 0.2);
+        border-top-color: var(--text);
+      }
+
+      @keyframes spin {
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
       @media (min-width: 720px) {
         body {
           padding: 32px;
@@ -303,7 +327,8 @@
     </div>
 
     <script>
-      const API_BASE = window.location.href.split("?")[0];
+      const API_BASE =
+        "https://script.google.com/macros/s/AKfycbw1Rp4K3GKH-yruTV0gXboApxNUZcs1qLAYvvuAmZzj29Km6_rHbEJcAVokVnrbx16f/exec";
 
       const form = document.getElementById("notificationForm");
       const formFeedback = document.getElementById("formFeedback");
@@ -357,7 +382,11 @@
         }
 
         notifications
-          .sort((a, b) => new Date(b.createdAt) - new Date(a.createdAt))
+          .sort(
+            (a, b) =>
+              new Date(b.createdAt || 0).getTime() -
+              new Date(a.createdAt || 0).getTime()
+          )
           .forEach((item) => {
             const status = String(item.status || "draft").toLowerCase();
             const card = document.createElement("div");
@@ -413,6 +442,11 @@
 
       const handlePublish = async (item, event) => {
         clearFeedback(listFeedback);
+        const confirmPublish = window.confirm(
+          "Tem certeza que deseja publicar esta notificação?"
+        );
+        if (!confirmPublish) return;
+
         const button = event?.target;
         setLoading(button, true, "Publicar");
         try {
