@@ -212,6 +212,15 @@ function doPost(e) {
         importarTreinosFEMFLOW_aba(p2.destino, { target });
         return jsonOK_({ step: 'full_male', target, result: 'MaleFlow: base gerada e importada: ' + p2.destino });
 
+      // =========================
+      // Personal submissions
+      // =========================
+      case 'submit_personal_treino':
+        const submission = parsePostJsonStrict_(e);
+        const validated = validarPersonalSubmission_(submission);
+        const submissionId = salvarPersonalSubmission_(validated);
+        return jsonOK_({ ok: true, submission_id: submissionId });
+
       default:
         throw new Error('action inválida: ' + action);
     }
@@ -268,6 +277,133 @@ function parseQueryString_(raw) {
       output[decodedKey] = decodedValue;
     });
   return output;
+}
+
+function parsePostJsonStrict_(e) {
+  const raw = (e && e.postData && e.postData.contents != null)
+    ? String(e.postData.contents).trim()
+    : '';
+
+  if (!raw) {
+    throw new Error('body JSON ausente');
+  }
+
+  try {
+    const obj = JSON.parse(raw);
+    if (!obj || typeof obj !== 'object') {
+      throw new Error('body JSON inválido');
+    }
+    return obj;
+  } catch (err) {
+    throw new Error('body JSON inválido');
+  }
+}
+
+function validarPersonalSubmission_(payload) {
+  if (!payload || typeof payload !== 'object') {
+    throw new Error('body JSON inválido');
+  }
+
+  const autor = payload.autor;
+  const nivel = payload.nivel;
+  const enfase = payload.enfase;
+  const linhas = payload.linhas;
+
+  if (!autor || typeof autor !== 'string') {
+    throw new Error('autor obrigatório');
+  }
+
+  const niveisValidos = ['iniciante', 'intermediaria', 'avancada'];
+  if (!nivel || typeof nivel !== 'string' || !niveisValidos.includes(nivel)) {
+    throw new Error('nivel inválido');
+  }
+
+  if (!enfase || typeof enfase !== 'string') {
+    throw new Error('enfase obrigatória');
+  }
+
+  if (!Array.isArray(linhas) || linhas.length === 0) {
+    throw new Error('linhas obrigatórias');
+  }
+
+  const tiposValidos = ['aquecimento', 'treino', 'hiit', 'cardio_final', 'cardio_intermediario', 'resfriamento'];
+  const fasesValidas = ['menstrual', 'folicular', 'ovulatoria', 'lutea'];
+
+  linhas.forEach((linha, index) => {
+    if (!linha || typeof linha !== 'object') {
+      throw new Error('linha inválida na posição ' + (index + 1));
+    }
+
+    const tipo = linha.tipo;
+    const box = linha.box;
+    const ordem = linha.ordem;
+    const fase = linha.fase;
+    const dia = linha.dia;
+    const tituloPt = linha.titulo_pt;
+    const enfaseLinha = linha.enfase;
+
+    if (!tipo || typeof tipo !== 'string' || !tiposValidos.includes(tipo)) {
+      throw new Error('tipo inválido na posição ' + (index + 1));
+    }
+
+    if (box == null || (typeof box !== 'string' && typeof box !== 'number')) {
+      throw new Error('box obrigatório na posição ' + (index + 1));
+    }
+
+    if (!Number.isInteger(ordem) || ordem < 1) {
+      throw new Error('ordem inválida na posição ' + (index + 1));
+    }
+
+    if (!fase || typeof fase !== 'string' || !fasesValidas.includes(fase)) {
+      throw new Error('fase inválida na posição ' + (index + 1));
+    }
+
+    if (!enfaseLinha || typeof enfaseLinha !== 'string') {
+      throw new Error('enfase obrigatória na posição ' + (index + 1));
+    }
+
+    if (!Number.isInteger(dia) || dia < 1 || dia > 30) {
+      throw new Error('dia inválido na posição ' + (index + 1));
+    }
+
+    if (!tituloPt || typeof tituloPt !== 'string' || !tituloPt.trim()) {
+      throw new Error('titulo_pt obrigatório na posição ' + (index + 1));
+    }
+  });
+
+  return payload;
+}
+
+function salvarPersonalSubmission_(payload) {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheetName = 'PERSONAL_SUBMISSIONS';
+  let sheet = ss.getSheetByName(sheetName);
+  if (!sheet) {
+    sheet = ss.insertSheet(sheetName);
+    sheet.appendRow([
+      'submission_id',
+      'created_at',
+      'autor',
+      'nivel',
+      'enfase',
+      'status',
+      'payload_json'
+    ]);
+  }
+
+  const submissionId = Utilities.getUuid();
+  const createdAt = new Date().toISOString();
+  const row = [
+    submissionId,
+    createdAt,
+    payload.autor,
+    payload.nivel,
+    payload.enfase,
+    'pending_review',
+    JSON.stringify(payload)
+  ];
+  sheet.appendRow(row);
+  return submissionId;
 }
 
 
