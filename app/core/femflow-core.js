@@ -526,6 +526,329 @@ if ("serviceWorker" in navigator) {
   });
 }
 
+/* ============================================================
+   🔔 PUSH INTELIGENTE — FEMFLOW
+============================================================ */
+FEMFLOW.smartPush = {
+  storageKey: "femflow_smart_push_state",
+  dailyLimit: 1,
+  weeklyLimits: {
+    treino: 5,
+    fase: 2,
+    respiracao: 2,
+    followme: 3
+  },
+  hoursByType: {
+    treino: { start: 7, end: 11 },
+    fase: { start: 8, end: 20 },
+    respiracao: { start: 10, end: 20 },
+    followme: { start: 8, end: 20 }
+  },
+  _state: null,
+
+  _loadState() {
+    if (this._state) return this._state;
+    try {
+      this._state = JSON.parse(localStorage.getItem(this.storageKey) || "{}");
+    } catch (err) {
+      this._state = {};
+    }
+    return this._state;
+  },
+
+  _saveState() {
+    localStorage.setItem(this.storageKey, JSON.stringify(this._state || {}));
+  },
+
+  _getWeekKey(date = new Date()) {
+    const d = new Date(Date.UTC(date.getFullYear(), date.getMonth(), date.getDate()));
+    d.setUTCDate(d.getUTCDate() + 4 - (d.getUTCDay() || 7));
+    const yearStart = new Date(Date.UTC(d.getUTCFullYear(), 0, 1));
+    const weekNo = Math.ceil(((d - yearStart) / 86400000 + 1) / 7);
+    return `${d.getUTCFullYear()}-W${String(weekNo).padStart(2, "0")}`;
+  },
+
+  _withinHours(type) {
+    const range = this.hoursByType[type];
+    if (!range) return true;
+    const hour = new Date().getHours();
+    return hour >= range.start && hour <= range.end;
+  },
+
+  _getPhaseLabel(phase) {
+    const map = {
+      menstrual: "menstrual",
+      follicular: "folicular",
+      ovulatory: "ovulatória",
+      luteal: "lútea"
+    };
+    return map[String(phase || "").toLowerCase()] || String(phase || "");
+  },
+
+  _daysBetween(dateKeyA, dateKeyB) {
+    if (!dateKeyA || !dateKeyB) return null;
+    const a = new Date(`${dateKeyA}T00:00:00`);
+    const b = new Date(`${dateKeyB}T00:00:00`);
+    const diff = Math.abs(b - a);
+    return Math.floor(diff / 86400000);
+  },
+
+  _getContext() {
+    const todayKey = FEMFLOW.getLocalDateKey();
+    const lastTreinoIso = localStorage.getItem("femflow_last_treino") || "";
+    const lastTreinoKey = lastTreinoIso ? FEMFLOW.getLocalDateKey(lastTreinoIso) : "";
+    const fase = localStorage.getItem("femflow_fase") || "";
+    const produto = localStorage.getItem("femflow_produto") || "";
+    const enfase = localStorage.getItem("femflow_enfase") || "";
+    const hasPersonal = localStorage.getItem("femflow_has_personal") === "true";
+    const enduranceReady =
+      localStorage.getItem("femflow_endurance_setup_done") === "true" ||
+      Boolean(localStorage.getItem("femflow_endurance_config"));
+    const treinoDisponivel =
+      Boolean(enfase && enfase !== "nenhuma") || hasPersonal || enduranceReady;
+    const isFollowMe =
+      String(produto || "").startsWith("followme_") || String(enfase || "").startsWith("followme_");
+    const lastProgramDay = Number(localStorage.getItem("femflow_last_program_day") || 0);
+    const diaPrograma = Number(localStorage.getItem("femflow_diaPrograma") || 1);
+    const treinoHoje = lastTreinoKey === todayKey;
+    const diasSemTreino =
+      lastTreinoKey && todayKey ? this._daysBetween(lastTreinoKey, todayKey) : null;
+
+    return {
+      todayKey,
+      fase,
+      faseLabel: this._getPhaseLabel(fase),
+      treinoDisponivel,
+      treinoHoje,
+      diasSemTreino,
+      isFollowMe,
+      diaPrograma,
+      lastProgramDay,
+      enfase
+    };
+  },
+
+  _canSend(type) {
+    if (!("Notification" in window)) return false;
+    if (Notification.permission !== "granted") return false;
+
+    const state = this._loadState();
+    const todayKey = FEMFLOW.getLocalDateKey();
+    const weekKey = this._getWeekKey();
+
+    if (state.lastDailyKey === todayKey) return false;
+    if (state.lastSentByType?.[type] === todayKey) return false;
+
+    const weeklyLimit = this.weeklyLimits[type];
+    if (weeklyLimit) {
+      const weeklyCount = state.weeklyCounts?.[weekKey]?.[type] || 0;
+      if (weeklyCount >= weeklyLimit) return false;
+    }
+
+    if (!this._withinHours(type)) return false;
+
+    return true;
+  },
+
+  _recordSend(type, context = {}) {
+    const state = this._loadState();
+    const todayKey = FEMFLOW.getLocalDateKey();
+    const weekKey = this._getWeekKey();
+
+    state.lastDailyKey = todayKey;
+    state.lastSentByType = state.lastSentByType || {};
+    state.lastSentByType[type] = todayKey;
+
+    state.weeklyCounts = state.weeklyCounts || {};
+    state.weeklyCounts[weekKey] = state.weeklyCounts[weekKey] || {};
+    state.weeklyCounts[weekKey][type] = (state.weeklyCounts[weekKey][type] || 0) + 1;
+
+    if (type === "followme" && context.diaPrograma) {
+      state.followmeLastDayNotified = context.diaPrograma;
+    }
+
+    this._state = state;
+    this._saveState();
+  },
+
+  _buildNotification(type, context) {
+    const base = {
+      url: "flowcenter.html",
+      tipo: type
+    };
+
+    if (type === "treino") {
+      return {
+        title: "🏃 Seu treino de hoje já está disponível",
+        body: "Quando você estiver pronta, seu corpo agradece.",
+        data: { ...base, contexto: { treino: "dia" } }
+      };
+    }
+
+    if (type === "fase") {
+      return {
+        title: `🌸 Seu corpo entrou na fase ${context.faseLabel} hoje`,
+        body: "Que tal ouvir o que seu ritmo está pedindo?",
+        data: { ...base, contexto: { fase: context.fase } }
+      };
+    }
+
+    if (type === "respiracao") {
+      return {
+        title: "💨 Uma respiração curta pode te ajudar hoje",
+        body: "Dois minutinhos já trazem presença.",
+        data: { ...base, contexto: { sugestao: "respiracao" }, url: "respiracao.html" }
+      };
+    }
+
+    if (type === "followme") {
+      return {
+        title: "✨ Novo dia do FollowMe liberado",
+        body: "Vamos juntas no seu ritmo.",
+        data: { ...base, contexto: { dia: context.diaPrograma }, url: "followme.html" }
+      };
+    }
+
+    return null;
+  },
+
+  async _showSystemNotification({ title, body, data }) {
+    if (!("Notification" in window)) return false;
+    if (Notification.permission !== "granted") return false;
+
+    try {
+      const registration =
+        (await navigator.serviceWorker?.ready?.catch(() => null)) ||
+        (await FEMFLOW.registerServiceWorker?.());
+      if (!registration?.showNotification) return false;
+
+      await registration.showNotification(title, {
+        body,
+        data,
+        icon: "./favicon.ico",
+        badge: "./favicon.ico",
+        tag: data?.tipo || "femflow"
+      });
+      return true;
+    } catch (err) {
+      FEMFLOW.warn?.("[FemFlow] Falha ao exibir notificação:", err);
+      return false;
+    }
+  },
+
+  async _storeInternalNotification({ title, body, data }) {
+    const notification = {
+      id: `ff-local-${Date.now()}-${Math.random().toString(36).slice(2)}`,
+      titulo: title,
+      mensagem: body,
+      tipo: data?.tipo || "sistema",
+      origem: "smart",
+      data: new Date().toISOString(),
+      lida: false,
+      contexto: data?.contexto || null
+    };
+
+    await FEMFLOW.notifications?.save?.(notification);
+  },
+
+  _evaluatePhaseChange(context) {
+    if (!context.fase) return false;
+    const state = this._loadState();
+    const lastPhase = state.lastPhase || "";
+    const lastPhaseSeenKey = state.lastPhaseSeenKey || "";
+    const todayKey = context.todayKey;
+
+    const changed = lastPhase && lastPhase !== context.fase;
+    const daysSinceSeen = lastPhaseSeenKey
+      ? this._daysBetween(lastPhaseSeenKey, todayKey)
+      : null;
+    const changeIsFresh = daysSinceSeen != null ? daysSinceSeen <= 1 : true;
+
+    state.lastPhase = context.fase;
+    state.lastPhaseSeenKey = todayKey;
+    this._state = state;
+    this._saveState();
+
+    return changed && changeIsFresh;
+  },
+
+  _evaluateFollowMe(context) {
+    if (!context.isFollowMe) return null;
+    if (!context.diaPrograma) return null;
+
+    const state = this._loadState();
+    const lastNotifiedDay = Number(state.followmeLastDayNotified || 0);
+
+    if (context.diaPrograma > lastNotifiedDay) {
+      return "novo_dia";
+    }
+
+    const diasSemTreino = context.diasSemTreino ?? 0;
+    const atrasada = diasSemTreino >= 2 && context.lastProgramDay < context.diaPrograma;
+    if (atrasada) {
+      return "atraso";
+    }
+
+    return null;
+  },
+
+  _evaluateRespiracao(context) {
+    const fase = String(context.fase || "").toLowerCase();
+    const faseDesacelera = ["menstrual", "luteal"].includes(fase);
+    const faseFoco = ["follicular", "ovulatory"].includes(fase);
+    const diasSemTreino = context.diasSemTreino ?? 0;
+
+    return faseDesacelera || faseFoco || diasSemTreino >= 3;
+  },
+
+  async _send(type, context) {
+    if (!this._canSend(type)) return false;
+    const payload = this._buildNotification(type, context);
+    if (!payload) return false;
+
+    const shown = await this._showSystemNotification(payload);
+    if (!shown) return false;
+
+    await this._storeInternalNotification(payload);
+    this._recordSend(type, context);
+    return true;
+  },
+
+  async evaluate() {
+    const context = this._getContext();
+    if (!context.fase && !context.treinoDisponivel) return;
+
+    if (this._evaluatePhaseChange(context)) {
+      if (await this._send("fase", context)) return;
+    }
+
+    const followmeStatus = this._evaluateFollowMe(context);
+    if (followmeStatus) {
+      if (await this._send("followme", context)) return;
+    }
+
+    if (context.treinoDisponivel && !context.treinoHoje) {
+      if (await this._send("treino", context)) return;
+    }
+
+    if (this._evaluateRespiracao(context)) {
+      await this._send("respiracao", context);
+    }
+  }
+};
+
+window.addEventListener("femflow:ready", () => {
+  setTimeout(() => {
+    FEMFLOW.smartPush?.evaluate?.();
+  }, 1200);
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  setTimeout(() => {
+    FEMFLOW.smartPush?.evaluate?.();
+  }, 1800);
+});
+
 FEMFLOW.toggleBodyScroll = function (locked) {
   document.body.classList.toggle("ff-modal-open", locked);
 };
@@ -565,6 +888,14 @@ FEMFLOW.log = function (...args) {
   if (localStorage.getItem("femflow_dev") === "true") {
     console.log("[FemFlow]", ...args);
   }
+};
+
+FEMFLOW.getLocalDateKey = function (date = new Date()) {
+  const d = date instanceof Date ? date : new Date(date);
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, "0");
+  const day = String(d.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
 };
 
 

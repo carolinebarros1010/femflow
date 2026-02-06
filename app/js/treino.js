@@ -1992,6 +1992,15 @@ tipoTreino,
           localStorage.setItem("femflow_diaCiclo", String(resp.novoDiaCiclo));
         }
 
+        const treinoDate = new Date().toISOString();
+        localStorage.setItem("femflow_last_treino", treinoDate);
+        if (FEMFLOW.getLocalDateKey) {
+          localStorage.setItem("femflow_last_treino_day", FEMFLOW.getLocalDateKey(treinoDate));
+        }
+        if (resp.diaPrograma || diaPrograma) {
+          localStorage.setItem("femflow_last_program_day", String(resp.diaPrograma || diaPrograma));
+        }
+
         clearTreinoSnapshot();
         FEMFLOW.toast("Treino salvo com sucesso! 💪");
         registrarEvolucao({ pse, diaPrograma: resp.diaPrograma || diaPrograma });
