@@ -49,6 +49,70 @@ const resolvePushUrl = (payload) => {
   return PUSH_ACTION_URLS[action] || data.url || "./home.html";
 };
 
+const NOTIFICATION_DB = "femflow-notifications";
+const NOTIFICATION_STORE = "notifications";
+
+const openNotificationsDb = () =>
+  new Promise((resolve) => {
+    const request = indexedDB.open(NOTIFICATION_DB, 1);
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      if (!db.objectStoreNames.contains(NOTIFICATION_STORE)) {
+        const store = db.createObjectStore(NOTIFICATION_STORE, { keyPath: "id" });
+        store.createIndex("data", "data");
+        store.createIndex("lida", "lida");
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => resolve(null);
+  });
+
+const buildInternalNotification = (payload = {}) => {
+  const data = payload?.data || {};
+  const titulo =
+    payload?.notification?.title ||
+    data.title ||
+    data.titulo ||
+    "FemFlow";
+  const mensagem =
+    payload?.notification?.body ||
+    data.body ||
+    data.mensagem ||
+    "";
+  const tipo = data.tipo || data.type || "sistema";
+  const id =
+    data.id ||
+    payload?.messageId ||
+    `ff-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+  return {
+    id: String(id),
+    titulo,
+    mensagem,
+    tipo,
+    origem: "push",
+    data: data.data || new Date().toISOString(),
+    lida: false
+  };
+};
+
+const storeInternalNotification = async (payload) => {
+  if (!("indexedDB" in self)) return null;
+  const db = await openNotificationsDb();
+  if (!db) return null;
+
+  const notification = buildInternalNotification(payload);
+
+  await new Promise((resolve) => {
+    const tx = db.transaction(NOTIFICATION_STORE, "readwrite");
+    tx.objectStore(NOTIFICATION_STORE).put(notification);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => resolve();
+  });
+
+  return notification;
+};
+
 if (messaging) {
   messaging.onBackgroundMessage((payload) => {
     const data = payload?.data || {};
@@ -69,6 +133,21 @@ if (messaging) {
     };
 
     self.registration.showNotification(title, options);
+
+    storeInternalNotification(payload).then((notification) => {
+      if (!notification) return;
+      self.clients
+        .matchAll({ type: "window", includeUncontrolled: true })
+        .then((clients) => {
+          clients.forEach((client) => {
+            client.postMessage({
+              type: "FEMFLOW_PUSH_STORED",
+              notification
+            });
+          });
+        })
+        .catch(() => {});
+    });
   });
 }
 

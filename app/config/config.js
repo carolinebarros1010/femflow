@@ -40,8 +40,14 @@
     }
   };
 
+  const PUSH_VAPID_KEYS = {
+    staging: "",
+    prod: ""
+  };
+
   const activeScriptUrl = SCRIPT_URLS[ENV];
   const activeFirebaseConfig = FIREBASE_CONFIGS[ENV];
+  const activeVapidKey = PUSH_VAPID_KEYS[ENV];
 
   global.FEMFLOW_ENV = ENV;
   global.FEMFLOW_CONFIG = {
@@ -49,14 +55,19 @@
     scriptUrls: SCRIPT_URLS,
     scriptUrlsAdmin: SCRIPT_URLS_ADMIN,
     scriptUrlsModulos: SCRIPT_URLS_MODULOS,
-    firebaseConfigs: FIREBASE_CONFIGS
+    firebaseConfigs: FIREBASE_CONFIGS,
+    pushVapidKeys: PUSH_VAPID_KEYS
   };
   global.FEMFLOW_ACTIVE = {
     env: ENV,
     scriptUrl: activeScriptUrl,
     scriptUrlAdmin: SCRIPT_URLS_ADMIN[ENV],
     scriptUrlModulos: SCRIPT_URLS_MODULOS[ENV],
-    firebaseConfig: activeFirebaseConfig
+    firebaseConfig: activeFirebaseConfig,
+    pushVapidKey: activeVapidKey
   };
-})(globalThis);
 
+  if (!global.FEMFLOW_VAPID_KEY && activeVapidKey) {
+    global.FEMFLOW_VAPID_KEY = activeVapidKey;
+  }
+})(globalThis);

@@ -162,6 +162,7 @@ FEMFLOW.push = {
   promptKey: "femflow_push_prompted",
   tokenKey: "femflow_push_token",
   sentKey: "femflow_push_token_sent",
+  pendingKey: "femflow_push_token_pending",
   _initialized: false,
   _messaging: null,
   _registration: null,
@@ -228,9 +229,15 @@ FEMFLOW.push = {
 
     try {
       const options = { serviceWorkerRegistration: this._registration };
-      if (window.FEMFLOW_VAPID_KEY) {
-        options.vapidKey = window.FEMFLOW_VAPID_KEY;
+      const vapidKey =
+        window.FEMFLOW_VAPID_KEY ||
+        FEMFLOW_ACTIVE?.pushVapidKey ||
+        FEMFLOW_CONFIG?.pushVapidKeys?.[FEMFLOW_ENV];
+      if (!vapidKey) {
+        console.warn("[FemFlow] VAPID key ausente. Defina em FEMFLOW_ACTIVE.pushVapidKey ou FEMFLOW_CONFIG.pushVapidKeys.");
+        return;
       }
+      options.vapidKey = vapidKey;
 
       const token = await this._messaging.getToken(options);
       if (!token) return;
@@ -245,27 +252,207 @@ FEMFLOW.push = {
       const deviceId = FEMFLOW.getDeviceId();
       const lang = FEMFLOW.lang || "pt";
 
-      if (!userId) return;
+      if (!userId) {
+        localStorage.setItem(this.pendingKey, token);
+        return;
+      }
 
-      await FEMFLOW.post({
-        action: "register_push_token",
-        userId,
-        deviceId,
-        platform: "web",
-        lang,
-        pushToken: token
-      });
-
-      localStorage.setItem(this.sentKey, "yes");
+      await this.sendTokenToBackend(token, userId, deviceId, lang);
     } catch (err) {
       console.warn("[FemFlow] Não foi possível registrar push token:", err);
+    }
+  },
+
+  async sendTokenToBackend(token, userId, deviceId, lang) {
+    await FEMFLOW.post({
+      action: "register_push_token",
+      userId,
+      deviceId,
+      platform: "web",
+      lang,
+      pushToken: token
+    });
+
+    localStorage.setItem(this.sentKey, "yes");
+    localStorage.removeItem(this.pendingKey);
+  },
+
+  async flushPendingToken() {
+    const userId = localStorage.getItem("femflow_id") || "";
+    if (!userId) return;
+
+    const token =
+      localStorage.getItem(this.pendingKey) ||
+      localStorage.getItem(this.tokenKey) ||
+      "";
+    if (!token) return;
+
+    const deviceId = FEMFLOW.getDeviceId();
+    const lang = FEMFLOW.lang || "pt";
+
+    try {
+      await this.sendTokenToBackend(token, userId, deviceId, lang);
+    } catch (err) {
+      console.warn("[FemFlow] Falha ao enviar token pendente:", err);
     }
   }
 };
 
 document.addEventListener("DOMContentLoaded", () => {
   FEMFLOW.registerServiceWorker();
+  FEMFLOW.push?.flushPendingToken?.();
+  FEMFLOW.notifications?.recountUnread?.();
 });
+
+/* ============================================================
+   🔔 NOTIFICAÇÕES INTERNAS — BASE FUNCIONAL
+============================================================ */
+FEMFLOW.notifications = {
+  dbName: "femflow-notifications",
+  storeName: "notifications",
+  unreadKey: "femflow_notifications_unread",
+  _dbPromise: null,
+
+  _openDb() {
+    if (!("indexedDB" in window)) {
+      return Promise.resolve(null);
+    }
+
+    if (this._dbPromise) return this._dbPromise;
+
+    this._dbPromise = new Promise((resolve) => {
+      const request = indexedDB.open(this.dbName, 1);
+      request.onupgradeneeded = (event) => {
+        const db = event.target.result;
+        if (!db.objectStoreNames.contains(this.storeName)) {
+          const store = db.createObjectStore(this.storeName, { keyPath: "id" });
+          store.createIndex("data", "data");
+          store.createIndex("lida", "lida");
+        }
+      };
+      request.onsuccess = () => resolve(request.result);
+      request.onerror = () => resolve(null);
+    });
+
+    return this._dbPromise;
+  },
+
+  _normalizePayload(payload = {}, origin = "sistema") {
+    const data = payload?.data || {};
+    const titulo =
+      payload?.notification?.title ||
+      data.title ||
+      data.titulo ||
+      "FemFlow";
+    const mensagem =
+      payload?.notification?.body ||
+      data.body ||
+      data.mensagem ||
+      "";
+    const tipo = data.tipo || data.type || "sistema";
+    const id =
+      data.id ||
+      payload?.messageId ||
+      `ff-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+    return {
+      id: String(id),
+      titulo,
+      mensagem,
+      tipo,
+      origem: origin,
+      data: data.data || new Date().toISOString(),
+      lida: false
+    };
+  },
+
+  _setUnreadCount(value) {
+    localStorage.setItem(this.unreadKey, String(Math.max(0, value)));
+    FEMFLOW.dispatch?.("notifications", { unread: value });
+  },
+
+  _incrementUnread() {
+    const current = Number(localStorage.getItem(this.unreadKey) || 0);
+    this._setUnreadCount(current + 1);
+  },
+
+  async _saveToDb(notification) {
+    const db = await this._openDb();
+    if (!db) return;
+
+    await new Promise((resolve) => {
+      const tx = db.transaction(this.storeName, "readwrite");
+      tx.objectStore(this.storeName).put(notification);
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => resolve();
+    });
+  },
+
+  async save(notification) {
+    const normalized = notification?.id
+      ? notification
+      : this._normalizePayload(notification, "sistema");
+
+    await this._saveToDb(normalized);
+
+    if (!normalized.lida) {
+      this._incrementUnread();
+    }
+
+    const userId = localStorage.getItem("femflow_id") || "";
+    if (userId && typeof firebase !== "undefined" && firebase.firestore) {
+      try {
+        await firebase
+          .firestore()
+          .collection("usuarios")
+          .doc(userId)
+          .collection("notificacoes")
+          .doc(normalized.id)
+          .set(normalized, { merge: true });
+      } catch (err) {
+        FEMFLOW.warn?.("[FemFlow] Falha ao salvar notificação no Firestore:", err);
+      }
+    }
+
+    return normalized;
+  },
+
+  async saveFromPush(payload, origin = "push") {
+    const normalized = this._normalizePayload(payload, origin);
+    return this.save(normalized);
+  },
+
+  async recountUnread() {
+    const db = await this._openDb();
+    if (!db) return;
+
+    const unread = await new Promise((resolve) => {
+      const tx = db.transaction(this.storeName, "readonly");
+      const store = tx.objectStore(this.storeName);
+      const request = store.getAll();
+      request.onsuccess = () => {
+        const items = request.result || [];
+        resolve(items.filter((item) => !item.lida).length);
+      };
+      request.onerror = () => resolve(0);
+    });
+
+    this._setUnreadCount(unread);
+  }
+};
+
+document.addEventListener("femflow:push", (event) => {
+  const payload = event.detail?.payload || {};
+  FEMFLOW.notifications?.saveFromPush?.(payload, "push");
+});
+
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.addEventListener("message", (event) => {
+    if (event.data?.type === "FEMFLOW_PUSH_STORED") {
+      FEMFLOW.notifications?.recountUnread?.();
+    }
+  });
+}
 
 FEMFLOW.toggleBodyScroll = function (locked) {
   document.body.classList.toggle("ff-modal-open", locked);
