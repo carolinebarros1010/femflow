@@ -376,6 +376,10 @@ FEMFLOW.notifications = {
     this._setUnreadCount(current + 1);
   },
 
+  getUnreadCount() {
+    return Number(localStorage.getItem(this.unreadKey) || 0);
+  },
+
   async _saveToDb(notification) {
     const db = await this._openDb();
     if (!db) return;
@@ -420,6 +424,74 @@ FEMFLOW.notifications = {
   async saveFromPush(payload, origin = "push") {
     const normalized = this._normalizePayload(payload, origin);
     return this.save(normalized);
+  },
+
+  async listAll() {
+    const db = await this._openDb();
+    if (!db) return [];
+
+    const items = await new Promise((resolve) => {
+      const tx = db.transaction(this.storeName, "readonly");
+      const store = tx.objectStore(this.storeName);
+      const request = store.getAll();
+      request.onsuccess = () => resolve(request.result || []);
+      request.onerror = () => resolve([]);
+    });
+
+    return (items || []).sort((a, b) => {
+      const dateA = new Date(a?.data || 0).getTime();
+      const dateB = new Date(b?.data || 0).getTime();
+      return dateB - dateA;
+    });
+  },
+
+  async markAsRead(id) {
+    if (!id) return;
+    const db = await this._openDb();
+    if (!db) return;
+
+    await new Promise((resolve) => {
+      const tx = db.transaction(this.storeName, "readwrite");
+      const store = tx.objectStore(this.storeName);
+      const request = store.get(id);
+      request.onsuccess = () => {
+        const item = request.result;
+        if (!item) {
+          resolve();
+          return;
+        }
+        item.lida = true;
+        store.put(item);
+      };
+      request.onerror = () => resolve();
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => resolve();
+    });
+
+    await this.recountUnread();
+  },
+
+  async markAllRead() {
+    const db = await this._openDb();
+    if (!db) return;
+
+    await new Promise((resolve) => {
+      const tx = db.transaction(this.storeName, "readwrite");
+      const store = tx.objectStore(this.storeName);
+      const request = store.getAll();
+      request.onsuccess = () => {
+        const items = request.result || [];
+        items.forEach((item) => {
+          item.lida = true;
+          store.put(item);
+        });
+      };
+      request.onerror = () => resolve();
+      tx.oncomplete = () => resolve();
+      tx.onerror = () => resolve();
+    });
+
+    await this.recountUnread();
   },
 
   async recountUnread() {
@@ -717,6 +789,10 @@ FEMFLOW.inserirHeaderApp = function () {
   h.id = "femflowHeader";
   h.innerHTML = `
     <img src="./assets/logofemflowterracotasf.png" class="ff-logo">
+    <button id="ffNotificationsBtn" class="ff-notifications-btn" aria-label="Abrir notificações" aria-haspopup="dialog">
+      🔔
+      <span id="ffNotificationsBadge" class="ff-notifications-badge" aria-hidden="true"></span>
+    </button>
     <button id="ffMenuBtn" class="ff-menu-btn">&#9776;</button>
   `;
 
@@ -898,6 +974,131 @@ FEMFLOW.inserirMenuLateral = function () {
     if (e.target.classList.contains("ff-menu-modal"))
       modal.classList.remove("active");
   };
+};
+
+/* ===========================================================
+   5.1 NOTIFICAÇÕES — UI SIMPLES
+=========================================================== */
+
+FEMFLOW.inserirModalNotificacoes = function () {
+  if (document.querySelector("#ff-notifications-modal")) return;
+
+  const modal = document.createElement("div");
+  modal.id = "ff-notifications-modal";
+  modal.className = "ff-notifications-modal";
+  modal.setAttribute("aria-hidden", "true");
+
+  modal.innerHTML = `
+    <div class="ff-notifications-box" role="dialog" aria-modal="true" aria-labelledby="ff-notifications-title">
+      <div class="ff-notifications-header">
+        <h2 id="ff-notifications-title">Notificações</h2>
+        <button class="ff-notifications-close" type="button" aria-label="Fechar notificações">✖️</button>
+      </div>
+      <div id="ff-notifications-list" class="ff-notifications-list"></div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  modal.addEventListener("click", (event) => {
+    if (event.target === modal) FEMFLOW.closeNotifications?.();
+  });
+
+  modal.querySelector(".ff-notifications-close")?.addEventListener("click", () => {
+    FEMFLOW.closeNotifications?.();
+  });
+};
+
+FEMFLOW.updateNotificationsBadge = function () {
+  const badge = document.getElementById("ffNotificationsBadge");
+  const btn = document.getElementById("ffNotificationsBtn");
+  if (!badge || !btn) return;
+
+  const unread = FEMFLOW.notifications?.getUnreadCount?.() || 0;
+  if (unread > 0) {
+    badge.textContent = unread > 99 ? "99+" : String(unread);
+    badge.classList.add("is-visible");
+    btn.setAttribute("aria-label", `Abrir notificações. ${unread} não lidas`);
+  } else {
+    badge.textContent = "";
+    badge.classList.remove("is-visible");
+    btn.setAttribute("aria-label", "Abrir notificações");
+  }
+};
+
+FEMFLOW.renderNotificationsList = async function () {
+  const list = document.getElementById("ff-notifications-list");
+  if (!list) return;
+
+  const items = await FEMFLOW.notifications?.listAll?.();
+  list.innerHTML = "";
+
+  if (!items || items.length === 0) {
+    const empty = document.createElement("div");
+    empty.className = "ff-notifications-empty";
+    empty.textContent = "Nenhuma notificação por aqui.";
+    list.appendChild(empty);
+    return;
+  }
+
+  items.forEach((item) => {
+    const button = document.createElement("button");
+    button.type = "button";
+    button.className = `ff-notification-item${item.lida ? "" : " is-unread"}`;
+    button.dataset.id = item.id;
+
+    const date = item.data ? new Date(item.data) : null;
+    const dateLabel = date && !Number.isNaN(date.getTime())
+      ? date.toLocaleDateString("pt-BR")
+      : "";
+
+    button.innerHTML = `
+      <div class="ff-notification-title">${item.titulo || "FemFlow"}</div>
+      <div class="ff-notification-message">${item.mensagem || ""}</div>
+      <div class="ff-notification-date">${dateLabel}</div>
+    `;
+
+    button.addEventListener("click", async () => {
+      if (!item.lida) {
+        await FEMFLOW.notifications?.markAsRead?.(item.id);
+        button.classList.remove("is-unread");
+      }
+      FEMFLOW.updateNotificationsBadge?.();
+    });
+
+    list.appendChild(button);
+  });
+};
+
+FEMFLOW.openNotifications = async function () {
+  const modal = document.getElementById("ff-notifications-modal");
+  if (!modal) return;
+  await FEMFLOW.renderNotificationsList?.();
+  modal.classList.add("active");
+  modal.setAttribute("aria-hidden", "false");
+};
+
+FEMFLOW.closeNotifications = function () {
+  const modal = document.getElementById("ff-notifications-modal");
+  if (!modal) return;
+  modal.classList.remove("active");
+  modal.setAttribute("aria-hidden", "true");
+};
+
+FEMFLOW.initNotificationsUI = function () {
+  const btn = document.getElementById("ffNotificationsBtn");
+  if (!btn) return;
+
+  btn.addEventListener("click", () => FEMFLOW.openNotifications?.());
+  FEMFLOW.updateNotificationsBadge?.();
+
+  document.addEventListener("femflow:notifications", () => {
+    FEMFLOW.updateNotificationsBadge?.();
+    const modal = document.getElementById("ff-notifications-modal");
+    if (modal?.classList.contains("active")) {
+      FEMFLOW.renderNotificationsList?.();
+    }
+  });
 };
 
 document.addEventListener("femflow:langChange", () => {
@@ -1322,6 +1523,8 @@ FEMFLOW.init = async function () {
     this.inserirMenuLateral();
     this.inserirModalIdioma();
     this.inserirModalSAC();
+    this.inserirModalNotificacoes();
+    this.initNotificationsUI();
      
      // ⏱️ aguarda o DOM completar
     requestAnimationFrame(() => {
@@ -1344,6 +1547,8 @@ FEMFLOW.init = async function () {
     this.inserirMenuLateral();
     this.inserirModalIdioma();
     this.inserirModalSAC();
+    this.inserirModalNotificacoes();
+    this.initNotificationsUI();
 
     requestAnimationFrame(() => {
       FEMFLOW.initNivelHandler();
