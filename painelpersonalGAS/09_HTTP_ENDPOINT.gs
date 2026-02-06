@@ -96,6 +96,10 @@ function doGet(e) {
         importarTreinosFEMFLOW_aba(p2.destino, { target });
         return respostaGet_({ action, target, result: 'MaleFlow: base gerada e importada: ' + p2.destino });
 
+      case 'list_personal_submissions':
+        result = listarPersonalSubmissions_();
+        return respostaGet_({ submissions: result });
+
       default:
         throw new Error('action inválida: ' + action);
     }
@@ -404,6 +408,48 @@ function salvarPersonalSubmission_(payload) {
   ];
   sheet.appendRow(row);
   return submissionId;
+}
+
+function listarPersonalSubmissions_() {
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName('PERSONAL_SUBMISSIONS');
+  if (!sheet) return [];
+
+  const lastRow = sheet.getLastRow();
+  const lastCol = sheet.getLastColumn();
+  if (lastRow <= 1 || lastCol === 0) return [];
+
+  const values = sheet.getRange(1, 1, lastRow, lastCol).getValues();
+  const headers = values[0] || [];
+  const headerIndex = headers.reduce((acc, header, idx) => {
+    if (header != null && header !== '') {
+      acc[String(header).trim()] = idx;
+    }
+    return acc;
+  }, {});
+
+  const campos = ['submission_id', 'created_at', 'autor', 'nivel', 'enfase', 'status'];
+  const hasAll = campos.every((campo) => headerIndex[campo] != null);
+  if (!hasAll) return [];
+
+  const submissions = values.slice(1)
+    .filter((row) => row && row.some(cell => cell !== '' && cell != null))
+    .map((row) => ({
+      submission_id: String(row[headerIndex.submission_id] || ''),
+      created_at: String(row[headerIndex.created_at] || ''),
+      autor: String(row[headerIndex.autor] || ''),
+      nivel: String(row[headerIndex.nivel] || ''),
+      enfase: String(row[headerIndex.enfase] || ''),
+      status: String(row[headerIndex.status] || '')
+    }));
+
+  submissions.sort((a, b) => {
+    const timeA = Date.parse(a.created_at) || 0;
+    const timeB = Date.parse(b.created_at) || 0;
+    return timeB - timeA;
+  });
+
+  return submissions;
 }
 
 
