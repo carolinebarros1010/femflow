@@ -1,135 +1,115 @@
 {
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://femflow.com.br/schemas/contrato-dados-treino-femflow.json",
-  "title": "Contrato de dados - entrada de treinos FemFlow",
-  "description": "Contrato oficial de dados para entrada de treinos FemFlow.",
+  "title": "Contrato oficial de dados — Treinos FemFlow",
+  "description": "Contrato estrutural de entrada de treinos FemFlow. A planilha não executa lógica.",
   "type": "object",
   "additionalProperties": false,
+
   "properties": {
-    // Valores permitidos para o tipo de sessão.
-    "tipo": {
+    "autor": {
       "type": "string",
-      "enum": [
-        "aquecimento",
-        "treino",
-        "hiit",
-        "cardio_final",
-        "cardio_intermediario",
-        "resfriamento"
-      ],
-      "examples": ["treino"]
+      "description": "Identificador do personal que enviou o treino"
     },
-    // Identificador do box/grupo.
-    "box": {
-      "type": "integer",
-      "examples": [1]
+    "nivel": {
+      "type": "string",
+      "enum": ["iniciante", "intermediaria", "avancada"]
     },
-    // Ordem do item dentro do dia.
-    "ordem": {
-      "type": "integer",
-      "examples": [1]
-    },
-    // Enfoque principal.
     "enfase": {
       "type": "string",
-      "examples": ["forca"]
+      "description": "Ênfase principal do treino (ex: gluteo, core, corrida)"
     },
-    // Fase do treino.
-    "fase": {
-      "type": "string",
-      "examples": ["fase_1"]
-    },
-    // Dia do ciclo/plano.
-    "dia": {
-      "type": "integer",
-      "examples": [1]
-    },
-    // Título em português.
-    "titulo_pt": {
-      "type": "string",
-      "examples": ["Agachamento livre"]
-    },
-    // Título em inglês.
-    "titulo_en": {
-      "type": "string",
-      "examples": ["Back squat"]
-    },
-    // Título em francês.
-    "titulo_fr": {
-      "type": "string",
-      "examples": ["Squat arrière"]
-    },
-    // Link de referência.
-    "link": {
-      "type": "string",
-      "format": "uri",
-      "examples": ["https://exemplo.com/treino"]
-    },
-    // Número de séries.
-    "series": {
-      "type": "integer",
-      "examples": [3]
-    },
-    // Número de repetições.
-    "reps": {
-      "type": "integer",
-      "examples": [12]
-    },
-    // Observações especiais.
-    "especial": {
-      "type": "string",
-      "examples": ["com pausa"]
-    },
-    // Duração/tempo.
-    "tempo": {
-      "type": "string",
-      "examples": ["00:30"]
-    },
-    // Distância.
-    "distancia": {
-      "type": "string",
-      "examples": ["500m"]
-    },
-    // Intervalo/descanso.
-    "intervalo": {
-      "type": "string",
-      "examples": ["60s"]
-    },
-    // Indicador de intensidade forte.
-    "forte": {
-      "type": "boolean",
-      "examples": [true]
-    },
-    // Indicador de intensidade leve.
-    "leve": {
-      "type": "boolean",
-      "examples": [false]
-    },
-    // Quantidade de ciclos.
-    "ciclos": {
-      "type": "integer",
-      "examples": [2]
+    "linhas": {
+      "type": "array",
+      "minItems": 1,
+      "items": { "$ref": "#/$defs/linhaTreino" }
     }
   },
-  "required": [
-    "tipo",
-    "box",
-    "ordem",
-    "enfase",
-    "fase",
-    "dia",
-    "titulo_pt",
-    "titulo_en",
-    "titulo_fr",
-    "link",
-    "series",
-    "reps",
-    "especial",
-    "tempo",
-    "distancia",
-    "intervalo",
-    "forte",
-    "leve",
-    "ciclos"
-  ]
+
+  "required": ["autor", "nivel", "enfase", "linhas"],
+
+  "$defs": {
+    "linhaTreino": {
+      "type": "object",
+      "additionalProperties": false,
+
+      "properties": {
+        "tipo": {
+          "type": "string",
+          "enum": [
+            "aquecimento",
+            "treino",
+            "hiit",
+            "cardio_final",
+            "cardio_intermediario",
+            "resfriamento"
+          ]
+        },
+        "box": {
+          "type": "string",
+          "description": "Agrupador lógico do treino (ex: 1, 2, 3T, 4RP, 5C)"
+        },
+        "ordem": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "enfase": {
+          "type": "string"
+        },
+        "fase": {
+          "type": "string",
+          "enum": ["menstrual", "folicular", "ovulatoria", "lutea"]
+        },
+        "dia": {
+          "type": "integer",
+          "minimum": 1,
+          "maximum": 30
+        },
+        "titulo_pt": { "type": "string" },
+        "titulo_en": { "type": "string" },
+        "titulo_fr": { "type": "string" },
+        "link": {
+          "type": "string",
+          "format": "uri"
+        },
+        "series": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "reps": {
+          "type": "integer",
+          "minimum": 1
+        },
+        "especial": {
+          "type": "string",
+          "description": "Código de série especial (B, T, RP, etc.)"
+        },
+        "tempo": {
+          "type": "integer",
+          "description": "Tempo em segundos"
+        },
+        "distancia": {
+          "type": ["number", "string"]
+        },
+        "intervalo": {
+          "type": "integer",
+          "description": "Intervalo em segundos"
+        },
+        "forte": {
+          "type": "integer",
+          "description": "Tempo forte do HIIT (segundos)"
+        },
+        "leve": {
+          "type": "integer",
+          "description": "Tempo leve do HIIT (segundos)"
+        },
+        "ciclos": {
+          "type": "integer",
+          "minimum": 1
+        }
+      },
+
+      "required": ["tipo", "box", "ordem", "enfase", "fase", "dia", "titulo_pt"]
+    }
+  }
 }
