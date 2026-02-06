@@ -6,6 +6,20 @@ const ENABLE_SAC_AI = false;
 const OPENAI_MODEL = 'gpt-4o-mini';
 const OPENAI_API_URL = 'https://api.openai.com/v1/chat/completions';
 const SAC_SHEET = 'SAC';
+const NOTIFICATIONS_SHEET = 'Notifications';
+const NOTIFICATIONS_HEADERS = [
+  'Id',
+  'Title',
+  'Message',
+  'Type',
+  'Origin',
+  'Push',
+  'Target',
+  'CreatedAt',
+  'SendAt',
+  'Status',
+  'Deeplink'
+];
 
 function gerarID() {
   const ts = Utilities.formatDate(new Date(), "GMT-3", "yyMMdd");
@@ -52,12 +66,31 @@ function doGet(e) {
     return _json({ status: 'notfound' });
   }
 
+  if (action === 'list_notifications') {
+    const notifications = listNotifications_();
+    return _json({ notifications });
+  }
+
   return _json({ status: 'ignored' });
 }
 
 function doPost(e) {
   const data = JSON.parse(e.postData.contents || '{}');
   const sheet = SpreadsheetApp.getActive().getSheetByName(SHEET_ALUNAS);
+
+  if (data.action === 'create_notification') {
+    const payload = {
+      title: data.title || '',
+      message: data.message || '',
+      type: data.type || '',
+      push: !!data.push,
+      target: data.target || '',
+      deeplink: data.deeplink || ''
+    };
+
+    const created = createNotification_(payload);
+    return _json(created);
+  }
 
   if (data.action === 'sac_abrir') {
     const sacSheet = SpreadsheetApp.getActive().getSheetByName(SAC_SHEET) || SpreadsheetApp.getActive().insertSheet(SAC_SHEET);
@@ -353,4 +386,79 @@ function analisarSACComIA(payload) {
       resposta_bruta: content
     };
   }
+}
+
+function getNotificationsSheet_() {
+  const ss = SpreadsheetApp.getActive();
+  let sheet = ss.getSheetByName(NOTIFICATIONS_SHEET);
+  if (!sheet) {
+    sheet = ss.insertSheet(NOTIFICATIONS_SHEET);
+    sheet.appendRow(NOTIFICATIONS_HEADERS);
+  }
+  return sheet;
+}
+
+function createNotification_(payload) {
+  const sheet = getNotificationsSheet_();
+  const now = new Date();
+  const id = Utilities.getUuid();
+
+  // Salva como rascunho (draft) e não envia push ainda.
+  sheet.appendRow([
+    id,
+    payload.title,
+    payload.message,
+    payload.type,
+    'admin',
+    payload.push,
+    payload.target,
+    now,
+    '',
+    'draft',
+    payload.deeplink
+  ]);
+
+  return {
+    status: 'draft',
+    id,
+    createdAt: now
+  };
+}
+
+function listNotifications_() {
+  const sheet = getNotificationsSheet_();
+  const values = sheet.getDataRange().getValues();
+  if (values.length <= 1) return [];
+
+  const header = values[0];
+  const idx = {
+    id: header.indexOf('Id'),
+    title: header.indexOf('Title'),
+    message: header.indexOf('Message'),
+    type: header.indexOf('Type'),
+    origin: header.indexOf('Origin'),
+    push: header.indexOf('Push'),
+    target: header.indexOf('Target'),
+    createdAt: header.indexOf('CreatedAt'),
+    sendAt: header.indexOf('SendAt'),
+    status: header.indexOf('Status'),
+    deeplink: header.indexOf('Deeplink')
+  };
+
+  const rows = values.slice(1).filter((row) => String(row[idx.status] || '').toLowerCase() === 'sent');
+  rows.sort((a, b) => new Date(b[idx.createdAt]) - new Date(a[idx.createdAt]));
+
+  return rows.slice(0, 50).map((row) => ({
+    id: row[idx.id],
+    title: row[idx.title],
+    message: row[idx.message],
+    type: row[idx.type],
+    origin: row[idx.origin],
+    push: row[idx.push],
+    target: row[idx.target],
+    createdAt: row[idx.createdAt],
+    sendAt: row[idx.sendAt],
+    status: row[idx.status],
+    deeplink: row[idx.deeplink]
+  }));
 }
