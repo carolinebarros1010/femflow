@@ -1,5 +1,5 @@
 // 🌸 FemFlow Service Worker v5.0 (PWA + CORS safe)
-const CACHE_NAME = "femflow-cache-v8";
+const CACHE_NAME = "femflow-cache-v9";
 
 // --------------------------------------------------
 // 🔔 Firebase Cloud Messaging (background)
