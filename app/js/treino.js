@@ -193,6 +193,7 @@ document.addEventListener("DOMContentLoaded", () => {
     const doneExercises = [];
     const seriesProgress = {};
     const weights = {};
+    let hasSeriesProgress = false;
 
     document.querySelectorAll(".ff-ex-item").forEach(item => {
       const input = item.querySelector(".ff-ex-peso");
@@ -207,16 +208,28 @@ document.addEventListener("DOMContentLoaded", () => {
       if (progressEl) {
         const serieAtual = Number(progressEl.dataset.serieAtual || 1);
         const serieTotal = Number(progressEl.dataset.serieTotal || 1);
-        seriesProgress[exercicioId] = {
-          serieAtual,
-          serieTotal
-        };
+        if (serieAtual > 1) {
+          seriesProgress[exercicioId] = {
+            serieAtual,
+            serieTotal
+          };
+          hasSeriesProgress = true;
+        }
       }
 
       if (item.classList.contains("ff-ex-done")) {
         doneExercises.push(exercicioId);
       }
     });
+
+    const currentBoxIndex = getCurrentBoxIndex();
+    const hasProgress =
+      doneExercises.length > 0 ||
+      Object.keys(weights).length > 0 ||
+      hasSeriesProgress ||
+      currentBoxIndex > 0;
+
+    if (!hasProgress) return null;
 
     return {
       version: 1,
@@ -225,7 +238,7 @@ document.addEventListener("DOMContentLoaded", () => {
       diaCiclo: context.diaCiclo,
       diaPrograma: context.diaPrograma,
       timestamp: Date.now(),
-      currentBoxIndex: getCurrentBoxIndex(),
+      currentBoxIndex,
       doneExercises,
       seriesProgress,
       weights
@@ -278,6 +291,17 @@ document.addEventListener("DOMContentLoaded", () => {
       snapshot?.diaPrograma === context.diaPrograma;
 
     if (!isCompatible) {
+      return null;
+    }
+
+    const hasSnapshotProgress =
+      (snapshot.doneExercises || []).length > 0 ||
+      Object.keys(snapshot.weights || {}).length > 0 ||
+      Object.keys(snapshot.seriesProgress || {}).length > 0 ||
+      Number(snapshot.currentBoxIndex || 0) > 0;
+
+    if (!hasSnapshotProgress) {
+      localStorage.removeItem(key);
       return null;
     }
 
