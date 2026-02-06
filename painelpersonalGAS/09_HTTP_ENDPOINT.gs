@@ -100,6 +100,10 @@ function doGet(e) {
         result = listarPersonalSubmissions_();
         return respostaGet_({ submissions: result });
 
+      case 'get_personal_submission':
+        result = obterPersonalSubmission_(p);
+        return respostaGet_({ submission: result });
+
       default:
         throw new Error('action inválida: ' + action);
     }
@@ -450,6 +454,79 @@ function listarPersonalSubmissions_() {
   });
 
   return submissions;
+}
+
+function obterPersonalSubmission_(params) {
+  const submissionId = params && params.submission_id ? String(params.submission_id).trim() : '';
+  if (!submissionId) {
+    throw new Error('submission_id ausente');
+  }
+
+  const ss = SpreadsheetApp.getActiveSpreadsheet();
+  const sheet = ss.getSheetByName('PERSONAL_SUBMISSIONS');
+  if (!sheet) {
+    throw new Error('planilha inexistente');
+  }
+
+  const lastRow = sheet.getLastRow();
+  const lastCol = sheet.getLastColumn();
+  if (lastRow <= 1 || lastCol === 0) {
+    throw new Error('submission não encontrada');
+  }
+
+  const values = sheet.getRange(1, 1, lastRow, lastCol).getValues();
+  const headers = values[0] || [];
+  const headerIndex = headers.reduce((acc, header, idx) => {
+    if (header != null && header !== '') {
+      acc[String(header).trim()] = idx;
+    }
+    return acc;
+  }, {});
+
+  const requiredHeaders = [
+    'submission_id',
+    'created_at',
+    'autor',
+    'nivel',
+    'enfase',
+    'status',
+    'payload_json'
+  ];
+  const hasAllHeaders = requiredHeaders.every((campo) => headerIndex[campo] != null);
+  if (!hasAllHeaders) {
+    throw new Error('submission não encontrada');
+  }
+
+  const matchRow = values.slice(1).find((row) => {
+    const value = row[headerIndex.submission_id];
+    return String(value || '').trim() === submissionId;
+  });
+
+  if (!matchRow) {
+    throw new Error('submission não encontrada');
+  }
+
+  const payloadRaw = matchRow[headerIndex.payload_json];
+  let payloadObj;
+  try {
+    payloadObj = JSON.parse(String(payloadRaw || '').trim());
+  } catch (err) {
+    throw new Error('payload_json inválido');
+  }
+
+  if (!payloadObj || typeof payloadObj !== 'object') {
+    throw new Error('payload_json inválido');
+  }
+
+  return {
+    submission_id: String(matchRow[headerIndex.submission_id] || ''),
+    created_at: String(matchRow[headerIndex.created_at] || ''),
+    autor: String(matchRow[headerIndex.autor] || ''),
+    nivel: String(matchRow[headerIndex.nivel] || ''),
+    enfase: String(matchRow[headerIndex.enfase] || ''),
+    status: String(matchRow[headerIndex.status] || ''),
+    payload: payloadObj
+  };
 }
 
 
