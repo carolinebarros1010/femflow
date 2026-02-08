@@ -311,7 +311,11 @@ document.addEventListener("DOMContentLoaded", () => {
     }
 
     const isIOS = /iPad|iPhone|iPod/.test(navigator.userAgent || "");
-    const shouldRestore = isIOS || window.confirm("Continuar treino?");
+    const shouldRestore =
+      isIOS ||
+      window.confirm(
+        "Continuar treino? Seu treino ficou aberto sem finalizar. Salve seu treino para finalizar."
+      );
     if (!shouldRestore) {
       localStorage.removeItem(key);
       return null;
