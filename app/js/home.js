@@ -636,8 +636,16 @@ async function carregarCatalogoFirebase() {
 const CARDS_PERSONAL_SIMBOLICOS = [
   {
     enfase: "personal",
-    titulo: "Treino Personalizado",
-    desc: "Treino feito exclusivamente para você",
+    titulo: {
+      pt: "Treino Personalizado",
+      en: "Personal Training",
+      fr: "Entraînement personnalisé"
+    },
+    desc: {
+      pt: "Treino feito exclusivamente para você",
+      en: "Training built exclusively for you",
+      fr: "Entraînement conçu exclusivement pour vous"
+    },
     color: "#335953",
     locked: true,
     simbolico: true
