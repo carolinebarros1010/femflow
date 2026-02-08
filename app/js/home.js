@@ -24,23 +24,23 @@ const CUSTOM_TREINO_KEY = "femflow_custom_treino";
 const CUSTOM_BLOCOS_KEY = "femflow_custom_blocos";
 const CUSTOM_TREINO_OPCOES = {
   aquecimento: [
-    { label: "aquecimento_superiores", value: "extra_aquecimento_superiores" },
-    { label: "aquecimento_inferiores", value: "extra_aquecimento_inferiores" }
+    { key: "aquecimento_superiores", value: "extra_aquecimento_superiores" },
+    { key: "aquecimento_inferiores", value: "extra_aquecimento_inferiores" }
   ],
   musculos: [
-    { label: "extra_mobilidade", value: "extra_mobilidade" },
-    { label: "extra_biceps", value: "extra_biceps" },
-    { label: "extra_triceps", value: "extra_triceps" },
-    { label: "extra_ombro", value: "extra_ombro" },
-    { label: "extra_quadriceps", value: "extra_quadriceps" },
-    { label: "extra_posterior", value: "extra_posterior" },
-    { label: "extra_peito", value: "extra_peito" },
-    { label: "extra_costas", value: "extra_costas" },
-    { label: "extra_gluteo", value: "extra_gluteo" }
+    { key: "mobilidade", value: "extra_mobilidade" },
+    { key: "biceps", value: "extra_biceps" },
+    { key: "triceps", value: "extra_triceps" },
+    { key: "ombro", value: "extra_ombro" },
+    { key: "quadriceps", value: "extra_quadriceps" },
+    { key: "posterior", value: "extra_posterior" },
+    { key: "peito", value: "extra_peito" },
+    { key: "costas", value: "extra_costas" },
+    { key: "gluteo", value: "extra_gluteo" }
   ],
   resfriamento: [
-    { label: "resfriamento_superiores", value: "extra_resfriamento_superiores" },
-    { label: "resfriamento_inferiores", value: "extra_resfriamento_inferiores" }
+    { key: "resfriamento_superiores", value: "extra_resfriamento_superiores" },
+    { key: "resfriamento_inferiores", value: "extra_resfriamento_inferiores" }
   ]
 };
 
@@ -644,8 +644,16 @@ const CARDS_PERSONAL_SIMBOLICOS = [
   },
   {
     enfase: "monte_seu_treino",
-    titulo: "Monte seu treino",
-    desc: "Crie um treino sob medida hoje",
+    titulo: {
+      pt: "Monte seu treino",
+      en: "Build your workout",
+      fr: "Créez votre entraînement"
+    },
+    desc: {
+      pt: "Crie um treino sob medida hoje",
+      en: "Create a workout tailored for today",
+      fr: "Créez un entraînement sur mesure aujourd’hui"
+    },
     color: "#f6d5c8",
     locked: false,
     simbolico: true,
@@ -880,11 +888,22 @@ let customMusculo2;
 let customMusculo3;
 let customResfriamento;
 
-function preencherSelectCustom(selectEl, opcoes) {
+function getCustomTreinoLabels() {
+  const lang = FEMFLOW.lang || "pt";
+  return FEMFLOW.langs?.[lang]?.home?.customTreino || {};
+}
+
+function preencherSelectCustom(selectEl, opcoes, labels = {}, { includeNone = false } = {}) {
   if (!selectEl) return;
-  selectEl.innerHTML = opcoes
-    .map(op => `<option value="${op.value}">${op.label}</option>`)
-    .join("");
+  const options = [];
+  if (includeNone) {
+    options.push(`<option value="">${labels.none || "Nenhum"}</option>`);
+  }
+  const list = opcoes.map(op => {
+    const label = labels.options?.[op.key] || op.key;
+    return `<option value="${op.value}">${label}</option>`;
+  });
+  selectEl.innerHTML = options.concat(list).join("");
 }
 
 function abrirModalCustomConfirmacao() {
@@ -903,11 +922,12 @@ function fecharModalCustomConfirmacao() {
 
 function abrirModalCustomTreino() {
   if (!customTreinoModal) return;
-  preencherSelectCustom(customAquecimento, CUSTOM_TREINO_OPCOES.aquecimento);
-  preencherSelectCustom(customMusculo1, CUSTOM_TREINO_OPCOES.musculos);
-  preencherSelectCustom(customMusculo2, CUSTOM_TREINO_OPCOES.musculos);
-  preencherSelectCustom(customMusculo3, CUSTOM_TREINO_OPCOES.musculos);
-  preencherSelectCustom(customResfriamento, CUSTOM_TREINO_OPCOES.resfriamento);
+  const labels = getCustomTreinoLabels();
+  preencherSelectCustom(customAquecimento, CUSTOM_TREINO_OPCOES.aquecimento, labels);
+  preencherSelectCustom(customMusculo1, CUSTOM_TREINO_OPCOES.musculos, labels, { includeNone: true });
+  preencherSelectCustom(customMusculo2, CUSTOM_TREINO_OPCOES.musculos, labels, { includeNone: true });
+  preencherSelectCustom(customMusculo3, CUSTOM_TREINO_OPCOES.musculos, labels, { includeNone: true });
+  preencherSelectCustom(customResfriamento, CUSTOM_TREINO_OPCOES.resfriamento, labels);
   customTreinoModal.classList.remove("hidden");
   customTreinoModal.setAttribute("aria-hidden", "false");
   document.body.classList.add("ff-modal-open");
@@ -1129,6 +1149,18 @@ function aplicarIdiomaHome() {
   const tCasa = document.getElementById("tituloCasa");
   const tEbooks = document.getElementById("tituloEbooks");
   const btnFlow = document.getElementById("btnFlow");
+  const customTitle = document.getElementById("customTreinoTitle");
+  const customSubtitle = document.getElementById("customTreinoSubtitle");
+  const customConfirmText = document.getElementById("customTreinoConfirmText");
+  const customConfirmar = document.getElementById("customTreinoConfirmar");
+  const customConfirmCancelar = document.getElementById("customTreinoConfirmCancelar");
+  const customSalvar = document.getElementById("customTreinoSalvar");
+  const customCancelar = document.getElementById("customTreinoCancelar");
+  const customLabelAquecimento = document.getElementById("customTreinoLabelAquecimento");
+  const customLabelMusculo1 = document.getElementById("customTreinoLabelMusculo1");
+  const customLabelMusculo2 = document.getElementById("customTreinoLabelMusculo2");
+  const customLabelMusculo3 = document.getElementById("customTreinoLabelMusculo3");
+  const customLabelResfriamento = document.getElementById("customTreinoLabelResfriamento");
 
   if (tPersonal) tPersonal.textContent = L.tituloPersonal;
   if (tFollowMe) tFollowMe.textContent = L.tituloFollowMe;
@@ -1137,6 +1169,21 @@ function aplicarIdiomaHome() {
   if (tCasa) tCasa.textContent = L.tituloCasa;
   if (tEbooks) tEbooks.textContent = L.tituloEbooks;
   if (btnFlow && L.botaoFlowcenter) btnFlow.textContent = L.botaoFlowcenter;
+
+  if (L.customTreino) {
+    if (customTitle) customTitle.textContent = L.customTreino.titulo;
+    if (customSubtitle) customSubtitle.textContent = L.customTreino.subtitulo;
+    if (customConfirmText) customConfirmText.textContent = L.customTreino.confirmarTexto;
+    if (customConfirmar) customConfirmar.textContent = L.customTreino.confirmar;
+    if (customConfirmCancelar) customConfirmCancelar.textContent = L.customTreino.cancelar;
+    if (customSalvar) customSalvar.textContent = L.customTreino.confirmar;
+    if (customCancelar) customCancelar.textContent = L.customTreino.cancelar;
+    if (customLabelAquecimento) customLabelAquecimento.textContent = L.customTreino.labels.aquecimento;
+    if (customLabelMusculo1) customLabelMusculo1.textContent = L.customTreino.labels.musculo1;
+    if (customLabelMusculo2) customLabelMusculo2.textContent = L.customTreino.labels.musculo2;
+    if (customLabelMusculo3) customLabelMusculo3.textContent = L.customTreino.labels.musculo3;
+    if (customLabelResfriamento) customLabelResfriamento.textContent = L.customTreino.labels.resfriamento;
+  }
 
   // 🔥 VÍDEO
   const vTitle = document.getElementById("homeVideoTitle");

@@ -114,7 +114,7 @@
   <!-- MODAL CONFIRMAÇÃO MONTE SEU TREINO -->
   <div id="customTreinoConfirmModal" class="ff-modal-overlay hidden" aria-hidden="true">
     <div class="ff-modal-card" role="dialog" aria-modal="true">
-      <h3 class="ff-modal-title">Deseja montar um novo treino? Isso irá zerar o dia do programa.</h3>
+      <h3 class="ff-modal-title" id="customTreinoConfirmText">Deseja montar um novo treino? Isso irá zerar o dia do programa.</h3>
       <div class="ff-modal-actions">
         <button class="ff-modal-btn ghost" id="customTreinoConfirmCancelar">Cancelar</button>
         <button class="ff-modal-btn" id="customTreinoConfirmar">Confirmar</button>
@@ -125,27 +125,27 @@
   <!-- MODAL MONTE SEU TREINO -->
   <div id="customTreinoModal" class="ff-modal-overlay hidden" aria-hidden="true">
     <div class="ff-modal-card" role="dialog" aria-modal="true">
-      <h3 class="ff-modal-title">Monte seu treino</h3>
-      <p class="ff-modal-subtitle">Crie um treino sob medida hoje</p>
+      <h3 class="ff-modal-title" id="customTreinoTitle">Monte seu treino</h3>
+      <p class="ff-modal-subtitle" id="customTreinoSubtitle">Crie um treino sob medida hoje</p>
       <div class="ff-modal-form">
         <div class="ff-modal-field">
-          <label for="customAquecimento">Aquecimento</label>
+          <label for="customAquecimento" id="customTreinoLabelAquecimento">Aquecimento</label>
           <select id="customAquecimento" class="ff-modal-select"></select>
         </div>
         <div class="ff-modal-field">
-          <label for="customMusculo1">Músculo 1</label>
+          <label for="customMusculo1" id="customTreinoLabelMusculo1">Músculo 1</label>
           <select id="customMusculo1" class="ff-modal-select"></select>
         </div>
         <div class="ff-modal-field">
-          <label for="customMusculo2">Músculo 2</label>
+          <label for="customMusculo2" id="customTreinoLabelMusculo2">Músculo 2</label>
           <select id="customMusculo2" class="ff-modal-select"></select>
         </div>
         <div class="ff-modal-field">
-          <label for="customMusculo3">Músculo 3</label>
+          <label for="customMusculo3" id="customTreinoLabelMusculo3">Músculo 3</label>
           <select id="customMusculo3" class="ff-modal-select"></select>
         </div>
         <div class="ff-modal-field">
-          <label for="customResfriamento">Resfriamento</label>
+          <label for="customResfriamento" id="customTreinoLabelResfriamento">Resfriamento</label>
           <select id="customResfriamento" class="ff-modal-select"></select>
         </div>
       </div>
