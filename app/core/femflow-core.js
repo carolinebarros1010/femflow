@@ -1278,6 +1278,7 @@ FEMFLOW.renderMenuLateral = function () {
       <button class="ff-menu-op" data-go="ciclo">🎯 ${FEMFLOW.t("menu.ciclo")}</button>
       <button class="ff-menu-op" data-go="respiracao">💨 ${FEMFLOW.t("menu.respiracao")}</button>
       <button class="ff-menu-op" data-go="treinos">🏃 ${FEMFLOW.t("menu.treinos")}</button>
+      <button class="ff-menu-op" data-go="trocarTreino">🏠 ${FEMFLOW.t("menu.trocarTreino")}</button>
       <button class="ff-menu-op" data-go="nivel">📊 ${FEMFLOW.t("menu.nivel")}</button>
       <button class="ff-menu-op" data-go="tema">🌓 ${FEMFLOW.t("menu.tema")}</button>
       <button class="ff-menu-op" data-go="voltar">🔙 ${FEMFLOW.t("menu.voltar")}</button>
@@ -1645,6 +1646,10 @@ FEMFLOW.dispatch("stateChanged", {
 
     case "treinos":
       FEMFLOW.router("evolucao");
+      break;
+
+    case "trocarTreino":
+      FEMFLOW.router("home");
       break;
 
     case "nivel":
