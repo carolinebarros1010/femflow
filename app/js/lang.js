@@ -334,6 +334,37 @@ home: {
       tituloMuscular:  "Treinos por ênfase",
       tituloEsportes:  "Esportes",
       tituloCasa:      "Treinar em casa",
+      tituloEbooks:    "Ebooks",
+      customTreino: {
+        titulo: "Monte seu treino",
+        subtitulo: "Crie um treino sob medida hoje",
+        confirmarTexto: "Deseja montar um novo treino? Isso irá zerar o dia do programa.",
+        confirmar: "Confirmar",
+        cancelar: "Cancelar",
+        labels: {
+          aquecimento: "Aquecimento",
+          musculo1: "Músculo 1",
+          musculo2: "Músculo 2",
+          musculo3: "Músculo 3",
+          resfriamento: "Resfriamento"
+        },
+        none: "Nenhum",
+        options: {
+          aquecimento_superiores: "Aquecimento superiores",
+          aquecimento_inferiores: "Aquecimento inferiores",
+          resfriamento_superiores: "Resfriamento superiores",
+          resfriamento_inferiores: "Resfriamento inferiores",
+          mobilidade: "Mobilidade",
+          biceps: "Bíceps",
+          triceps: "Tríceps",
+          ombro: "Ombro",
+          quadriceps: "Quadríceps",
+          posterior: "Posteriores",
+          peito: "Peito",
+          costas: "Costas",
+          gluteo: "Glúteo"
+        }
+      },
       cards: {
         forcaabc: "Força",
         quadriceps: "Quadríceps",
@@ -373,6 +404,7 @@ home: {
   // BOTÕES
   treino: "Treino",
   treinoExtra: "Treino extra",
+  treinoCustom: "Monte seu treino",
   evolucao: "Evolução",
   respiracao: "Respiração",
   endurance: "Endurance",
@@ -657,6 +689,37 @@ home: {
       tituloMuscular:  "Muscle focus training",
       tituloEsportes:  "Sports",
       tituloCasa:      "Home training",
+      tituloEbooks:    "Ebooks",
+      customTreino: {
+        titulo: "Build your workout",
+        subtitulo: "Create a workout tailored for today",
+        confirmarTexto: "Do you want to build a new workout? This will reset the program day.",
+        confirmar: "Confirm",
+        cancelar: "Cancel",
+        labels: {
+          aquecimento: "Warm-up",
+          musculo1: "Muscle 1",
+          musculo2: "Muscle 2",
+          musculo3: "Muscle 3",
+          resfriamento: "Cooldown"
+        },
+        none: "None",
+        options: {
+          aquecimento_superiores: "Upper-body warm-up",
+          aquecimento_inferiores: "Lower-body warm-up",
+          resfriamento_superiores: "Upper-body cooldown",
+          resfriamento_inferiores: "Lower-body cooldown",
+          mobilidade: "Mobility",
+          biceps: "Biceps",
+          triceps: "Triceps",
+          ombro: "Shoulders",
+          quadriceps: "Quadriceps",
+          posterior: "Hamstrings",
+          peito: "Chest",
+          costas: "Back",
+          gluteo: "Glutes"
+        }
+      },
       cards: {
         forcaabc: "Strength",
         quadriceps: "Quadriceps",
@@ -693,6 +756,7 @@ home: {
 
   treino: "Training",
   treinoExtra: "Extra training",
+  treinoCustom: "Build your workout",
   evolucao: "Progress",
   respiracao: "Breathing",
   endurance: "Endurance",
@@ -977,6 +1041,37 @@ fr: {
       tituloMuscular:  "Entraînements par groupe musculaire",
       tituloEsportes:  "Sports",
       tituloCasa:      "S'entraîner à la maison",
+      tituloEbooks:    "Ebooks",
+      customTreino: {
+        titulo: "Créez votre entraînement",
+        subtitulo: "Créez un entraînement sur mesure aujourd’hui",
+        confirmarTexto: "Souhaitez-vous créer un nouvel entraînement ? Cela réinitialisera le jour du programme.",
+        confirmar: "Confirmer",
+        cancelar: "Annuler",
+        labels: {
+          aquecimento: "Échauffement",
+          musculo1: "Muscle 1",
+          musculo2: "Muscle 2",
+          musculo3: "Muscle 3",
+          resfriamento: "Retour au calme"
+        },
+        none: "Aucun",
+        options: {
+          aquecimento_superiores: "Échauffement haut du corps",
+          aquecimento_inferiores: "Échauffement bas du corps",
+          resfriamento_superiores: "Retour au calme haut du corps",
+          resfriamento_inferiores: "Retour au calme bas du corps",
+          mobilidade: "Mobilité",
+          biceps: "Biceps",
+          triceps: "Triceps",
+          ombro: "Épaules",
+          quadriceps: "Quadriceps",
+          posterior: "Ischio-jambiers",
+          peito: "Poitrine",
+          costas: "Dos",
+          gluteo: "Fessiers"
+        }
+      },
       cards: {
         forcaabc: "Force",
         quadriceps: "Quadriceps",
@@ -1013,6 +1108,7 @@ fr: {
 
   treino: "Entraînement",
   treinoExtra: "Entraînement extra",
+  treinoCustom: "Créez votre entraînement",
   evolucao: "Évolution",
   respiracao: "Respiration",
   endurance: "Endurance",
