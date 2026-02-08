@@ -404,6 +404,7 @@ home: {
   // BOTÕES
   treino: "Treino",
   treinoExtra: "Treino extra",
+  treinoCustom: "Monte seu treino",
   evolucao: "Evolução",
   respiracao: "Respiração",
   endurance: "Endurance",
@@ -755,6 +756,7 @@ home: {
 
   treino: "Training",
   treinoExtra: "Extra training",
+  treinoCustom: "Build your workout",
   evolucao: "Progress",
   respiracao: "Breathing",
   endurance: "Endurance",
@@ -1106,6 +1108,7 @@ fr: {
 
   treino: "Entraînement",
   treinoExtra: "Entraînement extra",
+  treinoCustom: "Créez votre entraînement",
   evolucao: "Évolution",
   respiracao: "Respiration",
   endurance: "Endurance",

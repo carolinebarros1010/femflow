@@ -781,29 +781,15 @@ FEMFLOW.engineTreino.montarTreinoCustomizado = async ({
   const blocosOrdenados = blocosRaw
     .map(b => {
       const rawLabel = String(b.box || "");
-      let boxNum = parseInt(rawLabel.replace(/\D/g, ""));
       const serieCodigo = FEMFLOW.engineTreino.detectarSerieEspecial(rawLabel);
-      const base = (Number(b.customIndex) + 1) * 100;
+      let boxNum;
 
       if (b.tipo === "aquecimento") {
         boxNum = -100;
       } else if (b.tipo === "resfriamento") {
         boxNum = 999;
-      } else if (b.tipo === "cardio_final") {
-        boxNum = base + 900;
-      } else if (b.tipo === "cardio_intermediario" || b.tipo === "cardio") {
-        if (!isNaN(boxNum)) {
-          boxNum = boxNum >= 100 ? boxNum - 99.5 : boxNum + 0.5;
-        } else {
-          boxNum = 0.5;
-        }
-        boxNum = base + boxNum;
-      } else if (b.tipo === "hiit") {
-        if (isNaN(boxNum)) boxNum = 500;
-        boxNum = base + boxNum;
       } else {
-        if (isNaN(boxNum)) boxNum = 1;
-        boxNum = base + boxNum;
+        boxNum = Number(b.customIndex) + 1;
       }
 
       return {

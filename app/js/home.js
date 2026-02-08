@@ -900,7 +900,11 @@ function preencherSelectCustom(selectEl, opcoes, labels = {}, { includeNone = fa
     options.push(`<option value="">${labels.none || "Nenhum"}</option>`);
   }
   const list = opcoes.map(op => {
-    const label = labels.options?.[op.key] || op.key;
+    const fallbackLabel = String(op.value || op.key || "")
+      .replace(/^extra_/, "")
+      .replace(/_/g, " ")
+      .trim();
+    const label = labels.options?.[op.key] || fallbackLabel || op.key;
     return `<option value="${op.value}">${label}</option>`;
   });
   selectEl.innerHTML = options.concat(list).join("");
