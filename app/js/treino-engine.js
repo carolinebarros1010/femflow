@@ -728,6 +728,104 @@ return FEMFLOW.engineTreino.converterParaFront(filtrados);
 };
 
 /* ============================================================
+   7A) MONTAR TREINO CUSTOMIZADO
+============================================================ */
+FEMFLOW.engineTreino.montarTreinoCustomizado = async ({
+  id, diaCiclo, diaPrograma
+}) => {
+  const blocosSelecionados =
+    JSON.parse(localStorage.getItem("femflow_custom_blocos") || "[]");
+
+  if (!Array.isArray(blocosSelecionados) || blocosSelecionados.length === 0) {
+    FEMFLOW.warn("⚠️ Nenhum bloco customizado selecionado.");
+    return [];
+  }
+
+  const blocosRaw = [];
+
+  for (const [index, docIdRaw] of blocosSelecionados.entries()) {
+    const docId = String(docIdRaw || "").trim();
+    if (!docId) continue;
+
+    let snap;
+    try {
+      snap = await firebase.firestore()
+        .collection("exercicios_extra")
+        .doc(docId)
+        .collection("blocos")
+        .get();
+    } catch (err) {
+      console.error("❌ [CUSTOM] Erro ao buscar no Firebase:", err, { docId });
+      continue;
+    }
+
+    if (snap.empty) {
+      FEMFLOW.warn("⚠️ Nenhum bloco customizado encontrado:", { docId });
+      continue;
+    }
+
+    snap.forEach(d => {
+      const data = d.data();
+      if (!data.titulo && !data.titulo_pt && !data.titulo_en && !data.titulo_fr) {
+        data.titulo = d.id;
+      }
+      blocosRaw.push({
+        ...data,
+        customIndex: index
+      });
+    });
+  }
+
+  if (!blocosRaw.length) return [];
+
+  const blocosOrdenados = blocosRaw
+    .map(b => {
+      const rawLabel = String(b.box || "");
+      const serieCodigo = FEMFLOW.engineTreino.detectarSerieEspecial(rawLabel);
+      let boxNum;
+
+      if (b.tipo === "aquecimento") {
+        boxNum = -100;
+      } else if (b.tipo === "resfriamento") {
+        boxNum = 999;
+      } else {
+        boxNum = Number(b.customIndex) + 1;
+      }
+
+      return {
+        ...b,
+        boxNum,
+        boxKey: b.boxKey || null,
+        ordemNum: Number(b.ordem) || 0,
+        serieEspecial: serieCodigo
+      };
+    })
+    .sort((a, b) => a.boxNum - b.boxNum);
+
+  const comHIIT = FEMFLOW.engineTreino.intercalarHIIT(blocosOrdenados);
+  let aquecimentoInserido = false;
+  let resfriamentoInserido = false;
+
+  const filtrados = comHIIT.filter(b => {
+    if (b.tipo === "aquecimento") {
+      if (aquecimentoInserido) return false;
+      aquecimentoInserido = true;
+      return true;
+    }
+
+    if (b.tipo === "resfriamento") {
+      if (resfriamentoInserido) return false;
+      resfriamentoInserido = true;
+      return true;
+    }
+
+    return true;
+  });
+
+  return FEMFLOW.engineTreino.converterParaFront(filtrados);
+};
+
+/* ============================================================
    7B) MONTAR TREINO ENDURANCE (PERSONAL)
 ============================================================ */
 FEMFLOW.engineTreino.montarTreinoEndurance = async ({

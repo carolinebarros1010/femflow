@@ -307,6 +307,32 @@ h1 {
   justify-content: center;
 }
 
+.ff-modal-form {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 18px;
+  text-align: left;
+}
+
+.ff-modal-field label {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--teal);
+  font-weight: 700;
+  font-size: 0.95rem;
+}
+
+.ff-modal-select {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(51, 89, 83, 0.18);
+  background: #fdf7f4;
+  color: #4a3f3a;
+  font-weight: 600;
+}
+
 .ff-modal-btn {
   border: none;
   border-radius: 12px;

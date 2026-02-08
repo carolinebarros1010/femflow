@@ -330,6 +330,7 @@ function initFlowCenter() {
   const freeEnfases = (freeAccess?.enfases || []).map(e => e.toLowerCase());
   const freeOkUI = Boolean(enfaseAtualUI) && freeValido && freeEnfases.includes(enfaseAtualUI);
   const treinoAcessoOk = acessoAtivo || freeOkUI;
+  const isCustomTreino = localStorage.getItem("femflow_custom_treino") === "true";
 
   /* ============================================================
      5) CICLO (UI)
@@ -416,17 +417,22 @@ function initFlowCenter() {
     });
 
     document.getElementById("toBreath").textContent    = `💨 ${L.respiracao}`;
-    const treinoLabel = treinoAcessoOk ? "🏃" : "🔒";
-    const extraLabel = treinoAcessoOk ? "✨" : "🔒";
+    const customLabel = isCustomTreino ? "🔓" : "🔒";
+    const treinoLabel = !isCustomTreino && treinoAcessoOk ? "🏃" : "🔒";
+    const extraLabel = !isCustomTreino && treinoAcessoOk ? "✨" : "🔒";
     document.getElementById("toTrain").textContent     = `${treinoLabel} ${L.treino}`;
     document.getElementById("toExtraTrain").textContent = `${extraLabel} ${L.treinoExtra}`;
+    const customBtn = document.getElementById("toCustomTrain");
+    if (customBtn) {
+      customBtn.textContent = `${customLabel} ${L.treinoCustom}`;
+    }
     document.getElementById("toEvolution").textContent = `📈 ${L.evolucao}`;
     const enduranceLabel = enduranceEnabled ? "🏃‍♂️" : "🔒";
     document.getElementById("toEndurance").textContent =
       `${enduranceLabel} ${L.endurance}`;
     const nextTreinoBtn = document.getElementById("toNextTreino");
     if (nextTreinoBtn) {
-      const nextLabel = treinoAcessoOk ? "🗓️" : "🔒";
+      const nextLabel = !isCustomTreino && treinoAcessoOk ? "🗓️" : "🔒";
       nextTreinoBtn.textContent = `${nextLabel} ${L.proximoTreino}`;
     }
 
@@ -501,6 +507,10 @@ function initFlowCenter() {
 
   if (extraBtn) {
     extraBtn.onclick = () => {
+      if (isCustomTreino) {
+        FEMFLOW.toast("Monte seu treino está ativo.");
+        return;
+      }
       if (!treinoAcessoOk) {
         FEMFLOW.toast("Seu acesso expirou. Assine para continuar.");
         return FEMFLOW.openExternal(LINK_ACESSO_APP);
@@ -815,6 +825,10 @@ function initFlowCenter() {
   });
 
   document.getElementById("toTrain").onclick = () => {
+    if (isCustomTreino) {
+      FEMFLOW.toast("Monte seu treino está ativo.");
+      return;
+    }
     localStorage.removeItem("femflow_treino_endurance");
     const enfase = localStorage.getItem("femflow_enfase");
 
@@ -867,6 +881,18 @@ function initFlowCenter() {
     FEMFLOW.toast("Escolha um plano 🌱");
     FEMFLOW.router("home.html");
   };
+
+  const customBtn = document.getElementById("toCustomTrain");
+  if (customBtn) {
+    customBtn.onclick = () => {
+      if (!isCustomTreino) {
+        FEMFLOW.toast("Monte seu treino está bloqueado.");
+        return;
+      }
+      localStorage.removeItem("femflow_treino_endurance");
+      return FEMFLOW.router("treino.html");
+    };
+  }
 
   const enduranceBtn = document.getElementById("toEndurance");
   if (enduranceBtn) enduranceBtn.disabled = !enduranceEnabled;
