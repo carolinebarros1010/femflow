@@ -54,6 +54,13 @@ window.FEMFLOW_LANG = {
       selecione: "Selecione uma opção",
       enviando: "Enviando…"
     },
+    notifications: {
+      title: "Notificações",
+      openAria: "Abrir notificações",
+      openAriaUnread: "Abrir notificações. {count} não lidas",
+      closeAria: "Fechar notificações",
+      empty: "Nenhuma notificação por aqui."
+    },
 
     respiracao: {
       titulo1: "Respirações",
@@ -146,6 +153,13 @@ window.FEMFLOW_LANG = {
       selecione: "Select an option",
       enviando: "Sending…"
     },
+    notifications: {
+      title: "Notifications",
+      openAria: "Open notifications",
+      openAriaUnread: "Open notifications. {count} unread",
+      closeAria: "Close notifications",
+      empty: "No notifications here yet."
+    },
 
     respiracao: {
       titulo1: "Breathing",
@@ -237,6 +251,13 @@ window.FEMFLOW_LANG = {
       erro: "Erreur lors de l’envoi. Réessayez.",
       selecione: "Sélectionnez une option",
       enviando: "Envoi…"
+    },
+    notifications: {
+      title: "Notifications",
+      openAria: "Ouvrir les notifications",
+      openAriaUnread: "Ouvrir les notifications. {count} non lues",
+      closeAria: "Fermer les notifications",
+      empty: "Aucune notification pour le moment."
     },
 
     respiracao: {
