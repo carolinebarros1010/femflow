@@ -20,6 +20,30 @@ const TREINOS_SEMANA_PADRAO = 3;
 let treinosSemanaResolve = null;
 let treinosSemanaSelecionado = null;
 
+const CUSTOM_TREINO_KEY = "femflow_custom_treino";
+const CUSTOM_BLOCOS_KEY = "femflow_custom_blocos";
+const CUSTOM_TREINO_OPCOES = {
+  aquecimento: [
+    { label: "aquecimento_superiores", value: "extra_aquecimento_superiores" },
+    { label: "aquecimento_inferiores", value: "extra_aquecimento_inferiores" }
+  ],
+  musculos: [
+    { label: "extra_mobilidade", value: "extra_mobilidade" },
+    { label: "extra_biceps", value: "extra_biceps" },
+    { label: "extra_triceps", value: "extra_triceps" },
+    { label: "extra_ombro", value: "extra_ombro" },
+    { label: "extra_quadriceps", value: "extra_quadriceps" },
+    { label: "extra_posterior", value: "extra_posterior" },
+    { label: "extra_peito", value: "extra_peito" },
+    { label: "extra_costas", value: "extra_costas" },
+    { label: "extra_gluteo", value: "extra_gluteo" }
+  ],
+  resfriamento: [
+    { label: "resfriamento_superiores", value: "extra_resfriamento_superiores" },
+    { label: "resfriamento_inferiores", value: "extra_resfriamento_inferiores" }
+  ]
+};
+
 function atualizarModalTreinosSemana() {
   const modal = document.getElementById("treinosSemanaModal");
   if (!modal) return;
@@ -617,6 +641,15 @@ const CARDS_PERSONAL_SIMBOLICOS = [
     color: "#335953",
     locked: true,
     simbolico: true
+  },
+  {
+    enfase: "monte_seu_treino",
+    titulo: "Monte seu treino",
+    desc: "Crie um treino sob medida hoje",
+    color: "#f6d5c8",
+    locked: false,
+    simbolico: true,
+    alwaysUnlocked: true
   }
 ];
 
@@ -833,6 +866,76 @@ function confirmarNovoPrograma() {
 }
 
 /* ============================================================
+   MODAL — MONTE SEU TREINO
+=========================================================== */
+let customTreinoConfirmModal;
+let customTreinoModal;
+let customTreinoConfirmar;
+let customTreinoConfirmCancelar;
+let customTreinoSalvar;
+let customTreinoCancelar;
+let customAquecimento;
+let customMusculo1;
+let customMusculo2;
+let customMusculo3;
+let customResfriamento;
+
+function preencherSelectCustom(selectEl, opcoes) {
+  if (!selectEl) return;
+  selectEl.innerHTML = opcoes
+    .map(op => `<option value="${op.value}">${op.label}</option>`)
+    .join("");
+}
+
+function abrirModalCustomConfirmacao() {
+  if (!customTreinoConfirmModal) return;
+  customTreinoConfirmModal.classList.remove("hidden");
+  customTreinoConfirmModal.setAttribute("aria-hidden", "false");
+  document.body.classList.add("ff-modal-open");
+}
+
+function fecharModalCustomConfirmacao() {
+  if (!customTreinoConfirmModal) return;
+  customTreinoConfirmModal.classList.add("hidden");
+  customTreinoConfirmModal.setAttribute("aria-hidden", "true");
+  document.body.classList.remove("ff-modal-open");
+}
+
+function abrirModalCustomTreino() {
+  if (!customTreinoModal) return;
+  preencherSelectCustom(customAquecimento, CUSTOM_TREINO_OPCOES.aquecimento);
+  preencherSelectCustom(customMusculo1, CUSTOM_TREINO_OPCOES.musculos);
+  preencherSelectCustom(customMusculo2, CUSTOM_TREINO_OPCOES.musculos);
+  preencherSelectCustom(customMusculo3, CUSTOM_TREINO_OPCOES.musculos);
+  preencherSelectCustom(customResfriamento, CUSTOM_TREINO_OPCOES.resfriamento);
+  customTreinoModal.classList.remove("hidden");
+  customTreinoModal.setAttribute("aria-hidden", "false");
+  document.body.classList.add("ff-modal-open");
+}
+
+function fecharModalCustomTreino() {
+  if (!customTreinoModal) return;
+  customTreinoModal.classList.add("hidden");
+  customTreinoModal.setAttribute("aria-hidden", "true");
+  document.body.classList.remove("ff-modal-open");
+}
+
+function confirmarCustomTreino() {
+  const blocosSelecionados = [
+    customAquecimento?.value,
+    customMusculo1?.value,
+    customMusculo2?.value,
+    customMusculo3?.value,
+    customResfriamento?.value
+  ].filter(Boolean);
+
+  localStorage.setItem(CUSTOM_TREINO_KEY, "true");
+  localStorage.setItem(CUSTOM_BLOCOS_KEY, JSON.stringify(blocosSelecionados));
+  localStorage.setItem("femflow_diaPrograma", "1");
+  location.href = "treino.html";
+}
+
+/* ============================================================
    LÓGICA DE ACESSO POR PRODUTO
 =========================================================== */
 async function handleCardClick(enfase, locked) {
@@ -869,6 +972,12 @@ async function handleCardClick(enfase, locked) {
 
   const treinosOk = await garantirTreinosSemana();
   if (!treinosOk) return;
+
+  if (enfase === "monte_seu_treino") {
+    localStorage.setItem("femflow_mode_personal", "false");
+    abrirModalCustomConfirmacao();
+    return;
+  }
 
   /* =========================================
      🧭 PERSONAL DESBLOQUEADO = ativa modo e vai pro FLOWCENTER
@@ -1103,6 +1212,51 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
     }
 
+    customTreinoConfirmModal = document.getElementById("customTreinoConfirmModal");
+    customTreinoModal = document.getElementById("customTreinoModal");
+    customTreinoConfirmar = document.getElementById("customTreinoConfirmar");
+    customTreinoConfirmCancelar = document.getElementById("customTreinoConfirmCancelar");
+    customTreinoSalvar = document.getElementById("customTreinoSalvar");
+    customTreinoCancelar = document.getElementById("customTreinoCancelar");
+    customAquecimento = document.getElementById("customAquecimento");
+    customMusculo1 = document.getElementById("customMusculo1");
+    customMusculo2 = document.getElementById("customMusculo2");
+    customMusculo3 = document.getElementById("customMusculo3");
+    customResfriamento = document.getElementById("customResfriamento");
+
+    if (customTreinoConfirmar) {
+      customTreinoConfirmar.addEventListener("click", () => {
+        fecharModalCustomConfirmacao();
+        abrirModalCustomTreino();
+      });
+    }
+
+    if (customTreinoConfirmCancelar) {
+      customTreinoConfirmCancelar.addEventListener("click", fecharModalCustomConfirmacao);
+    }
+
+    if (customTreinoConfirmModal) {
+      customTreinoConfirmModal.addEventListener("click", (event) => {
+        if (event.target !== customTreinoConfirmModal) return;
+        fecharModalCustomConfirmacao();
+      });
+    }
+
+    if (customTreinoSalvar) {
+      customTreinoSalvar.addEventListener("click", confirmarCustomTreino);
+    }
+
+    if (customTreinoCancelar) {
+      customTreinoCancelar.addEventListener("click", fecharModalCustomTreino);
+    }
+
+    if (customTreinoModal) {
+      customTreinoModal.addEventListener("click", (event) => {
+        if (event.target !== customTreinoModal) return;
+        fecharModalCustomTreino();
+      });
+    }
+
     const perfil = await carregarPerfilEAtualizarStorage();
 
     if (perfil.status !== "ok") {
@@ -1154,7 +1308,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (catalogo.personal.length === 0) {
       const cards = CARDS_PERSONAL_SIMBOLICOS.map(c => ({
         ...c,
-        locked: !perfilTemPersonal
+        locked: c.alwaysUnlocked ? false : !perfilTemPersonal
       }));
       catalogo.personal.push(...cards);
     }
