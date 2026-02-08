@@ -957,7 +957,7 @@ function confirmarCustomTreino() {
   localStorage.setItem(CUSTOM_TREINO_KEY, "true");
   localStorage.setItem(CUSTOM_BLOCOS_KEY, JSON.stringify(blocosSelecionados));
   localStorage.setItem("femflow_diaPrograma", "1");
-  location.href = "treino.html";
+  location.href = "flowcenter.html";
 }
 
 /* ============================================================

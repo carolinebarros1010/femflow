@@ -67,7 +67,7 @@ localStorage.setItem("femflow_diaPrograma", "1");
 Após salvar, a navegação é feita para:
 
 ```js
-location.href = "treino.html";
+location.href = "flowcenter.html";
 ```
 
 **Importante:** não usar `femflow_treino_extra`. Este treino **não** é classificado como extra.
