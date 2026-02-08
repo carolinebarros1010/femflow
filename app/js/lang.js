@@ -384,6 +384,14 @@ home: {
   treinoExtraInferior: "Inferior",
   treinoExtraAbdomem: "Abdômen",
   treinoExtraMobilidade: "Mobilidade",
+  treinoExtraBiceps: "Bíceps",
+  treinoExtraTriceps: "Tríceps",
+  treinoExtraOmbro: "Ombro",
+  treinoExtraQuadriceps: "Quadríceps",
+  treinoExtraPosterios: "Posteriores",
+  treinoExtraPeito: "Peito",
+  treinoExtraCostas: "Costas",
+  treinoExtraGluteo: "Glúteo",
   treinoExtraFechar: "Fechar"
 }
 ,
@@ -696,6 +704,14 @@ home: {
   treinoExtraInferior: "Lower body",
   treinoExtraAbdomem: "Abs",
   treinoExtraMobilidade: "Mobility",
+  treinoExtraBiceps: "Biceps",
+  treinoExtraTriceps: "Triceps",
+  treinoExtraOmbro: "Shoulders",
+  treinoExtraQuadriceps: "Quadriceps",
+  treinoExtraPosterios: "Hamstrings",
+  treinoExtraPeito: "Chest",
+  treinoExtraCostas: "Back",
+  treinoExtraGluteo: "Glutes",
   treinoExtraFechar: "Close"
 },
 
@@ -1008,6 +1024,14 @@ fr: {
   treinoExtraInferior: "Bas du corps",
   treinoExtraAbdomem: "Abdos",
   treinoExtraMobilidade: "Mobilité",
+  treinoExtraBiceps: "Biceps",
+  treinoExtraTriceps: "Triceps",
+  treinoExtraOmbro: "Épaules",
+  treinoExtraQuadriceps: "Quadriceps",
+  treinoExtraPosterios: "Ischio-jambiers",
+  treinoExtraPeito: "Poitrine",
+  treinoExtraCostas: "Dos",
+  treinoExtraGluteo: "Fessiers",
   treinoExtraFechar: "Fermer"
 },
 
