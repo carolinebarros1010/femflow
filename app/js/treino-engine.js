@@ -778,29 +778,69 @@ FEMFLOW.engineTreino.montarTreinoCustomizado = async ({
 
   if (!blocosRaw.length) return [];
 
-  const blocosOrdenados = blocosRaw
-    .map(b => {
-      const rawLabel = String(b.box || "");
-      const serieCodigo = FEMFLOW.engineTreino.detectarSerieEspecial(rawLabel);
-      let boxNum;
+  const MAX_EXERCICIOS_POR_BOX = 2;
+  const gruposPorIndex = new Map();
+  const blocosFixos = [];
 
-      if (b.tipo === "aquecimento") {
-        boxNum = -100;
-      } else if (b.tipo === "resfriamento") {
-        boxNum = 999;
-      } else {
-        boxNum = Number(b.customIndex) + 1;
+  for (const bloco of blocosRaw) {
+    if (bloco.tipo === "aquecimento" || bloco.tipo === "resfriamento") {
+      blocosFixos.push(bloco);
+      continue;
+    }
+
+    const index = Number(bloco.customIndex) || 0;
+    if (!gruposPorIndex.has(index)) {
+      gruposPorIndex.set(index, []);
+    }
+    gruposPorIndex.get(index).push(bloco);
+  }
+
+  let nextBox = 1;
+  const blocosOrdenados = [];
+
+  const gruposOrdenados = Array.from(gruposPorIndex.entries()).sort(
+    ([a], [b]) => a - b
+  );
+
+  for (const [, blocosGrupo] of gruposOrdenados) {
+    const ordenados = blocosGrupo
+      .slice()
+      .sort((a, b) => (Number(a.ordem) || 0) - (Number(b.ordem) || 0));
+
+    for (let i = 0; i < ordenados.length; i += MAX_EXERCICIOS_POR_BOX) {
+      const boxNum = nextBox;
+      const fatia = ordenados.slice(i, i + MAX_EXERCICIOS_POR_BOX);
+
+      for (const b of fatia) {
+        const rawLabel = String(b.box || "");
+        const serieCodigo = FEMFLOW.engineTreino.detectarSerieEspecial(rawLabel);
+        blocosOrdenados.push({
+          ...b,
+          boxNum,
+          boxKey: b.boxKey || null,
+          ordemNum: Number(b.ordem) || 0,
+          serieEspecial: serieCodigo
+        });
       }
 
-      return {
-        ...b,
-        boxNum,
-        boxKey: b.boxKey || null,
-        ordemNum: Number(b.ordem) || 0,
-        serieEspecial: serieCodigo
-      };
-    })
-    .sort((a, b) => a.boxNum - b.boxNum);
+      nextBox += 1;
+    }
+  }
+
+  for (const b of blocosFixos) {
+    const rawLabel = String(b.box || "");
+    const serieCodigo = FEMFLOW.engineTreino.detectarSerieEspecial(rawLabel);
+    const boxNum = b.tipo === "aquecimento" ? -100 : 999;
+    blocosOrdenados.push({
+      ...b,
+      boxNum,
+      boxKey: b.boxKey || null,
+      ordemNum: Number(b.ordem) || 0,
+      serieEspecial: serieCodigo
+    });
+  }
+
+  blocosOrdenados.sort((a, b) => a.boxNum - b.boxNum);
 
   const comHIIT = FEMFLOW.engineTreino.intercalarHIIT(blocosOrdenados);
   let aquecimentoInserido = false;
