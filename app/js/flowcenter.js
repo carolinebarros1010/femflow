@@ -444,7 +444,7 @@ function initFlowCenter() {
       extra_triceps: L.treinoExtraTriceps,
       extra_ombro: L.treinoExtraOmbro,
       extra_quadriceps: L.treinoExtraQuadriceps,
-      extra_posterios: L.treinoExtraPosterios,
+      extra_posterior: L.treinoExtraPosterior,
       extra_peito: L.treinoExtraPeito,
       extra_costas: L.treinoExtraCostas,
       extra_gluteo: L.treinoExtraGluteo
