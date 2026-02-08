@@ -439,7 +439,15 @@ function initFlowCenter() {
       extra_superior: L.treinoExtraSuperior,
       extra_inferior: L.treinoExtraInferior,
       extra_abdomen: L.treinoExtraAbdomem,
-      extra_mobilidade: L.treinoExtraMobilidade
+      extra_mobilidade: L.treinoExtraMobilidade,
+      extra_biceps: L.treinoExtraBiceps,
+      extra_triceps: L.treinoExtraTriceps,
+      extra_ombro: L.treinoExtraOmbro,
+      extra_quadriceps: L.treinoExtraQuadriceps,
+      extra_posterior: L.treinoExtraPosterior,
+      extra_peito: L.treinoExtraPeito,
+      extra_costas: L.treinoExtraCostas,
+      extra_gluteo: L.treinoExtraGluteo
     };
     document.querySelectorAll("[data-extra-enfase]").forEach(btn => {
       const key = btn.dataset.extraEnfase;
