@@ -1120,7 +1120,7 @@ FEMFLOW.inserirHeaderApp = function () {
   h.id = "femflowHeader";
   h.innerHTML = `
     <img src="./assets/logofemflowterracotasf.png" class="ff-logo">
-    <button id="ffNotificationsBtn" class="ff-notifications-btn" aria-label="Abrir notificações" aria-haspopup="dialog">
+    <button id="ffNotificationsBtn" class="ff-notifications-btn" aria-label="${FEMFLOW.t("notifications.openAria")}" aria-haspopup="dialog">
       🔔
       <span id="ffNotificationsBadge" class="ff-notifications-badge" aria-hidden="true"></span>
     </button>
@@ -1322,8 +1322,8 @@ FEMFLOW.inserirModalNotificacoes = function () {
   modal.innerHTML = `
     <div class="ff-notifications-box" role="dialog" aria-modal="true" aria-labelledby="ff-notifications-title">
       <div class="ff-notifications-header">
-        <h2 id="ff-notifications-title">Notificações</h2>
-        <button class="ff-notifications-close" type="button" aria-label="Fechar notificações">✖️</button>
+        <h2 id="ff-notifications-title">${FEMFLOW.t("notifications.title")}</h2>
+        <button class="ff-notifications-close" type="button" aria-label="${FEMFLOW.t("notifications.closeAria")}">✖️</button>
       </div>
       <div id="ff-notifications-list" class="ff-notifications-list"></div>
     </div>
@@ -1349,12 +1349,28 @@ FEMFLOW.updateNotificationsBadge = function () {
   if (unread > 0) {
     badge.textContent = unread > 99 ? "99+" : String(unread);
     badge.classList.add("is-visible");
-    btn.setAttribute("aria-label", `Abrir notificações. ${unread} não lidas`);
+    const label = FEMFLOW.t("notifications.openAriaUnread");
+    btn.setAttribute("aria-label", label.replace("{count}", unread));
   } else {
     badge.textContent = "";
     badge.classList.remove("is-visible");
-    btn.setAttribute("aria-label", "Abrir notificações");
+    btn.setAttribute("aria-label", FEMFLOW.t("notifications.openAria"));
   }
+};
+
+FEMFLOW.updateNotificationsCopy = function () {
+  const title = document.getElementById("ff-notifications-title");
+  if (title) title.textContent = FEMFLOW.t("notifications.title");
+
+  const closeBtn = document.querySelector(".ff-notifications-close");
+  if (closeBtn) closeBtn.setAttribute("aria-label", FEMFLOW.t("notifications.closeAria"));
+
+  const list = document.getElementById("ff-notifications-list");
+  if (list && list.children.length === 1 && list.firstElementChild?.classList.contains("ff-notifications-empty")) {
+    list.firstElementChild.textContent = FEMFLOW.t("notifications.empty");
+  }
+
+  FEMFLOW.updateNotificationsBadge?.();
 };
 
 FEMFLOW.renderNotificationsList = async function () {
@@ -1367,7 +1383,7 @@ FEMFLOW.renderNotificationsList = async function () {
   if (!items || items.length === 0) {
     const empty = document.createElement("div");
     empty.className = "ff-notifications-empty";
-    empty.textContent = "Nenhuma notificação por aqui.";
+    empty.textContent = FEMFLOW.t("notifications.empty");
     list.appendChild(empty);
     return;
   }
@@ -1379,8 +1395,14 @@ FEMFLOW.renderNotificationsList = async function () {
     button.dataset.id = item.id;
 
     const date = item.data ? new Date(item.data) : null;
+    const localeMap = {
+      pt: "pt-BR",
+      en: "en-US",
+      fr: "fr-FR"
+    };
+    const locale = localeMap[FEMFLOW.lang || "pt"] || "pt-BR";
     const dateLabel = date && !Number.isNaN(date.getTime())
-      ? date.toLocaleDateString("pt-BR")
+      ? date.toLocaleDateString(locale)
       : "";
 
     button.innerHTML = `
@@ -1436,6 +1458,7 @@ document.addEventListener("femflow:langChange", () => {
   FEMFLOW.renderMenuLateral?.();
   FEMFLOW.renderSAC?.();
   FEMFLOW.renderNivelModal?.();
+  FEMFLOW.updateNotificationsCopy?.();
 });
 
 /* ===========================================================
