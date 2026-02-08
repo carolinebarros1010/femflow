@@ -708,7 +708,8 @@ const CARD_THUMBS = {
   hyrox: "hyrox.jpg",
   personal: "personal_ricardojr.jpg",
   personal_ricardojr: "personal_ricardojr.jpg",
-  corrida_curta: "corrida_curta.jpg"
+  corrida_curta: "corrida_curta.jpg",
+  monte_seu_treino: "monte_seu_treino.jpg"
 };
 
 function getThumbUrl(enfase) {
