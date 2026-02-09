@@ -155,3 +155,16 @@ function salvarResultadoTeste_(id, resumo, lista) {
     ]);
   });
 }
+
+function __forceInit__() {
+  return adminListNotifications_();
+}
+
+function __bootstrapAdmin__() {
+  // Apenas força o carregamento das funções
+  return {
+    notifications: adminListNotifications_(),
+    ok: true
+  };
+}
+
