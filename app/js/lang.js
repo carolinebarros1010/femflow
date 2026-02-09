@@ -359,6 +359,7 @@ home: {
       tituloMuscular:  "Treinos por ênfase",
       tituloEsportes:  "Esportes",
       tituloCasa:      "Treinar em casa",
+      tituloPlanilhas: "Planilhas prontas",
       tituloEbooks:    "Ebooks",
       customTreino: {
         titulo: "Monte seu treino",
@@ -411,7 +412,13 @@ home: {
         natacao: "Natação",
         surf: "Surf",
         voleibol_quadra: "Voleibol de quadra",
-        corrida_curta: "Corrida curta"
+        corrida_curta: "Corrida curta",
+        cardio_corrida5km: "Corrida 5 km",
+        cardio_corrida10km: "Corrida 10 km",
+        cardio_corrida15km: "Corrida 15 km",
+        cardio_corrida21km: "Corrida 21 km",
+        cardio_maratona: "Maratona",
+        cardio_natacao_aguas_abertas: "Natação águas abertas"
       }
     },
   flowcenter: {
@@ -715,6 +722,7 @@ home: {
       tituloMuscular:  "Muscle focus training",
       tituloEsportes:  "Sports",
       tituloCasa:      "Home training",
+      tituloPlanilhas: "Ready-made plans",
       tituloEbooks:    "Ebooks",
       customTreino: {
         titulo: "Build your workout",
@@ -767,7 +775,13 @@ home: {
         natacao: "Swimming",
         surf: "Surf",
         voleibol_quadra: "Indoor volleyball",
-        corrida_curta: "Short run"
+        corrida_curta: "Short run",
+        cardio_corrida5km: "3.1 mi run",
+        cardio_corrida10km: "6.2 mi run",
+        cardio_corrida15km: "9.3 mi run",
+        cardio_corrida21km: "13.1 mi run",
+        cardio_maratona: "Marathon 26.2 mi",
+        cardio_natacao_aguas_abertas: "Open water swimming"
       }
     },
  flowcenter: {
@@ -1068,6 +1082,7 @@ fr: {
       tituloMuscular:  "Entraînements par groupe musculaire",
       tituloEsportes:  "Sports",
       tituloCasa:      "S'entraîner à la maison",
+      tituloPlanilhas: "Plans prêts",
       tituloEbooks:    "Ebooks",
       customTreino: {
         titulo: "Créez votre entraînement",
@@ -1120,7 +1135,13 @@ fr: {
         natacao: "Natation",
         surf: "Surf",
         voleibol_quadra: "Volley-ball en salle",
-        corrida_curta: "Course courte"
+        corrida_curta: "Course courte",
+        cardio_corrida5km: "Course 3,1 mi",
+        cardio_corrida10km: "Course 6,2 mi",
+        cardio_corrida15km: "Course 9,3 mi",
+        cardio_corrida21km: "Course 13,1 mi",
+        cardio_maratona: "Marathon 26,2 mi",
+        cardio_natacao_aguas_abertas: "Natation en eau libre"
       }
     },
   flowcenter: {

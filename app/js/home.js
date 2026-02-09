@@ -392,7 +392,13 @@ const CARDS_HOME_PRESETS = [
   "intermediaria_corrida_curta",
   "intermediaria_hyrox",
   "intermediaria_casa_queima_gordura",
-  "intermediaria_casa_fullbody_praia"
+  "intermediaria_casa_fullbody_praia",
+  "cardio_corrida5km",
+  "cardio_corrida10km",
+  "cardio_corrida15km",
+  "cardio_corrida21km",
+  "cardio_maratona",
+  "cardio_natacao_aguas_abertas"
 ];
 
 function extrairNivelEnfase(docId) {
@@ -446,6 +452,7 @@ function inferirCategoria(enfase) {
   if (!enfase) return "esportes";
   if (enfase.startsWith("followme_")) return "followme";
  if (enfase === "personal") return "personal";
+  if (enfase.startsWith("cardio_")) return "planilhas";
   if (enfase.startsWith("casa") || enfase === "20minemcasa") return "casa";
   if (MUSCULAR_ENFASES.has(enfase)) return "muscular";
   return "esportes";
@@ -469,12 +476,12 @@ function podeAcessar(enfase, perfil) {
   // 🔥 PERSONAL (direito) = acesso_app + personal
   if (personal) {
     if (categoria === "followme") return false;
-    return true; // muscular, esportes, casa e personal
+    return true; // muscular, esportes, casa, planilhas e personal
   }
 
   // 🔹 ACESSO APP
   if (produto === "acesso_app" || isTrial) {
-    return ["muscular", "esportes", "casa"].includes(categoria);
+    return ["muscular", "esportes", "casa", "planilhas"].includes(categoria);
   }
 
   // 🔹 FOLLOWME
@@ -537,10 +544,10 @@ function avaliarAcessoCard(enfase, perfil) {
 function injetarCardsPresets(catalogo, perfil, nivelAluno) {
   CARDS_HOME_PRESETS.forEach(docId => {
     const parsed = extrairNivelEnfase(docId);
-    if (!parsed) return;
+    const base = parsed || { nivel: nivelAluno, enfase: docId.toLowerCase().trim() };
 
-    const { nivel, enfase } = parsed;
-    if (nivel !== nivelAluno) return;
+    const { nivel, enfase } = base;
+    if (parsed && nivel !== nivelAluno) return;
 
     const categoria = inferirCategoria(enfase);
     if (!catalogo[categoria]) return;
@@ -578,7 +585,8 @@ async function carregarCatalogoFirebase() {
     personal: [],
     muscular: [],
     esportes: [],
-    casa: []
+    casa: [],
+    planilhas: []
   };
 
   const snap = await firebase.firestore().collection("exercicios").get();
@@ -980,7 +988,7 @@ async function handleCardClick(enfase, locked) {
     const produto = String(localStorage.getItem("femflow_produto") || "").toLowerCase();
     const isTrial = produto === "trial_app";
     const categoria = inferirCategoria(enfase);
-    if (isTrial && ["muscular", "esportes", "casa"].includes(categoria)) {
+    if (isTrial && ["muscular", "esportes", "casa", "planilhas"].includes(categoria)) {
       FEMFLOW.openExternal(LINK_ACESSO_APP);
       return;
     }
@@ -1161,6 +1169,7 @@ function aplicarIdiomaHome() {
   const tEsportes = document.getElementById("tituloEsportes");
   const tCasa = document.getElementById("tituloCasa");
   const tEbooks = document.getElementById("tituloEbooks");
+  const tPlanilhas = document.getElementById("tituloPlanilhas");
   const btnFlow = document.getElementById("btnFlow");
   const customTitle = document.getElementById("customTreinoTitle");
   const customSubtitle = document.getElementById("customTreinoSubtitle");
@@ -1180,6 +1189,7 @@ function aplicarIdiomaHome() {
   if (tMuscular) tMuscular.textContent = L.tituloMuscular;
   if (tEsportes) tEsportes.textContent = L.tituloEsportes;
   if (tCasa) tCasa.textContent = L.tituloCasa;
+  if (tPlanilhas) tPlanilhas.textContent = L.tituloPlanilhas;
   if (tEbooks) tEbooks.textContent = L.tituloEbooks;
   if (btnFlow && L.botaoFlowcenter) btnFlow.textContent = L.botaoFlowcenter;
 
@@ -1386,6 +1396,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     renderRail(document.getElementById("railMuscular"), catalogo.muscular);
     renderRail(document.getElementById("railEsportes"), catalogo.esportes);
     renderRail(document.getElementById("railCasa"), catalogo.casa);
+    renderRail(document.getElementById("railPlanilhas"), catalogo.planilhas);
     renderRail(document.getElementById("railPersonal"), catalogo.personal);
     renderEbookRail(document.getElementById("railEbooks"), await carregarEbooks());
 

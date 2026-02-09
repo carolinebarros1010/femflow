@@ -187,15 +187,17 @@ function importarTreinosFEMFLOW(opts = {}) {
     let isPersonal = false;
     let personalId = "";
     let isExtra = false;
+    let isEnduranceCardio = false;
+    let enduranceId = "";
 
     if (nomeAba.toLowerCase().startsWith("personal_")) {
       isPersonal = true;
       personalId = nomeAba.replace(/personal_/i, "").trim();
       Logger.log("🎨 Aba PERSONAL detectada → ID = " + personalId);
     } else if (nomeAba.toLowerCase().startsWith("endurance_")) {
-      isPersonal = true;
-      personalId = nomeAba.replace(/endurance_/i, "").trim();
-      Logger.log("🏃‍♀️ Aba ENDURANCE detectada → ID = " + personalId);
+      isEnduranceCardio = true;
+      enduranceId = nomeAba.replace(/endurance_/i, "").trim();
+      Logger.log("🏃‍♀️ Aba ENDURANCE CARDIO detectada → ID = " + enduranceId);
     }
     // ------------------------------------------------------------
     // 2) DETECTAR ABA NORMAL
@@ -218,7 +220,9 @@ function importarTreinosFEMFLOW(opts = {}) {
       personalId,
       isExtra,
       importId,
-      target
+      target,
+      isEnduranceCardio,
+      enduranceId
     );
 
     totalOk += stats.ok;
@@ -249,9 +253,27 @@ function importarTreinosFEMFLOW(opts = {}) {
 /* ============================================================
    IMPORTA UMA ABA (core)
 ============================================================ */
-function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, personalId, isExtra, importId, target) {
+function importarAbaParaFirestore_(
+  sh,
+  token,
+  baseURL,
+  nomeAba,
+  isPersonal,
+  personalId,
+  isExtra,
+  importId,
+  target,
+  isEnduranceCardio,
+  enduranceId
+) {
   const targetNorm = normalizarTargetLocal_(target);
   const isMaleFlowTarget = targetNorm === "maleflow";
+  const isEnduranceCardioSheet = !!isEnduranceCardio;
+  const enduranceIdSafe = String(enduranceId || "").trim();
+  const enduranceIdEncoded = encodeURIComponent(enduranceIdSafe);
+  if (isEnduranceCardioSheet && !enduranceIdSafe) {
+    throw new Error(`Aba "${nomeAba}" sem ID endurance válido.`);
+  }
     // ✅ MaleFlow: SEMPRE usar doc único bloco_100 quando houver colunas ciclo+diatreino
   // (inclui NORMAL, PERSONAL e EXTRA)
   if (isMaleFlowTarget) {
@@ -309,6 +331,7 @@ function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, pers
     reps: col("reps"),
     especial: col("especial"),
     tempo: col("tempo"),
+    zona: col("zona"),
     distancia: col("distancia"),
     intervalo: col("intervalo"),
     ritmo: col("ritmo"),
@@ -342,9 +365,28 @@ function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, pers
     "distancia",
     "intervalo"
   ];
+  const obrigatoriasEnduranceCardio = [
+    "tipo",
+    "box",
+    "ordem",
+    "enfase",
+    "semana",
+    "dias",
+    "titulo_pt",
+    "titulo_en",
+    "titulo_fr",
+    "series",
+    "reps",
+    "tempo",
+    "zona",
+    "distancia",
+    "intervalo"
+  ];
   const isEndurancePersonal = isPersonal && idx.semana !== -1 && idx.dias !== -1;
   const obrigatorias = isExtra
     ? obrigatoriasBase
+    : isEnduranceCardioSheet
+    ? obrigatoriasEnduranceCardio
     : isEndurancePersonal
     ? obrigatoriasEndurance
     : usaCicloDiaTreino
@@ -386,7 +428,7 @@ function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, pers
       if (!ciclo || !diatreino) return;
 
       dayCounterKey = `ciclo:${ciclo}|dia:${diatreino}`;
-    } else if (isEndurancePersonal) {
+    } else if (isEndurancePersonal || isEnduranceCardioSheet) {
       const semanaValor = String(r[idx.semana] || "").trim();
       const diasValor = String(r[idx.dias] || "").trim();
       if (!semanaValor || !diasValor) return;
@@ -426,7 +468,7 @@ function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, pers
 
     let url = "";
 
-    const diaKeySafe = isEndurancePersonal
+    const diaKeySafe = isEndurancePersonal || isEnduranceCardioSheet
       ? removerAcentos(diaKey).toLowerCase()
       : diaKey;
     const diaKeyEncoded = encodeURIComponent(diaKeySafe);
@@ -449,6 +491,13 @@ function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, pers
       } else {
         url = `${baseURL}/personal_trainings/${personalId}/${enfaseEncoded}/${fase}/dias/${diaKeyEncoded}/blocos/${docId}`;
       }
+    } else if (isEnduranceCardioSheet) {
+      url =
+        `${baseURL}/endurance/${enduranceIdEncoded}` +
+        `/cardio/${enfaseEncoded}` +
+        `/treinos/base` +
+        `/semana/${String(r[idx.semana] || "").trim()}` +
+        `/dias/${diaKeyEncoded}/blocos/${docId}`;
     } else if (isExtra) {
       url = `${baseURL}/exercicios_extra/${enfaseEncoded}/blocos/${docId}`;
     } else {
@@ -490,6 +539,7 @@ function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, pers
         distancia: { stringValue: String(r[idx.distancia] || "") },
         intervalo: { stringValue: String(r[idx.intervalo] || "") },
         ritmo: { stringValue: String(idx.ritmo !== -1 ? (r[idx.ritmo] || "") : "") },
+        zona: { stringValue: String(idx.zona !== -1 ? (r[idx.zona] || "") : "") },
 
         forte: { stringValue: String(r[idx.forte] || "") },
         leve: { stringValue: String(r[idx.leve] || "") },
@@ -503,7 +553,7 @@ function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, pers
 
     // FemFlow fields
     if (!usaCicloDiaTreino) {
-      if (isEndurancePersonal) {
+      if (isEndurancePersonal || isEnduranceCardioSheet) {
         payload.fields.semana = { integerValue: Number(r[idx.semana] || 0) };
         payload.fields.dias = { stringValue: String(r[idx.dias] || "") };
       } else {
@@ -985,6 +1035,11 @@ function TEST_importar_tudo_femflow() {
 }
 
 function TEST_importar_endurance_femflow() {
+  const r = importarTreinosFEMFLOW_aba("Endurance_FF-251204-G5U8", { target: "femflow" });
+  Logger.log(JSON.stringify(r, null, 2));
+}
+
+function TEST_importar_endurance_cardio() {
   const r = importarTreinosFEMFLOW_aba("Endurance_FF-251204-G5U8", { target: "femflow" });
   Logger.log(JSON.stringify(r, null, 2));
 }
