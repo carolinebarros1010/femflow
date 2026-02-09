@@ -247,4 +247,174 @@ function legacyEnduranceCheck_(data) {
     realizado: true,
     dataTreino: encontrado[8] || ""
   };
+}function legacyRegistrarPSE_(data) {
+  const ss = SpreadsheetApp.getActive();
+  let treinoSheet = ss.getSheetByName("Treinos");
+  if (!treinoSheet) {
+    treinoSheet = ss.insertSheet("Treinos");
+  }
+  if (treinoSheet.getLastRow() === 0) {
+    treinoSheet.appendRow([
+      "ID","Data","Fase","DiaPrograma","PSE",
+      "Apelido","Box","Exercício","Séries","Reps","Peso"
+    ]);
+  }
+
+  treinoSheet.appendRow([
+    data.id || "",
+    new Date(),
+    data.fase || "",
+    data.diaPrograma || "",
+    data.pse,
+    "",
+    "",
+    data.treino || "",
+    "",
+    "",
+    ""
+  ]);
+
+  return { status: "ok" };
+}
+
+function legacyRegistrarDescanso_(data) {
+  const ss = SpreadsheetApp.getActive();
+  let diario = ss.getSheetByName("Diario");
+  if (!diario) {
+    diario = ss.insertSheet("Diario");
+  }
+  if (diario.getLastRow() === 0) {
+    diario.appendRow([
+      "ID","Data","Fase","Semana","Treino","Tipo","Descanso","Observação"
+    ]);
+  }
+
+  diario.appendRow([
+    data.id || "",
+    new Date(),
+    data.fase || "",
+    data.semana || "",
+    data.treino || "",
+    "descanso",
+    true,
+    data.obs || ""
+  ]);
+
+  return { status: "descanso_registrado" };
+}
+
+function legacyEnduranceSetup_(data) {
+  const ss = SpreadsheetApp.getActive();
+  let enduranceSheet = ss.getSheetByName("EnduranceSetup");
+  if (!enduranceSheet) {
+    enduranceSheet = ss.insertSheet("EnduranceSetup");
+  }
+  if (enduranceSheet.getLastRow() === 0) {
+    enduranceSheet.appendRow([
+      "Data",
+      "ID",
+      "Nome",
+      "Nivel",
+      "Modalidade",
+      "TreinosSemana",
+      "DiasSemana",
+      "RitmoMedio",
+      "DataTreino",
+      "Semana",
+      "Dia",
+      "StatusTreino"
+    ]);
+  }
+
+  enduranceSheet.appendRow([
+    new Date(),
+    data.id || "",
+    data.nome || "",
+    data.nivel || "",
+    data.modalidade || "",
+    data.treinosSemana || "",
+    data.diasSemana || "",
+    data.ritmo || "",
+    "",
+    "",
+    "",
+    ""
+  ]);
+
+  return { status: "endurance_setup_registrado" };
+}
+
+function legacyEnduranceTreino_(data) {
+  const ss = SpreadsheetApp.getActive();
+  let enduranceSheet = ss.getSheetByName("EnduranceSetup");
+  if (!enduranceSheet) {
+    enduranceSheet = ss.insertSheet("EnduranceSetup");
+  }
+  if (enduranceSheet.getLastRow() === 0) {
+    enduranceSheet.appendRow([
+      "Data",
+      "ID",
+      "Nome",
+      "Nivel",
+      "Modalidade",
+      "TreinosSemana",
+      "DiasSemana",
+      "RitmoMedio",
+      "DataTreino",
+      "Semana",
+      "Dia",
+      "StatusTreino"
+    ]);
+  }
+
+  enduranceSheet.appendRow([
+    new Date(),
+    data.id || "",
+    data.nome || "",
+    data.nivel || "",
+    data.modalidade || "",
+    data.treinosSemana || "",
+    data.diasSemana || "",
+    data.ritmo || "",
+    data.dataTreino || new Date(),
+    data.semana || "",
+    data.dia || "",
+    "realizado"
+  ]);
+
+  return { status: "endurance_treino_registrado" };
+}
+
+function legacyEnduranceCheck_(data) {
+  const enduranceSheet = SpreadsheetApp.getActive().getSheetByName("EnduranceSetup");
+  if (!enduranceSheet || enduranceSheet.getLastRow() < 2) {
+    return { status: "ok", realizado: false };
+  }
+
+  const values = enduranceSheet.getDataRange().getValues();
+  const id = String(data.id || "").trim();
+  const semana = String(data.semana || "").trim();
+  const dia = String(data.dia || "").trim();
+
+  let encontrado = null;
+  for (let i = 1; i < values.length; i++) {
+    const row = values[i];
+    const rowId = String(row[1] || "").trim();
+    const rowSemana = String(row[9] || "").trim();
+    const rowDia = String(row[10] || "").trim();
+    const status = String(row[11] || "").trim();
+    if (rowId === id && rowSemana === semana && rowDia === dia && status === "realizado") {
+      encontrado = row;
+    }
+  }
+
+  if (!encontrado) {
+    return { status: "ok", realizado: false };
+  }
+
+  return {
+    status: "ok",
+    realizado: true,
+    dataTreino: encontrado[8] || ""
+  };
 }
