@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>FemFlow • Admin de Notificações</title>
+
+  <style>
+    body {
+      font-family: Inter, Arial, sans-serif;
+      background: #fff8f4;
+      padding: 20px;
+      color: #1d1b1b;
+    }
+
+    h1 {
+      margin-bottom: 6px;
+    }
+
+    p {
+      color: #6b625f;
+      margin-bottom: 20px;
+    }
+
+    .card {
+      background: #ffffff;
+      border-radius: 14px;
+      padding: 18px;
+      margin-bottom: 20px;
+      border: 1px solid #f0e6e0;
+    }
+
+    label {
+      font-weight: 600;
+      font-size: 14px;
+      display: block;
+      margin-bottom: 4px;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      padding: 10px 12px;
+      border-radius: 10px;
+      border: 1px solid #f0e6e0;
+      margin-bottom: 14px;
+      font-size: 14px;
+    }
+
+    textarea {
+      min-height: 90px;
+    }
+
+    button {
+      background: #ff6b6b;
+      color: white;
+      border: none;
+      border-radius: 999px;
+      padding: 10px 16px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    button.secondary {
+      background: white;
+      color: #1d1b1b;
+      border: 1px solid #f0e6e0;
+    }
+
+    .actions {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .feedback {
+      margin-top: 10px;
+      font-size: 13px;
+      display: none;
+      padding: 8px 10px;
+      border-radius: 8px;
+    }
+
+    .feedback.success {
+      display: block;
+      color: #2f8f5f;
+      background: rgba(47,143,95,.1);
+    }
+
+    .feedback.error {
+      display: block;
+      color: #d64545;
+      background: rgba(214,69,69,.1);
+    }
+
+    .notification {
+      border: 1px solid #f0e6e0;
+      border-radius: 12px;
+      padding: 12px;
+      margin-bottom: 10px;
+    }
+
+    .status {
+      font-size: 12px;
+      font-weight: 700;
+      text-transform: uppercase;
+    }
+
+    .status.draft { color: #a16322; }
+    .status.published { color: #1c7f7a; }
+    .status.sent { color: #2f8f5f; }
+
+    .notification-actions {
+      margin-top: 8px;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+  </style>
+</head>
+
+<body>
+
+  <h1>Painel de Notificações</h1>
+  <p>Crie, publique e envie notificações manualmente.</p>
+
+  <!-- FORM -->
+  <div class="card">
+    <form id="form">
+      <label>Título</label>
+      <input name="title" required />
+
+      <label>Mensagem</label>
+      <textarea name="message" required></textarea>
+
+      <label>Tipo</label>
+      <select name="type">
+        <option value="treino">treino</option>
+        <option value="ciclo">ciclo</option>
+        <option value="editorial">editorial</option>
+        <option value="evento">evento</option>
+      </select>
+
+      <label>Target</label>
+      <select name="target">
+        <option value="all">all</option>
+        <option value="followme">followme</option>
+        <option value="personal">personal</option>
+      </select>
+
+      <label>
+        <input type="checkbox" name="push" />
+        Enviar push
+      </label>
+
+      <label>Deeplink (opcional)</label>
+      <input name="deeplink" placeholder="app://rota" />
+
+      <div class="actions">
+        <button type="submit">Salvar rascunho</button>
+        <button type="button" class="secondary" onclick="load()">Recarregar</button>
+      </div>
+
+      <div id="feedback" class="feedback"></div>
+    </form>
+  </div>
+
+  <!-- LIST -->
+  <div class="card">
+    <h3>Últimas notificações</h3>
+    <div id="list">Carregando...</div>
+  </div>
+
+<script>
+  const form = document.getElementById("form");
+  const feedback = document.getElementById("feedback");
+  const list = document.getElementById("list");
+
+ function callCreate(data) {
+  return new Promise((resolve, reject) => {
+    google.script.run
+      .withSuccessHandler(resolve)
+      .withFailureHandler(reject)
+      .adminCreateNotification_(data);
+  });
+}
+
+function callList() {
+  return new Promise((resolve, reject) => {
+    google.script.run
+      .withSuccessHandler(resolve)
+      .withFailureHandler(reject)
+      .adminListNotifications_();
+  });
+}
+
+function callPublish(id) {
+  return new Promise((resolve, reject) => {
+    google.script.run
+      .withSuccessHandler(resolve)
+      .withFailureHandler(reject)
+      .adminPublishNotification_(id);
+  });
+}
+
+function callSend(id) {
+  return new Promise((resolve, reject) => {
+    google.script.run
+      .withSuccessHandler(resolve)
+      .withFailureHandler(reject)
+      .adminSendNotification_(id);
+  });
+}
+
+
+  form.onsubmit = async e => {
+    e.preventDefault();
+    feedback.className = "feedback";
+
+    const data = Object.fromEntries(new FormData(form).entries());
+    data.push = data.push === "on";
+
+    try {
+      const r = await callCreate(data);
+      if (r.status === "draft") {
+        feedback.textContent = "Rascunho salvo com sucesso!";
+        feedback.classList.add("success");
+        form.reset();
+        load();
+      } else {
+        throw r;
+      }
+    } catch {
+      feedback.textContent = "Erro ao salvar.";
+      feedback.classList.add("error");
+    }
+  };
+
+  async function load() {
+    list.innerHTML = "Carregando...";
+    const r = await callList();
+    list.innerHTML = "";
+
+    (r.notifications || []).forEach(n => {
+      const el = document.createElement("div");
+      el.className = "notification";
+      el.innerHTML = `
+        <strong>${n.title}</strong><br/>
+        <span class="status ${n.status}">${n.status}</span><br/>
+        <small>${new Date(n.createdAt).toLocaleString()}</small>
+
+        <div class="notification-actions">
+          ${n.status === "draft" ? `<button onclick="publish('${n.id}')">Publicar</button>` : ""}
+          ${n.status === "published" ? `<button onclick="send('${n.id}')">Enviar push</button>` : ""}
+        </div>
+      `;
+      list.appendChild(el);
+    });
+  }
+
+  function publish(id) {
+    callPublish(id).then(load);
+  }
+
+  function send(id) {
+    if (confirm("Enviar push agora?")) {
+      callSend(id).then(load);
+    }
+  }
+
+  load();
+</script>
+
+</body>
+</html>
