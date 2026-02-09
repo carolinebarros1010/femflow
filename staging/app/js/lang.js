@@ -332,7 +332,7 @@ home: {
       tituloFollowMe:  "Treine junto por 30 dias",
       followmeEmBreve: "Em breve...",
       tituloMuscular:  "Treinos por ênfase",
-      tituloEsportes:  "Esportes",
+      tituloEsportes:  "Fortalecimento Por Esportes",
       tituloCasa:      "Treinar em casa",
       cards: {
         forcaabc: "Força",
@@ -647,7 +647,7 @@ home: {
       tituloFollowMe:  "Train together for 30 days",
       followmeEmBreve: "Coming soon...",
       tituloMuscular:  "Muscle focus training",
-      tituloEsportes:  "Sports",
+      tituloEsportes:  "Strengthening Through Sports",
       tituloCasa:      "Home training",
       cards: {
         forcaabc: "Strength",
@@ -959,7 +959,7 @@ fr: {
       tituloFollowMe:  "Entraînez-vous pendant 30 jours",
       followmeEmBreve: "Bientôt...",
       tituloMuscular:  "Entraînements par groupe musculaire",
-      tituloEsportes:  "Sports",
+      tituloEsportes:  "Renforcement par le sport",
       tituloCasa:      "S'entraîner à la maison",
       cards: {
         forcaabc: "Force",
