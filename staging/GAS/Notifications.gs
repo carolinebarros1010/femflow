@@ -406,3 +406,28 @@ function getFcmAccessToken_(config) {
 
   return { status: "error", msg: "token_request_failed", code: statusCode, response: parsed };
 }
+function handleAdminAction_(data) {
+  return doPost({
+    postData: {
+      contents: JSON.stringify(data)
+    }
+  });
+}
+
+function adminCreateNotification_(data) {
+  return createNotification_(data);
+}
+
+function adminPublishNotification_(notificationId) {
+  return publishNotification_({ notificationId });
+}
+
+function adminSendNotification_(notificationId) {
+  return sendNotification_({ notificationId });
+}
+function adminListNotifications_() {
+  return { notifications: listNotifications_() };
+}
+
+
+
