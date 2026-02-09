@@ -1,8 +1,21 @@
 function doGet(e) {
   const params = e && e.parameter ? e.parameter : {};
   const action = String(params.action || "").toLowerCase().trim();
+  const admin  = String(params.admin || "").toLowerCase().trim();
 
-    if (!action) {
+  /* ============================
+     🔔 PAINEL ADMIN — NOTIFICAÇÕES
+  ============================ */
+  if (admin === "notifications") {
+    return HtmlService
+      .createHtmlOutputFromFile("admin-notificacoes")
+      .setTitle("FemFlow • Admin de Notificações")
+        }
+  
+  if (params.action === "bootstrap_admin") {
+  return _json(__bootstrapAdmin__());
+}
+     if (!action) {
     if (params.id) {
       // NOVO PADRÃO: carregar backend completo do app
       // (mantém compatibilidade pois sync já calcula fase/dia/treino)
