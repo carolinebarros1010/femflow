@@ -425,4 +425,352 @@ function sync(id) {
   }
 
   return { status: "notfound", id: idNorm };
+}  if (d <= 5) {
+    return { fase: "menstrual", dia: d };
+  }
+
+  if (d <= 13) {
+    return { fase: "follicular", dia: d };
+  }
+
+  if (d <= 17) {
+    return { fase: "ovulatoria", dia: d };
+  }
+
+  // 🔒 GARANTIA: lútea nunca abaixo de 18
+  return {
+    fase: "lutea",
+    dia: Math.max(18, d)
+  };
+}
+
+
+
+return { fase: faseSalva || "follicular", dia: diaCicloSalvo || 1 };
+
+}
+
+function _resolveHeaderIndex_(header, name, fallback) {
+  const target = String(name || "").trim().toLowerCase();
+  if (!header || !header.length || !target) return fallback;
+  for (let i = 0; i < header.length; i++) {
+    if (String(header[i] || "").trim().toLowerCase() === target) {
+      return i;
+    }
+  }
+  return fallback;
+}
+
+/* ======================================================
+ * 🌸 SET CICLO — OPÇÃO A (STARTDATE RETROATIVO)
+ * ------------------------------------------------------
+ * Objetivo:
+ * - Recebe diaCicloInicial (1..28)
+ * - Calcula DataInicio real de forma retroativa
+ * - Atualiza IMEDIATAMENTE:
+ *   • DataInicio
+ *   • Fase (N)
+ *   • DiaCiclo (O)
+ *
+ * Decisões:
+ * ✅ VALIDAR passa a ser corretivo, não primário
+ * ====================================================== */
+function setCiclo_(data) {
+  
+    const sh = ensureSheet(SHEET_ALUNAS, HEADER_ALUNAS);
+  if (!sh) return { status: "error", msg: "sheet_not_found" };
+
+  const id = String(data.id || "").trim();
+  if (!id) return { status: "error", msg: "missing_id" };
+
+  const values = sh.getDataRange().getValues();
+  const header = values[0] || [];
+  const idxCicloDuracao = _resolveHeaderIndex_(header, "CicloDuracao", 9);
+  const idxDataInicio = _resolveHeaderIndex_(header, "DataInicio", 10);
+  const idxFase = _resolveHeaderIndex_(header, "Fase", 13);
+  const idxDiaCiclo = _resolveHeaderIndex_(header, "DiaCiclo", 14);
+
+  /* ===============================
+     Helpers locais
+  =============================== */
+  const _today0 = () => {
+    const t = new Date();
+    t.setHours(0, 0, 0, 0);
+    return t;
+  };
+
+  const _toDateSafe = (d) => {
+    const dt = new Date(d);
+    if (!(dt instanceof Date) || isNaN(dt.getTime()) || dt.getFullYear() < 1990) return null;
+    dt.setHours(0, 0, 0, 0);
+    return dt;
+  };
+
+  const _clamp = (n, min, max) => Math.max(min, Math.min(max, n));
+
+  const fasePorDia = (dia) => {
+    if (dia <= 5)  return "menstrual";
+    if (dia <= 13) return "follicular";
+    if (dia <= 17) return "ovulatoria";
+    return "lutea";
+  };
+
+  /* ===============================
+     Loop de busca
+  =============================== */
+  for (let i = 1; i < values.length; i++) {
+    const r = values[i];
+    if (String(r[0]).trim() !== id) continue;
+
+    const linha = i + 1;
+
+    /* ===============================
+       1) CicloDuracao (J)
+    =============================== */
+    const cicloDuracao = _clamp(
+      Number(data.cicloDuracao) || Number(r[idxCicloDuracao]) || 28,
+      21,
+      35
+    );
+    sh.getRange(linha, idxCicloDuracao + 1).setValue(cicloDuracao);
+
+    /* ===============================
+       2) Dia do ciclo (intenção explícita)
+    =============================== */
+    const diaRaw = data.diaCicloInicial ?? data.diaCiclo ?? null;
+    const diaCicloFinal = _clamp(Number(diaRaw) || 1, 1, cicloDuracao);
+
+    /* ===============================
+       3) DataInicio retroativa (K)
+    =============================== */
+    let dataInicioFinal = null;
+
+    if (diaRaw !== null && diaRaw !== undefined && String(diaRaw).trim() !== "") {
+      const base = _today0();
+      base.setDate(base.getDate() - (diaCicloFinal - 1));
+      dataInicioFinal = base;
+    } else if (data.dataInicio) {
+      dataInicioFinal = _toDateSafe(data.dataInicio);
+    }
+
+    if (dataInicioFinal) {
+      sh.getRange(linha, idxDataInicio + 1).setValue(dataInicioFinal);
+    }
+
+    /* ===============================
+       4) Fase fisiológica (N)
+    =============================== */
+    const faseFinal = fasePorDia(diaCicloFinal);
+    sh.getRange(linha, idxFase + 1).setValue(faseFinal);
+
+    /* ===============================
+       5) DiaCiclo (O)
+    =============================== */
+    sh.getRange(linha, idxDiaCiclo + 1).setValue(diaCicloFinal);
+
+    /* ===============================
+       7) DiaPrograma
+    =============================== */
+    sh.getRange(linha, COL_DIA_PROGRAMA + 1).setValue(Number(data.diaPrograma) || 1);
+
+    /* ===============================
+       8) DataInicioPrograma
+    =============================== */
+    if (!r[COL_DATA_INICIO_PROGRAMA]) {
+      sh.getRange(linha, COL_DATA_INICIO_PROGRAMA + 1).setValue(new Date());
+    }
+
+    /* ===============================
+       Retorno
+    =============================== */
+    return {
+      status: "ok",
+      id,
+      cicloDuracao,
+      dataInicio: dataInicioFinal ? dataInicioFinal.toISOString() : null,
+      fase: faseFinal,
+      diaCiclo: diaCicloFinal
+    };
+  }
+
+  return { status: "notfound" };
+}
+
+
+/* ======================================================
+ * 🔹 Motor de Treino HÍBRIDO (resumo — usado pelo front)
+ * ====================================================== */
+function _resolverPerfil(id) {
+  const sh = _sheet(SHEET_ALUNAS);
+  if (!sh) return null;
+
+  const vals = sh.getDataRange().getValues();
+  for (let i = 1; i < vals.length; i++) {
+    const r = vals[i];
+    if (String(r[0]).trim() === String(id).trim()) {
+      return {
+        id: r[0],
+        nome: r[1],
+        email: r[2],
+        produto: r[5] || "",
+        ativo: !!r[7],
+        nivel: String(r[8] || "iniciante").toLowerCase(),
+        cicloDuracao: Number(r[9] || 28),
+        dataInicio: r[10] || new Date(),
+        link_planilha: r[11] || "",
+        enfase: _norm(r[12] || "nenhuma"),
+        fase: _norm(r[13] || "follicular"),
+        diaCiclo: Number(r[14] || 1)
+      };
+    }
+  }
+  return null;
+}
+function resolverDiaTreino(params) {
+  params = params || {};
+  const { perfilHormonal, nivel, diaCiclo, diaPrograma } = params;
+
+  // PERFIL ENERGÉTICO
+  if (perfilHormonal === "energetico") {
+
+    const faseAlta = {
+      iniciante: "lutea",
+      intermediaria: "follicular",
+      avancada: "ovulatoria"
+    };
+
+    return {
+      fase: faseAlta[nivel] || "follicular",
+      diaTreino: ((diaPrograma - 1) % 7) + 1,
+      fonte: "programa"
+    };
+  }
+
+  // PERFIS BIOLÓGICOS
+  return {
+    fase: fasePorDiaCiclo_(diaCiclo),
+    diaTreino: diaCiclo,
+    fonte: "ciclo"
+  };
+}
+
+/* ======================================================
+ * 🧬 Perfil Hormonal — removido da planilha
+ * ====================================================== */
+function setPerfilHormonal(id, perfil) {
+  if (!id) return { status: "error", msg: "missing_id" };
+  if (!perfil) return { status: "error", msg: "missing_perfil" };
+  return { status: "ignored", msg: "perfil_hormonal_removido" };
+}
+
+
+function fasePorDiaCiclo_(dia) {
+  const d = Number(dia) || 1;
+   if (dia <= 5)  return "menstrual";
+  if (dia <= 13) return "follicular";
+  if (dia <= 17) return "ovulatoria";
+  return "lutea";
+}
+
+/* ======================================================
+ * 🔄 FASE ATUAL — FONTE ÚNICA
+ * Coluna N (Fase) = índice 13
+ * ====================================================== */
+function calcularEFixarFase_(id) {
+  const sh = _sheet(SHEET_ALUNAS);
+  if (!sh) return null;
+
+  const idNorm = String(id || "").trim();
+  if (!idNorm) return null;
+
+  const vals = sh.getDataRange().getValues();
+  const header = vals[0] || [];
+  const idxDiaCiclo = _resolveHeaderIndex_(header, "DiaCiclo", 14);
+  const idxCicloDuracao = _resolveHeaderIndex_(header, "CicloDuracao", 9);
+  const idxFase = _resolveHeaderIndex_(header, "Fase", 13);
+
+  for (let i = 1; i < vals.length; i++) {
+    if (String(vals[i][0]).trim() !== idNorm) continue;
+
+    const diaCiclo       = Number(vals[i][idxDiaCiclo] || 1);
+    const cicloDuracao   = Number(vals[i][idxCicloDuracao] || 28);
+
+    const d = Math.max(1, Math.min(diaCiclo, cicloDuracao));
+
+    let fase = "menstrual";
+    if (d <= 5) fase = "menstrual";
+    else if (d <= 13) fase = "follicular";
+    else if (d <= 17) fase = "ovulatoria";
+    else fase = "lutea";
+
+    /* ============================
+       ✍️ ESCREVER FASE
+    ============================ */
+    sh.getRange(i + 1, idxFase + 1).setValue(fase);
+
+    return fase;
+  }
+
+  return null;
+}
+
+/**
+ * 🔄 SYNC — Atualiza DiaCiclo/Fase com base em DataInicio
+ * - Usa cálculo oficial de fase
+ * - Retorna estado atualizado para o front
+ */
+function sync(id) {
+  const sh = _sheet(SHEET_ALUNAS);
+  if (!sh) return { status: "error", msg: "sheet_not_found" };
+
+  const idNorm = String(id || "").trim();
+  if (!idNorm) return { status: "error", msg: "missing_id" };
+
+  const vals = sh.getDataRange().getValues();
+  const header = vals[0] || [];
+  const idxDataInicio = _resolveHeaderIndex_(header, "DataInicio", 10);
+  const idxCicloDuracao = _resolveHeaderIndex_(header, "CicloDuracao", 9);
+  const idxFase = _resolveHeaderIndex_(header, "Fase", 13);
+  const idxDiaCiclo = _resolveHeaderIndex_(header, "DiaCiclo", 14);
+
+  for (let i = 1; i < vals.length; i++) {
+    if (String(vals[i][0]).trim() !== idNorm) continue;
+
+    const linha = i + 1;
+
+    const dataInicio = vals[i][idxDataInicio];
+    const cicloDuracao = Number(vals[i][idxCicloDuracao] || 28);
+    const dataInicioDate =
+      dataInicio instanceof Date ? dataInicio : new Date(dataInicio);
+    const hasDataInicio =
+      dataInicio instanceof Date && !isNaN(dataInicio.getTime());
+
+    const startBase = dataInicioDate;
+
+    if (!(startBase instanceof Date) || isNaN(startBase.getTime())) {
+      return { status: "error", msg: "invalid_data_inicio" };
+    }
+
+    const ciclo = calcularCicloReal({
+      startDate: startBase,
+      cicloDuracao,
+      faseSalva: vals[i][idxFase],
+      diaCicloSalvo: vals[i][idxDiaCiclo]
+    });
+
+    sh.getRange(linha, idxDiaCiclo + 1).setValue(ciclo.dia);
+
+    const faseAtual = fasePorDiaCiclo_(ciclo.dia);
+    sh.getRange(linha, idxFase + 1).setValue(faseAtual);
+
+    return {
+      status: "ok",
+      modo: "auto",
+      diaCiclo: ciclo.dia,
+      fase: faseAtual,
+      dataInicio: hasDataInicio ? dataInicio : startBase
+    };
+  }
+
+  return { status: "notfound", id: idNorm };
 }
