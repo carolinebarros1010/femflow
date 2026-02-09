@@ -1,27 +1,27 @@
 /* ======================================================
+/* ======================================================
  * 🌸 FEMFLOW — API CENTRAL (v2.8 Unificada, corrigida 2025)
  * ====================================================== */
 function doPost(e) {
 
-  // 🔒 Preflight — pode chegar sem postData
-  if (!e || !e.postData) {
-    console.log("⚠️ doPost sem postData");
-    return _json({});
-  }
-
-  // 📦 Parse do body
-  const data = parseBody_(e);
+  // 📦 Parse do body (robusto: JSON, form, fallback)
+  const data = parseBody_(e || {});
 
   // 🧪 DEBUG CONFIÁVEL (WebApp)
-  console.log("📥 ACTION:", data.action);
-  console.log("📥 perfilHormonal:", data.perfilHormonal);
-  console.log("📥 perfilInterno:", data.perfilInterno);
+  console.log("📥 RAW DATA:", JSON.stringify(data));
+  console.log("📥 ACTION (raw):", JSON.stringify(data.action));
 
   setAppContext_(data.app || data.modelo || data.produto);
 
-  const action = (data.action || "").toString().toLowerCase();
+  const action = String(data.action || "")
+    .trim()
+    .toLowerCase();
+
+  console.log("🧪 ACTION FINAL:", JSON.stringify(action));
+
   let resposta = { status: "ignored" };
 
+  // Legacy específico (mantido)
   if (!action && data.id && data.pse !== undefined) {
     return _json(legacyRegistrarPSE_(data));
   }
