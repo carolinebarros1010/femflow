@@ -329,7 +329,7 @@ function initFlowCenter() {
   const freeValido  = freeEnabled && freeUntil && freeUntil >= new Date();
   const freeEnfases = (freeAccess?.enfases || []).map(e => e.toLowerCase());
   const freeOkUI = Boolean(enfaseAtualUI) && freeValido && freeEnfases.includes(enfaseAtualUI);
-  const treinoAcessoOk = acessoAtivo || freeOkUI;
+  const treinoAcessoOk = personal || acessoAtivo || freeOkUI;
   const isCustomTreino = localStorage.getItem("femflow_custom_treino") === "true";
 
   /* ============================================================
