@@ -313,10 +313,12 @@ function initFlowCenter() {
   const enduranceSetupExists =
     (enduranceConfigRaw !== null && enduranceConfigRaw !== "") ||
     localStorage.getItem("femflow_endurance_setup_done") === "true";
+  const endurancePlanToken = String(perfil.novo_treino_endurance || "").trim();
+  const endurancePlanAvailable = Boolean(endurancePlanToken);
 
   // 🔥 regra canônica
   const personal = hasPersonal && modePersonal;
-  const enduranceEnabled = hasPersonal || Boolean(enduranceSetupExists);
+  const enduranceEnabled = hasPersonal || endurancePlanAvailable;
 
   const isApp    = produtoRaw === "acesso_app" || isTrial;
   const isFollow = produtoRaw.startsWith("followme_");
