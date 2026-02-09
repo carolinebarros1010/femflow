@@ -566,6 +566,7 @@ if (b.tipo === "treino" && Number(b.boxNum) >= 900) {
         reps: b.reps || "",
         tempo: b.tempo || "",
         distancia: b.distancia || "",
+        distancia_milhas: b.distancia_milhas || "",
         intervalo: Number(b.intervalo) || 60
       });
       continue;
@@ -612,6 +613,7 @@ if (b.tipo === "hiit") {
         series: b.series ?? b.serie ?? "",
         tempo: b.tempo ?? "",
         distancia: b.distancia ?? b.reps ?? "",
+        distancia_milhas: b.distancia_milhas ?? "",
         ritmo: b.ritmo ?? "",
         intervalo: Number(b.intervalo) || 0,
         duracao: Number(b.tempo) || 0
@@ -631,6 +633,7 @@ if (b.tipo === "hiit") {
         series: b.series ?? b.serie ?? "",
         tempo: b.tempo ?? "",
         distancia: b.distancia ?? b.reps ?? "",
+        distancia_milhas: b.distancia_milhas ?? "",
         ritmo: b.ritmo ?? "",
         intervalo: Number(b.intervalo) || 0,
         duracao: Number(b.tempo) || 0

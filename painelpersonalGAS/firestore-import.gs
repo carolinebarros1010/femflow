@@ -333,6 +333,7 @@ function importarAbaParaFirestore_(
     tempo: col("tempo"),
     zona: col("zona"),
     distancia: col("distancia"),
+    distancia_milhas: col("distancia_milhas"),
     intervalo: col("intervalo"),
     ritmo: col("ritmo"),
     semana: col("semana"),
@@ -537,6 +538,7 @@ function importarAbaParaFirestore_(
 
         tempo: { stringValue: String(r[idx.tempo] || "") },
         distancia: { stringValue: String(r[idx.distancia] || "") },
+        distancia_milhas: { stringValue: String(idx.distancia_milhas !== -1 ? (r[idx.distancia_milhas] || "") : "") },
         intervalo: { stringValue: String(r[idx.intervalo] || "") },
         ritmo: { stringValue: String(idx.ritmo !== -1 ? (r[idx.ritmo] || "") : "") },
         zona: { stringValue: String(idx.zona !== -1 ? (r[idx.zona] || "") : "") },

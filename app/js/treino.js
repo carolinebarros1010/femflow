@@ -914,6 +914,16 @@ const hasPersonal =
     return `${String(m).padStart(2, "0")}:${String(s).padStart(2, "0")}`;
   }
 
+  function escolherDistanciaPorIdioma(item) {
+    const lang = FEMFLOW.lang || "pt";
+    const distanciaBase = item?.distancia ?? "";
+    const distanciaMilhas = item?.distancia_milhas ?? "";
+    if (["en", "fr"].includes(lang)) {
+      return distanciaMilhas || distanciaBase;
+    }
+    return distanciaBase;
+  }
+
   function formatCardioTempo(valor) {
     if (valor === null || valor === undefined || valor === "") return "";
     const num = Number(valor);
@@ -926,7 +936,7 @@ const hasPersonal =
 
   function montarCardioInfo(c) {
     const serieValor = c.series;
-    const distanciaValor = c.distancia;
+    const distanciaValor = escolherDistanciaPorIdioma(c);
     const tempoValor = c.tempo || c.duracao;
     const intervaloValor = c.intervalo;
     const ritmoValor = c.ritmo;
@@ -1384,10 +1394,15 @@ function renderExercicio(ex) {
 
   const intervalo = Number(ex.intervalo) || 0;
 const totalSeries = Number(ex.series) || 1;
-  const distanciaValue = ex.distancia !== undefined && ex.distancia !== null
-    ? String(ex.distancia).trim()
+  const distanciaRaw = escolherDistanciaPorIdioma(ex);
+  const distanciaValue = distanciaRaw !== undefined && distanciaRaw !== null
+    ? String(distanciaRaw).trim()
     : "";
-  const distanciaText = distanciaValue ? `${distanciaValue} m` : "";
+  const distanciaText = distanciaValue
+    ? /[a-zA-Z]/.test(distanciaValue)
+      ? distanciaValue
+      : `${distanciaValue} m`
+    : "";
    const isRP = ex._isRestPause && ex._isUltimoDoCombo;
   const isIsometria = Boolean(ex._isometriaTempo || ex._serieCodigo === "I");
   const execTempoValue = ex.tempo || ex._isometriaTempo || "";
