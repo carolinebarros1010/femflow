@@ -533,7 +533,7 @@ function initFlowCenter() {
   const extraClose = document.getElementById("fecharExtra");
 
   const caminhosApi = FEMFLOW.treinoCaminhos;
-  const faseMetodoAtual = caminhosApi?.normalizarFaseMetodo?.(ciclo.fase) || ciclo.fase;
+  const faseMetodoAtual = caminhosApi?.normalizarFaseMetodo?.(ciclo.fase || localStorage.getItem("femflow_fase") || "follicular") || (ciclo.fase || localStorage.getItem("femflow_fase") || "follicular");
   const caminhoSelecionadoState = { caminho: null };
 
   const abrirModalComLock = (modalEl) => {
@@ -583,15 +583,15 @@ function initFlowCenter() {
 
     const { ultimo, ultimoCaminho, sugerido } = obterSugestaoCaminho();
     if (modalCaminhosUltimo) {
-      modalCaminhosUltimo.textContent = t("flowcenter.caminhosUltimoTreino", {
-        caminho: ultimo?.caminho || 1
-      });
+      modalCaminhosUltimo.textContent = ultimo
+        ? `Seu último treino foi Caminho ${ultimo.caminho}`
+        : "Seu último treino foi Caminho 1";
     }
     if (modalCaminhosSugerido) {
-      modalCaminhosSugerido.textContent = t("flowcenter.caminhosSugerido", { caminho: sugerido });
+      modalCaminhosSugerido.textContent = `Sugerimos Caminho ${sugerido}`;
     }
     if (modalCaminhosFase) {
-      modalCaminhosFase.textContent = t("flowcenter.caminhosFase", { fase: getFaseLabelAtual() });
+      modalCaminhosFase.textContent = `Fase ${getFaseLabelAtual()}`;
     }
 
     modalCaminhosBotoes.innerHTML = "";
@@ -599,7 +599,7 @@ function initFlowCenter() {
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = `caminho-btn${caminho === sugerido ? " is-sugerido" : ""}`;
-      btn.textContent = t("flowcenter.caminhosLabel", { caminho });
+      btn.textContent = `Caminho ${caminho}`;
       btn.addEventListener("click", () => {
         void abrirModalPreviewCaminho(caminho);
       });
@@ -618,15 +618,12 @@ function initFlowCenter() {
     const contexto = caminhosApi.resolverContextoDeBusca(faseMetodoAtual, caminhoSelecionadoState.caminho);
 
     if (!contexto?.diaUsado || !contexto?.faseFirestore) {
-      FEMFLOW.toast(t("flowcenter.caminhosErroCarregar"));
+      FEMFLOW.toast("Não foi possível carregar esse caminho agora.");
       return;
     }
 
     if (modalCaminhosPreviewTitulo) {
-      modalCaminhosPreviewTitulo.textContent = t("flowcenter.caminhosPreviewTitulo", {
-        caminho: caminhoSelecionadoState.caminho,
-        fase: getFaseLabelAtual()
-      });
+      modalCaminhosPreviewTitulo.textContent = `Caminho ${caminhoSelecionadoState.caminho} — Fase ${getFaseLabelAtual()}`;
     }
 
     modalCaminhosPreviewLista.innerHTML = "";
@@ -634,7 +631,18 @@ function initFlowCenter() {
     const nivel = perfil.nivel || localStorage.getItem("femflow_nivel");
     const enfase = localStorage.getItem("femflow_enfase") || "";
 
-    const nomes = await FEMFLOW.engineTreino.listarExerciciosDia({
+    const previewFn = FEMFLOW.engineTreino?.listarExerciciosDia;
+    if (typeof previewFn !== "function") {
+      console.warn("[flowcenter] engineTreino.listarExerciciosDia indisponível; prévia ficará vazia.");
+      const li = document.createElement("li");
+      li.textContent = "Prévia indisponível agora.";
+      modalCaminhosPreviewLista.appendChild(li);
+      fecharModalComUnlock(modalCaminhosEscolha);
+      abrirModalComLock(modalCaminhosPreview);
+      return;
+    }
+
+    const nomes = await previewFn({
       id: localStorage.getItem("femflow_id") || "",
       nivel,
       enfase,
@@ -645,7 +653,7 @@ function initFlowCenter() {
 
     if (!nomes.length) {
       const li = document.createElement("li");
-      li.textContent = t("flowcenter.caminhosNenhumExercicio");
+      li.textContent = "Nenhum exercício encontrado para este caminho.";
       modalCaminhosPreviewLista.appendChild(li);
     } else {
       nomes.forEach((nome) => {
