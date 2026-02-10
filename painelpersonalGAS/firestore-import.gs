@@ -200,11 +200,20 @@ function importarTreinosFEMFLOW(opts = {}) {
     // ------------------------------------------------------------
     // 2) DETECTAR ABA NORMAL
     // ------------------------------------------------------------
-    else if (nomeAba !== "Iniciante" && nomeAba !== "Intermediaria" && nomeAba !== "Avancada" && nomeAba !== "Extra") {
-      Logger.log("⏭ Ignorando aba não reconhecida: " + nomeAba);
-      return;
-    } else if (nomeAba === "Extra") {
-      isExtra = true;
+    else {
+      const nomeAbaLower = nomeAba.toLowerCase();
+      const isAbaNivelPadrao = ["iniciante", "intermediaria", "avancada"].includes(nomeAbaLower);
+      const isAbaExtra = nomeAbaLower === "extra";
+      const isAbaEndurancePublic = nomeAbaLower === "endurancepublic";
+
+      if (!isAbaNivelPadrao && !isAbaExtra && !isAbaEndurancePublic) {
+        Logger.log("⏭ Ignorando aba não reconhecida: " + nomeAba);
+        return;
+      }
+
+      if (isAbaExtra) {
+        isExtra = true;
+      }
     }
 
     Logger.log("📄 Processando aba: " + nomeAba);
