@@ -943,19 +943,19 @@ async function selecionarEnfase(enfase) {
   localStorage.setItem("femflow_dia_treino", "1");
 
   if (id) {
-    // 3) backend: salvar ênfase
-    await fetch(FEMFLOW.SCRIPT_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        action: "setenfase",
-        id,
-        enfase
-      })
-    });
+    // 3) backend: salvar ênfase + resetar DiaPrograma em paralelo
+    const [syncEnfase, syncDiaPrograma] = await Promise.allSettled([
+      FEMFLOW.post({ action: "setenfase", id, enfase }),
+      FEMFLOW.reiniciarDiaPrograma()
+    ]);
 
-    // 4) backend: resetar somente o DiaPrograma
-    await FEMFLOW.reiniciarDiaPrograma();
+    if (syncEnfase.status === "rejected") {
+      console.warn("⚠️ Falhou ao salvar nova ênfase:", syncEnfase.reason);
+    }
+
+    if (syncDiaPrograma.status === "rejected") {
+      console.warn("⚠️ Falhou ao reiniciar DiaPrograma:", syncDiaPrograma.reason);
+    }
   }
 
   // 5) seguir fluxo normal
@@ -971,14 +971,21 @@ async function selecionarCoach(coach) {
   localStorage.setItem("femflow_mode_personal", "false");
   localStorage.setItem("femflow_enfase", coach);
   localStorage.setItem("femflow_dia_treino", "1");
+  localStorage.setItem("femflow_diaPrograma", "1");
 
   if (id) {
-    await fetch(FEMFLOW.SCRIPT_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ action: "setenfase", id, enfase: coach })
-    });
-    await FEMFLOW.reiniciarDiaPrograma();
+    const [syncCoach, syncDiaPrograma] = await Promise.allSettled([
+      FEMFLOW.post({ action: "setenfase", id, enfase: coach }),
+      FEMFLOW.reiniciarDiaPrograma()
+    ]);
+
+    if (syncCoach.status === "rejected") {
+      console.warn("⚠️ Falhou ao salvar coach:", syncCoach.reason);
+    }
+
+    if (syncDiaPrograma.status === "rejected") {
+      console.warn("⚠️ Falhou ao reiniciar DiaPrograma:", syncDiaPrograma.reason);
+    }
   }
 
   FEMFLOW.router("flowcenter");
