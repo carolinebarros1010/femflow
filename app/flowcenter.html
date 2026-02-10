@@ -216,6 +216,32 @@
   </div>
 </div>
 
+<!-- MODAL CAMINHOS — ESCOLHA -->
+<div id="modalCaminhosEscolha" class="modal-caminhos oculto" aria-hidden="true">
+  <div class="modal-caminhos-box" role="dialog" aria-modal="true">
+    <h3 id="modalCaminhosEscolhaTitulo">Escolha seu caminho</h3>
+    <p id="modalCaminhosUltimo" class="modal-caminhos-texto">Seu último treino foi Caminho 1</p>
+    <p id="modalCaminhosSugerido" class="modal-caminhos-texto destaque">Sugerimos Caminho 2</p>
+    <p id="modalCaminhosFase" class="modal-caminhos-texto">Fase Follicular</p>
+    <div id="modalCaminhosBotoes" class="modal-caminhos-grid"></div>
+    <div class="modal-caminhos-actions">
+      <button type="button" id="modalCaminhosFechar" class="endurance-btn ghost">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CAMINHOS — PRÉVIA -->
+<div id="modalCaminhosPreview" class="modal-caminhos oculto" aria-hidden="true">
+  <div class="modal-caminhos-box" role="dialog" aria-modal="true">
+    <h3 id="modalCaminhosPreviewTitulo">Caminho 1 — Fase Follicular</h3>
+    <ul id="modalCaminhosPreviewLista" class="modal-caminhos-lista"></ul>
+    <div class="modal-caminhos-actions">
+      <button type="button" id="modalCaminhosMudar" class="endurance-btn ghost">Mudar</button>
+      <button type="button" id="modalCaminhosIniciar" class="endurance-btn">Iniciar treino</button>
+    </div>
+  </div>
+</div>
+
 
 <div id="ff-loading" class="ff-loading">
   <div class="ff-loading-box">
@@ -242,6 +268,7 @@
 <script src="js/lang.js"></script>
 <script src="core/femflow-core.js"></script>
 <script src="js/treino-engine.js"></script>
+<script src="js/treino-caminhos.js"></script>
 <script src="js/flowcenter.js"></script>
 
   <script src="/app/js/env.js"></script>

@@ -62,7 +62,9 @@ document.addEventListener("DOMContentLoaded", () => {
     .trim()
     .split("?")[0]
     .replace(/\.html.*$/, "");
-  const enduranceParam = new URLSearchParams(window.location.search).get("endurance");
+  const urlParams = new URLSearchParams(window.location.search);
+  const caminhoParam = Number(urlParams.get("caminho") || 0);
+  const enduranceParam = urlParams.get("endurance");
   const enduranceParamActive = enduranceParam === "1";
   const isCustomTreino =
     localStorage.getItem("femflow_custom_treino") === "true";
@@ -85,6 +87,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let enduranceAtivo = enduranceParamActive;
   let enduranceConfig = null;
   let personalFinal = isPersonal;
+  let contextoCaminhoSelecionado = null;
 
   const normalizeEnduranceEnfase = (value) =>
     String(value || "")
@@ -800,8 +803,32 @@ const hasPersonal =
       localStorage.removeItem("femflow_treino_extra");
     }
 
-    const fase     = perfil.fase;
-    const diaCiclo = perfil.diaCiclo;
+    const faseMetodoPerfil = String(perfil.fase || localStorage.getItem("femflow_fase") || "follicular");
+    const fase = faseMetodoPerfil;
+    const diaCiclo = Number(perfil.diaCiclo || localStorage.getItem("femflow_diaCiclo") || 1);
+    const caminhosApi = FEMFLOW.treinoCaminhos;
+    const caminhoValido = Number.isFinite(caminhoParam) && caminhoParam >= 1 && caminhoParam <= 5;
+    contextoCaminhoSelecionado = null;
+
+    if (caminhoValido && caminhosApi) {
+      const faseMetodo = caminhosApi.normalizarFaseMetodo(faseMetodoPerfil);
+      const ctx = caminhosApi.resolverContextoDeBusca(faseMetodo, caminhoParam);
+      if (ctx?.diaUsado && ctx?.faseFirestore) {
+        contextoCaminhoSelecionado = {
+          caminho: caminhoParam,
+          faseMetodo,
+          diaUsado: ctx.diaUsado,
+          faseFirestore: ctx.faseFirestore
+        };
+        console.log("[treino.js] contexto do caminho aplicado", contextoCaminhoSelecionado);
+      } else {
+        console.warn("[treino.js] caminho inválido para contexto atual; fallback padrão", {
+          caminhoParam,
+          faseMetodo
+        });
+      }
+    }
+
     const isExtraTreino = !isCustomTreino && FEMFLOW.engineTreino?.isExtraEnfase?.(enfaseFinal);
     treinoExtraAtivo = Boolean(extraSessaoAtiva);
     if (!extraSessaoAtiva && isExtraTreino) {
@@ -867,7 +894,11 @@ const hasPersonal =
       FEMFLOW.diaProgramaAtual = diaPrograma;
 
       if (tituloDia) {
-        tituloDia.textContent = t("treino.diaProgramaLabel", { dia: diaPrograma });
+        if (contextoCaminhoSelecionado) {
+          tituloDia.textContent = `Caminho ${contextoCaminhoSelecionado.caminho} • Dia ${contextoCaminhoSelecionado.diaUsado}`;
+        } else {
+          tituloDia.textContent = t("treino.diaProgramaLabel", { dia: diaPrograma });
+        }
       }
     }
 
@@ -889,8 +920,8 @@ const hasPersonal =
             id,
             nivel,
             enfase: enfaseFinal,
-            fase,
-            diaCiclo,
+            fase: contextoCaminhoSelecionado?.faseFirestore || fase,
+            diaCiclo: contextoCaminhoSelecionado?.diaUsado || diaCiclo,
             personal: personalFinal && !isExtraTreino
           });
 
@@ -902,6 +933,13 @@ const hasPersonal =
 
     localStorage.setItem("femflow_fase", fase);
     localStorage.setItem("femflow_diaCiclo", diaCiclo);
+
+    if (contextoCaminhoSelecionado && caminhosApi) {
+      caminhosApi.salvarUltimoCaminho({
+        faseMetodo: contextoCaminhoSelecionado.faseMetodo,
+        caminho: contextoCaminhoSelecionado.caminho
+      });
+    }
   });
 
   /* ============================================================
