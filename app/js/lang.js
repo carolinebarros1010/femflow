@@ -449,7 +449,19 @@ home: {
   treinoExtraPeito: "Peito",
   treinoExtraCostas: "Costas",
   treinoExtraGluteo: "Glúteo",
-  treinoExtraFechar: "Fechar"
+  treinoExtraFechar: "Fechar",
+
+  caminhosEscolhaTitulo: "Escolha seu caminho",
+  caminhosUltimoTreino: "Seu último treino foi Caminho {caminho}",
+  caminhosSugerido: "Sugerimos Caminho {caminho}",
+  caminhosFase: "Fase {fase}",
+  caminhosLabel: "Caminho {caminho}",
+  caminhosErroCarregar: "Não foi possível carregar esse caminho agora.",
+  caminhosPreviewTitulo: "Caminho {caminho} — Fase {fase}",
+  caminhosNenhumExercicio: "Nenhum exercício encontrado para este caminho.",
+  caminhosFechar: "Fechar",
+  caminhosMudar: "Mudar",
+  caminhosIniciar: "Iniciar treino"
 }
 ,
 
@@ -802,7 +814,19 @@ home: {
   treinoExtraPeito: "Chest",
   treinoExtraCostas: "Back",
   treinoExtraGluteo: "Glutes",
-  treinoExtraFechar: "Close"
+  treinoExtraFechar: "Close",
+
+  caminhosEscolhaTitulo: "Choose your path",
+  caminhosUltimoTreino: "Your last workout was Path {caminho}",
+  caminhosSugerido: "We suggest Path {caminho}",
+  caminhosFase: "Phase {fase}",
+  caminhosLabel: "Path {caminho}",
+  caminhosErroCarregar: "Could not load this path right now.",
+  caminhosPreviewTitulo: "Path {caminho} — Phase {fase}",
+  caminhosNenhumExercicio: "No exercises found for this path.",
+  caminhosFechar: "Close",
+  caminhosMudar: "Change",
+  caminhosIniciar: "Start workout"
 },
 
   ciclo: {
@@ -1155,7 +1179,19 @@ fr: {
   treinoExtraPeito: "Poitrine",
   treinoExtraCostas: "Dos",
   treinoExtraGluteo: "Fessiers",
-  treinoExtraFechar: "Fermer"
+  treinoExtraFechar: "Fermer",
+
+  caminhosEscolhaTitulo: "Choisissez votre parcours",
+  caminhosUltimoTreino: "Votre dernier entraînement était le Parcours {caminho}",
+  caminhosSugerido: "Nous suggérons le Parcours {caminho}",
+  caminhosFase: "Phase {fase}",
+  caminhosLabel: "Parcours {caminho}",
+  caminhosErroCarregar: "Impossible de charger ce parcours pour le moment.",
+  caminhosPreviewTitulo: "Parcours {caminho} — Phase {fase}",
+  caminhosNenhumExercicio: "Aucun exercice trouvé pour ce parcours.",
+  caminhosFechar: "Fermer",
+  caminhosMudar: "Changer",
+  caminhosIniciar: "Commencer l’entraînement"
 },
 
   ciclo: {
