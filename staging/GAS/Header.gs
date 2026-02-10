@@ -31,6 +31,7 @@ const HEADER_ALUNAS = [
   "DeviceId","SessionToken","SessionExpira",
   "DataInicioPrograma","UltimaAtividade", "FreeEnabled" , "FreeEnfases", "FreeUntil", "acesso_personal",
   "TreinosSemana","AusenciaAtiva","AusenciaInicio","DataNascimento","novo_treino_endurance"
+  ,"UltimoCaminho","UltimoCaminhoData"
 ];
 
 // índices (0-based) para leitura rápida
@@ -44,3 +45,5 @@ const COL_SESSION_TOKEN  = 23; // col 24
 const COL_SESSION_EXP    = 24; // col 25
 const COL_DATA_INICIO_PROGRAMA = 25; // col 26
 const COL_ULTIMA_ATIVIDADE     = 26; // col 27
+const COL_ULTIMO_CAMINHO       = 36; // col 37
+const COL_ULTIMO_CAMINHO_DATA  = 37; // col 38
