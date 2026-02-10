@@ -572,7 +572,9 @@ function initFlowCenter() {
     const ultimo = caminhosApi?.lerUltimoCaminho?.();
     const ultimoMesmoMetodo = ultimo && ultimo.faseMetodo === faseMetodoAtual ? ultimo : null;
     const ultimoCaminho = ultimoMesmoMetodo?.caminho || 1;
-    const sugerido = caminhosApi?.proximoCaminho?.(ultimoCaminho, 5) || 1;
+    const sugerido = ultimoMesmoMetodo
+      ? (caminhosApi?.proximoCaminho?.(ultimoCaminho, 5) || 1)
+      : 1;
     return { ultimo: ultimoMesmoMetodo, ultimoCaminho, sugerido };
   };
 
