@@ -464,6 +464,24 @@ function initFlowCenter() {
 
     const extraClose = document.getElementById("fecharExtra");
     if (extraClose) extraClose.textContent = L.treinoExtraFechar;
+
+    const modalCaminhosEscolhaTitulo = document.getElementById("modalCaminhosEscolhaTitulo");
+    const modalCaminhosFechar = document.getElementById("modalCaminhosFechar");
+    const modalCaminhosMudar = document.getElementById("modalCaminhosMudar");
+    const modalCaminhosIniciar = document.getElementById("modalCaminhosIniciar");
+
+    if (modalCaminhosEscolhaTitulo) {
+      modalCaminhosEscolhaTitulo.textContent = t("flowcenter.caminhosEscolhaTitulo");
+    }
+    if (modalCaminhosFechar) {
+      modalCaminhosFechar.textContent = t("flowcenter.caminhosFechar");
+    }
+    if (modalCaminhosMudar) {
+      modalCaminhosMudar.textContent = t("flowcenter.caminhosMudar");
+    }
+    if (modalCaminhosIniciar) {
+      modalCaminhosIniciar.textContent = t("flowcenter.caminhosIniciar");
+    }
   }
   aplicarIdioma();
   document.addEventListener("femflow:langChange", aplicarIdioma);
@@ -565,15 +583,15 @@ function initFlowCenter() {
 
     const { ultimo, ultimoCaminho, sugerido } = obterSugestaoCaminho();
     if (modalCaminhosUltimo) {
-      modalCaminhosUltimo.textContent = ultimo
-        ? `Seu último treino foi Caminho ${ultimo.caminho}`
-        : "Seu último treino foi Caminho 1";
+      modalCaminhosUltimo.textContent = t("flowcenter.caminhosUltimoTreino", {
+        caminho: ultimo?.caminho || 1
+      });
     }
     if (modalCaminhosSugerido) {
-      modalCaminhosSugerido.textContent = `Sugerimos Caminho ${sugerido}`;
+      modalCaminhosSugerido.textContent = t("flowcenter.caminhosSugerido", { caminho: sugerido });
     }
     if (modalCaminhosFase) {
-      modalCaminhosFase.textContent = `Fase ${getFaseLabelAtual()}`;
+      modalCaminhosFase.textContent = t("flowcenter.caminhosFase", { fase: getFaseLabelAtual() });
     }
 
     modalCaminhosBotoes.innerHTML = "";
@@ -581,7 +599,7 @@ function initFlowCenter() {
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = `caminho-btn${caminho === sugerido ? " is-sugerido" : ""}`;
-      btn.textContent = `Caminho ${caminho}`;
+      btn.textContent = t("flowcenter.caminhosLabel", { caminho });
       btn.addEventListener("click", () => {
         void abrirModalPreviewCaminho(caminho);
       });
@@ -600,12 +618,15 @@ function initFlowCenter() {
     const contexto = caminhosApi.resolverContextoDeBusca(faseMetodoAtual, caminhoSelecionadoState.caminho);
 
     if (!contexto?.diaUsado || !contexto?.faseFirestore) {
-      FEMFLOW.toast("Não foi possível carregar esse caminho agora.");
+      FEMFLOW.toast(t("flowcenter.caminhosErroCarregar"));
       return;
     }
 
     if (modalCaminhosPreviewTitulo) {
-      modalCaminhosPreviewTitulo.textContent = `Caminho ${caminhoSelecionadoState.caminho} — Fase ${getFaseLabelAtual()}`;
+      modalCaminhosPreviewTitulo.textContent = t("flowcenter.caminhosPreviewTitulo", {
+        caminho: caminhoSelecionadoState.caminho,
+        fase: getFaseLabelAtual()
+      });
     }
 
     modalCaminhosPreviewLista.innerHTML = "";
@@ -624,7 +645,7 @@ function initFlowCenter() {
 
     if (!nomes.length) {
       const li = document.createElement("li");
-      li.textContent = "Nenhum exercício encontrado para este caminho.";
+      li.textContent = t("flowcenter.caminhosNenhumExercicio");
       modalCaminhosPreviewLista.appendChild(li);
     } else {
       nomes.forEach((nome) => {
