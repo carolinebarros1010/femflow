@@ -464,6 +464,24 @@ function initFlowCenter() {
 
     const extraClose = document.getElementById("fecharExtra");
     if (extraClose) extraClose.textContent = L.treinoExtraFechar;
+
+    const modalCaminhosEscolhaTitulo = document.getElementById("modalCaminhosEscolhaTitulo");
+    const modalCaminhosFechar = document.getElementById("modalCaminhosFechar");
+    const modalCaminhosMudar = document.getElementById("modalCaminhosMudar");
+    const modalCaminhosIniciar = document.getElementById("modalCaminhosIniciar");
+
+    if (modalCaminhosEscolhaTitulo) {
+      modalCaminhosEscolhaTitulo.textContent = t("flowcenter.caminhosEscolhaTitulo");
+    }
+    if (modalCaminhosFechar) {
+      modalCaminhosFechar.textContent = t("flowcenter.caminhosFechar");
+    }
+    if (modalCaminhosMudar) {
+      modalCaminhosMudar.textContent = t("flowcenter.caminhosMudar");
+    }
+    if (modalCaminhosIniciar) {
+      modalCaminhosIniciar.textContent = t("flowcenter.caminhosIniciar");
+    }
   }
   aplicarIdioma();
   document.addEventListener("femflow:langChange", aplicarIdioma);

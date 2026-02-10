@@ -28,6 +28,26 @@
 
   "required": ["autor", "nivel", "enfase", "linhas"],
 
+  "x_runtime_api": {
+    "salvarTreino": {
+      "description": "Contrato de runtime para persistência do último caminho de treino no backend GAS.",
+      "request": {
+        "action": "salvarTreino",
+        "id": "FF-000000-AAAA",
+        "faseMetodo": "menstrual|folicular|ovulatoria|lutea",
+        "caminhoMetodo": "hormonal",
+        "caminhoNumero": 1
+      },
+      "rules": {
+        "caminhoNumero": "opcional por compatibilidade; quando informado deve ser inteiro entre 1 e 5"
+      },
+      "response_fields": ["fase", "diaCiclo", "diaPrograma", "caminhoMetodo", "caminhoNumero"]
+    },
+    "validarPerfil": {
+      "response_fields": ["ultimaFase", "ultimoCaminho", "ultimoCaminhoData", "diaCiclo"]
+    }
+  },
+
   "$defs": {
     "linhaTreino": {
       "type": "object",
