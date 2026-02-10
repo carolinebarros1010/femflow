@@ -685,11 +685,15 @@ FEMFLOW.engineTreino.montarTreinoFinal = async ({
 
 
   let blocosRaw = [];
+  // Regra canônica: o fluxo de fase/dia já vem resolvido antes.
+  // Aqui, o único ponto de decisão é o namespace de origem do treino.
   if (isExtra) {
     blocosRaw = await FEMFLOW.engineTreino.carregarBlocosExtras({ nivel, enfase });
   } else if (personal) {
+    console.log("[engineTreino] Origem selecionada: personal_trainings", { id, fase, diaCiclo });
     blocosRaw = await FEMFLOW.engineTreino.carregarBlocosPersonal({ id, fase, diaCiclo });
    } else {
+    console.log("[engineTreino] Origem selecionada: exercicios", { nivel, enfase, fase, diaCiclo });
     blocosRaw = await FEMFLOW.engineTreino.carregarBlocosNormais({
       nivel,
       enfase,
@@ -927,9 +931,12 @@ FEMFLOW.engineTreino.listarExerciciosDia = async ({
   }
 
   let blocosRaw = [];
+  // Mesmo fluxo para preview/lista: muda apenas a origem (personal_trainings vs exercicios).
   if (personal) {
+    console.log("[engineTreino] Lista por dia usando origem personal_trainings", { id, fase, diaCiclo });
     blocosRaw = await FEMFLOW.engineTreino.carregarBlocosPersonal({ id, fase, diaCiclo });
   } else {
+    console.log("[engineTreino] Lista por dia usando origem exercicios", { nivel, enfase, fase, diaCiclo });
     blocosRaw = await FEMFLOW.engineTreino.carregarBlocosNormais({
       nivel,
       enfase,

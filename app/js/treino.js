@@ -810,6 +810,11 @@ const hasPersonal =
     const caminhoValido = Number.isFinite(caminhoParam) && caminhoParam >= 1 && caminhoParam <= 5;
     contextoCaminhoSelecionado = null;
 
+    // Opção A (padrão): personal ignora a fase do método para busca de conteúdo.
+    // Opção B (futura): personal respeita a fase do método via flag explícita.
+    const personalHormonalAtivo =
+      localStorage.getItem("femflow_personal_hormonal") === "true";
+
     if (caminhoValido && caminhosApi) {
       const faseMetodo = caminhosApi.normalizarFaseMetodo(faseMetodoPerfil);
       const ctx = caminhosApi.resolverContextoDeBusca(faseMetodo, caminhoParam);
@@ -827,6 +832,20 @@ const hasPersonal =
           faseMetodo
         });
       }
+    }
+
+    const faseFirestoreFinal = contextoCaminhoSelecionado?.faseFirestore || fase;
+    const diaUsadoFinal = contextoCaminhoSelecionado?.diaUsado || diaCiclo;
+
+    if (personalFinal) {
+      console.log("[treino.js] Personal ativo: mesmo fluxo de Caminhos habilitado.", {
+        opcaoPadrao: "A",
+        personalHormonalAtivo,
+        faseMetodo: faseMetodoPerfil,
+        faseFirestoreFinal,
+        diaUsadoFinal,
+        caminho: contextoCaminhoSelecionado?.caminho || null
+      });
     }
 
     const isExtraTreino = !isCustomTreino && FEMFLOW.engineTreino?.isExtraEnfase?.(enfaseFinal);
@@ -920,8 +939,8 @@ const hasPersonal =
             id,
             nivel,
             enfase: enfaseFinal,
-            fase: contextoCaminhoSelecionado?.faseFirestore || fase,
-            diaCiclo: contextoCaminhoSelecionado?.diaUsado || diaCiclo,
+            fase: faseFirestoreFinal,
+            diaCiclo: diaUsadoFinal,
             personal: personalFinal && !isExtraTreino
           });
 
