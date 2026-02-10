@@ -86,6 +86,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let treinoSnapshotToScroll = null;
   let enduranceAtivo = enduranceParamActive;
   let enduranceConfig = null;
+  let endurancePublicAtivo = false;
   let personalFinal = isPersonal;
   let contextoCaminhoSelecionado = null;
 
@@ -116,29 +117,39 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const getEnduranceConfig = () => {
-    const lang = FEMFLOW.lang || "pt";
     const semanaRaw = localStorage.getItem("femflow_endurance_semana") || "1";
     const semana = normalizeEnduranceSemana(semanaRaw);
-    let dia = localStorage.getItem("femflow_endurance_dia") || "";
-    let enfase = "";
+    const configRaw = localStorage.getItem("femflow_endurance_config") || "{}";
+    let config = {};
     try {
-      const config = JSON.parse(localStorage.getItem("femflow_endurance_config") || "{}");
-      enfase = config.modalidade || "";
+      config = JSON.parse(configRaw);
     } catch (err) {
       console.warn("Config Endurance inválida:", err);
     }
-    if (!enfase) {
-      enfase = localStorage.getItem("femflow_endurance_modalidade") || "";
-    }
-    if (enfase) {
-      localStorage.setItem("femflow_endurance_modalidade", enfase);
-    }
-    if (!dia) {
-      dia = getEnduranceDiaLabel(lang);
-      localStorage.setItem("femflow_endurance_dia", dia);
+
+    const modalidade = String(
+      config.modalidade ||
+      localStorage.getItem("femflow_endurance_modalidade") ||
+      ""
+    ).trim();
+
+    const dia = String(localStorage.getItem("femflow_endurance_dia") || "").trim();
+    const estimulo = String(localStorage.getItem("femflow_endurance_estimulo") || "")
+      .toLowerCase()
+      .trim();
+
+    if (modalidade) {
+      localStorage.setItem("femflow_endurance_modalidade", modalidade);
     }
     localStorage.setItem("femflow_endurance_semana", String(semana));
-    return { semana, dia, enfase };
+
+    return {
+      semana,
+      dia,
+      enfase: modalidade,
+      modalidade,
+      estimulo
+    };
   };
 
   const getTreinoKey = ({ diaCiclo }) => {
@@ -859,7 +870,9 @@ const hasPersonal =
     const enduranceSetupExists =
       (enduranceConfigRaw !== null && enduranceConfigRaw !== "") ||
       enduranceSetupDone;
-    const enduranceAllowed = hasPersonalStorage || enduranceSetupExists;
+    const endurancePublicEnabled =
+      localStorage.getItem("femflow_endurance_public_enabled") === "true";
+    const enduranceAllowed = hasPersonalStorage || enduranceSetupExists || endurancePublicEnabled;
 
     if (!enduranceAllowed && enduranceAtivo) {
       enduranceAtivo = false;
@@ -867,6 +880,7 @@ const hasPersonal =
     }
     if (enduranceAtivo) {
       enduranceConfig = getEnduranceConfig();
+      endurancePublicAtivo = endurancePublicEnabled;
     }
 
     console.log("🧠 ÊNFASE RECEBIDA DO BACKEND:", perfil.enfase);
@@ -922,27 +936,47 @@ const hasPersonal =
     }
 
     /* ================= TREINO ================= */
-    const lista = enduranceAtivo
-      ? await FEMFLOW.engineTreino.montarTreinoEndurance({
+    let lista = [];
+    if (enduranceAtivo) {
+      if (endurancePublicAtivo) {
+        const modalidade = enduranceConfig?.modalidade || enduranceConfig?.enfase || "";
+        const semana = String(enduranceConfig?.semana || "").trim();
+        const estimulo = String(enduranceConfig?.estimulo || "").trim();
+
+        if (!modalidade || !semana || !estimulo) {
+          FEMFLOW.toast("Configuração Endurance incompleta. Revise semana e dia.");
+          return;
+        }
+
+        lista = await FEMFLOW.engineTreino.montarTreinoEndurancePublicByEstimulo({
+          modalidade,
+          semana,
+          estimulo
+        });
+      } else {
+        lista = await FEMFLOW.engineTreino.montarTreinoEndurance({
           id,
           semana: enduranceConfig?.semana,
           dia: enduranceConfig?.dia,
           enfase: enduranceConfig?.enfase
-        })
-      : isCustomTreino
-        ? await FEMFLOW.engineTreino.montarTreinoCustomizado({
-            id,
-            diaCiclo,
-            diaPrograma: FEMFLOW.diaProgramaAtual
-          })
-        : await FEMFLOW.engineTreino.montarTreinoFinal({
-            id,
-            nivel,
-            enfase: enfaseFinal,
-            fase: faseFirestoreFinal,
-            diaCiclo: diaUsadoFinal,
-            personal: personalFinal && !isExtraTreino
-          });
+        });
+      }
+    } else if (isCustomTreino) {
+      lista = await FEMFLOW.engineTreino.montarTreinoCustomizado({
+        id,
+        diaCiclo,
+        diaPrograma: FEMFLOW.diaProgramaAtual
+      });
+    } else {
+      lista = await FEMFLOW.engineTreino.montarTreinoFinal({
+        id,
+        nivel,
+        enfase: enfaseFinal,
+        fase: faseFirestoreFinal,
+        diaCiclo: diaUsadoFinal,
+        personal: personalFinal && !isExtraTreino
+      });
+    }
 
     renderTreino(lista);
 

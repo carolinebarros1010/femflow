@@ -671,6 +671,60 @@ const CARDS_PERSONAL_SIMBOLICOS = [
   }
 ];
 
+const CARDS_PLANILHAS_30_DIAS = [
+  {
+    enfase: "planilha_corrida_5k",
+    modalidade: "corrida_5k",
+    titulo: {
+      pt: "Corrida 5K",
+      en: "5K Running",
+      fr: "Course 5K"
+    },
+    desc: {
+      pt: "Planilha de 30 dias para evoluir no 5K",
+      en: "30-day plan to improve your 5K",
+      fr: "Plan de 30 jours pour progresser sur 5K"
+    },
+    color: "#f2c6b4",
+    locked: false,
+    simbolico: true
+  },
+  {
+    enfase: "planilha_corrida_10k",
+    modalidade: "corrida_10k",
+    titulo: {
+      pt: "Corrida 10K",
+      en: "10K Running",
+      fr: "Course 10K"
+    },
+    desc: {
+      pt: "Planilha de 30 dias para seu próximo 10K",
+      en: "30-day plan for your next 10K",
+      fr: "Plan de 30 jours pour votre prochain 10K"
+    },
+    color: "#eab8a8",
+    locked: false,
+    simbolico: true
+  },
+  {
+    enfase: "planilha_corrida_15k",
+    modalidade: "corrida_15k",
+    titulo: {
+      pt: "Corrida 15K",
+      en: "15K Running",
+      fr: "Course 15K"
+    },
+    desc: {
+      pt: "Planilha de 30 dias para resistência avançada",
+      en: "30-day plan for advanced endurance",
+      fr: "Plan de 30 jours pour endurance avancée"
+    },
+    color: "#ddb09f",
+    locked: false,
+    simbolico: true
+  }
+];
+
 const CARDS_FOLLOWME_SIMBOLICOS = [
   {
     enfase: "followme_livia_rapaci",
@@ -1006,6 +1060,15 @@ function confirmarCustomTreino() {
 =========================================================== */
 async function handleCardClick(enfase, locked) {
 
+  if (enfase.startsWith("planilha_corrida_")) {
+    const modalidade = enfase.replace("planilha_", "");
+    localStorage.setItem("femflow_endurance_public_enabled", "true");
+    localStorage.setItem("femflow_endurance_modalidade", modalidade);
+    FEMFLOW.toast("Configure sua planilha no Flow Center ✨");
+    FEMFLOW.router("flowcenter");
+    return;
+  }
+
   /* =========================================
      🔒 CARD BLOQUEADO (VITRINE COMERCIAL)
   ========================================= */
@@ -1201,6 +1264,7 @@ function aplicarIdiomaHome() {
   const tEsportes = document.getElementById("tituloEsportes");
   const tCasa = document.getElementById("tituloCasa");
   const tEbooks = document.getElementById("tituloEbooks");
+  const tPlanilhas30Dias = document.getElementById("tituloPlanilhas30Dias");
   const btnFlow = document.getElementById("btnFlow");
   const customTitle = document.getElementById("customTreinoTitle");
   const customSubtitle = document.getElementById("customTreinoSubtitle");
@@ -1221,6 +1285,7 @@ function aplicarIdiomaHome() {
   if (tEsportes) tEsportes.textContent = L.tituloEsportes;
   if (tCasa) tCasa.textContent = L.tituloCasa;
   if (tEbooks) tEbooks.textContent = L.tituloEbooks;
+  if (tPlanilhas30Dias) tPlanilhas30Dias.textContent = L.tituloPlanilhas30Dias || "Planilhas 30 Dias";
   if (btnFlow && L.botaoFlowcenter) btnFlow.textContent = L.botaoFlowcenter;
 
   if (L.customTreino) {
@@ -1427,6 +1492,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     renderRail(document.getElementById("railEsportes"), catalogo.esportes);
     renderRail(document.getElementById("railCasa"), catalogo.casa);
     renderRail(document.getElementById("railPersonal"), catalogo.personal);
+    renderRail(document.getElementById("railPlanilhas30Dias"), CARDS_PLANILHAS_30_DIAS);
     aplicarIdiomaHome();
 
     carregarEbooks().then((ebooks) => {
