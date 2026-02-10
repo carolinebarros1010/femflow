@@ -591,7 +591,9 @@ function initFlowCenter() {
       modalCaminhosSugerido.textContent = `Sugerimos Caminho ${sugerido}`;
     }
     if (modalCaminhosFase) {
-      modalCaminhosFase.textContent = `Fase ${getFaseLabelAtual()}`;
+      modalCaminhosFase.textContent = personal
+        ? `Plano Personal ativo • Fase ${getFaseLabelAtual()}`
+        : `Fase ${getFaseLabelAtual()}`;
     }
 
     modalCaminhosBotoes.innerHTML = "";
@@ -648,7 +650,7 @@ function initFlowCenter() {
       enfase,
       fase: contexto.faseFirestore,
       diaCiclo: contexto.diaUsado,
-      personal: false
+      personal
     });
 
     if (!nomes.length) {
@@ -983,9 +985,10 @@ function initFlowCenter() {
     localStorage.removeItem("femflow_treino_endurance");
     const enfase = localStorage.getItem("femflow_enfase");
 
-    /* 🧭 PRIORIDADE ABSOLUTA — MODO PERSONAL */
+    /* 🧭 MODO PERSONAL segue o mesmo fluxo de Caminhos */
     if (personal) {
-      return FEMFLOW.router("treino.html");
+      console.log("[flowcenter] Personal ativo: abrindo fluxo de Caminhos padrão.");
+      return abrirModalEscolhaCaminho();
     }
 
     if (!enfase) {
