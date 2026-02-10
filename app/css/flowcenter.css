@@ -434,6 +434,102 @@ h1 {
   box-shadow: inset 0 0 0 1px rgba(204, 106, 90, 0.12);
 }
 
+/* ==========================================================
+   MODAIS CAMINHOS (FLOWCENTER)
+========================================================== */
+.modal-caminhos {
+  position: fixed;
+  inset: 0;
+  z-index: 99997;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+  background: rgba(0, 0, 0, 0.5);
+}
+
+.modal-caminhos-box {
+  width: min(92%, 420px);
+  background: #fff7f2;
+  border-radius: 22px;
+  padding: 22px;
+  box-shadow: 0 18px 32px rgba(0, 0, 0, 0.2);
+  font-family: "Lato", sans-serif;
+  animation: fadeIn .18s ease-out;
+}
+
+.modal-caminhos-box h3 {
+  margin: 0 0 10px;
+  text-align: center;
+  color: var(--terracota);
+  font-family: "Playfair Display", serif;
+  font-size: 1.15rem;
+}
+
+.modal-caminhos-texto {
+  margin: 6px 0;
+  text-align: center;
+  color: #6f5f5a;
+  font-size: 0.95rem;
+}
+
+.modal-caminhos-texto.destaque {
+  color: #3f6a62;
+  font-weight: 700;
+}
+
+.modal-caminhos-grid {
+  margin-top: 14px;
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.modal-caminhos-grid .caminho-btn:last-child:nth-child(odd) {
+  grid-column: 1 / -1;
+}
+
+.caminho-btn {
+  border: 1px solid rgba(204,106,90,0.25);
+  background: #fff;
+  color: var(--terracota);
+  border-radius: 14px;
+  padding: 10px 12px;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.caminho-btn.is-sugerido {
+  border-color: #3f6a62;
+  color: #3f6a62;
+  box-shadow: inset 0 0 0 1px rgba(63, 106, 98, 0.2);
+}
+
+.modal-caminhos-lista {
+  list-style: none;
+  margin: 12px 0 0;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+  max-height: 40vh;
+  overflow: auto;
+}
+
+.modal-caminhos-lista li {
+  background: #fff;
+  border-radius: 10px;
+  padding: 9px 12px;
+  color: #4a4a4a;
+  box-shadow: inset 0 0 0 1px rgba(204,106,90,0.14);
+}
+
+.modal-caminhos-actions {
+  margin-top: 14px;
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
 .modal-extra-box h2 {
   margin-top: 0;
   font-family: "Playfair Display", serif;
@@ -599,7 +695,8 @@ body.personal-mode #tituloApp::after {
 .oculto { display: none !important; }
 .modal-endurance.oculto,
 .modal-extra.oculto,
-.modal-nivel.oculto { display: none !important; }
+.modal-nivel.oculto,
+.modal-caminhos.oculto { display: none !important; }
 
 /* e reforça o overlay (caso algum CSS tenha mudado) */
 .modal-endurance,
