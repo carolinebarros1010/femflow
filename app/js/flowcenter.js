@@ -265,7 +265,8 @@ function initFlowCenter() {
       "femflow_endurance_setup_done",
       "femflow_treino_endurance",
       "femflow_endurance_public_enabled",
-      "femflow_endurance_estimulo"
+      "femflow_endurance_estimulo",
+      "femflow_endurance_public_intent"
     ].forEach((key) => localStorage.removeItem(key));
   };
 
@@ -320,8 +321,9 @@ function initFlowCenter() {
 
   // 🔥 regra canônica
   const personal = hasPersonal && modePersonal;
+  const endurancePublicIntent = localStorage.getItem("femflow_endurance_public_intent") === "true";
   const endurancePublicEnabled = localStorage.getItem("femflow_endurance_public_enabled") === "true";
-  const enduranceEnabled = hasPersonal || endurancePlanAvailable || endurancePublicEnabled;
+  const enduranceEnabled = hasPersonal || endurancePlanAvailable || endurancePublicEnabled || endurancePublicIntent;
 
   const isApp    = produtoRaw === "acesso_app" || isTrial;
   const isFollow = produtoRaw.startsWith("followme_");
@@ -872,7 +874,8 @@ function initFlowCenter() {
 
     localStorage.setItem("femflow_endurance_config", JSON.stringify(config));
     localStorage.setItem("femflow_endurance_setup_done", "true");
-    localStorage.setItem("femflow_endurance_public_enabled", "true");
+    const usarModoPublico = endurancePublicIntent || !hasPersonal;
+    localStorage.setItem("femflow_endurance_public_enabled", usarModoPublico ? "true" : "false");
     localStorage.setItem("femflow_endurance_modalidade", modalidade);
     localStorage.setItem("femflow_endurance_dia", diasSemana[0]);
     localStorage.setItem("femflow_endurance_estimulo", getEstimulosAtivos(treinosSemana)[0] || "volume");
@@ -1261,14 +1264,15 @@ function initFlowCenter() {
       localStorage.setItem("femflow_endurance_semana", String(semana));
       localStorage.setItem("femflow_endurance_dia", String(dia));
       localStorage.setItem("femflow_endurance_estimulo", String(estimuloSelecionado));
-      localStorage.setItem("femflow_endurance_public_enabled", "true");
+      const usarModoPublico = endurancePublicIntent || !hasPersonal;
+      localStorage.setItem("femflow_endurance_public_enabled", usarModoPublico ? "true" : "false");
       fecharModalEnduranceSelecao();
       FEMFLOW.router("treino.html?endurance=1");
     });
   }
 
   enduranceBtn.onclick = async () => {
-    if (!enduranceEnabled && !localStorage.getItem("femflow_endurance_public_enabled")) {
+    if (!enduranceEnabled) {
       FEMFLOW.toast("Endurance indisponível no momento.");
       return;
     }
@@ -1279,6 +1283,10 @@ function initFlowCenter() {
       const hasConfig = configRaw !== null && configRaw !== "";
       const endurancePendente =
         localStorage.getItem("femflow_endurance_pending") === "true";
+
+      const usarModoPublico = endurancePublicIntent || !hasPersonal;
+      localStorage.setItem("femflow_endurance_public_enabled", usarModoPublico ? "true" : "false");
+
       if (!setupDone && !hasConfig) {
         abrirModalEndurance();
         return;

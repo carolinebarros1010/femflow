@@ -1062,12 +1062,15 @@ async function handleCardClick(enfase, locked) {
 
   if (enfase.startsWith("planilha_corrida_")) {
     const modalidade = enfase.replace("planilha_", "");
+    localStorage.setItem("femflow_endurance_public_intent", "true");
     localStorage.setItem("femflow_endurance_public_enabled", "true");
     localStorage.setItem("femflow_endurance_modalidade", modalidade);
     FEMFLOW.toast("Configure sua planilha no Flow Center ✨");
     FEMFLOW.router("flowcenter");
     return;
   }
+
+  localStorage.removeItem("femflow_endurance_public_intent");
 
   /* =========================================
      🔒 CARD BLOQUEADO (VITRINE COMERCIAL)

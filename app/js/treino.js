@@ -872,7 +872,11 @@ const hasPersonal =
       enduranceSetupDone;
     const endurancePublicEnabled =
       localStorage.getItem("femflow_endurance_public_enabled") === "true";
-    const enduranceAllowed = hasPersonalStorage || enduranceSetupExists || endurancePublicEnabled;
+    const endurancePublicIntent =
+      localStorage.getItem("femflow_endurance_public_intent") === "true";
+    const endurancePublicAtivoContexto =
+      endurancePublicEnabled && (endurancePublicIntent || !hasPersonalStorage);
+    const enduranceAllowed = hasPersonalStorage || enduranceSetupExists || endurancePublicAtivoContexto;
 
     if (!enduranceAllowed && enduranceAtivo) {
       enduranceAtivo = false;
@@ -880,7 +884,7 @@ const hasPersonal =
     }
     if (enduranceAtivo) {
       enduranceConfig = getEnduranceConfig();
-      endurancePublicAtivo = endurancePublicEnabled;
+      endurancePublicAtivo = endurancePublicAtivoContexto;
     }
 
     console.log("🧠 ÊNFASE RECEBIDA DO BACKEND:", perfil.enfase);
