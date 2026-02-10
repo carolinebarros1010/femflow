@@ -68,6 +68,16 @@ function _sheet(name) {
   return SpreadsheetApp.getActive().getSheetByName(resolveSheetName_(name));
 }
 
+function _norm(value) {
+  return String(value == null ? "" : value)
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLowerCase()
+    .trim()
+    .replace(/[^a-z0-9]+/g, "_")
+    .replace(/^_+|_+$/g, "");
+}
+
 /**
  * Garante que a aba existe e tem o cabeçalho correto
  * ✅ Atualiza a linha 1 (não insere nova linha)
