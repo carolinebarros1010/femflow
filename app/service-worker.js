@@ -1,5 +1,5 @@
 // 🌸 FemFlow Service Worker v5.0 (PWA + CORS safe)
-const CACHE_NAME = "femflow-cache-v9";
+const CACHE_NAME = "femflow-cache-v10";
 
 // --------------------------------------------------
 // 🔔 Firebase Cloud Messaging (background)
@@ -274,17 +274,23 @@ self.addEventListener("fetch", (event) => {
   // Não intercepta chamadas externas (Google Script, Firebase, Hotmart)
   if (url.origin !== self.location.origin) return;
 
+  // Evita cachear endpoints dinâmicos/sensíveis
+  if (url.pathname.endsWith("/proxy.php") || url.pathname.endsWith("/config.js")) return;
+
+  const isNavigation = req.mode === "navigate";
+  const noStore = req.cache === "no-store";
+
   // Estratégia cache-first
   event.respondWith(
     (async () => {
       const cache = await caches.open(CACHE_NAME);
-      const cached = await cache.match(req);
+      const cached = noStore ? null : await cache.match(req);
 
       if (cached) {
         // atualiza silenciosamente
         fetch(req)
           .then((resp) => {
-            if (resp && resp.ok) cache.put(req, resp.clone());
+            if (resp && resp.ok && !noStore) cache.put(req, resp.clone());
           })
           .catch(() => {});
 
@@ -294,11 +300,12 @@ self.addEventListener("fetch", (event) => {
       // busca na rede
       try {
         const resp = await fetch(req);
-        if (resp && resp.ok) cache.put(req, resp.clone());
+        if (resp && resp.ok && !noStore) cache.put(req, resp.clone());
         return resp;
       } catch (err) {
         console.warn("[SW] Erro de rede:", err);
-        return caches.match("./offline.html");
+        if (isNavigation) return caches.match("./offline.html");
+        return new Response("", { status: 503, statusText: "Offline" });
       }
     })()
   );
