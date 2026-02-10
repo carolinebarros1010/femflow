@@ -7,6 +7,16 @@ function salvarTreino_(data) {
   const pse         = Number(data.pse || 0);
   const treino      = String(data.treino || "");
   const diaPrograma = Number(data.diaPrograma || 1);
+  const faseMetodo  = String(data.faseMetodo || data.fase || "").trim().toLowerCase();
+  const caminhoMetodo = String(data.caminhoMetodo || "hormonal").trim().toLowerCase();
+
+  const caminhoRaw = data.caminhoNumero !== undefined && data.caminhoNumero !== null && String(data.caminhoNumero).trim() !== ""
+    ? data.caminhoNumero
+    : data.caminho;
+  const caminhoNumeroParsed = Number(caminhoRaw);
+  const caminhoNumero = Number.isInteger(caminhoNumeroParsed) && caminhoNumeroParsed >= 1 && caminhoNumeroParsed <= 5
+    ? caminhoNumeroParsed
+    : null;
 
   const deviceId = String(data.deviceId || "").trim();
   const sessionToken = String(data.sessionToken || "").trim();
@@ -43,6 +53,11 @@ function salvarTreino_(data) {
     faseAtual = String(rows[i][13] || "follicular").toLowerCase();
     diaCicloAtual = Number(rows[i][14] || 1);
 
+    if (caminhoNumero !== null) {
+      shA.getRange(i + 1, COL_ULTIMO_CAMINHO + 1).setValue(caminhoNumero);
+      shA.getRange(i + 1, COL_ULTIMO_CAMINHO_DATA + 1).setValue(agora);
+    }
+
     // ✅ Avança APENAS o dia do programa
     avancarDiaPrograma_(shA, i, "treino");
 
@@ -68,6 +83,9 @@ function salvarTreino_(data) {
     status: "ok",
     salvo: true,
     fase: faseAtual,
+    faseMetodo,
+    caminhoMetodo,
+    caminhoNumero,
     diaCiclo: diaCicloAtual,
     diaPrograma: diaPrograma + 1
   };
