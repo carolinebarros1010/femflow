@@ -424,7 +424,7 @@ function initFlowCenter() {
     const extraLabel = !isCustomTreino && treinoAcessoOk ? "✨" : "🔒";
     document.getElementById("toTrain").textContent     = `${treinoLabel} ${L.treino}`;
     document.getElementById("toExtraTrain").textContent = `${extraLabel} ${L.treinoExtra}`;
-    const customBtn = document.getElementById("toCustomTrain");
+  const customBtn = document.getElementById("toCustomTrain");
     if (customBtn) {
       customBtn.textContent = `${customLabel} ${L.treinoCustom}`;
     }
@@ -500,11 +500,142 @@ function initFlowCenter() {
   const modalEnduranceDia = document.getElementById("enduranceDia");
   const modalEnduranceSelecaoCancelar = document.getElementById("enduranceSelecaoCancelar");
   const modalEnduranceSelecaoContinuar = document.getElementById("enduranceSelecaoContinuar");
+  const modalCaminhosEscolha = document.getElementById("modalCaminhosEscolha");
+  const modalCaminhosPreview = document.getElementById("modalCaminhosPreview");
+  const modalCaminhosUltimo = document.getElementById("modalCaminhosUltimo");
+  const modalCaminhosSugerido = document.getElementById("modalCaminhosSugerido");
+  const modalCaminhosFase = document.getElementById("modalCaminhosFase");
+  const modalCaminhosBotoes = document.getElementById("modalCaminhosBotoes");
+  const modalCaminhosPreviewTitulo = document.getElementById("modalCaminhosPreviewTitulo");
+  const modalCaminhosPreviewLista = document.getElementById("modalCaminhosPreviewLista");
+  const modalCaminhosFechar = document.getElementById("modalCaminhosFechar");
+  const modalCaminhosMudar = document.getElementById("modalCaminhosMudar");
+  const modalCaminhosIniciar = document.getElementById("modalCaminhosIniciar");
   const extraBtn = document.getElementById("toExtraTrain");
   const extraClose = document.getElementById("fecharExtra");
 
+  const caminhosApi = FEMFLOW.treinoCaminhos;
+  const faseMetodoAtual = caminhosApi?.normalizarFaseMetodo?.(ciclo.fase) || ciclo.fase;
+  const caminhoSelecionadoState = { caminho: null };
+
+  const abrirModalComLock = (modalEl) => {
+    if (!modalEl) return;
+    modalEl.classList.remove("oculto");
+    modalEl.setAttribute("aria-hidden", "false");
+    document.body.style.overflow = "hidden";
+  };
+
+  const fecharModalComUnlock = (modalEl) => {
+    if (!modalEl) return;
+    modalEl.classList.add("oculto");
+    modalEl.setAttribute("aria-hidden", "true");
+    if (
+      modalExtra?.classList.contains("oculto") !== false &&
+      modalEndurance?.classList.contains("oculto") !== false &&
+      modalEnduranceSelecao?.classList.contains("oculto") !== false &&
+      modalCaminhosEscolha?.classList.contains("oculto") !== false &&
+      modalCaminhosPreview?.classList.contains("oculto") !== false
+    ) {
+      document.body.style.overflow = "";
+    }
+  };
+
   const fecharModalExtra = () => {
-    if (modalExtra) modalExtra.classList.add("oculto");
+    fecharModalComUnlock(modalExtra);
+  };
+
+  const getFaseLabelAtual = () => {
+    const lang = FEMFLOW.lang || "pt";
+    const L = FEMFLOW.langs?.[lang]?.flowcenter;
+    return L?.[faseMetodoAtual] || faseMetodoAtual;
+  };
+
+  const obterSugestaoCaminho = () => {
+    const ultimo = caminhosApi?.lerUltimoCaminho?.();
+    const ultimoMesmoMetodo = ultimo && ultimo.faseMetodo === faseMetodoAtual ? ultimo : null;
+    const ultimoCaminho = ultimoMesmoMetodo?.caminho || 1;
+    const sugerido = caminhosApi?.proximoCaminho?.(ultimoCaminho, 5) || 1;
+    return { ultimo: ultimoMesmoMetodo, ultimoCaminho, sugerido };
+  };
+
+  const abrirModalEscolhaCaminho = () => {
+    if (!caminhosApi || !modalCaminhosEscolha || !modalCaminhosBotoes) {
+      return FEMFLOW.router("treino.html");
+    }
+
+    const { ultimo, ultimoCaminho, sugerido } = obterSugestaoCaminho();
+    if (modalCaminhosUltimo) {
+      modalCaminhosUltimo.textContent = ultimo
+        ? `Seu último treino foi Caminho ${ultimo.caminho}`
+        : "Seu último treino foi Caminho 1";
+    }
+    if (modalCaminhosSugerido) {
+      modalCaminhosSugerido.textContent = `Sugerimos Caminho ${sugerido}`;
+    }
+    if (modalCaminhosFase) {
+      modalCaminhosFase.textContent = `Fase ${getFaseLabelAtual()}`;
+    }
+
+    modalCaminhosBotoes.innerHTML = "";
+    for (let caminho = 1; caminho <= 5; caminho += 1) {
+      const btn = document.createElement("button");
+      btn.type = "button";
+      btn.className = `caminho-btn${caminho === sugerido ? " is-sugerido" : ""}`;
+      btn.textContent = `Caminho ${caminho}`;
+      btn.addEventListener("click", () => {
+        void abrirModalPreviewCaminho(caminho);
+      });
+      modalCaminhosBotoes.appendChild(btn);
+    }
+
+    abrirModalComLock(modalCaminhosEscolha);
+  };
+
+  const abrirModalPreviewCaminho = async (caminho) => {
+    if (!caminhosApi || !modalCaminhosPreview || !modalCaminhosPreviewLista) {
+      return;
+    }
+
+    caminhoSelecionadoState.caminho = Number(caminho);
+    const contexto = caminhosApi.resolverContextoDeBusca(faseMetodoAtual, caminhoSelecionadoState.caminho);
+
+    if (!contexto?.diaUsado || !contexto?.faseFirestore) {
+      FEMFLOW.toast("Não foi possível carregar esse caminho agora.");
+      return;
+    }
+
+    if (modalCaminhosPreviewTitulo) {
+      modalCaminhosPreviewTitulo.textContent = `Caminho ${caminhoSelecionadoState.caminho} — Fase ${getFaseLabelAtual()}`;
+    }
+
+    modalCaminhosPreviewLista.innerHTML = "";
+
+    const nivel = perfil.nivel || localStorage.getItem("femflow_nivel");
+    const enfase = localStorage.getItem("femflow_enfase") || "";
+
+    const nomes = await FEMFLOW.engineTreino.listarExerciciosDia({
+      id: localStorage.getItem("femflow_id") || "",
+      nivel,
+      enfase,
+      fase: contexto.faseFirestore,
+      diaCiclo: contexto.diaUsado,
+      personal: false
+    });
+
+    if (!nomes.length) {
+      const li = document.createElement("li");
+      li.textContent = "Nenhum exercício encontrado para este caminho.";
+      modalCaminhosPreviewLista.appendChild(li);
+    } else {
+      nomes.forEach((nome) => {
+        const li = document.createElement("li");
+        li.textContent = nome;
+        modalCaminhosPreviewLista.appendChild(li);
+      });
+    }
+
+    fecharModalComUnlock(modalCaminhosEscolha);
+    abrirModalComLock(modalCaminhosPreview);
   };
 
   if (extraBtn) {
@@ -517,7 +648,7 @@ function initFlowCenter() {
         FEMFLOW.toast("Seu acesso expirou. Assine para continuar.");
         return FEMFLOW.openExternal(LINK_ACESSO_APP);
       }
-      modalExtra?.classList.remove("oculto");
+      abrirModalComLock(modalExtra);
     };
   }
 
@@ -532,17 +663,11 @@ function initFlowCenter() {
   }
 
   const abrirModalEndurance = () => {
-    if (!modalEndurance) return;
-    modalEndurance.classList.remove("oculto");
-    modalEndurance.setAttribute("aria-hidden", "false");
-    document.body.style.overflow = "hidden";
+    abrirModalComLock(modalEndurance);
   };
 
   const fecharModalEndurance = () => {
-    if (!modalEndurance) return;
-    modalEndurance.classList.add("oculto");
-    modalEndurance.setAttribute("aria-hidden", "true");
-    document.body.style.overflow = "";
+    fecharModalComUnlock(modalEndurance);
   };
 
   const abrirModalEnduranceSelecao = () => {
@@ -555,16 +680,11 @@ function initFlowCenter() {
       : dia;
     toggleChipSingle(modalEnduranceSemana, semana);
     toggleChipSingle(modalEnduranceDia, diaSelecionado);
-    modalEnduranceSelecao.classList.remove("oculto");
-    modalEnduranceSelecao.setAttribute("aria-hidden", "false");
-    document.body.style.overflow = "hidden";
+    abrirModalComLock(modalEnduranceSelecao);
   };
 
   const fecharModalEnduranceSelecao = () => {
-    if (!modalEnduranceSelecao) return;
-    modalEnduranceSelecao.classList.add("oculto");
-    modalEnduranceSelecao.setAttribute("aria-hidden", "true");
-    document.body.style.overflow = "";
+    fecharModalComUnlock(modalEnduranceSelecao);
   };
 
   const toggleChipSingle = (container, value) => {
@@ -860,7 +980,7 @@ function initFlowCenter() {
       if (enfase.startsWith("followme_")) {
         return FEMFLOW.router(`followme/${enfase}.html`);
       }
-      return FEMFLOW.router("treino.html");
+      return abrirModalEscolhaCaminho();
     }
 
     if (isFollow) {
@@ -877,12 +997,56 @@ function initFlowCenter() {
         FEMFLOW.toast("Programa especial com coach.");
         return FEMFLOW.router("home.html");
       }
-      return FEMFLOW.router("treino.html");
+      return abrirModalEscolhaCaminho();
     }
 
     FEMFLOW.toast("Escolha um plano 🌱");
     FEMFLOW.router("home.html");
   };
+
+  if (modalCaminhosFechar) {
+    modalCaminhosFechar.addEventListener("click", () => {
+      fecharModalComUnlock(modalCaminhosEscolha);
+    });
+  }
+
+  if (modalCaminhosMudar) {
+    modalCaminhosMudar.addEventListener("click", () => {
+      fecharModalComUnlock(modalCaminhosPreview);
+      abrirModalComLock(modalCaminhosEscolha);
+    });
+  }
+
+  if (modalCaminhosIniciar) {
+    modalCaminhosIniciar.addEventListener("click", () => {
+      const caminho = Number(caminhoSelecionadoState.caminho || 0);
+      if (!caminho) {
+        FEMFLOW.toast("Escolha um caminho para iniciar.");
+        return;
+      }
+      caminhosApi?.salvarUltimoCaminho?.({
+        faseMetodo: faseMetodoAtual,
+        caminho
+      });
+      FEMFLOW.router(`treino.html?caminho=${encodeURIComponent(caminho)}`);
+    });
+  }
+
+  if (modalCaminhosEscolha) {
+    modalCaminhosEscolha.addEventListener("click", (event) => {
+      if (event.target === modalCaminhosEscolha) {
+        fecharModalComUnlock(modalCaminhosEscolha);
+      }
+    });
+  }
+
+  if (modalCaminhosPreview) {
+    modalCaminhosPreview.addEventListener("click", (event) => {
+      if (event.target === modalCaminhosPreview) {
+        fecharModalComUnlock(modalCaminhosPreview);
+      }
+    });
+  }
 
   const customBtn = document.getElementById("toCustomTrain");
   if (customBtn) {
