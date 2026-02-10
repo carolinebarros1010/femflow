@@ -283,6 +283,7 @@ function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, pers
   const vals = valsAll.slice(1);
 
   const col = (name) => header.indexOf(name);
+  const colAlias = (...aliases) => getColIndexByAliases_(header, aliases);
 
   const idx = {
     id: col("id"), // opcional
@@ -309,9 +310,11 @@ function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, pers
     reps: col("reps"),
     especial: col("especial"),
     tempo: col("tempo"),
-    distancia: col("distancia"),
+    distancia: colAlias("distancia", "distancia_milhas"),
+    distancia_milhas: colAlias("distancia_milhas", "distancia"),
     intervalo: col("intervalo"),
     ritmo: col("ritmo"),
+    zona_treino: colAlias("zona_treino", "zona de treino", "zona treino"),
     semana: col("semana"),
     dias: col("dias"),
 
@@ -490,6 +493,8 @@ function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, pers
         distancia: { stringValue: String(r[idx.distancia] || "") },
         intervalo: { stringValue: String(r[idx.intervalo] || "") },
         ritmo: { stringValue: String(idx.ritmo !== -1 ? (r[idx.ritmo] || "") : "") },
+        zona_treino: { stringValue: String(idx.zona_treino !== -1 ? (r[idx.zona_treino] || "") : "") },
+        distancia_milhas: { stringValue: String(idx.distancia_milhas !== -1 ? (r[idx.distancia_milhas] || "") : "") },
 
         forte: { stringValue: String(r[idx.forte] || "") },
         leve: { stringValue: String(r[idx.leve] || "") },
@@ -598,6 +603,7 @@ function importarAbaMaleFlow_(sh, token, baseURL, nomeAba, importId, target, sco
   const vals = valsAll.slice(1);
 
   const col = (name) => header.indexOf(name);
+  const colAlias = (...aliases) => getColIndexByAliases_(header, aliases);
 
   const idx = {
     tipo: col("tipo"),
@@ -614,8 +620,11 @@ function importarAbaMaleFlow_(sh, token, baseURL, nomeAba, importId, target, sco
     reps: col("reps"),
     especial: col("especial"),
     tempo: col("tempo"),
-    distancia: col("distancia"),
+    distancia: colAlias("distancia", "distancia_milhas"),
+    distancia_milhas: colAlias("distancia_milhas", "distancia"),
     intervalo: col("intervalo"),
+    ritmo: col("ritmo"),
+    zona_treino: colAlias("zona_treino", "zona de treino", "zona treino"),
     forte: col("forte"),
     leve: col("leve"),
     ciclos: col("ciclos"),
@@ -873,6 +882,8 @@ function buildMaleFlowItemFromRow_(row, idx) {
   if (idx.distancia !== -1) item.distancia = String(row[idx.distancia] || "");
   if (idx.intervalo !== -1) item.intervalo = String(row[idx.intervalo] || "");
   if (idx.ritmo !== -1) item.ritmo = String(row[idx.ritmo] || "");
+  if (idx.zona_treino !== -1) item.zona_treino = String(row[idx.zona_treino] || "");
+  if (idx.distancia_milhas !== -1) item.distancia_milhas = String(row[idx.distancia_milhas] || "");
   if (idx.forte !== -1) item.forte = String(row[idx.forte] || "");
   if (idx.leve !== -1) item.leve = String(row[idx.leve] || "");
   if (idx.ciclos !== -1) item.ciclos = String(row[idx.ciclos] || "");
@@ -898,11 +909,28 @@ function buildMaleFlowItemFields_(item) {
   if (item.distancia !== undefined) fields.distancia = { stringValue: String(item.distancia || "") };
   if (item.intervalo !== undefined) fields.intervalo = { stringValue: String(item.intervalo || "") };
   if (item.ritmo !== undefined) fields.ritmo = { stringValue: String(item.ritmo || "") };
+  if (item.zona_treino !== undefined) fields.zona_treino = { stringValue: String(item.zona_treino || "") };
+  if (item.distancia_milhas !== undefined) fields.distancia_milhas = { stringValue: String(item.distancia_milhas || "") };
   if (item.forte !== undefined) fields.forte = { stringValue: String(item.forte || "") };
   if (item.leve !== undefined) fields.leve = { stringValue: String(item.leve || "") };
   if (item.ciclos !== undefined) fields.ciclos = { stringValue: String(item.ciclos || "") };
 
   return fields;
+}
+
+
+function getColIndexByAliases_(header, aliases) {
+  const normalizedHeader = (header || []).map((h) => normalizeHeaderKey_(h));
+  for (let i = 0; i < aliases.length; i++) {
+    const key = normalizeHeaderKey_(aliases[i]);
+    const idx = normalizedHeader.indexOf(key);
+    if (idx !== -1) return idx;
+  }
+  return -1;
+}
+
+function normalizeHeaderKey_(value) {
+  return removerAcentos(String(value || "")).toLowerCase().replace(/[^a-z0-9]/g, "");
 }
 
 function boxNumber_(box) {
