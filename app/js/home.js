@@ -8,6 +8,8 @@
 const LINK_ACESSO_APP = "https://pay.hotmart.com/T103984580L?off=ifcs6h6n";
 const LINK_PERSONAL   = "https://pay.hotmart.com/T103984580L?off=sybtfokt";
 const EBOOKS_DATA_URL = "ebooks/ebooks.json";
+const EBOOKS_CACHE_KEY = "femflow_ebooks_cache_v1";
+const EBOOKS_CACHE_TTL_MS = 1000 * 60 * 30;
 
 /* FOLLOWME */
 const FOLLOWME_LINKS = {
@@ -784,12 +786,43 @@ function renderEbookRail(el, lista) {
   });
 }
 
-async function carregarEbooks() {
+function lerEbooksCache() {
   try {
-    const resp = await fetch(EBOOKS_DATA_URL, { cache: "no-store" });
+    const raw = localStorage.getItem(EBOOKS_CACHE_KEY);
+    if (!raw) return [];
+    const parsed = JSON.parse(raw);
+    if (!parsed || !Array.isArray(parsed.data)) return [];
+    const age = Date.now() - Number(parsed.savedAt || 0);
+    if (!Number.isFinite(age) || age > EBOOKS_CACHE_TTL_MS) return [];
+    return parsed.data;
+  } catch (err) {
+    return [];
+  }
+}
+
+function salvarEbooksCache(data) {
+  if (!Array.isArray(data)) return;
+  try {
+    localStorage.setItem(
+      EBOOKS_CACHE_KEY,
+      JSON.stringify({ data, savedAt: Date.now() })
+    );
+  } catch (err) {
+    // ignore quota errors
+  }
+}
+
+async function carregarEbooks() {
+  const cached = lerEbooksCache();
+  if (cached.length) return cached;
+
+  try {
+    const resp = await fetch(EBOOKS_DATA_URL, { cache: "force-cache" });
     if (!resp.ok) return [];
     const data = await resp.json();
-    return Array.isArray(data) ? data : [];
+    const lista = Array.isArray(data) ? data : [];
+    salvarEbooksCache(lista);
+    return lista;
   } catch (err) {
     console.warn("Falha ao carregar ebooks:", err);
     return [];
@@ -1394,9 +1427,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     renderRail(document.getElementById("railEsportes"), catalogo.esportes);
     renderRail(document.getElementById("railCasa"), catalogo.casa);
     renderRail(document.getElementById("railPersonal"), catalogo.personal);
-    renderEbookRail(document.getElementById("railEbooks"), await carregarEbooks());
-
     aplicarIdiomaHome();
+
+    carregarEbooks().then((ebooks) => {
+      renderEbookRail(document.getElementById("railEbooks"), ebooks);
+    });
   } catch (err) {
     console.error("HOME init erro:", err);
     FEMFLOW.toast("Falha ao carregar. Verifique internet.");
