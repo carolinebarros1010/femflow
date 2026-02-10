@@ -49,6 +49,22 @@ FEMFLOW.engineTreino.normalizarEnfaseEndurance = raw => {
     .toLowerCase();
 };
 
+FEMFLOW.engineTreino.ESTIMULOS_ENDURANCE_OFICIAIS = [
+  "volume",
+  "ritmo",
+  "vel_pura",
+  "res_vel",
+  "limiar"
+];
+
+FEMFLOW.engineTreino.normalizarEstimuloEndurance = raw => {
+  return String(raw || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase();
+};
+
 FEMFLOW.engineTreino.selecionarTitulo = bloco => {
   const lang = FEMFLOW.lang || "pt";
   const key = `titulo_${lang}`;
@@ -891,6 +907,120 @@ FEMFLOW.engineTreino.montarTreinoEndurance = async ({
   let resfriamentoInserido = false;
 
   const filtrados = comHIIT.filter(b => {
+    if (b.tipo === "aquecimento") {
+      if (aquecimentoInserido) return false;
+      aquecimentoInserido = true;
+      return true;
+    }
+
+    if (b.tipo === "resfriamento") {
+      if (resfriamentoInserido) return false;
+      resfriamentoInserido = true;
+      return true;
+    }
+
+    return true;
+  });
+
+  return FEMFLOW.engineTreino.converterParaFront(filtrados);
+};
+
+/* ============================================================
+   7C) FIREBASE — BLOCO ENDURANCE PÚBLICO (POR ESTÍMULO)
+============================================================ */
+FEMFLOW.engineTreino.carregarBlocosEndurancePublicByEstimulo = async ({
+  modalidade,
+  semana,
+  estimulo
+}) => {
+  const modalidadeNorm = FEMFLOW.engineTreino.normalizarEnfaseEndurance(modalidade);
+  const estimuloNorm = FEMFLOW.engineTreino.normalizarEstimuloEndurance(estimulo);
+  const semanaNum = Number(semana);
+  const semanaKey = Number.isFinite(semanaNum) && semanaNum > 0 ? String(semanaNum) : "";
+
+  if (!modalidadeNorm || !semanaKey || !estimuloNorm) {
+    console.error("❌ [ENDURANCE_PUBLIC] Dados inválidos para consulta:", {
+      modalidade,
+      semana,
+      estimulo,
+      modalidadeNorm,
+      semanaKey,
+      estimuloNorm
+    });
+    return [];
+  }
+
+  const path = `/endurance_public/${modalidadeNorm}/treinos/base/semana/${semanaKey}/estimulos/${estimuloNorm}/blocos`;
+  console.log("🔥 FIREBASE PATH (ENDURANCE_PUBLIC):", {
+    modalidade: modalidadeNorm,
+    semana: semanaKey,
+    estimulo: estimuloNorm,
+    path
+  });
+
+  let snap;
+  try {
+    snap = await firebase.firestore()
+      .collection("endurance_public")
+      .doc(modalidadeNorm)
+      .collection("treinos")
+      .doc("base")
+      .collection("semana")
+      .doc(semanaKey)
+      .collection("estimulos")
+      .doc(estimuloNorm)
+      .collection("blocos")
+      .get();
+  } catch (err) {
+    console.error("❌ [ENDURANCE_PUBLIC] Erro ao buscar no Firebase:", err);
+    return [];
+  }
+
+  if (snap.empty) {
+    FEMFLOW.warn("⚠️ [ENDURANCE_PUBLIC] Nenhum bloco encontrado:", {
+      modalidade: modalidadeNorm,
+      semana: semanaKey,
+      estimulo: estimuloNorm,
+      path
+    });
+    return [];
+  }
+
+  const blocos = [];
+  snap.forEach((d) => {
+    const data = d.data();
+    if (!data.titulo && !data.titulo_pt && !data.titulo_en && !data.titulo_fr) {
+      data.titulo = d.id;
+    }
+    blocos.push(data);
+  });
+
+  return blocos;
+};
+
+/* ============================================================
+   7D) MONTAR TREINO ENDURANCE PÚBLICO (POR ESTÍMULO)
+============================================================ */
+FEMFLOW.engineTreino.montarTreinoEndurancePublicByEstimulo = async ({
+  modalidade,
+  semana,
+  estimulo
+}) => {
+  const blocosRaw = await FEMFLOW.engineTreino.carregarBlocosEndurancePublicByEstimulo({
+    modalidade,
+    semana,
+    estimulo
+  });
+
+  if (!blocosRaw.length) return [];
+
+  const ordenados = FEMFLOW.engineTreino.organizarBlocosSimples(blocosRaw);
+  const comHIIT = FEMFLOW.engineTreino.intercalarHIIT(ordenados);
+
+  let aquecimentoInserido = false;
+  let resfriamentoInserido = false;
+
+  const filtrados = comHIIT.filter((b) => {
     if (b.tipo === "aquecimento") {
       if (aquecimentoInserido) return false;
       aquecimentoInserido = true;

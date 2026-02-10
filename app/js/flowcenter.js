@@ -263,7 +263,10 @@ function initFlowCenter() {
       "femflow_endurance_config",
       "femflow_endurance_pending",
       "femflow_endurance_setup_done",
-      "femflow_treino_endurance"
+      "femflow_treino_endurance",
+      "femflow_endurance_public_enabled",
+      "femflow_endurance_estimulo",
+      "femflow_endurance_public_intent"
     ].forEach((key) => localStorage.removeItem(key));
   };
 
@@ -318,7 +321,9 @@ function initFlowCenter() {
 
   // 🔥 regra canônica
   const personal = hasPersonal && modePersonal;
-  const enduranceEnabled = hasPersonal || endurancePlanAvailable;
+  const endurancePublicIntent = localStorage.getItem("femflow_endurance_public_intent") === "true";
+  const endurancePublicEnabled = localStorage.getItem("femflow_endurance_public_enabled") === "true";
+  const enduranceEnabled = hasPersonal || endurancePlanAvailable || endurancePublicEnabled || endurancePublicIntent;
 
   const isApp    = produtoRaw === "acesso_app" || isTrial;
   const isFollow = produtoRaw.startsWith("followme_");
@@ -814,29 +819,66 @@ function initFlowCenter() {
     });
   }
 
+  const ESTIMULOS_FULL = ["volume", "ritmo", "vel_pura", "res_vel", "limiar"];
+
+  const clamp = (value, min, max) => {
+    const num = Number(value);
+    if (!Number.isFinite(num)) return min;
+    return Math.min(max, Math.max(min, num));
+  };
+
+  const normalizarDiaEndurance = (value) =>
+    String(value || "")
+      .normalize("NFD")
+      .replace(/[̀-ͯ]/g, "")
+      .trim()
+      .toLowerCase();
+
+  const getEstimulosAtivos = (treinosSemanaRaw) => {
+    const n = clamp(Number(treinosSemanaRaw || 2), 2, 5);
+    return ESTIMULOS_FULL.slice(0, n);
+  };
+
   const salvarConfigEndurance = async () => {
     const modalidade = modalEnduranceModalidade?.value?.trim() || "";
-    const treinosSemana = modalEnduranceTreinos?.dataset.value || "";
     const ritmo = modalEnduranceRitmo?.value?.trim() || "";
-    const diasSemana = Array.from(modalEnduranceDias?.querySelectorAll(".endurance-chip.is-active") || [])
-      .map(chip => chip.dataset.value)
+    const diasSemanaRaw = Array.from(modalEnduranceDias?.querySelectorAll(".endurance-chip.is-active") || [])
+      .map(chip => normalizarDiaEndurance(chip.dataset.value))
       .filter(Boolean);
 
-    if (!modalidade || !treinosSemana || !diasSemana.length || !ritmo) {
+    const diasSemana = Array.from(new Set(diasSemanaRaw));
+    if (!modalidade || !diasSemana.length || !ritmo) {
       FEMFLOW.toast("Preencha todas as informações do Endurance.");
       return null;
     }
 
+    const diasOrdenadosSemana = ["segunda", "terca", "quarta", "quinta", "sexta", "sabado", "domingo"];
+    diasSemana.sort((a, b) => diasOrdenadosSemana.indexOf(a) - diasOrdenadosSemana.indexOf(b));
+
+    const treinosSelecionado = Number(modalEnduranceTreinos?.dataset.value || 2);
+    let treinosSemana = clamp(treinosSelecionado, 2, 5);
+
+    if (treinosSemana > diasSemana.length) {
+      treinosSemana = diasSemana.length;
+      FEMFLOW.toast(`Ajustamos os treinos por semana para ${treinosSemana} (dias disponíveis).`);
+    }
+
+    treinosSemana = clamp(treinosSemana, 2, 5);
+
     const config = {
       modalidade,
-      treinosSemana: Number(treinosSemana),
+      treinosSemana,
       diasSemana,
       ritmo
     };
 
     localStorage.setItem("femflow_endurance_config", JSON.stringify(config));
     localStorage.setItem("femflow_endurance_setup_done", "true");
+    const usarModoPublico = endurancePublicIntent || !hasPersonal;
+    localStorage.setItem("femflow_endurance_public_enabled", usarModoPublico ? "true" : "false");
+    localStorage.setItem("femflow_endurance_modalidade", modalidade);
     localStorage.setItem("femflow_endurance_dia", diasSemana[0]);
+    localStorage.setItem("femflow_endurance_estimulo", getEstimulosAtivos(treinosSemana)[0] || "volume");
     if (!localStorage.getItem("femflow_endurance_semana")) {
       localStorage.setItem("femflow_endurance_semana", "1");
     }
@@ -848,7 +890,7 @@ function initFlowCenter() {
         nome: localStorage.getItem("femflow_nome") || "",
         nivel: localStorage.getItem("femflow_nivel") || "",
         modalidade,
-        treinosSemana: Number(treinosSemana),
+        treinosSemana,
         diasSemana: diasSemana.join(", "),
         ritmo
       });
@@ -1095,7 +1137,7 @@ function initFlowCenter() {
   }
 
   const enduranceBtn = document.getElementById("toEndurance");
-  if (enduranceBtn) enduranceBtn.disabled = !enduranceEnabled;
+  if (enduranceBtn) enduranceBtn.disabled = false;
 
   const getEnduranceDiaLabel = () => {
     const map = {
@@ -1171,8 +1213,8 @@ function initFlowCenter() {
   if (modalEnduranceSelecaoContinuar) {
     modalEnduranceSelecaoContinuar.addEventListener("click", async () => {
       const semana = modalEnduranceSemana?.dataset.value || "";
-      const dia = modalEnduranceDia?.dataset.value || "";
-      const diasDisponiveis = getDiasEnduranceDisponiveis();
+      const dia = normalizarDiaEndurance(modalEnduranceDia?.dataset.value || "");
+      const diasDisponiveis = getDiasEnduranceDisponiveis().map(normalizarDiaEndurance);
       if (diasDisponiveis.length && !diasDisponiveis.includes(dia)) {
         FEMFLOW.toast("Selecione um dia disponível para continuar.");
         return;
@@ -1181,16 +1223,57 @@ function initFlowCenter() {
         FEMFLOW.toast("Selecione semana e dia para continuar.");
         return;
       }
+
+      let config = {};
+      try {
+        config = JSON.parse(localStorage.getItem("femflow_endurance_config") || "{}");
+      } catch (err) {
+        console.warn("Config Endurance inválida na seleção:", err);
+      }
+
+      const diasSemana = Array.isArray(config?.diasSemana)
+        ? config.diasSemana.map(normalizarDiaEndurance).filter(Boolean)
+        : [];
+      const treinosSemana = clamp(Number(config?.treinosSemana || 2), 2, 5);
+      const estimulosAtivos = getEstimulosAtivos(treinosSemana);
+      const idx = diasSemana.indexOf(dia);
+
+      if (idx < 0) {
+        FEMFLOW.toast("Dia selecionado não está nos dias configurados.");
+        return;
+      }
+
+      let estimuloSelecionado = estimulosAtivos[idx] || "";
+
+      const hasSab = diasSemana.includes("sabado");
+      const hasDom = diasSemana.includes("domingo");
+      if (hasSab && hasDom && dia === "sabado") {
+        estimuloSelecionado = "volume";
+        console.log("[Endurance Público] Override SAB+DOM aplicado: sábado -> volume", {
+          semana,
+          dia,
+          estimuloSelecionado
+        });
+      }
+
+      if (!estimuloSelecionado) {
+        FEMFLOW.toast("Não foi possível definir o estímulo deste dia.");
+        return;
+      }
+
       localStorage.setItem("femflow_endurance_semana", String(semana));
       localStorage.setItem("femflow_endurance_dia", String(dia));
+      localStorage.setItem("femflow_endurance_estimulo", String(estimuloSelecionado));
+      const usarModoPublico = endurancePublicIntent || !hasPersonal;
+      localStorage.setItem("femflow_endurance_public_enabled", usarModoPublico ? "true" : "false");
       fecharModalEnduranceSelecao();
-      await iniciarEnduranceComChecagem();
+      FEMFLOW.router("treino.html?endurance=1");
     });
   }
 
   enduranceBtn.onclick = async () => {
     if (!enduranceEnabled) {
-      FEMFLOW.toast("Endurance disponível apenas no Personal 🌸");
+      FEMFLOW.toast("Endurance indisponível no momento.");
       return;
     }
     const id = localStorage.getItem("femflow_id");
@@ -1200,6 +1283,10 @@ function initFlowCenter() {
       const hasConfig = configRaw !== null && configRaw !== "";
       const endurancePendente =
         localStorage.getItem("femflow_endurance_pending") === "true";
+
+      const usarModoPublico = endurancePublicIntent || !hasPersonal;
+      localStorage.setItem("femflow_endurance_public_enabled", usarModoPublico ? "true" : "false");
+
       if (!setupDone && !hasConfig) {
         abrirModalEndurance();
         return;
