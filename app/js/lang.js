@@ -359,6 +359,7 @@ home: {
       tituloMuscular:  "Treinos por ênfase",
       tituloEsportes:  "Fortalecimento Por Esportes",
       tituloCasa:      "Treinar em casa",
+      tituloPlanilhas30Dias: "Planilhas 30 dias",
       tituloEbooks:    "Ebooks",
       customTreino: {
         titulo: "Monte seu treino",
@@ -727,6 +728,7 @@ home: {
       tituloMuscular:  "Muscle focus training",
       tituloEsportes:  "Strengthening Through Sports",
       tituloCasa:      "Home training",
+      tituloPlanilhas30Dias: "30-day plans",
       tituloEbooks:    "Ebooks",
       customTreino: {
         titulo: "Build your workout",
@@ -1092,6 +1094,7 @@ fr: {
       tituloMuscular:  "Entraînements par groupe musculaire",
       tituloEsportes:  "Renforcement par le sport",
       tituloCasa:      "S'entraîner à la maison",
+      tituloPlanilhas30Dias: "Plans 30 jours",
       tituloEbooks:    "Ebooks",
       customTreino: {
         titulo: "Créez votre entraînement",
