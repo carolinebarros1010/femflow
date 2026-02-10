@@ -200,11 +200,20 @@ function importarTreinosFEMFLOW(opts = {}) {
     // ------------------------------------------------------------
     // 2) DETECTAR ABA NORMAL
     // ------------------------------------------------------------
-    else if (nomeAba !== "Iniciante" && nomeAba !== "Intermediaria" && nomeAba !== "Avancada" && nomeAba !== "Extra") {
-      Logger.log("⏭ Ignorando aba não reconhecida: " + nomeAba);
-      return;
-    } else if (nomeAba === "Extra") {
-      isExtra = true;
+    else {
+      const nomeAbaLower = nomeAba.toLowerCase();
+      const isAbaNivelPadrao = ["iniciante", "intermediaria", "avancada"].includes(nomeAbaLower);
+      const isAbaExtra = nomeAbaLower === "extra";
+      const isAbaEndurancePublic = nomeAbaLower === "endurancepublic";
+
+      if (!isAbaNivelPadrao && !isAbaExtra && !isAbaEndurancePublic) {
+        Logger.log("⏭ Ignorando aba não reconhecida: " + nomeAba);
+        return;
+      }
+
+      if (isAbaExtra) {
+        isExtra = true;
+      }
     }
 
     Logger.log("📄 Processando aba: " + nomeAba);
@@ -321,6 +330,8 @@ function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, pers
     forte: col("forte"),
     leve: col("leve"),
     ciclos: col("ciclos"),
+    estimulo: col("estimulo"),
+    modalidade: colAlias("modalidade", "modalidade_slug", "modalidade norm"),
   };
 
   const usaCicloDiaTreino = idx.ciclo !== -1 && idx.diatreino !== -1;
@@ -346,10 +357,15 @@ function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, pers
     "intervalo"
   ];
   const isEndurancePersonal = isPersonal && idx.semana !== -1 && idx.dias !== -1;
+  const isEndurancePublicSheet = String(nomeAba || "").toLowerCase() === "endurancepublic";
+  const isEndurancePublicByColumns = idx.semana !== -1 && (idx.estimulo !== -1 || idx.enfase !== -1);
+  const isEndurancePublic = !isPersonal && !isExtra && (isEndurancePublicSheet || isEndurancePublicByColumns);
   const obrigatorias = isExtra
     ? obrigatoriasBase
     : isEndurancePersonal
     ? obrigatoriasEndurance
+    : isEndurancePublic
+    ? ["tipo", "box", "ordem", "semana", "titulo_pt"]
     : usaCicloDiaTreino
     ? obrigatoriasBase.concat(["ciclo", "diatreino", "link"])
     : obrigatoriasBase.concat(["dia", "fase", "link"]);
@@ -383,6 +399,10 @@ function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, pers
     let diatreino = "";
     let dayCounterKey = "";
 
+    let semanaPublic = "";
+    let estimuloPublic = "";
+    let modalidadePublic = "";
+
     if (usaCicloDiaTreino) {
       ciclo = String(r[idx.ciclo] || "").trim().toUpperCase(); // ABC/ABCD/ABCDE
       diatreino = String(r[idx.diatreino] || "").trim().toUpperCase(); // A/B/C/D/E
@@ -397,6 +417,23 @@ function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, pers
       fase = `semana_${semanaValor}`;
       diaKey = diasValor;
       dayCounterKey = `semana:${fase}|dia:${removerAcentos(diaKey).toLowerCase()}`;
+    } else if (isEndurancePublic) {
+      semanaPublic = String(r[idx.semana] || "").trim();
+      if (!semanaPublic) return;
+
+      estimuloPublic = idx.estimulo !== -1 ? normalizeEstimuloEndurance_(r[idx.estimulo]) : "";
+      const enfaseLinha = removerAcentos(String(r[idx.enfase] || "")).toLowerCase().trim();
+      const ehCorrida = enfaseLinha === "corrida";
+      if (!estimuloPublic && tipo === "cardio_intermediario" && Number(r[idx.box] || 0) === 100) {
+        estimuloPublic = "volume";
+      }
+      if (!estimuloPublic && !ehCorrida) return;
+      if (!estimuloPublic) estimuloPublic = "volume";
+
+      const modalidadeRaw = idx.modalidade !== -1 ? r[idx.modalidade] : enfaseLinha;
+      modalidadePublic = normalizeEndurancePublicModalidade_(modalidadeRaw) || "corrida_5k";
+
+      dayCounterKey = `semana:${semanaPublic}|estimulo:${estimuloPublic}|modalidade:${modalidadePublic}`;
     } else {
       fase = r[idx.fase] ? normalizarFase(r[idx.fase]) : "";
       diaKey = r[idx.dia] ? `dia_${r[idx.dia]}` : "";
@@ -425,7 +462,10 @@ function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, pers
     const boxNumero = boxMatch ? Number(boxMatch[0]) : 0;
     const boxBase = boxNumero ? String(boxNumero * 100) : String(box || "0").trim();
     const docIdMale = `bloco_${boxBase}_${String(ordem).padStart(2, "0")}`;
-    const docId = usaCicloDiaTreino ? docIdMale : docIdFem;
+    const docIdEndurancePublic = isEndurancePublic
+      ? `bloco_${hashDeterministicoEndurancePublic_([semanaPublic, estimuloPublic, box, ordem, String(r[idx.titulo_pt] || "")])}`
+      : "";
+    const docId = usaCicloDiaTreino ? docIdMale : (isEndurancePublic ? docIdEndurancePublic : docIdFem);
 
     let url = "";
 
@@ -446,7 +486,7 @@ function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, pers
         url =
          `${baseURL}/personal_trainings/${personalId}` +
 `/endurance/${enfaseEncoded}` +
-`/treinos/base` +                      // 🧠 documento fixo
+`/treinos/base` +
 `/semana/${String(r[idx.semana] || "").trim()}` +
 `/dias/${diaKeyEncoded}/blocos/${docId}`;
       } else {
@@ -454,16 +494,20 @@ function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, pers
       }
     } else if (isExtra) {
       url = `${baseURL}/exercicios_extra/${enfaseEncoded}/blocos/${docId}`;
+    } else if (isEndurancePublic) {
+      const modalidadeEncoded = encodeURIComponent(modalidadePublic);
+      const semanaEncoded = encodeURIComponent(String(semanaPublic));
+      const estimuloEncoded = encodeURIComponent(String(estimuloPublic));
+      url = `${baseURL}/endurance_public/${modalidadeEncoded}/treinos/base/semana/${semanaEncoded}/estimulos/${estimuloEncoded}/blocos/${docId}`;
+      Logger.log(`🏃 Endurance Público import: modalidade=${modalidadePublic} semana=${semanaPublic} estimulo=${estimuloPublic} docId=${docId}`);
     } else {
       if (usaCicloDiaTreino) {
-        // ✅ MALEFLOW
         url =
           `${baseURL}/exercicios/${nivel}_${enfaseEncoded}` +
           `/ciclo/${ciclo}` +
           `/diatreino/diatreino_${diatreino}` +
           `/blocos/${docId}`;
       } else {
-        // ✅ FEMFLOW (LEGADO)
         url = `${baseURL}/exercicios/${nivel}_${enfaseEncoded}/fases/${fase}/dias/${diaKeyEncoded}/blocos/${docId}`;
       }
     }
@@ -499,6 +543,7 @@ function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, pers
         forte: { stringValue: String(r[idx.forte] || "") },
         leve: { stringValue: String(r[idx.leve] || "") },
         ciclos: { stringValue: String(r[idx.ciclos] || "") },
+        estimulo: { stringValue: String(isEndurancePublic ? estimuloPublic : (idx.estimulo !== -1 ? (r[idx.estimulo] || "") : "")) },
 
         // metadados úteis
         updatedAt: { timestampValue: new Date().toISOString() },
@@ -511,6 +556,9 @@ function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, pers
       if (isEndurancePersonal) {
         payload.fields.semana = { integerValue: Number(r[idx.semana] || 0) };
         payload.fields.dias = { stringValue: String(r[idx.dias] || "") };
+      } else if (isEndurancePublic) {
+        payload.fields.semana = { integerValue: Number(semanaPublic || 0) };
+        payload.fields.modalidade = { stringValue: String(modalidadePublic || "") };
       } else {
         payload.fields.fase = { stringValue: fase };
         payload.fields.dia = { integerValue: Number(r[idx.dia] || 0) };
@@ -628,6 +676,8 @@ function importarAbaMaleFlow_(sh, token, baseURL, nomeAba, importId, target, sco
     forte: col("forte"),
     leve: col("leve"),
     ciclos: col("ciclos"),
+    estimulo: col("estimulo"),
+    modalidade: colAlias("modalidade", "modalidade_slug", "modalidade norm"),
   };
 
   const obrigatorias = ["tipo", "enfase", "titulo_pt", "box", "ordem", "ciclo", "diatreino"];
@@ -754,6 +804,23 @@ function importarAbaMaleFlow_(sh, token, baseURL, nomeAba, importId, target, sco
   return { ok: okCount, err: errCount, patches, dias: diasResumo };
 }
 
+
+function normalizeEndurancePublicModalidade_(value) {
+  return removerAcentos(String(value || "")).toLowerCase().trim().replace(/\s+/g, "_");
+}
+
+function normalizeEstimuloEndurance_(value) {
+  return removerAcentos(String(value || "")).toLowerCase().trim();
+}
+
+function hashDeterministicoEndurancePublic_(parts) {
+  const raw = parts.join("|");
+  const digest = Utilities.computeDigest(Utilities.DigestAlgorithm.MD5, raw, Utilities.Charset.UTF_8);
+  return digest.map((b) => {
+    const v = (b < 0 ? b + 256 : b).toString(16);
+    return v.padStart(2, "0");
+  }).join("");
+}
 
 /* ============================================================
    FUNÇÕES AUXILIARES
