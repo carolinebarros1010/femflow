@@ -1285,29 +1285,41 @@ function initFlowCenter() {
       FEMFLOW.toast("Endurance indisponível no momento.");
       return;
     }
+
+    const setupDone = localStorage.getItem("femflow_endurance_setup_done") === "true";
+    const configRaw = localStorage.getItem("femflow_endurance_config");
+    const hasConfig = configRaw !== null && configRaw !== "";
+    const endurancePendente =
+      localStorage.getItem("femflow_endurance_pending") === "true";
+    const usarModoPublico = endurancePublicIntent || !hasPersonal;
     const id = localStorage.getItem("femflow_id");
-    if (id) {
-      const setupDone = localStorage.getItem("femflow_endurance_setup_done") === "true";
-      const configRaw = localStorage.getItem("femflow_endurance_config");
-      const hasConfig = configRaw !== null && configRaw !== "";
-      const endurancePendente =
-        localStorage.getItem("femflow_endurance_pending") === "true";
+    const podeSeguirSemId = usarModoPublico || setupDone || hasConfig;
 
-      const usarModoPublico = endurancePublicIntent || !hasPersonal;
-      localStorage.setItem("femflow_endurance_public_enabled", usarModoPublico ? "true" : "false");
-
-      if (!setupDone && !hasConfig) {
-        abrirModalEndurance();
-        return;
-      }
-      if (endurancePendente) {
-        await iniciarEnduranceComChecagem();
-        return;
-      }
-      abrirModalEnduranceSelecao();
-    } else {
+    if (!id && !podeSeguirSemId) {
       FEMFLOW.openInternal("../#ofertas");
+      return;
     }
+
+    localStorage.setItem("femflow_endurance_public_enabled", usarModoPublico ? "true" : "false");
+
+    if (!setupDone && !hasConfig) {
+      abrirModalEndurance();
+      return;
+    }
+
+    // No fluxo de planilhas públicas (5k/10k/15k), a usuária precisa
+    // sempre confirmar semana e dia antes de iniciar o treino.
+    if (usarModoPublico) {
+      abrirModalEnduranceSelecao();
+      return;
+    }
+
+    if (endurancePendente) {
+      await iniciarEnduranceComChecagem();
+      return;
+    }
+
+    abrirModalEnduranceSelecao();
   };
 
       FEMFLOW.loading.hide();
