@@ -113,33 +113,33 @@
 <!-- MODAL ENDURANCE -->
 <div id="modal-endurance" class="modal-endurance oculto" aria-hidden="true">
   <div class="modal-endurance-box" role="dialog" aria-modal="true">
-    <h2>🏃‍♂️ Defina seu Endurance</h2>
-    <p class="modal-endurance-sub">
+    <h2 id="enduranceModalTitulo">🏃‍♂️ Defina seu Endurance</h2>
+    <p class="modal-endurance-sub" id="enduranceModalSub">
       Responda para personalizarmos o seu treino de cardio.
     </p>
 
     <label class="endurance-field">
-      <span>Qual modalidade?</span>
+      <span id="enduranceModalidadeLabel">Qual modalidade?</span>
       <select id="enduranceModalidade" class="endurance-select">
-        <option value="" selected>Selecione a modalidade</option>
-        <optgroup label="Corrida">
-          <option value="corrida">Corrida (geral)</option>
-          <option value="corrida_5k">Corrida 5 km</option>
-          <option value="corrida_10k">Corrida 10 km</option>
-          <option value="corrida_15k">Corrida 15 km</option>
-          <option value="corrida_21k">Corrida 21 km</option>
-          <option value="corrida_42k">Corrida 42 km</option>
+        <option value="" selected id="enduranceModalidadePlaceholder">Selecione a modalidade</option>
+        <optgroup label="Corrida" id="enduranceModalidadeGrupoCorrida">
+          <option value="corrida" id="enduranceOptCorrida">Corrida (geral)</option>
+          <option value="corrida_5k" id="enduranceOptCorrida5k">Corrida 5 km</option>
+          <option value="corrida_10k" id="enduranceOptCorrida10k">Corrida 10 km</option>
+          <option value="corrida_15k" id="enduranceOptCorrida15k">Corrida 15 km</option>
+          <option value="corrida_21k" id="enduranceOptCorrida21k">Corrida 21 km</option>
+          <option value="corrida_42k" id="enduranceOptCorrida42k">Corrida 42 km</option>
         </optgroup>
-        <optgroup label="Outras modalidades">
-          <option value="natacao">Natação</option>
-          <option value="bike">Bike / Ciclismo</option>
-          <option value="remo">Remo</option>
+        <optgroup label="Outras modalidades" id="enduranceModalidadeGrupoOutras">
+          <option value="natacao" id="enduranceOptNatacao">Natação</option>
+          <option value="bike" id="enduranceOptBike">Bike / Ciclismo</option>
+          <option value="remo" id="enduranceOptRemo">Remo</option>
         </optgroup>
       </select>
     </label>
 
     <div class="endurance-field">
-      <span>Quantos treinos por semana?</span>
+      <span id="enduranceTreinosLabel">Quantos treinos por semana?</span>
       <div class="endurance-options" id="enduranceTreinosSemana">
         <button type="button" class="endurance-chip" data-value="1">1</button>
         <button type="button" class="endurance-chip" data-value="2">2</button>
@@ -152,7 +152,7 @@
     </div>
 
     <div class="endurance-field">
-      <span>Quais dias da semana?</span>
+      <span id="enduranceDiasLabel">Quais dias da semana?</span>
       <div class="endurance-options" id="enduranceDiasSemana">
         <button type="button" class="endurance-chip" data-value="segunda">Seg</button>
         <button type="button" class="endurance-chip" data-value="terca">Ter</button>
@@ -166,8 +166,8 @@
 
     <label class="endurance-field">
       <span>
-        Qual ritmo médio?
-        <span class="endurance-info" title="Minutos para cada 100m em natação, velocidade média em bike, pace em corrida.">i</span>
+        <span id="enduranceRitmoLabel">Qual ritmo médio?</span>
+        <span class="endurance-info" id="enduranceRitmoInfo" title="Minutos para cada 100m em natação, velocidade média em bike, pace em corrida.">i</span>
       </span>
       <input type="text" id="enduranceRitmo" placeholder="Ex: 2:10/100m, 25 km/h, 5:20 min/km">
     </label>
@@ -182,13 +182,13 @@
 <!-- MODAL ENDURANCE — SELEÇÃO -->
 <div id="modal-endurance-selecao" class="modal-endurance modal-endurance-selecao oculto" aria-hidden="true">
   <div class="modal-endurance-box" role="dialog" aria-modal="true">
-    <h2>🏃‍♂️ Escolha sua sessão</h2>
-    <p class="modal-endurance-sub">
+    <h2 id="enduranceSelecaoTitulo">🏃‍♂️ Escolha sua sessão</h2>
+    <p class="modal-endurance-sub" id="enduranceSelecaoSub">
       Selecione a semana e o dia do treino que você vai realizar.
     </p>
 
     <div class="endurance-field">
-      <span>Semana</span>
+      <span id="enduranceSelecaoSemanaLabel">Semana</span>
       <div class="endurance-options" id="enduranceSemana">
         <button type="button" class="endurance-chip" data-value="1">1</button>
         <button type="button" class="endurance-chip" data-value="2">2</button>
@@ -198,7 +198,7 @@
     </div>
 
     <div class="endurance-field">
-      <span>Dia</span>
+      <span id="enduranceSelecaoDiaLabel">Dia</span>
       <div class="endurance-options endurance-days" id="enduranceDia">
         <button type="button" class="endurance-chip" data-value="segunda">Seg</button>
         <button type="button" class="endurance-chip" data-value="terca">Ter</button>
