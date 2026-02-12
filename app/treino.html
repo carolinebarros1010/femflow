@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="format-detection" content="telephone=no" />
   <script src="./config/config.js"></script>
@@ -130,13 +131,6 @@
 
 
 <script src="services/firebase-init.js?v=20250127"></script>
-<script>
-  if (firebase.auth) {
-    firebase.auth().signInAnonymously().catch((err) => {
-      console.warn("[FemFlow] Auth anônimo falhou:", err);
-    });
-  }
-</script>
 
 <!-- SCRIPTS FEMFLOW -->
 <script src="js/lang.js"></script>
@@ -149,7 +143,7 @@
 /* ============================================================
    1) DOM READY + FEMFLOW INIT + MIDDLEWARE DE ACESSO
 ============================================================ */
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
 
   /* ------------------------------------------------------------
      🔐 MIDDLEWARE — Impede acesso direto por URL
@@ -192,6 +186,11 @@ document.addEventListener("DOMContentLoaded", () => {
      Inicialização do núcleo
   ------------------------------------------------------------ */
   if (window.FEMFLOW && typeof FEMFLOW.init === "function") {
+    try {
+      await (window.FEMFLOW?.firebaseAuthReady || Promise.resolve());
+    } catch (err) {
+      console.warn("[treino.html] Falha ao aguardar auth Firebase:", err);
+    }
     FEMFLOW.init();
   }
 

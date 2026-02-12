@@ -38,6 +38,46 @@
 
     window.db = db; // 👈 opcional, mas útil
     console.info("[FemFlow] Firebase inicializado com sucesso.");
+
+  const criarAuthReadyPromise = () => {
+    if (!firebase.auth) return Promise.resolve();
+
+    return new Promise((resolve) => {
+      let settled = false;
+      const done = () => {
+        if (settled) return;
+        settled = true;
+        resolve();
+      };
+
+      const timeoutMs = 4500;
+      const timer = window.setTimeout(() => {
+        console.warn("[FemFlow] Timeout aguardando auth anônimo.");
+        done();
+      }, timeoutMs);
+
+      firebase.auth().onAuthStateChanged((user) => {
+        if (user) {
+          window.clearTimeout(timer);
+          done();
+        }
+      });
+
+      firebase.auth().signInAnonymously()
+        .then(() => {
+          window.clearTimeout(timer);
+          done();
+        })
+        .catch((err) => {
+          window.clearTimeout(timer);
+          console.warn("[FemFlow] Auth anônimo falhou:", err);
+          done();
+        });
+    });
+  };
+
+  window.FEMFLOW = window.FEMFLOW || {};
+  window.FEMFLOW.firebaseAuthReady = criarAuthReadyPromise();
   } catch (err) {
     logError("[FemFlow] Erro ao inicializar Firebase:", err);
   }

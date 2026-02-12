@@ -65,6 +65,33 @@ FEMFLOW.engineTreino.normalizarEstimuloEndurance = raw => {
     .toLowerCase();
 };
 
+FEMFLOW.engineTreino.resolverModalidadesEndurancePublic = raw => {
+  const modalidadeNorm = FEMFLOW.engineTreino.normalizarEnfaseEndurance(raw);
+  if (!modalidadeNorm) return [];
+
+  const base = modalidadeNorm.startsWith("planilha_")
+    ? modalidadeNorm.replace(/^planilha_/, "")
+    : modalidadeNorm;
+
+  const aliasMap = {
+    corrida: ["corrida_5k"],
+    running: ["corrida_5k"],
+    bike: ["ciclismo"],
+    bicicleta: ["ciclismo"],
+    ciclismo: ["bike"],
+    cycling: ["ciclismo"],
+    natacao: ["nado"],
+    nado: ["natacao"],
+    swimming: ["natacao"],
+    remo: ["rowing"],
+    rowing: ["remo"]
+  };
+
+  return [base, ...(aliasMap[base] || [])].filter((value, idx, arr) => {
+    return Boolean(value) && arr.indexOf(value) === idx;
+  });
+};
+
 FEMFLOW.engineTreino.selecionarTitulo = bloco => {
   const lang = FEMFLOW.lang || "pt";
   const key = `titulo_${lang}`;
@@ -933,69 +960,93 @@ FEMFLOW.engineTreino.carregarBlocosEndurancePublicByEstimulo = async ({
   semana,
   estimulo
 }) => {
-  const modalidadeNorm = FEMFLOW.engineTreino.normalizarEnfaseEndurance(modalidade);
+  const modalidadesCandidatas = FEMFLOW.engineTreino.resolverModalidadesEndurancePublic(modalidade);
   const estimuloNorm = FEMFLOW.engineTreino.normalizarEstimuloEndurance(estimulo);
   const semanaNum = Number(semana);
   const semanaKey = Number.isFinite(semanaNum) && semanaNum > 0 ? String(semanaNum) : "";
 
-  if (!modalidadeNorm || !semanaKey || !estimuloNorm) {
+  if (!modalidadesCandidatas.length || !semanaKey || !estimuloNorm) {
     console.error("❌ [ENDURANCE_PUBLIC] Dados inválidos para consulta:", {
       modalidade,
       semana,
       estimulo,
-      modalidadeNorm,
+      modalidadesCandidatas,
       semanaKey,
       estimuloNorm
     });
     return [];
   }
 
-  const path = `/endurance_public/${modalidadeNorm}/treinos/base/semana/${semanaKey}/estimulos/${estimuloNorm}/blocos`;
-  console.log("🔥 FIREBASE PATH (ENDURANCE_PUBLIC):", {
-    modalidade: modalidadeNorm,
-    semana: semanaKey,
-    estimulo: estimuloNorm,
-    path
-  });
-
-  let snap;
-  try {
-    snap = await firebase.firestore()
-      .collection("endurance_public")
-      .doc(modalidadeNorm)
-      .collection("treinos")
-      .doc("base")
-      .collection("semana")
-      .doc(semanaKey)
-      .collection("estimulos")
-      .doc(estimuloNorm)
-      .collection("blocos")
-      .get();
-  } catch (err) {
-    console.error("❌ [ENDURANCE_PUBLIC] Erro ao buscar no Firebase:", err);
-    return [];
-  }
-
-  if (snap.empty) {
-    FEMFLOW.warn("⚠️ [ENDURANCE_PUBLIC] Nenhum bloco encontrado:", {
-      modalidade: modalidadeNorm,
+  for (const modalidadeAtual of modalidadesCandidatas) {
+    const path = `/endurance_public/${modalidadeAtual}/treinos/base/semana/${semanaKey}/estimulos/${estimuloNorm}/blocos`;
+    console.log("🔥 FIREBASE PATH (ENDURANCE_PUBLIC):", {
+      modalidade: modalidadeAtual,
       semana: semanaKey,
       estimulo: estimuloNorm,
       path
     });
-    return [];
+
+    let snap;
+    try {
+      snap = await firebase.firestore()
+        .collection("endurance_public")
+        .doc(modalidadeAtual)
+        .collection("treinos")
+        .doc("base")
+        .collection("semana")
+        .doc(semanaKey)
+        .collection("estimulos")
+        .doc(estimuloNorm)
+        .collection("blocos")
+        .where("importTarget", "==", "femflow")
+        .get();
+    } catch (err) {
+      const errCode = String(err?.code || "");
+      const isPermissionDenied = errCode.includes("permission-denied");
+      if (isPermissionDenied && modalidadesCandidatas.length > 1) {
+        FEMFLOW.warn("⚠️ [ENDURANCE_PUBLIC] Permissão negada para modalidade, tentando alias:", {
+          modalidade: modalidadeAtual,
+          semana: semanaKey,
+          estimulo: estimuloNorm,
+          path,
+          errCode
+        });
+        continue;
+      }
+
+      console.error("❌ [ENDURANCE_PUBLIC] Erro ao buscar no Firebase:", {
+        modalidade: modalidadeAtual,
+        semana: semanaKey,
+        estimulo: estimuloNorm,
+        path,
+        err
+      });
+      return [];
+    }
+
+    if (snap.empty) {
+      FEMFLOW.warn("⚠️ [ENDURANCE_PUBLIC] Nenhum bloco encontrado:", {
+        modalidade: modalidadeAtual,
+        semana: semanaKey,
+        estimulo: estimuloNorm,
+        path
+      });
+      continue;
+    }
+
+    const blocos = [];
+    snap.forEach((d) => {
+      const data = d.data();
+      if (!data.titulo && !data.titulo_pt && !data.titulo_en && !data.titulo_fr) {
+        data.titulo = d.id;
+      }
+      blocos.push(data);
+    });
+
+    return blocos;
   }
 
-  const blocos = [];
-  snap.forEach((d) => {
-    const data = d.data();
-    if (!data.titulo && !data.titulo_pt && !data.titulo_en && !data.titulo_fr) {
-      data.titulo = d.id;
-    }
-    blocos.push(data);
-  });
-
-  return blocos;
+  return [];
 };
 
 /* ============================================================
