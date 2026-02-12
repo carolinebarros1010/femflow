@@ -255,7 +255,9 @@ function initFlowCenter() {
   /* ============================================================
      4) PRODUTO / ACESSOS (CORRETO)
   ============================================================ */
-  const resetEnduranceConfig = () => {
+  const resetEnduranceConfig = ({ preservePublicIntent = false } = {}) => {
+    const publicIntentAtual = localStorage.getItem("femflow_endurance_public_intent");
+
     [
       "femflow_endurance_dia",
       "femflow_endurance_semana",
@@ -268,6 +270,10 @@ function initFlowCenter() {
       "femflow_endurance_estimulo",
       "femflow_endurance_public_intent"
     ].forEach((key) => localStorage.removeItem(key));
+
+    if (preservePublicIntent && publicIntentAtual === "true") {
+      localStorage.setItem("femflow_endurance_public_intent", "true");
+    }
   };
 
   const fetchEndurancePlanToken = async () => {
@@ -299,7 +305,10 @@ function initFlowCenter() {
     if (!token) return;
     const lastToken = localStorage.getItem("femflow_endurance_plan_token") || "";
     if (token !== lastToken) {
-      resetEnduranceConfig();
+      resetEnduranceConfig({
+        preservePublicIntent:
+          localStorage.getItem("femflow_endurance_public_intent") === "true"
+      });
       localStorage.setItem("femflow_endurance_plan_token", token);
     }
   };
