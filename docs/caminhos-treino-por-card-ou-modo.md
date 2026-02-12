@@ -97,6 +97,30 @@ Este documento resume os fluxos de navegação e estado para os caminhos de trei
 - Se `femflow_custom_treino` estiver ativo, o treino extra não inicia (mostra aviso).
 - O treino extra usa ênfases com prefixo `extra_` e segue fluxo dedicado no motor de treino.
 
+
+## 6) Conflitos e precedência entre modos (regra prática)
+
+Para evitar conflito entre **planilha/endurance**, **personal**, **card normal** e **monte seu treino**, use a ordem de decisão abaixo no Flow Center:
+
+1. **Se `femflow_custom_treino === "true"`**: prioridade máxima para o custom.
+   - Treino normal e treino extra devem mostrar aviso de custom ativo.
+2. **Senão, se o contexto atual for endurance** (`intent/config` de endurance ativos): segue fluxo endurance (`treino.html?endurance=1`).
+3. **Senão, se `hasPersonal && femflow_mode_personal === "true"`**: segue fluxo personal (abre Caminhos e depois `?caminho=<n>`).
+4. **Senão**: fluxo padrão de card normal (ênfase + Caminhos).
+
+### Como interpretar o "30 dias"
+
+- O **"30 dias"** citado em `acesso_app` é **validade de licença/produto** (tempo de acesso da assinatura), não uma modalidade de treino.
+- **Planilha de corrida (endurance)** é um **modo de treino** iniciado pelos cards `planilha_corrida_*` e pelo setup no Flow Center.
+- Portanto, não há conflito de conceito: um item trata de **direito de acesso no tempo** e o outro trata de **roteamento de treino**.
+
+### Quando pode parecer conflito na prática
+
+- Se a pessoa entrar por **planilha corrida**, o app deve priorizar o estado de endurance para iniciar `?endurance=1`.
+- Se depois ela clicar em **card normal** ou **personal**, a origem nova redefine o contexto (desativa/ativa flags conforme o fluxo descrito nas seções 1, 3 e 4).
+- Se **Monte seu treino** estiver ativo, ele continua dominante até limpeza/finalização.
+
+
 ---
 
 ## Resumo rápido por origem
