@@ -1307,6 +1307,13 @@ function initFlowCenter() {
       return;
     }
 
+    // No fluxo de planilhas públicas (5k/10k/15k), a usuária precisa
+    // sempre confirmar semana e dia antes de iniciar o treino.
+    if (usarModoPublico) {
+      abrirModalEnduranceSelecao();
+      return;
+    }
+
     if (endurancePendente) {
       await iniciarEnduranceComChecagem();
       return;
