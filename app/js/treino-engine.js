@@ -998,6 +998,7 @@ FEMFLOW.engineTreino.carregarBlocosEndurancePublicByEstimulo = async ({
         .collection("estimulos")
         .doc(estimuloNorm)
         .collection("blocos")
+        .where("importTarget", "==", "femflow")
         .get();
     } catch (err) {
       const errCode = String(err?.code || "");

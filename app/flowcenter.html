@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="format-detection" content="telephone=no" />
   <script src="./config/config.js"></script>
@@ -272,13 +273,6 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-messaging-compat.js"></script>
 
 <script src="services/firebase-init.js?v=20250127"></script>
-<script>
-  if (firebase.auth) {
-    firebase.auth().signInAnonymously().catch((err) => {
-      console.warn("[FemFlow] Auth anônimo falhou:", err);
-    });
-  }
-</script>
 
 <script src="js/lang.js"></script>
 <script src="core/femflow-core.js"></script>
