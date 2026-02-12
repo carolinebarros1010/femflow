@@ -141,6 +141,7 @@ function setCiclo_(data) {
   const idxDataInicio = _resolveHeaderIndex_(header, "DataInicio", 10);
   const idxFase = _resolveHeaderIndex_(header, "Fase", 13);
   const idxDiaCiclo = _resolveHeaderIndex_(header, "DiaCiclo", 14);
+  const idxPerfilHormonal = _resolveHeaderIndex_(header, "Perfil_Hormonal", COL_PERFIL_HORMONAL);
 
   /* ===============================
      Helpers locais
@@ -159,6 +160,16 @@ function setCiclo_(data) {
   };
 
   const _clamp = (n, min, max) => Math.max(min, Math.min(max, n));
+
+  const _normalizarPerfilHormonal = (perfil) => {
+    const p = String(perfil || "").trim().toLowerCase();
+    if (!p) return "";
+
+    if (p === "contraceptivo") return "diu";
+    if (p === "diuhormonal") return "diu_hormonal";
+    if (p.endsWith("_quiz")) return p.replace(/_quiz$/, "");
+    return p;
+  };
 
   const fasePorDia = (dia) => {
     if (dia <= 5)  return "menstrual";
@@ -221,6 +232,15 @@ function setCiclo_(data) {
     sh.getRange(linha, idxDiaCiclo + 1).setValue(diaCicloFinal);
 
     /* ===============================
+       6) Perfil_Hormonal (T)
+    =============================== */
+    const perfilBruto = data.perfilHormonal || data.perfil || data.perfilInterno;
+    const perfilFinal = _normalizarPerfilHormonal(perfilBruto);
+    if (perfilFinal) {
+      sh.getRange(linha, idxPerfilHormonal + 1).setValue(perfilFinal);
+    }
+
+    /* ===============================
        7) DiaPrograma
     =============================== */
     sh.getRange(linha, COL_DIA_PROGRAMA + 1).setValue(Number(data.diaPrograma) || 1);
@@ -240,6 +260,7 @@ function setCiclo_(data) {
       id,
       cicloDuracao,
       dataInicio: dataInicioFinal ? dataInicioFinal.toISOString() : null,
+      perfilHormonal: perfilFinal || (r[idxPerfilHormonal] || ""),
       fase: faseFinal,
       diaCiclo: diaCicloFinal
     };
