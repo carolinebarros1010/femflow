@@ -1039,9 +1039,10 @@ const hasPersonal =
     const hasRitmo = Boolean(ritmoTexto);
     const usarFallback = !(hasSeries && hasTempo && hasIntervalo);
     const fallbackTempo = t("treino.cardio.fallbackTempo");
+    const fallbackTempoDinamico = hasTempo ? tempoOuDistancia : fallbackTempo;
 
     const descricao = usarFallback
-      ? t("treino.cardio.fallback")
+      ? t("treino.cardio.fallback", { tempo: fallbackTempoDinamico })
       : hasRitmo
         ? t("treino.cardio.descricaoRitmo", {
             series: series || "-",
@@ -1062,7 +1063,7 @@ const hasPersonal =
     if (hasTempo) {
       detalhes.push(t("treino.cardio.tempoLabel", { tempo: tempoOuDistancia }));
     } else if (usarFallback) {
-      detalhes.push(t("treino.cardio.tempoLabel", { tempo: fallbackTempo }));
+      detalhes.push(t("treino.cardio.tempoLabel", { tempo: fallbackTempoDinamico }));
     }
     if (hasIntervalo) {
       detalhes.push(t("treino.cardio.intervaloLabel", { intervalo: intervaloTexto }));
