@@ -971,13 +971,15 @@ function getFollowmeEmBreveMessage() {
    MODAL — CONFIRMAÇÃO DE NOVO PROGRAMA
 =========================================================== */
 let novoProgramaEnfase = null;
+let novoProgramaAcaoConfirmar = null;
 let novoProgramaModal;
 let novoProgramaConfirmar;
 let novoProgramaCancelar;
 
-function abrirModalNovoPrograma(enfase) {
+function abrirModalNovoPrograma(enfase, acaoConfirmar = null) {
   if (!novoProgramaModal) return;
   novoProgramaEnfase = enfase;
+  novoProgramaAcaoConfirmar = typeof acaoConfirmar === "function" ? acaoConfirmar : null;
   novoProgramaModal.classList.remove("hidden");
   novoProgramaModal.setAttribute("aria-hidden", "false");
   document.body.classList.add("ff-modal-open");
@@ -986,6 +988,7 @@ function abrirModalNovoPrograma(enfase) {
 function fecharModalNovoPrograma() {
   if (!novoProgramaModal) return;
   novoProgramaEnfase = null;
+  novoProgramaAcaoConfirmar = null;
   novoProgramaModal.classList.add("hidden");
   novoProgramaModal.setAttribute("aria-hidden", "true");
   document.body.classList.remove("ff-modal-open");
@@ -993,13 +996,43 @@ function fecharModalNovoPrograma() {
 
 function confirmarNovoPrograma() {
   const enfase = novoProgramaEnfase;
+  const acaoConfirmar = novoProgramaAcaoConfirmar;
   fecharModalNovoPrograma();
+  if (acaoConfirmar) {
+    acaoConfirmar();
+    return;
+  }
   if (!enfase) return;
   if (inferirCategoria(enfase) === "followme") {
     void selecionarCoach(enfase);
     return;
   }
   void selecionarEnfase(enfase);
+}
+
+function iniciarPlanilhaCorrida(enfase) {
+  const modalidade = enfase.replace("planilha_", "");
+
+  // Seleção de planilha sempre força saída do modo personal.
+  localStorage.setItem("femflow_mode_personal", "false");
+
+  // Sempre iniciar um novo fluxo da planilha corrida, sem reaproveitar
+  // seleção anterior de semana/dia/estímulo salva em cache/localStorage.
+  [
+    "femflow_endurance_config",
+    "femflow_endurance_setup_done",
+    "femflow_endurance_pending",
+    "femflow_endurance_dia",
+    "femflow_endurance_semana",
+    "femflow_endurance_estimulo",
+    "femflow_treino_endurance"
+  ].forEach((key) => localStorage.removeItem(key));
+
+  localStorage.setItem("femflow_endurance_public_intent", "true");
+  localStorage.setItem("femflow_endurance_public_enabled", "true");
+  localStorage.setItem("femflow_endurance_modalidade", modalidade);
+  FEMFLOW.toast("Configure sua planilha no Flow Center ✨");
+  FEMFLOW.router("flowcenter");
 }
 
 /* ============================================================
@@ -1094,28 +1127,7 @@ function confirmarCustomTreino() {
 async function handleCardClick(enfase, locked) {
 
   if (enfase.startsWith("planilha_corrida_")) {
-    const modalidade = enfase.replace("planilha_", "");
-
-    // Seleção de planilha sempre força saída do modo personal.
-    localStorage.setItem("femflow_mode_personal", "false");
-
-    // Sempre iniciar um novo fluxo da planilha corrida, sem reaproveitar
-    // seleção anterior de semana/dia/estímulo salva em cache/localStorage.
-    [
-      "femflow_endurance_config",
-      "femflow_endurance_setup_done",
-      "femflow_endurance_pending",
-      "femflow_endurance_dia",
-      "femflow_endurance_semana",
-      "femflow_endurance_estimulo",
-      "femflow_treino_endurance"
-    ].forEach((key) => localStorage.removeItem(key));
-
-    localStorage.setItem("femflow_endurance_public_intent", "true");
-    localStorage.setItem("femflow_endurance_public_enabled", "true");
-    localStorage.setItem("femflow_endurance_modalidade", modalidade);
-    FEMFLOW.toast("Configure sua planilha no Flow Center ✨");
-    FEMFLOW.router("flowcenter");
+    abrirModalNovoPrograma(enfase, () => iniciarPlanilhaCorrida(enfase));
     return;
   }
 
