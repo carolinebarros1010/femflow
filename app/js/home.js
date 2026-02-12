@@ -448,9 +448,14 @@ function inferirCategoria(enfase) {
   if (!enfase) return "esportes";
   if (enfase.startsWith("followme_")) return "followme";
  if (enfase === "personal") return "personal";
+  if (enfase === "monte_seu_treino") return "custom";
   if (enfase.startsWith("casa") || enfase === "20minemcasa") return "casa";
   if (MUSCULAR_ENFASES.has(enfase)) return "muscular";
   return "esportes";
+}
+
+function categoriaSegueRegrasAcessoApp(categoria) {
+  return ["muscular", "esportes", "casa", "custom"].includes(categoria);
 }
 
 function podeAcessar(enfase, perfil) {
@@ -475,7 +480,11 @@ function podeAcessar(enfase, perfil) {
   }
 
   // 🔹 ACESSO APP
-  if (produto === "acesso_app" || isTrial) {
+  if (produto === "acesso_app") {
+    return categoriaSegueRegrasAcessoApp(categoria);
+  }
+
+  if (isTrial) {
     return ["muscular", "esportes", "casa"].includes(categoria);
   }
 
@@ -526,9 +535,27 @@ function avaliarAcessoCard(enfase, perfil) {
     String(item || "").toLowerCase()
   );
 
-  const podeAcessarFree =
+  const categoria = inferirCategoria(enfase);
+
+  const podeAcessarFreePadrao =
     perfil.free_access?.enabled === true &&
     freeAccessEnfases.includes(enfase);
+
+  const podeAcessarFreeMonteSeuTreino =
+    enfase === "monte_seu_treino" &&
+    perfil.free_access?.enabled === true &&
+    (
+      freeAccessEnfases.includes("monte_seu_treino") ||
+      freeAccessEnfases.some(freeEnfase => {
+        const categoriaFree = inferirCategoria(freeEnfase);
+        return ["muscular", "esportes", "casa"].includes(categoriaFree);
+      })
+    );
+
+  const podeAcessarFree =
+    categoria === "custom"
+      ? podeAcessarFreeMonteSeuTreino
+      : podeAcessarFreePadrao;
 
   return {
     locked: !(podeAcessarProduto || podeAcessarFree),
@@ -1474,10 +1501,33 @@ document.addEventListener("DOMContentLoaded", async () => {
     // - se tem personal → desbloqueado (ativa modo personal)
     // - se não tem → locked e vira propaganda CTA
     if (catalogo.personal.length === 0) {
-      const cards = CARDS_PERSONAL_SIMBOLICOS.map(c => ({
-        ...c,
-        locked: c.alwaysUnlocked ? false : !perfilTemPersonal
-      }));
+      const perfilCardsPersonal = {
+        produto,
+        ativa: localStorage.getItem("femflow_ativa") === "true",
+        personal: perfilTemPersonal,
+        free_access: (() => {
+          const freeAccessRaw = localStorage.getItem("femflow_free_access");
+          if (!freeAccessRaw) return null;
+          try { return JSON.parse(freeAccessRaw); }
+          catch (err) { return null; }
+        })()
+      };
+
+      const cards = CARDS_PERSONAL_SIMBOLICOS.map(c => {
+        if (c.enfase === "monte_seu_treino") {
+          const acesso = avaliarAcessoCard(c.enfase, perfilCardsPersonal);
+          return {
+            ...c,
+            locked: acesso.locked,
+            isFree: acesso.isFree
+          };
+        }
+
+        return {
+          ...c,
+          locked: c.alwaysUnlocked ? false : !perfilTemPersonal
+        };
+      });
       catalogo.personal.push(...cards);
     }
 
