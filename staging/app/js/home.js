@@ -665,7 +665,13 @@ const CARD_THUMBS = {
   hyrox: "hyrox.jpg",
   personal: "personal_ricardojr.jpg",
   personal_ricardojr: "personal_ricardojr.jpg",
-  corrida_curta: "corrida_curta.jpg"
+  corrida_curta: "corrida_curta.jpg",
+  planilha_corrida_5k: "corrida_curta.jpg",
+  planilha_corrida_10k: "corrida_Longa.jpg",
+  planilha_corrida_15k: "corrida_Longa.jpg",
+  corrida_5k: "corrida_curta.jpg",
+  corrida_10k: "corrida_Longa.jpg",
+  corrida_15k: "corrida_Longa.jpg"
 };
 
 function getThumbUrl(enfase) {
