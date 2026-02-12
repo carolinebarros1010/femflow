@@ -1108,7 +1108,7 @@ async function handleCardClick(enfase, locked) {
     const produto = String(localStorage.getItem("femflow_produto") || "").toLowerCase();
     const isTrial = produto === "trial_app";
     const categoria = inferirCategoria(enfase);
-    if (isTrial && ["muscular", "esportes", "casa"].includes(categoria)) {
+    if (isTrial && categoriaSegueRegrasAcessoApp(categoria)) {
       FEMFLOW.openExternal(LINK_ACESSO_APP);
       return;
     }
