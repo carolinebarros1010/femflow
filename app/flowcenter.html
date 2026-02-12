@@ -120,7 +120,22 @@
 
     <label class="endurance-field">
       <span>Qual modalidade?</span>
-      <input type="text" id="enduranceModalidade" placeholder="Ex: corrida, bike, natação">
+      <select id="enduranceModalidade" class="endurance-select">
+        <option value="" selected>Selecione a modalidade</option>
+        <optgroup label="Corrida">
+          <option value="corrida">Corrida (geral)</option>
+          <option value="corrida_5k">Corrida 5 km</option>
+          <option value="corrida_10k">Corrida 10 km</option>
+          <option value="corrida_15k">Corrida 15 km</option>
+          <option value="corrida_21k">Corrida 21 km</option>
+          <option value="corrida_42k">Corrida 42 km</option>
+        </optgroup>
+        <optgroup label="Outras modalidades">
+          <option value="natacao">Natação</option>
+          <option value="bike">Bike / Ciclismo</option>
+          <option value="remo">Remo</option>
+        </optgroup>
+      </select>
     </label>
 
     <div class="endurance-field">

@@ -279,12 +279,18 @@ h1 {
   color: #5d4d48;
 }
 
-.endurance-field input {
+.endurance-field input,
+.endurance-field select {
   padding: 10px 12px;
   border-radius: 12px;
   border: 1px solid rgba(204,106,90,0.25);
   font-size: 0.9rem;
   font-family: "Lato", sans-serif;
+}
+
+
+.endurance-select {
+  background: #fff;
 }
 
 .endurance-options {
