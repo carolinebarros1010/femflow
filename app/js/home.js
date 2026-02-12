@@ -1089,8 +1089,22 @@ async function handleCardClick(enfase, locked) {
 
   if (enfase.startsWith("planilha_corrida_")) {
     const modalidade = enfase.replace("planilha_", "");
+
     // Seleção de planilha sempre força saída do modo personal.
     localStorage.setItem("femflow_mode_personal", "false");
+
+    // Sempre iniciar um novo fluxo da planilha corrida, sem reaproveitar
+    // seleção anterior de semana/dia/estímulo salva em cache/localStorage.
+    [
+      "femflow_endurance_config",
+      "femflow_endurance_setup_done",
+      "femflow_endurance_pending",
+      "femflow_endurance_dia",
+      "femflow_endurance_semana",
+      "femflow_endurance_estimulo",
+      "femflow_treino_endurance"
+    ].forEach((key) => localStorage.removeItem(key));
+
     localStorage.setItem("femflow_endurance_public_intent", "true");
     localStorage.setItem("femflow_endurance_public_enabled", "true");
     localStorage.setItem("femflow_endurance_modalidade", modalidade);
