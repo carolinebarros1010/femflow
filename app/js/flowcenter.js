@@ -1314,9 +1314,10 @@ function initFlowCenter() {
 
       const hasSab = diasSemana.includes("sabado");
       const hasDom = diasSemana.includes("domingo");
-      if (hasSab && hasDom && dia === "sabado") {
+      const diaVolumePadrao = diasSemana[0] || "";
+      if (hasSab && hasDom && dia === "sabado" && diaVolumePadrao === "sabado") {
         estimuloSelecionado = "volume";
-        console.log("[Endurance Público] Override SAB+DOM aplicado: sábado -> volume", {
+        console.log("[Endurance Público] Override SAB+DOM aplicado sem duplicar volume", {
           semana,
           dia,
           estimuloSelecionado
