@@ -1089,6 +1089,8 @@ async function handleCardClick(enfase, locked) {
 
   if (enfase.startsWith("planilha_corrida_")) {
     const modalidade = enfase.replace("planilha_", "");
+    // Seleção de planilha sempre força saída do modo personal.
+    localStorage.setItem("femflow_mode_personal", "false");
     localStorage.setItem("femflow_endurance_public_intent", "true");
     localStorage.setItem("femflow_endurance_public_enabled", "true");
     localStorage.setItem("femflow_endurance_modalidade", modalidade);
