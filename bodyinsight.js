@@ -1,59 +1,154 @@
-// ==================================================
-// Body Insight - Lógica visual de protótipo (sem IA real)
-// ==================================================
+// ============================================================
+// Body Insight (módulo isolado)
+// - Preview da foto frontal
+// - Animação de scan
+// - Cálculo de IMC e BMR
+// - Upload da foto no Firebase Storage
+// - Registro dos dados no Firestore
+// ============================================================
 
-const form = document.getElementById('bi-form');
-const scanContainer = document.querySelector('.bi-scan-container');
-const results = document.getElementById('bi-results');
-const button = document.getElementById('bi-calc-btn');
+const biForm = document.getElementById('bi-form');
+const biScanContainer = document.getElementById('biScanContainer');
+const biPhoto = document.getElementById('biPhoto');
+const biPhotoInput = document.getElementById('biPhotoInput');
+const biResults = document.getElementById('bi-results');
 
-const formatNumber = (value, decimals = 1) => Number(value).toFixed(decimals);
+let selectedFile = null;
 
-const getMetabolicEstimate = ({ peso, idade, cintura, quadril }) => {
-  // Estimativa simples e fictícia para protótipo visual.
-  const base = 24 * peso;
-  const ageFactor = idade > 40 ? 0.93 : 1.02;
-  const ratio = quadril > 0 ? cintura / quadril : 0;
-  const bodyFactor = 1 + Math.min(Math.max((ratio - 0.75) * 0.18, -0.08), 0.1);
-  return base * ageFactor * bodyFactor;
-};
+/**
+ * Utilitário para renderizar mensagens na área de resultados.
+ */
+function setResultMessage(message) {
+  biResults.innerHTML = `<p>${message}</p>`;
+}
 
-const showMessage = (message) => {
-  results.innerHTML = `<p class="bi-muted">${message}</p>`;
-};
+/**
+ * Recupera o ID do usuário atual usando a instância Firebase já existente.
+ * Não cria nova configuração Firebase; apenas reutiliza o app disponível.
+ */
+function getCurrentUserId() {
+  if (!window.firebase || !firebase.auth) {
+    throw new Error('Firebase Auth não está disponível nesta página.');
+  }
 
-form.addEventListener('submit', (event) => {
-  event.preventDefault();
+  const user = firebase.auth().currentUser;
+  if (!user || !user.uid) {
+    throw new Error('Usuário não autenticado. Faça login para continuar.');
+  }
 
-  const altura = Number(document.getElementById('altura').value);
-  const peso = Number(document.getElementById('peso').value);
-  const cintura = Number(document.getElementById('cintura').value);
-  const quadril = Number(document.getElementById('quadril').value);
-  const idade = Number(document.getElementById('idade').value);
+  return user.uid;
+}
 
-  if (![altura, peso, cintura, quadril, idade].every((item) => Number.isFinite(item) && item > 0)) {
-    showMessage('Preencha todos os campos com valores válidos para continuar.');
+/**
+ * Faz upload da imagem para o Storage e retorna a URL pública.
+ */
+async function uploadPhotoToStorage(userId, file, timestamp) {
+  if (!window.firebase || !firebase.storage) {
+    throw new Error('Firebase Storage não está disponível nesta página.');
+  }
+
+  const storagePath = `body_insight/${userId}/${timestamp}.jpg`;
+  const storageRef = firebase.storage().ref().child(storagePath);
+  await storageRef.put(file);
+  return storageRef.getDownloadURL();
+}
+
+/**
+ * Persiste os dados no Firestore na coleção body_insight.
+ */
+async function saveBodyInsightToFirestore(payload, docId) {
+  if (!window.firebase || !firebase.firestore) {
+    throw new Error('Firestore não está disponível nesta página.');
+  }
+
+  await firebase.firestore().collection('body_insight').doc(docId).set({
+    ...payload,
+    createdAt: firebase.firestore.FieldValue.serverTimestamp()
+  });
+}
+
+/**
+ * Preview da foto frontal dentro do quadro de scan.
+ */
+biPhotoInput.addEventListener('change', (event) => {
+  const file = event.target.files && event.target.files[0];
+
+  if (!file) {
+    selectedFile = null;
+    biPhoto.removeAttribute('src');
+    biPhoto.classList.add('hidden');
     return;
   }
 
-  button.disabled = true;
-  showMessage('Executando scan inteligente…');
-  scanContainer.classList.remove('is-paused');
-
-  window.setTimeout(() => {
-    const imc = peso / ((altura / 100) ** 2);
-    const metabolic = getMetabolicEstimate({ peso, idade, cintura, quadril });
-
-    results.innerHTML = `
-      <p><strong>IMC:</strong> ${formatNumber(imc, 1)}</p>
-      <p><strong>Estimativa metabólica:</strong> ${formatNumber(metabolic, 0)} kcal/dia</p>
-    `;
-
-    scanContainer.classList.add('is-paused');
-    button.disabled = false;
-  }, 2000);
+  selectedFile = file;
+  const localPreviewUrl = URL.createObjectURL(file);
+  biPhoto.src = localPreviewUrl;
+  biPhoto.classList.remove('hidden');
 });
 
-// Estado inicial com orientação leve.
-showMessage('Insira seus dados para iniciar a análise visual.');
-scanContainer.classList.add('is-paused');
+/**
+ * Fluxo principal: calcula parâmetros, executa scan e salva no Firebase.
+ */
+biForm.addEventListener('submit', async (event) => {
+  event.preventDefault();
+
+  try {
+    const altura = Number(document.getElementById('altura').value);
+    const peso = Number(document.getElementById('peso').value);
+    const cintura = Number(document.getElementById('cintura').value);
+    const quadril = Number(document.getElementById('quadril').value);
+    const idade = Number(document.getElementById('idade').value);
+
+    if (![altura, peso, cintura, quadril, idade].every((value) => Number.isFinite(value) && value > 0)) {
+      setResultMessage('Preencha todos os campos com valores válidos.');
+      return;
+    }
+
+    if (!selectedFile) {
+      setResultMessage('Selecione uma foto frontal antes de calcular.');
+      return;
+    }
+
+    // Ativa visual de scan por 2 segundos.
+    biScanContainer.classList.add('scanning');
+    setResultMessage('Processando imagem e calculando parâmetros...');
+
+    const imc = peso / ((altura / 100) ** 2);
+    const bmr = (10 * peso) + (6.25 * altura) - (5 * idade) - 161;
+
+    await new Promise((resolve) => setTimeout(resolve, 2000));
+
+    const userId = getCurrentUserId();
+    const timestamp = Date.now();
+    const docId = `${userId}_${timestamp}`;
+
+    // 1) Upload da foto no Storage
+    const photoUrl = await uploadPhotoToStorage(userId, selectedFile, timestamp);
+
+    // 2) Registro dos dados no Firestore
+    const payload = {
+      userId,
+      altura,
+      peso,
+      cintura,
+      quadril,
+      idade,
+      imc: Number(imc.toFixed(2)),
+      bmr: Number(bmr.toFixed(2)),
+      photoUrl
+    };
+
+    await saveBodyInsightToFirestore(payload, docId);
+
+    biResults.innerHTML = `
+      <p><strong>IMC:</strong> ${imc.toFixed(2)}</p>
+      <p><strong>Estimativa metabólica:</strong> ${bmr.toFixed(2)} kcal/dia</p>
+    `;
+  } catch (error) {
+    setResultMessage(`Erro ao processar Body Insight: ${error.message}`);
+  } finally {
+    biScanContainer.classList.remove('scanning');
+  }
+});
+
+setResultMessage('Preencha os dados, selecione a foto frontal e clique em Calcular Parâmetros.');
