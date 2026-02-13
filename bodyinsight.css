@@ -1,0 +1,217 @@
+/* ==================================================
+   Body Insight - Estilo visual isolado (FemFlow)
+   ================================================== */
+
+:root {
+  --bi-bg: #335953;
+  --bi-bg-dark: #284742;
+  --bi-card: rgba(248, 244, 238, 0.12);
+  --bi-card-border: rgba(248, 244, 238, 0.28);
+  --bi-text: #f8f4ee;
+  --bi-text-soft: #f4d9c8;
+  --bi-accent: #cc8c71;
+  --bi-accent-soft: #edc6ae;
+  --bi-shadow: 0 20px 45px rgba(0, 0, 0, 0.22);
+  --bi-radius-lg: 22px;
+  --bi-radius-md: 14px;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: "Inter", "Segoe UI", Roboto, Arial, sans-serif;
+  color: var(--bi-text);
+  background: radial-gradient(circle at 10% 20%, #3f6a63 0%, var(--bi-bg) 42%, var(--bi-bg-dark) 100%);
+  padding: 1rem;
+}
+
+.bi-header {
+  text-align: center;
+  margin-top: 0.4rem;
+}
+
+.bi-header h1 {
+  margin: 0;
+  color: var(--bi-text-soft);
+  font-weight: 700;
+  letter-spacing: 0.4px;
+}
+
+.bi-main {
+  max-width: 760px;
+  margin: 1rem auto 2rem;
+  display: grid;
+  gap: 1.1rem;
+}
+
+.bi-scan-container {
+  position: relative;
+  overflow: hidden;
+  min-height: 220px;
+  border-radius: var(--bi-radius-lg);
+  border: 1px solid var(--bi-card-border);
+  background: linear-gradient(165deg, rgba(54, 95, 88, 0.85), rgba(41, 70, 65, 0.95));
+  box-shadow: var(--bi-shadow);
+  display: grid;
+  place-items: center;
+}
+
+.bi-abstract-bg {
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 18% 28%, rgba(237, 198, 174, 0.17) 0%, transparent 40%),
+    radial-gradient(circle at 72% 68%, rgba(204, 140, 113, 0.17) 0%, transparent 40%),
+    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.05) 0%, transparent 55%);
+}
+
+.bi-scan-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -15%;
+  height: 18%;
+  opacity: 0.85;
+  background: linear-gradient(
+    to bottom,
+    rgba(244, 217, 200, 0.04) 0%,
+    rgba(244, 217, 200, 0.28) 42%,
+    rgba(255, 255, 255, 0.38) 50%,
+    rgba(244, 217, 200, 0.2) 68%,
+    rgba(244, 217, 200, 0.03) 100%
+  );
+  filter: blur(0.6px);
+  animation: scanMove 2s ease-in-out infinite;
+  pointer-events: none;
+}
+
+.bi-scan-container.is-paused .bi-scan-line {
+  animation-play-state: paused;
+  opacity: 0.25;
+}
+
+.bi-scan-text {
+  position: relative;
+  z-index: 1;
+  margin: 0;
+  padding: 0 1rem;
+  text-align: center;
+  color: var(--bi-text-soft);
+  font-size: 1.05rem;
+  letter-spacing: 0.2px;
+}
+
+.bi-form-wrapper {
+  border-radius: var(--bi-radius-lg);
+  border: 1px solid var(--bi-card-border);
+  background: var(--bi-card);
+  backdrop-filter: blur(6px);
+  box-shadow: var(--bi-shadow);
+  padding: 1rem;
+}
+
+.bi-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 0.9rem;
+}
+
+.bi-form label {
+  display: grid;
+  gap: 0.35rem;
+  font-size: 0.93rem;
+  color: var(--bi-text-soft);
+}
+
+.bi-form input {
+  width: 100%;
+  border-radius: var(--bi-radius-md);
+  border: 1px solid rgba(248, 244, 238, 0.3);
+  background: rgba(255, 255, 255, 0.12);
+  color: var(--bi-text);
+  padding: 0.72rem 0.84rem;
+  outline: none;
+}
+
+.bi-form input:focus {
+  border-color: var(--bi-accent-soft);
+  box-shadow: 0 0 0 3px rgba(237, 198, 174, 0.22);
+}
+
+#bi-calc-btn {
+  grid-column: 1 / -1;
+  border: none;
+  border-radius: 999px;
+  padding: 0.9rem 1rem;
+  font-weight: 700;
+  cursor: pointer;
+  color: #213b37;
+  background: linear-gradient(180deg, var(--bi-accent-soft), var(--bi-accent));
+  transition: transform 0.2s ease, filter 0.2s ease;
+}
+
+#bi-calc-btn:hover,
+#bi-calc-btn:focus-visible {
+  transform: translateY(-1px);
+  filter: brightness(1.03);
+}
+
+#bi-calc-btn:disabled {
+  cursor: not-allowed;
+  opacity: 0.75;
+  transform: none;
+}
+
+.bi-results {
+  margin-top: 1rem;
+  border-radius: var(--bi-radius-md);
+  min-height: 56px;
+  padding: 0.85rem;
+  color: var(--bi-text);
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px dashed rgba(248, 244, 238, 0.33);
+}
+
+.bi-results p {
+  margin: 0.2rem 0;
+}
+
+.bi-muted {
+  opacity: 0.85;
+  font-style: italic;
+}
+
+/* Animação principal de scan */
+@keyframes scanMove {
+  0% {
+    transform: translateY(-130%);
+  }
+  50% {
+    transform: translateY(260%);
+  }
+  100% {
+    transform: translateY(560%);
+  }
+}
+
+@media (max-width: 620px) {
+  body {
+    padding: 0.75rem;
+  }
+
+  .bi-scan-container {
+    min-height: 200px;
+  }
+
+  .bi-form {
+    grid-template-columns: 1fr;
+  }
+
+  .bi-header h1 {
+    font-size: 1.5rem;
+  }
+}
