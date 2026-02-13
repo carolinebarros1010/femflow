@@ -589,6 +589,15 @@ footer {
 .thumb-peitoral {
   background-image: url("/app/css/cards/peitoral.jpg");
 }
+
+.thumb-bodyinsight {
+  background-image: url("/app/css/cards/body_insight.jpg");
+}
+
+.thumb-bodyinsight.has-image {
+  background-size: cover;
+  background-position: center;
+}
 /* ============================================================
    🔒 CARD BLOQUEADO (vitrine)
 ============================================================ */
@@ -624,4 +633,16 @@ footer {
   border-radius: 12px;
   font-size: .75rem;
   font-weight: 700;
+}
+
+.badge-soon{
+  position:absolute;
+  top:10px;
+  left:10px;
+  background:rgba(255,255,255,.85);
+  color:#6a4f47;
+  padding:6px 10px;
+  border-radius:999px;
+  font-size:.75rem;
+  font-weight:700;
 }

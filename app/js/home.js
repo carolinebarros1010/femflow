@@ -698,6 +698,18 @@ const CARDS_PERSONAL_SIMBOLICOS = [
   }
 ];
 
+const CARDS_BODYINSIGHT_SIMBOLICOS = [
+  {
+    enfase: "bodyinsight",
+    titulo: "Body Insight",
+    desc: "Análise visual da sua evolução corporal",
+    color: "#335953",
+    locked: true,
+    simbolico: true,
+    emBreve: true
+  }
+];
+
 const CARDS_PLANILHAS_30_DIAS = [
   {
     enfase: "planilha_corrida_5k",
@@ -806,7 +818,8 @@ const CARD_THUMBS = {
   corrida_5k: "corrida_5k.jpg",
   corrida_10k: "corrida_10k.jpg",
   corrida_15k: "corrida_15k.jpg",
-  monte_seu_treino: "monte_seu_treino.jpg"
+  monte_seu_treino: "monte_seu_treino.jpg",
+  bodyinsight: "body_insight.jpg"
 };
 
 function getThumbUrl(enfase) {
@@ -926,6 +939,9 @@ function cardHTML(p) {
   const lockedClass = p.locked ? " locked" : "";
   const lockOverlay = p.locked ? '<span class="lock-overlay">🔒</span>' : "";
   const freeBadge = p.isFree ? '<span class="badge-free">Gratuito</span>' : "";
+  const emBreveBadge = p.emBreve
+    ? '<span class="badge-soon">Em breve</span>'
+    : "";
   const thumbUrl = getThumbUrl(p.enfase);
   const thumbClass = `thumb thumb-${p.enfase}${thumbUrl ? " has-image" : ""}`;
   const thumbStyle = `${thumbUrl ? `--thumb-url:url('${thumbUrl}');` : ""}background-color:${p.color};`;
@@ -934,6 +950,7 @@ function cardHTML(p) {
     <article class="card${lockedClass}" data-enfase="${p.enfase}" data-locked="${p.locked}">
       <div class="${thumbClass}" style="${thumbStyle}">
         ${lockOverlay}
+        ${emBreveBadge}
         ${freeBadge}
       </div>
       <div class="info">
@@ -1125,6 +1142,11 @@ function confirmarCustomTreino() {
    LÓGICA DE ACESSO POR PRODUTO
 =========================================================== */
 async function handleCardClick(enfase, locked) {
+
+  if (enfase === "bodyinsight") {
+    FEMFLOW.toast("✨ Body Insight: em breve.");
+    return;
+  }
 
   if (enfase.startsWith("planilha_corrida_")) {
     abrirModalNovoPrograma(enfase, () => iniciarPlanilhaCorrida(enfase));
@@ -1564,6 +1586,8 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
       catalogo.personal.push(...cards);
     }
+
+    catalogo.personal = [...CARDS_BODYINSIGHT_SIMBOLICOS, ...catalogo.personal];
 
     // FOLLOWME — sempre aparece como vitrine
     if (catalogo.followme.length === 0) {
