@@ -7,51 +7,47 @@
     <link rel="stylesheet" href="bodyinsight.css" />
   </head>
   <body>
-    <!-- Cabeçalho principal -->
     <header class="bi-header">
       <h1>Body Insight</h1>
     </header>
 
     <main class="bi-main">
-      <!-- Área visual de scan -->
-      <section class="bi-scan-container" aria-live="polite">
-        <div class="bi-abstract-bg" aria-hidden="true"></div>
+      <section class="bi-scan-container" id="biScanContainer" aria-live="polite">
+        <!-- Preview da foto frontal selecionada -->
+        <img id="biPhoto" class="hidden" alt="Preview da foto frontal para análise corporal" />
+
+        <!-- Overlay translúcido sobre a imagem -->
+        <div class="bi-overlay" aria-hidden="true"></div>
+
+        <!-- Linha de scan animada (ativa apenas durante análise) -->
         <div class="bi-scan-line" aria-hidden="true"></div>
-        <p class="bi-scan-text">Analisando seus parâmetros…</p>
+
+        <p class="bi-scan-text">Analisando seus parâmetros...</p>
       </section>
 
-      <!-- Formulário de parâmetros corporais -->
       <section class="bi-form-wrapper">
         <form id="bi-form" class="bi-form" novalidate>
-          <label>
-            Altura (cm)
-            <input type="number" id="altura" min="100" max="250" required />
-          </label>
+          <label for="altura">Altura (cm)</label>
+          <input type="number" id="altura" min="100" max="250" required />
 
-          <label>
-            Peso (kg)
-            <input type="number" id="peso" min="20" max="300" step="0.1" required />
-          </label>
+          <label for="peso">Peso (kg)</label>
+          <input type="number" id="peso" min="20" max="300" step="0.1" required />
 
-          <label>
-            Cintura (cm)
-            <input type="number" id="cintura" min="40" max="200" step="0.1" required />
-          </label>
+          <label for="cintura">Cintura (cm)</label>
+          <input type="number" id="cintura" min="40" max="200" step="0.1" required />
 
-          <label>
-            Quadril (cm)
-            <input type="number" id="quadril" min="50" max="220" step="0.1" required />
-          </label>
+          <label for="quadril">Quadril (cm)</label>
+          <input type="number" id="quadril" min="50" max="220" step="0.1" required />
 
-          <label>
-            Idade
-            <input type="number" id="idade" min="12" max="120" required />
-          </label>
+          <label for="idade">Idade</label>
+          <input type="number" id="idade" min="12" max="120" required />
+
+          <label for="biPhotoInput">Foto frontal</label>
+          <input type="file" id="biPhotoInput" accept="image/*" required />
 
           <button type="submit" id="bi-calc-btn">Calcular Parâmetros</button>
         </form>
 
-        <!-- Placeholder de resultado -->
         <div class="bi-results" id="bi-results" aria-live="polite"></div>
       </section>
     </main>
