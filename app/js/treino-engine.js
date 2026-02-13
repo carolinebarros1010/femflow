@@ -656,6 +656,7 @@ if (b.tipo === "hiit") {
         tempo: b.tempo ?? "",
         distancia: b.distancia ?? b.reps ?? "",
         ritmo: b.ritmo ?? "",
+        zona_treino: b.zona_treino ?? b.zonaTreino ?? "",
         intervalo: Number(b.intervalo) || 0,
         duracao: Number(b.tempo) || 0
       });
@@ -675,6 +676,7 @@ if (b.tipo === "hiit") {
         tempo: b.tempo ?? "",
         distancia: b.distancia ?? b.reps ?? "",
         ritmo: b.ritmo ?? "",
+        zona_treino: b.zona_treino ?? b.zonaTreino ?? "",
         intervalo: Number(b.intervalo) || 0,
         duracao: Number(b.tempo) || 0
       });
