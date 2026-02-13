@@ -65,6 +65,7 @@
       <p id="mensagem" class="message"></p>
 
       <a id="linkCadastro" class="toggle" href="anamnese_deluxe.html">Ainda não tem conta? Cadastre-se</a>
+      <p id="linkTrocarDispositivo" class="toggle">Trocar de dispositivo</p>
       <p id="goRecuperar" class="toggle">Esqueci minha senha</p>
 
       <div class="social-row boho">
@@ -97,6 +98,43 @@ document.addEventListener("DOMContentLoaded", () => {
     msg.textContent = t;
     msg.style.color = ok ? "#2e7d32" : "#335953";
   };
+
+  const currentLoginLang = () => localStorage.getItem("femflow_lang") || "pt";
+
+  const LOGIN_MSG = {
+    pt: {
+      blocked: "Esta conta já está conectada em outro dispositivo.",
+      switchNeedCreds: "Digite e-mail e senha para trocar de dispositivo.",
+      switchLoading: "Liberando conta neste dispositivo...",
+      switchOk: "Dispositivo anterior desconectado. Faça login novamente.",
+      wrongPass: "Senha incorreta.",
+      emailNotFound: "E-mail não encontrado.",
+      switchFail: "Não foi possível trocar de dispositivo.",
+      switchError: "Erro ao trocar de dispositivo."
+    },
+    en: {
+      blocked: "This account is already connected on another device.",
+      switchNeedCreds: "Enter email and password to switch device.",
+      switchLoading: "Releasing account on this device...",
+      switchOk: "Previous device disconnected. Please log in again.",
+      wrongPass: "Incorrect password.",
+      emailNotFound: "Email not found.",
+      switchFail: "Could not switch device.",
+      switchError: "Error while switching device."
+    },
+    fr: {
+      blocked: "Ce compte est déjà connecté sur un autre appareil.",
+      switchNeedCreds: "Saisissez l’e-mail et le mot de passe pour changer d’appareil.",
+      switchLoading: "Libération du compte sur cet appareil...",
+      switchOk: "Appareil précédent déconnecté. Veuillez vous reconnecter.",
+      wrongPass: "Mot de passe incorrect.",
+      emailNotFound: "E-mail introuvable.",
+      switchFail: "Impossible de changer d’appareil.",
+      switchError: "Erreur lors du changement d’appareil."
+    }
+  };
+
+  const getLoginMsg = () => LOGIN_MSG[currentLoginLang()] || LOGIN_MSG.pt;
 
   async function postGAS(p){
     const r = await fetch(scriptURL, {
@@ -172,7 +210,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (res.status !== "ok") {
       if (res.status === "blocked") {
-        setErr("Esta conta já está conectada em outro dispositivo.");
+        setErr(getLoginMsg().blocked);
         FEMFLOW.clearSession?.();
         return;
       }
@@ -423,6 +461,50 @@ if (res.deviceUpdated) {
   };
 
   /* ============================================================
+     TROCAR DISPOSITIVO (limpa lock de sessão)
+  ============================================================ */
+  $("#linkTrocarDispositivo").onclick = async () => {
+    const email = $("#loginEmail").value.trim().toLowerCase();
+    const senha = $("#loginSenha").value.trim();
+
+    if (!email || !senha) {
+      setErr(getLoginMsg().switchNeedCreds);
+      return;
+    }
+
+    setMsg(getLoginMsg().switchLoading);
+
+    try {
+      const res = await postGAS({
+        action: "resetdevice",
+        email,
+        senha
+      });
+
+      if (res.status === "ok") {
+        FEMFLOW.clearSession?.();
+        setMsg(getLoginMsg().switchOk, true);
+        return;
+      }
+
+      if (res.status === "senha_incorreta") {
+        setErr(getLoginMsg().wrongPass);
+        return;
+      }
+
+      if (res.status === "not_registered") {
+        setErr(getLoginMsg().emailNotFound);
+        return;
+      }
+
+      setErr(res.msg || getLoginMsg().switchFail);
+    } catch (e) {
+      console.error(e);
+      setErr(getLoginMsg().switchError);
+    }
+  };
+
+  /* ============================================================
      IDIOMA (LOGIN)
   ============================================================ */
   const modalLang = $("#ff-lang-modal");
@@ -432,9 +514,9 @@ if (res.deviceUpdated) {
 
   function aplicarIdiomaLogin(lang){
     const T = {
-      pt:{ bem:"Bem-vinda", sub:"Acesse ou crie sua conta para iniciar seu ciclo", email:"Seu e-mail", senha:"Sua senha", entrar:"Entrar", cad:"Ainda não tem conta? Cadastre-se", esq:"Esqueci minha senha" },
-      en:{ bem:"Welcome", sub:"Access or create your account to start your cycle", email:"Your email", senha:"Your password", entrar:"Login", cad:"Don’t have an account? Sign up", esq:"Forgot my password" },
-      fr:{ bem:"Bienvenue", sub:"Accédez ou créez votre compte pour commencer votre cycle", email:"Votre e-mail", senha:"Votre mot de passe", entrar:"Entrer", cad:"Pas de compte ? S'inscrire", esq:"J’ai oublié mon mot de passe" }
+      pt:{ bem:"Bem-vinda", sub:"Acesse ou crie sua conta para iniciar seu ciclo", email:"Seu e-mail", senha:"Sua senha", entrar:"Entrar", cad:"Ainda não tem conta? Cadastre-se", trocar:"Trocar de dispositivo", esq:"Esqueci minha senha" },
+      en:{ bem:"Welcome", sub:"Access or create your account to start your cycle", email:"Your email", senha:"Your password", entrar:"Login", cad:"Don’t have an account? Sign up", trocar:"Switch device", esq:"Forgot my password" },
+      fr:{ bem:"Bienvenue", sub:"Accédez ou créez votre compte pour commencer votre cycle", email:"Votre e-mail", senha:"Votre mot de passe", entrar:"Entrer", cad:"Pas de compte ? S'inscrire", trocar:"Changer d’appareil", esq:"J’ai oublié mon mot de passe" }
     }[lang] || T.pt;
     const labels = {
       pt: "Português",
@@ -448,6 +530,7 @@ if (res.deviceUpdated) {
     $("#loginSenha").placeholder     = T.senha;
     $("#btnEntrar").textContent      = T.entrar;
     $("#linkCadastro").textContent   = T.cad;
+    $("#linkTrocarDispositivo").textContent = T.trocar;
     $("#goRecuperar").textContent    = T.esq;
     btnLang.textContent              = `🌐 ${labels[lang] || labels.pt}`;
   }
