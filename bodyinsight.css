@@ -48,11 +48,19 @@ body {
   place-items: center;
 }
 
-#biPhoto {
+.bi-preview-grid {
+  width: 100%;
+  height: 100%;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 2px;
+}
+
+#biPhotoFrontal,
+#biPhotoLateral {
   width: 100%;
   height: 100%;
   object-fit: cover;
-  border-radius: 18px;
   filter: grayscale(10%) brightness(0.95);
   opacity: 0.9;
 }
@@ -80,7 +88,7 @@ body {
 
 .scanning .bi-scan-line {
   opacity: 1;
-  animation: scanMove 2.5s ease-in-out infinite;
+  animation: scanMove 2s ease-in-out infinite;
 }
 
 @keyframes scanMove {
@@ -151,6 +159,11 @@ body {
   background: linear-gradient(180deg, var(--bi-button-b), var(--bi-button-a));
 }
 
+#bi-calc-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+}
+
 .bi-results {
   margin-top: 12px;
   min-height: 60px;
@@ -164,8 +177,39 @@ body {
   margin: 4px 0;
 }
 
+.bi-indice-grande {
+  font-size: 56px;
+  font-weight: 700;
+  color: #ffffff;
+  text-align: center;
+  margin-top: 20px;
+}
+
+.bi-indice-label {
+  text-align: center;
+  font-size: 14px;
+  opacity: 0.8;
+}
+
+.bi-fade-in {
+  animation: biFadeIn 0.4s ease;
+}
+
+@keyframes biFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
 @media (max-width: 640px) {
-  .bi-form {
+  .bi-form,
+  .bi-preview-grid {
     grid-template-columns: 1fr;
   }
 
