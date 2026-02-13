@@ -59,6 +59,10 @@ function doPost(e) {
         resposta = sacAbrir_(data);
         break;
 
+      case "body_insight_ia":
+        resposta = analisarBodyInsightIA_(data);
+        break;
+
       /* ===========================
          🔔 NOTIFICATIONS
       ============================ */
