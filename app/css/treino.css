@@ -744,7 +744,10 @@ font-size: 0.9rem !important;
 .ff-zona-info-btn {
   position: absolute;
   top: 10px;
-  left: 10px;
+  right: 10px !important;
+  left: auto !important;
+  inset-inline-end: 10px;
+  inset-inline-start: auto;
   width: 26px;
   height: 26px;
   border-radius: 999px;

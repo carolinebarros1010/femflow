@@ -905,7 +905,7 @@ const hasPersonal =
     };
 
     if (enduranceAtivo && enduranceConfig) {
-      const enduranceLabel = t("endurance") || "Endurance";
+      const enduranceLabel = (t("endurance") || "Endurance").toUpperCase();
       if (tituloTopo) {
         tituloTopo.textContent = enduranceLabel;
       }
@@ -1023,14 +1023,25 @@ const hasPersonal =
   function montarCardioInfo(c) {
     const serieValor = c.series;
     const distanciaValor = c.distancia;
+    const distanciaMilhasValor =
+      c.distancia_milhas ??
+      c.distanciaMilhas ??
+      c.milhas ??
+      c.distance_miles ??
+      "";
     const tempoValor = c.tempo || c.duracao;
     const intervaloValor = c.intervalo;
     const ritmoValor = c.ritmo;
+    const zonaTreino = String(c.zona_treino || c.zonaTreino || "").trim().toUpperCase();
 
     const series = serieValor !== undefined && serieValor !== null ? String(serieValor) : "";
     const tempoOuDistancia = distanciaValor
       ? String(distanciaValor)
       : formatCardioTempo(tempoValor);
+    const distanciaMilhas =
+      distanciaMilhasValor !== undefined && distanciaMilhasValor !== null
+        ? String(distanciaMilhasValor).trim()
+        : "";
     const intervaloTexto = formatCardioTempo(intervaloValor);
     const ritmoTexto = ritmoValor !== undefined && ritmoValor !== null ? String(ritmoValor).trim() : "";
 
@@ -1038,11 +1049,15 @@ const hasPersonal =
     const hasTempo = tempoOuDistancia && tempoOuDistancia !== "0";
     const hasIntervalo = intervaloTexto && intervaloTexto !== "0";
     const hasRitmo = Boolean(ritmoTexto);
+    const hasZona = Boolean(zonaTreino);
+    const hasDistanciaMilhas = Boolean(distanciaMilhas && distanciaMilhas !== "0");
     const usarFallback = !(hasSeries && hasTempo && hasIntervalo);
     const fallbackTempo = t("treino.cardio.fallbackTempo");
     const fallbackTempoDinamico = hasTempo ? tempoOuDistancia : fallbackTempo;
 
-    const descricao = usarFallback
+    const descricao = hasZona
+      ? t("treino.cardio.descricaoZona", { zona: zonaTreino })
+      : usarFallback
       ? t("treino.cardio.fallback", { tempo: fallbackTempoDinamico })
       : hasRitmo
         ? t("treino.cardio.descricaoRitmo", {
@@ -1061,6 +1076,9 @@ const hasPersonal =
     if (hasSeries) {
       detalhes.push(t("treino.cardio.seriesLabel", { series }));
     }
+    if (hasZona) {
+      detalhes.push(t("treino.cardio.zonaLabel", { zona: zonaTreino }));
+    }
     if (hasTempo) {
       detalhes.push(t("treino.cardio.tempoLabel", { tempo: tempoOuDistancia }));
     } else if (usarFallback) {
@@ -1068,6 +1086,9 @@ const hasPersonal =
     }
     if (hasIntervalo) {
       detalhes.push(t("treino.cardio.intervaloLabel", { intervalo: intervaloTexto }));
+    }
+    if (hasDistanciaMilhas) {
+      detalhes.push(t("treino.cardio.milhasLabel", { milhas: distanciaMilhas }));
     }
 
     return { descricao, detalhes };

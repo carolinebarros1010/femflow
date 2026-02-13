@@ -601,9 +601,13 @@ home: {
     fallbackTempo: "30 min",
     fallback:
       "Realize um cardio de {tempo} seguidos em um ritmo leve/moderado. Utilize o aparelho que mais gostas. Se academia: esteira, bicicleta, remo, escada. Se em casa: corrida, caminhada, corda, dança.",
+    descricaoZona:
+      "Realize o treino dentro da zona pretendida {zona}. Ajuste ritmo, inclinação e cadência para se manter na intensidade proposta.",
     seriesLabel: "Séries: {series}",
+    zonaLabel: "Zona: {zona}",
     tempoLabel: "Tempo/Distância: {tempo}",
     intervaloLabel: "Intervalo: {intervalo}",
+    milhasLabel: "Distância (milhas): {milhas}",
     iniciar: "▶️ Iniciar cardio",
     zonas: {
       aria: "Informações sobre zonas de treino",
@@ -1011,9 +1015,13 @@ home: {
   fallbackTempo: "30 min",
   fallback:
     "Do {tempo} of steady cardio at a light/moderate pace. Use the equipment you like most. At the gym: treadmill, bike, rower, stairs. At home: running, walking, jump rope, dance.",
+  descricaoZona:
+    "Complete the workout inside target zone {zona}. Adjust pace, incline and cadence to stay within the prescribed intensity.",
   seriesLabel: "Sets: {series}",
+  zonaLabel: "Zone: {zona}",
   tempoLabel: "Time/Distance: {tempo}",
   intervaloLabel: "Rest: {intervalo}",
+  milhasLabel: "Distance (miles): {milhas}",
   iniciar: "▶️ Start cardio",
   zonas: {
     aria: "Training zones information",
@@ -1423,9 +1431,13 @@ fr: {
   fallbackTempo: "30 min",
   fallback:
     "Réalise {tempo} de cardio continu à un rythme léger/modéré. Utilise l’appareil que tu préfères. En salle : tapis, vélo, rameur, escaliers. À la maison : course, marche, corde à sauter, danse.",
+  descricaoZona:
+    "Réalisez l'entraînement dans la zone cible {zona}. Ajustez l'allure, l'inclinaison et la cadence pour rester dans l'intensité prévue.",
   seriesLabel: "Séries : {series}",
+  zonaLabel: "Zone : {zona}",
   tempoLabel: "Temps/Distance : {tempo}",
   intervaloLabel: "Repos : {intervalo}",
+  milhasLabel: "Distance (miles) : {milhas}",
   iniciar: "▶️ Démarrer le cardio",
   zonas: {
     aria: "Informations sur les zones d'entraînement",
