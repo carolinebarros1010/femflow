@@ -237,9 +237,6 @@ function doPost(e) {
           status: result.status
         });
 
-      case 'body_insight_ia':
-        return jsonOK_(analisarBodyInsightIA_(pedido));
-
       default:
         throw new Error('action inválida: ' + action);
     }
