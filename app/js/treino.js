@@ -901,7 +901,15 @@ const hasPersonal =
       extra_superior: t("treino.extraOpcoes.superior"),
       extra_inferior: t("treino.extraOpcoes.inferior"),
       extra_abdomen: t("treino.extraOpcoes.abdomem"),
-      extra_mobilidade: t("treino.extraOpcoes.mobilidade")
+      extra_mobilidade: t("treino.extraOpcoes.mobilidade"),
+      extra_biceps: t("treino.extraOpcoes.biceps"),
+      extra_triceps: t("treino.extraOpcoes.triceps"),
+      extra_ombro: t("treino.extraOpcoes.ombro"),
+      extra_quadriceps: t("treino.extraOpcoes.quadriceps"),
+      extra_posterior: t("treino.extraOpcoes.posterior"),
+      extra_peito: t("treino.extraOpcoes.peito"),
+      extra_costas: t("treino.extraOpcoes.costas"),
+      extra_gluteo: t("treino.extraOpcoes.gluteo")
     };
 
     if (enduranceAtivo && enduranceConfig) {
