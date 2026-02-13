@@ -246,6 +246,43 @@ function _fazerLogin(data) {
   return { status: "not_registered" };
 }
 
+
+function resetDevice_(data) {
+  const sh = ensureSheet(SHEET_ALUNAS, HEADER_ALUNAS);
+  if (!sh) return { status: "error", msg: "Aba Alunas não encontrada." };
+
+  const email = String(data.email || "").trim().toLowerCase();
+  const senha = String(data.senha || "").trim();
+
+  if (!email || !senha) {
+    return { status: "error", msg: "email_and_password_required" };
+  }
+
+  const rows = sh.getDataRange().getValues();
+
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i];
+    const emailDB = String(row[2] || "").trim().toLowerCase();
+    if (emailDB !== email) continue;
+
+    const conf = _senhaConfereSegura_(senha, row[4]);
+    if (!conf.ok) return { status: "senha_incorreta" };
+
+    const linha = i + 1;
+    if (conf.needsUpgrade) {
+      sh.getRange(linha, 5).setValue(_hashSenha(senha));
+    }
+
+    sh.getRange(linha, COL_DEVICE_ID + 1).setValue("");
+    sh.getRange(linha, COL_SESSION_TOKEN + 1).setValue("");
+    sh.getRange(linha, COL_SESSION_EXP + 1).setValue("");
+
+    return { status: "ok", msg: "device_reset" };
+  }
+
+  return { status: "not_registered" };
+}
+
 function _assertSession_(id, deviceId, sessionToken) {
   const sh = ensureSheet(SHEET_ALUNAS, HEADER_ALUNAS);
   if (!sh) return { ok: false, msg: "Aba Alunas não encontrada." };
