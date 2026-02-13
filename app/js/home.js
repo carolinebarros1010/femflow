@@ -818,7 +818,8 @@ const CARD_THUMBS = {
   corrida_5k: "corrida_5k.jpg",
   corrida_10k: "corrida_10k.jpg",
   corrida_15k: "corrida_15k.jpg",
-  monte_seu_treino: "monte_seu_treino.jpg"
+  monte_seu_treino: "monte_seu_treino.jpg",
+  bodyinsight: "body_insight.jpg"
 };
 
 function getThumbUrl(enfase) {
