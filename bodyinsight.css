@@ -56,8 +56,8 @@ body {
   gap: 2px;
 }
 
-#biPhotoFrontal,
-#biPhotoLateral {
+#biPhotoFront,
+#biPhotoSide {
   width: 100%;
   height: 100%;
   object-fit: cover;

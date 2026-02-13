@@ -14,13 +14,12 @@
     <main class="bi-main">
       <section class="bi-scan-container" id="biScanContainer" aria-live="polite">
         <div class="bi-preview-grid" aria-label="Previews frontal e lateral para análise corporal">
-          <img id="biPhotoFrontal" class="hidden" alt="Preview da foto frontal para análise corporal" />
-          <img id="biPhotoLateral" class="hidden" alt="Preview da foto lateral para análise corporal" />
+          <img id="biPhotoFront" class="hidden" alt="Preview da foto frontal para análise corporal" />
+          <img id="biPhotoSide" class="hidden" alt="Preview da foto lateral para análise corporal" />
         </div>
 
         <div class="bi-overlay" aria-hidden="true"></div>
         <div class="bi-scan-line" aria-hidden="true"></div>
-
         <p class="bi-scan-text" id="bi-scan-text">Analisando seus parâmetros...</p>
       </section>
 
@@ -41,11 +40,11 @@
           <label for="idade">Idade</label>
           <input type="number" id="idade" min="12" max="120" required />
 
-          <label for="biPhotoFrontalInput">Foto frontal</label>
-          <input type="file" id="biPhotoFrontalInput" accept="image/*" required />
+          <label for="biPhotoFrontInput">Foto frontal</label>
+          <input type="file" id="biPhotoFrontInput" accept="image/*" required />
 
-          <label for="biPhotoLateralInput">Foto lateral</label>
-          <input type="file" id="biPhotoLateralInput" accept="image/*" required />
+          <label for="biPhotoSideInput">Foto lateral</label>
+          <input type="file" id="biPhotoSideInput" accept="image/*" required />
 
           <button type="submit" id="bi-calc-btn" disabled>Calcular Parâmetros</button>
         </form>

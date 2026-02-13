@@ -7,21 +7,27 @@
 // - Registro dos dados no Firestore
 // ============================================================
 
+// ------------------------
+// Elementos da interface
+// ------------------------
 const biForm = document.getElementById('bi-form');
 const biScanContainer = document.getElementById('biScanContainer');
 const biScanText = document.getElementById('bi-scan-text');
-const biPhotoFrontal = document.getElementById('biPhotoFrontal');
-const biPhotoLateral = document.getElementById('biPhotoLateral');
-const biPhotoFrontalInput = document.getElementById('biPhotoFrontalInput');
-const biPhotoLateralInput = document.getElementById('biPhotoLateralInput');
+const biPhotoFront = document.getElementById('biPhotoFront');
+const biPhotoSide = document.getElementById('biPhotoSide');
+const biPhotoFrontInput = document.getElementById('biPhotoFrontInput');
+const biPhotoSideInput = document.getElementById('biPhotoSideInput');
 const biResults = document.getElementById('bi-results');
 const biCalcButton = document.getElementById('bi-calc-btn');
 
-let selectedFrontalFile = null;
-let selectedLateralFile = null;
+// ------------------------
+// Estado do módulo
+// ------------------------
+let selectedFrontFile = null;
+let selectedSideFile = null;
 
 /**
- * Utilitário para renderizar mensagens na área de resultados.
+ * Renderiza mensagens na área de resultados.
  */
 function setResultMessage(message) {
   biResults.innerHTML = `<p>${message}</p>`;
@@ -31,11 +37,11 @@ function setResultMessage(message) {
  * Habilita o botão somente quando as duas fotos obrigatórias foram selecionadas.
  */
 function updateCalculateButtonState() {
-  biCalcButton.disabled = !(selectedFrontalFile && selectedLateralFile);
+  biCalcButton.disabled = !(selectedFrontFile && selectedSideFile);
 }
 
 /**
- * Calcula IMC, RCQ, scores e índice final do protocolo FemFlow.
+ * Regra matemática do Índice FemFlow (FASE A).
  */
 function calcularIndiceFemFlow({ altura, peso, cintura, quadril }) {
   const imc = peso / ((altura / 100) ** 2);
@@ -71,7 +77,7 @@ function calcularIndiceFemFlow({ altura, peso, cintura, quadril }) {
 }
 
 /**
- * Recupera o ID do usuário atual usando a instância Firebase já existente.
+ * Recupera o ID do usuário autenticado no Firebase existente.
  */
 function getCurrentUserId() {
   if (!window.firebase || !firebase.auth) {
@@ -89,19 +95,19 @@ function getCurrentUserId() {
 /**
  * Faz upload de uma imagem para o Storage e retorna URL pública.
  */
-async function uploadPhotoToStorage(userId, file, timestamp, photoType) {
+async function uploadPhotoToStorage(userId, file, timestamp, type) {
   if (!window.firebase || !firebase.storage) {
     throw new Error('Firebase Storage não está disponível nesta página.');
   }
 
-  const storagePath = `body_insight/${userId}/${timestamp}_${photoType}.jpg`;
+  const storagePath = `body_insight/${userId}/${timestamp}_${type}.jpg`;
   const storageRef = firebase.storage().ref().child(storagePath);
   await storageRef.put(file);
   return storageRef.getDownloadURL();
 }
 
 /**
- * Persiste os dados no Firestore na coleção body_insight.
+ * Persiste os dados na coleção body_insight do Firestore.
  */
 async function saveBodyInsightToFirestore(payload, docId) {
   if (!window.firebase || !firebase.firestore) {
@@ -114,14 +120,17 @@ async function saveBodyInsightToFirestore(payload, docId) {
   });
 }
 
-function handlePhotoInputChange(fileInput, previewImage, photoKind) {
+/**
+ * Atualiza preview e estado do arquivo por tipo (front/side).
+ */
+function handlePhotoInputChange(fileInput, previewImage, photoType) {
   const file = fileInput.files && fileInput.files[0];
 
   if (!file) {
-    if (photoKind === 'frontal') {
-      selectedFrontalFile = null;
+    if (photoType === 'front') {
+      selectedFrontFile = null;
     } else {
-      selectedLateralFile = null;
+      selectedSideFile = null;
     }
     previewImage.removeAttribute('src');
     previewImage.classList.add('hidden');
@@ -133,25 +142,25 @@ function handlePhotoInputChange(fileInput, previewImage, photoKind) {
   previewImage.src = localPreviewUrl;
   previewImage.classList.remove('hidden');
 
-  if (photoKind === 'frontal') {
-    selectedFrontalFile = file;
+  if (photoType === 'front') {
+    selectedFrontFile = file;
   } else {
-    selectedLateralFile = file;
+    selectedSideFile = file;
   }
 
   updateCalculateButtonState();
 }
 
-biPhotoFrontalInput.addEventListener('change', () => {
-  handlePhotoInputChange(biPhotoFrontalInput, biPhotoFrontal, 'frontal');
+biPhotoFrontInput.addEventListener('change', () => {
+  handlePhotoInputChange(biPhotoFrontInput, biPhotoFront, 'front');
 });
 
-biPhotoLateralInput.addEventListener('change', () => {
-  handlePhotoInputChange(biPhotoLateralInput, biPhotoLateral, 'lateral');
+biPhotoSideInput.addEventListener('change', () => {
+  handlePhotoInputChange(biPhotoSideInput, biPhotoSide, 'side');
 });
 
 /**
- * Fluxo principal: calcula índices, executa scan e salva no Firebase.
+ * Fluxo principal: valida, anima scan, calcula índice e salva no Firebase.
  */
 biForm.addEventListener('submit', async (event) => {
   event.preventDefault();
@@ -168,7 +177,7 @@ biForm.addEventListener('submit', async (event) => {
       return;
     }
 
-    if (!selectedFrontalFile || !selectedLateralFile) {
+    if (!selectedFrontFile || !selectedSideFile) {
       setResultMessage('As fotos frontal e lateral são obrigatórias para a análise.');
       return;
     }
@@ -190,9 +199,9 @@ biForm.addEventListener('submit', async (event) => {
     const timestamp = Date.now();
     const docId = `${userId}_${timestamp}`;
 
-    const [photoFrontalUrl, photoLateralUrl] = await Promise.all([
-      uploadPhotoToStorage(userId, selectedFrontalFile, timestamp, 'frontal'),
-      uploadPhotoToStorage(userId, selectedLateralFile, timestamp, 'lateral')
+    const [photoFrontUrl, photoSideUrl] = await Promise.all([
+      uploadPhotoToStorage(userId, selectedFrontFile, timestamp, 'front'),
+      uploadPhotoToStorage(userId, selectedSideFile, timestamp, 'side')
     ]);
 
     const payload = {
@@ -207,12 +216,13 @@ biForm.addEventListener('submit', async (event) => {
       scoreIMC,
       scoreRCQ,
       indiceFemFlow: indiceFinal,
-      photoFrontalUrl,
-      photoLateralUrl
+      photoFrontUrl,
+      photoSideUrl
     };
 
     await saveBodyInsightToFirestore(payload, docId);
 
+    biScanText.textContent = `Índice FemFlow: ${indiceFinal}`;
     biResults.innerHTML = `
       <div class="bi-fade-in">
         <h2 class="bi-indice-grande">${indiceFinal}</h2>
@@ -222,6 +232,7 @@ biForm.addEventListener('submit', async (event) => {
       </div>
     `;
   } catch (error) {
+    biScanText.textContent = 'Analisando seus parâmetros...';
     setResultMessage(`Erro ao processar Body Insight: ${error.message}`);
   } finally {
     biScanContainer.classList.remove('scanning');
