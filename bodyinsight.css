@@ -3,14 +3,14 @@
    ================================================== */
 
 :root {
-  --bi-bg: #335953;
-  --bi-bg-dark: #284742;
-  --bi-card: rgba(248, 244, 238, 0.12);
-  --bi-card-border: rgba(248, 244, 238, 0.28);
-  --bi-text: #f8f4ee;
-  --bi-text-soft: #f4d9c8;
-  --bi-accent: #cc8c71;
-  --bi-accent-soft: #edc6ae;
+  --bi-bg: #3d4f4a;
+  --bi-bg-dark: #2f3f3b;
+  --bi-card: rgba(255, 232, 220, 0.14);
+  --bi-card-border: rgba(255, 223, 204, 0.34);
+  --bi-text: #fff4ec;
+  --bi-text-soft: #ffd8c2;
+  --bi-accent: #c87457;
+  --bi-accent-soft: #efb697;
   --bi-shadow: 0 20px 45px rgba(0, 0, 0, 0.22);
   --bi-radius-lg: 22px;
   --bi-radius-md: 14px;
@@ -25,7 +25,7 @@ body {
   min-height: 100vh;
   font-family: "Inter", "Segoe UI", Roboto, Arial, sans-serif;
   color: var(--bi-text);
-  background: radial-gradient(circle at 10% 20%, #3f6a63 0%, var(--bi-bg) 42%, var(--bi-bg-dark) 100%);
+  background: radial-gradient(circle at 12% 15%, #6a776f 0%, var(--bi-bg) 42%, var(--bi-bg-dark) 100%);
   padding: 1rem;
 }
 
@@ -54,7 +54,7 @@ body {
   min-height: 220px;
   border-radius: var(--bi-radius-lg);
   border: 1px solid var(--bi-card-border);
-  background: linear-gradient(165deg, rgba(54, 95, 88, 0.85), rgba(41, 70, 65, 0.95));
+  background: linear-gradient(165deg, rgba(102, 76, 66, 0.78), rgba(67, 86, 81, 0.94));
   box-shadow: var(--bi-shadow);
   display: grid;
   place-items: center;
@@ -65,8 +65,8 @@ body {
   inset: 0;
   background:
     radial-gradient(circle at 18% 28%, rgba(237, 198, 174, 0.17) 0%, transparent 40%),
-    radial-gradient(circle at 72% 68%, rgba(204, 140, 113, 0.17) 0%, transparent 40%),
-    radial-gradient(circle at 50% 50%, rgba(255, 255, 255, 0.05) 0%, transparent 55%);
+    radial-gradient(circle at 72% 68%, rgba(200, 116, 87, 0.2) 0%, transparent 40%),
+    radial-gradient(circle at 50% 50%, rgba(255, 243, 235, 0.07) 0%, transparent 55%);
 }
 
 .bi-scan-line {
@@ -75,14 +75,14 @@ body {
   right: 0;
   top: -15%;
   height: 18%;
-  opacity: 0.85;
+  opacity: 0.8;
   background: linear-gradient(
     to bottom,
-    rgba(244, 217, 200, 0.04) 0%,
-    rgba(244, 217, 200, 0.28) 42%,
-    rgba(255, 255, 255, 0.38) 50%,
-    rgba(244, 217, 200, 0.2) 68%,
-    rgba(244, 217, 200, 0.03) 100%
+    rgba(255, 216, 194, 0.04) 0%,
+    rgba(255, 216, 194, 0.26) 42%,
+    rgba(255, 238, 226, 0.36) 50%,
+    rgba(255, 216, 194, 0.18) 68%,
+    rgba(255, 216, 194, 0.03) 100%
   );
   filter: blur(0.6px);
   animation: scanMove 2s ease-in-out infinite;
@@ -130,8 +130,8 @@ body {
 .bi-form input {
   width: 100%;
   border-radius: var(--bi-radius-md);
-  border: 1px solid rgba(248, 244, 238, 0.3);
-  background: rgba(255, 255, 255, 0.12);
+  border: 1px solid rgba(255, 223, 204, 0.34);
+  background: rgba(255, 237, 227, 0.14);
   color: var(--bi-text);
   padding: 0.72rem 0.84rem;
   outline: none;
@@ -149,7 +149,7 @@ body {
   padding: 0.9rem 1rem;
   font-weight: 700;
   cursor: pointer;
-  color: #213b37;
+  color: #3e2a23;
   background: linear-gradient(180deg, var(--bi-accent-soft), var(--bi-accent));
   transition: transform 0.2s ease, filter 0.2s ease;
 }
@@ -172,8 +172,8 @@ body {
   min-height: 56px;
   padding: 0.85rem;
   color: var(--bi-text);
-  background: rgba(255, 255, 255, 0.08);
-  border: 1px dashed rgba(248, 244, 238, 0.33);
+  background: rgba(255, 231, 218, 0.13);
+  border: 1px dashed rgba(255, 216, 194, 0.4);
 }
 
 .bi-results p {
