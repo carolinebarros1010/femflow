@@ -604,7 +604,24 @@ home: {
     seriesLabel: "Séries: {series}",
     tempoLabel: "Tempo/Distância: {tempo}",
     intervaloLabel: "Intervalo: {intervalo}",
-    iniciar: "▶️ Iniciar cardio"
+    iniciar: "▶️ Iniciar cardio",
+    zonas: {
+      aria: "Informações sobre zonas de treino",
+      fechar: "Fechar",
+      label: "🫀 Zona de treino: {zona}",
+      titulo: "🫀 Zonas de Treinamento",
+      sub: "As zonas indicam a intensidade do seu treino e ajudam a evoluir com segurança.",
+      z1Titulo: "🟢 Zona 1 — Muito leve",
+      z1Texto: "Ritmo confortável. Ideal para aquecimento, recuperação e base aeróbica.",
+      z2Titulo: "🟢 Zona 2 — Leve",
+      z2Texto: "Respiração controlada, ainda dá para conversar. Melhora resistência e queima de gordura.",
+      z3Titulo: "🟡 Zona 3 — Moderada",
+      z3Texto: "Respiração mais intensa, conversa difícil. Desenvolve capacidade aeróbica.",
+      z4Titulo: "🟠 Zona 4 — Forte",
+      z4Texto: "Ritmo desafiador, poucas palavras por vez. Aumenta velocidade e limiar de lactato.",
+      z5Titulo: "🔴 Zona 5 — Muito forte",
+      z5Texto: "Esforço máximo ou quase máximo. Trabalha potência e explosão."
+    }
   },
      aquecimento: {
     sugestao: "💨 Sugestão: prepare seu corpo com uma respiração consciente antes de começar.",
@@ -997,7 +1014,24 @@ home: {
   seriesLabel: "Sets: {series}",
   tempoLabel: "Time/Distance: {tempo}",
   intervaloLabel: "Rest: {intervalo}",
-  iniciar: "▶️ Start cardio"
+  iniciar: "▶️ Start cardio",
+  zonas: {
+    aria: "Training zones information",
+    fechar: "Close",
+    label: "🫀 Training zone: {zona}",
+    titulo: "🫀 Training Zones",
+    sub: "Zones show your workout intensity and help you progress safely.",
+    z1Titulo: "🟢 Zone 1 — Very light",
+    z1Texto: "Comfortable pace. Ideal for warm-up, recovery and aerobic base.",
+    z2Titulo: "🟢 Zone 2 — Light",
+    z2Texto: "Controlled breathing, you can still talk. Improves endurance and fat burn.",
+    z3Titulo: "🟡 Zone 3 — Moderate",
+    z3Texto: "Heavier breathing, talking is hard. Develops aerobic capacity.",
+    z4Titulo: "🟠 Zone 4 — Hard",
+    z4Texto: "Challenging pace, only a few words at a time. Increases speed and lactate threshold.",
+    z5Titulo: "🔴 Zone 5 — Very hard",
+    z5Texto: "Maximum or near-maximum effort. Trains power and explosiveness."
+  }
 },
   aquecimento: {
     sugestao: "💨 Tip: prepare your body with conscious breathing before you start.",
@@ -1392,7 +1426,24 @@ fr: {
   seriesLabel: "Séries : {series}",
   tempoLabel: "Temps/Distance : {tempo}",
   intervaloLabel: "Repos : {intervalo}",
-  iniciar: "▶️ Démarrer le cardio"
+  iniciar: "▶️ Démarrer le cardio",
+  zonas: {
+    aria: "Informations sur les zones d'entraînement",
+    fechar: "Fermer",
+    label: "🫀 Zone d'entraînement : {zona}",
+    titulo: "🫀 Zones d'entraînement",
+    sub: "Les zones indiquent l'intensité de votre entraînement et vous aident à progresser en sécurité.",
+    z1Titulo: "🟢 Zone 1 — Très légère",
+    z1Texto: "Rythme confortable. Idéal pour l'échauffement, la récupération et la base aérobie.",
+    z2Titulo: "🟢 Zone 2 — Légère",
+    z2Texto: "Respiration contrôlée, vous pouvez encore parler. Améliore l'endurance et la combustion des graisses.",
+    z3Titulo: "🟡 Zone 3 — Modérée",
+    z3Texto: "Respiration plus intense, conversation difficile. Développe la capacité aérobie.",
+    z4Titulo: "🟠 Zone 4 — Forte",
+    z4Texto: "Rythme exigeant, quelques mots à la fois. Augmente la vitesse et le seuil lactique.",
+    z5Titulo: "🔴 Zone 5 — Très forte",
+    z5Texto: "Effort maximal ou quasi maximal. Travaille la puissance et l'explosivité."
+  }
 },
    aquecimento: {
     sugestao: "💨 Astuce : prépare ton corps avec une respiration consciente avant de commencer.",

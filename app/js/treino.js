@@ -88,6 +88,7 @@ document.addEventListener("DOMContentLoaded", () => {
   let enduranceConfig = null;
   let endurancePublicAtivo = false;
   let personalFinal = isPersonal;
+  const cardioZonaModalState = { open: false };
   let contextoCaminhoSelecionado = null;
 
   const normalizeEnduranceEnfase = (value) =>
@@ -1156,6 +1157,7 @@ console.log("🧪 BOX KEYS ORDENADAS:", boxKeys);
 
 treinoSnapshotToScroll = restoreTreinoSnapshot();
 initTimers();
+  initCardioZonaInfo();
   initHIIT();
   initClusterTimers(); // 🔥 CLUSTER TIMER REAL
   initRestPause(); // ✅
@@ -1262,6 +1264,8 @@ function renderBox(bloco) {
   if (tipoDominante === "cardio_final" || tipoDominante === "cardio_intermediario") {
     const c = bloco[0];
     const { descricao, detalhes } = montarCardioInfo(c);
+    const zonaTreino = String(c.zona_treino || "").trim().toUpperCase();
+    const mostrarInfoZona = endurancePublicAtivo && Boolean(zonaTreino);
     const duracao = Number(c.duracao) || 0;
     const cardioClass =
       tipoDominante === "cardio_final"
@@ -1290,10 +1294,19 @@ function renderBox(bloco) {
         </div>
       `
       : "";
+    const zonaBadgeHTML = mostrarInfoZona
+      ? `<button class="ff-zona-info-btn" type="button" data-zona-info="true" aria-label="${t("treino.cardio.zonas.aria")}">i</button>`
+      : "";
+    const zonaTreinoHTML = mostrarInfoZona
+      ? `<p class="ff-cardio-zona">${t("treino.cardio.zonas.label", { zona: zonaTreino })}</p>`
+      : "";
 
     return `
       <div class="carousel-item ff-box ff-cardio-box ${cardioClass}">
+        ${zonaBadgeHTML}
         <h2 class="ff-ex-titulo">${tituloHTML}</h2>
+
+        ${zonaTreinoHTML}
 
         <p class="ff-cardio-descricao">${descricao}</p>
         ${detalhesHTML}
@@ -1716,6 +1729,62 @@ return `
     });
   }
    
+function initCardioZonaInfo() {
+  const closeModal = () => {
+    const modal = document.querySelector(".ff-zona-modal");
+    if (!modal) return;
+    modal.classList.remove("is-open");
+    document.body.classList.remove("ff-zona-modal-open");
+    cardioZonaModalState.open = false;
+  };
+
+  const openModal = () => {
+    let modal = document.querySelector(".ff-zona-modal");
+    if (!modal) {
+      modal = document.createElement("div");
+      modal.className = "ff-zona-modal";
+      modal.innerHTML = `
+        <div class="ff-zona-modal-backdrop" data-zona-close="true"></div>
+        <div class="ff-zona-modal-dialog" role="dialog" aria-modal="true" aria-label="${t("treino.cardio.zonas.titulo")}">
+          <button class="ff-zona-modal-close" type="button" data-zona-close="true" aria-label="${t("treino.cardio.zonas.fechar")}">✕</button>
+          <h3>${t("treino.cardio.zonas.titulo")}</h3>
+          <p>${t("treino.cardio.zonas.sub")}</p>
+          <ul>
+            <li><b>${t("treino.cardio.zonas.z1Titulo")}</b><br>${t("treino.cardio.zonas.z1Texto")}</li>
+            <li><b>${t("treino.cardio.zonas.z2Titulo")}</b><br>${t("treino.cardio.zonas.z2Texto")}</li>
+            <li><b>${t("treino.cardio.zonas.z3Titulo")}</b><br>${t("treino.cardio.zonas.z3Texto")}</li>
+            <li><b>${t("treino.cardio.zonas.z4Titulo")}</b><br>${t("treino.cardio.zonas.z4Texto")}</li>
+            <li><b>${t("treino.cardio.zonas.z5Titulo")}</b><br>${t("treino.cardio.zonas.z5Texto")}</li>
+          </ul>
+        </div>
+      `;
+      modal.addEventListener("click", (ev) => {
+        if (ev.target.closest("[data-zona-close='true']")) {
+          closeModal();
+        }
+      });
+      document.body.appendChild(modal);
+    }
+
+    modal.classList.add("is-open");
+    document.body.classList.add("ff-zona-modal-open");
+    cardioZonaModalState.open = true;
+  };
+
+  document.addEventListener("keydown", (ev) => {
+    if (ev.key === "Escape" && cardioZonaModalState.open) {
+      closeModal();
+    }
+  });
+
+  document.querySelectorAll("[data-zona-info='true']").forEach((btn) => {
+    if (btn.dataset.bound === "1") return;
+    btn.dataset.bound = "1";
+    btn.addEventListener("click", openModal);
+  });
+}
+
+
 function initClusterTimers() {
   const nodes = document.querySelectorAll("[data-cluster='true']");
   console.log("🟣 initClusterTimers() nodes:", nodes.length);

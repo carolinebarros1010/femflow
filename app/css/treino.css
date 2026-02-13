@@ -737,6 +737,93 @@ font-size: 0.9rem !important;
   background: linear-gradient(180deg, #f3fbfb 0%, #e9f6f5 100%);
 }
 
+.ff-cardio-box {
+  position: relative;
+}
+
+.ff-zona-info-btn {
+  position: absolute;
+  top: 10px;
+  left: 10px;
+  width: 26px;
+  height: 26px;
+  border-radius: 999px;
+  border: none;
+  background: #1e7d7a;
+  color: #fff;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.ff-cardio-zona {
+  text-align: center;
+  font-size: 0.92rem;
+  color: #145a58;
+  margin: 4px 0 10px;
+  font-weight: 700;
+}
+
+.ff-zona-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 60;
+  display: none;
+}
+
+.ff-zona-modal.is-open {
+  display: block;
+}
+
+.ff-zona-modal-backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(12, 18, 18, 0.55);
+}
+
+.ff-zona-modal-dialog {
+  position: relative;
+  width: min(92vw, 520px);
+  margin: 8vh auto 0;
+  max-height: 84vh;
+  overflow: auto;
+  background: #fff;
+  border-radius: 16px;
+  padding: 18px 18px 14px;
+  box-shadow: 0 18px 44px rgba(0, 0, 0, 0.3);
+}
+
+.ff-zona-modal-close {
+  position: absolute;
+  top: 8px;
+  right: 8px;
+  border: none;
+  background: transparent;
+  font-size: 1.1rem;
+  cursor: pointer;
+}
+
+.ff-zona-modal-dialog h3 {
+  margin: 0 0 8px;
+  color: #1e7d7a;
+}
+
+.ff-zona-modal-dialog p {
+  margin: 0 0 10px;
+  color: #2f4242;
+}
+
+.ff-zona-modal-dialog ul {
+  padding-left: 18px;
+  margin: 0;
+  display: grid;
+  gap: 8px;
+}
+
+.ff-zona-modal-open {
+  overflow: hidden;
+}
+
+
 /* ============================================================
    9) PRANCHA
 ============================================================ */
