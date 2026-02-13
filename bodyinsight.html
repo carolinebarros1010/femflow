@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Body Insight</title>
+    <link rel="stylesheet" href="bodyinsight.css" />
+  </head>
+  <body>
+    <!-- Cabeçalho principal -->
+    <header class="bi-header">
+      <h1>Body Insight</h1>
+    </header>
+
+    <main class="bi-main">
+      <!-- Área visual de scan -->
+      <section class="bi-scan-container" aria-live="polite">
+        <div class="bi-abstract-bg" aria-hidden="true"></div>
+        <div class="bi-scan-line" aria-hidden="true"></div>
+        <p class="bi-scan-text">Analisando seus parâmetros…</p>
+      </section>
+
+      <!-- Formulário de parâmetros corporais -->
+      <section class="bi-form-wrapper">
+        <form id="bi-form" class="bi-form" novalidate>
+          <label>
+            Altura (cm)
+            <input type="number" id="altura" min="100" max="250" required />
+          </label>
+
+          <label>
+            Peso (kg)
+            <input type="number" id="peso" min="20" max="300" step="0.1" required />
+          </label>
+
+          <label>
+            Cintura (cm)
+            <input type="number" id="cintura" min="40" max="200" step="0.1" required />
+          </label>
+
+          <label>
+            Quadril (cm)
+            <input type="number" id="quadril" min="50" max="220" step="0.1" required />
+          </label>
+
+          <label>
+            Idade
+            <input type="number" id="idade" min="12" max="120" required />
+          </label>
+
+          <button type="submit" id="bi-calc-btn">Calcular Parâmetros</button>
+        </form>
+
+        <!-- Placeholder de resultado -->
+        <div class="bi-results" id="bi-results" aria-live="polite"></div>
+      </section>
+    </main>
+
+    <script src="bodyinsight.js"></script>
+  </body>
+</html>
