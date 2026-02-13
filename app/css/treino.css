@@ -745,6 +745,7 @@ font-size: 0.9rem !important;
   position: absolute;
   top: 10px;
   left: 10px;
+  right: auto;
   width: 26px;
   height: 26px;
   border-radius: 999px;
