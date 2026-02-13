@@ -178,36 +178,24 @@
   <script src="js/anamnese_lang.js" defer></script>
 
   <!-- Modal de Idioma -->
-  <div id="ff-lang-modal" class="hidden" style="
-    position:fixed; inset:0; background:rgba(0,0,0,.55);
-    display:flex; align-items:center; justify-content:center;
-    z-index:9999;
-  ">
-    <div style="
-      background:#fff; padding:22px; border-radius:18px;
-      width:90%; max-width:330px; text-align:center;
-    ">
+  <div id="ff-lang-modal" class="ff-lang-modal hidden">
+    <div class="ff-lang-box">
+      <h2>🌐 Idioma / Language / Langue</h2>
 
-      <h3 style="margin:0 0 12px;color:#335953;">Selecione o idioma</h3>
-
-      <button onclick="FEMFLOW.setLang('pt'); this.closest('#ff-lang-modal').classList.add('hidden');"
-        style="margin:6px 0; padding:12px; width:100%; border-radius:12px; background:#335953; color:#fff;">
-        Português
+      <button onclick="FEMFLOW.setLang('pt'); this.closest('#ff-lang-modal').classList.add('hidden');" class="ff-lang-btn">
+        🇧🇷 Português
       </button>
 
-      <button onclick="FEMFLOW.setLang('en'); this.closest('#ff-lang-modal').classList.add('hidden');"
-        style="margin:6px 0; padding:12px; width:100%; border-radius:12px; background:#cc6a5a; color:#fff;">
-        English
+      <button onclick="FEMFLOW.setLang('en'); this.closest('#ff-lang-modal').classList.add('hidden');" class="ff-lang-btn">
+        🇺🇸 English
       </button>
 
-      <button onclick="FEMFLOW.setLang('fr'); this.closest('#ff-lang-modal').classList.add('hidden');"
-        style="margin:6px 0; padding:12px; width:100%; border-radius:12px; background:#e2b5a5; color:#573b2e;">
-        Français
+      <button onclick="FEMFLOW.setLang('fr'); this.closest('#ff-lang-modal').classList.add('hidden');" class="ff-lang-btn">
+        🇫🇷 Français
       </button>
 
-      <button onclick="this.closest('#ff-lang-modal').classList.add('hidden');"
-        style="margin-top:14px; padding:10px; width:100%; border-radius:12px; background:#ddd;">
-        Fechar
+      <button onclick="this.closest('#ff-lang-modal').classList.add('hidden');" class="ff-lang-close">
+        ✖ Fechar
       </button>
 
     </div>
