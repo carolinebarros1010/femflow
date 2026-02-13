@@ -704,7 +704,7 @@ const CARDS_BODYINSIGHT_SIMBOLICOS = [
     titulo: "Body Insight",
     desc: "Análise visual da sua evolução corporal",
     color: "#335953",
-    locked: true,
+    locked: false,
     simbolico: true,
     emBreve: true
   }
@@ -940,7 +940,7 @@ function cardHTML(p) {
   const lockOverlay = p.locked ? '<span class="lock-overlay">🔒</span>' : "";
   const freeBadge = p.isFree ? '<span class="badge-free">Gratuito</span>' : "";
   const emBreveBadge = p.emBreve
-    ? '<span class="badge-soon">Em breve</span>'
+    ? `<span class="badge-soon">${getComingSoonLabel()}</span>`
     : "";
   const thumbUrl = getThumbUrl(p.enfase);
   const thumbClass = `thumb thumb-${p.enfase}${thumbUrl ? " has-image" : ""}`;
@@ -979,9 +979,20 @@ function getFollowmeEmBreveMessage() {
   const lang = FEMFLOW.lang || "pt";
   const mensagem = FEMFLOW.langs?.[lang]?.home?.followmeEmBreve;
   if (mensagem) return mensagem;
-  if (lang === "en") return "Coming soon...";
-  if (lang === "fr") return "Bientôt...";
-  return "Em breve...";
+  return `${getComingSoonLabel()}...`;
+}
+
+function getComingSoonLabel() {
+  const lang = FEMFLOW.lang || "pt";
+  const labels = {
+    pt: "Em breve",
+    en: "Coming soon",
+    fr: "Bientôt",
+    es: "Próximamente",
+    it: "Prossimamente",
+    de: "Demnächst"
+  };
+  return labels[lang] || labels.pt;
 }
 
 /* ============================================================
@@ -1144,7 +1155,7 @@ function confirmarCustomTreino() {
 async function handleCardClick(enfase, locked) {
 
   if (enfase === "bodyinsight") {
-    FEMFLOW.toast("✨ Body Insight: em breve.");
+    FEMFLOW.toast(`✨ Body Insight: ${getComingSoonLabel()}.`);
     return;
   }
 
