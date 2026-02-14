@@ -114,6 +114,28 @@
     `;
   }
 
+  function getFaixaEtaria(idade) {
+    if (idade < 30) return '18-29 anos';
+    if (idade < 40) return '30-39 anos';
+    if (idade < 50) return '40-49 anos';
+    return '50+ anos';
+  }
+
+  function renderResultadoFallback(payload) {
+    biResults.innerHTML = `
+      <div class="bi-fade-in">
+        <h2>Análise parcial disponível</h2>
+        <p>Seu limite da análise IA foi atingido. Faça upgrade para continuar.</p>
+        <p>Enquanto isso, exibimos apenas os cálculos possíveis com seus dados:</p>
+        <p><strong>IMC:</strong> ${payload.imc.toFixed(2)}</p>
+        <p><strong>RCQ:</strong> ${payload.rcq.toFixed(2)}</p>
+        <p><strong>Score IMC:</strong> ${payload.scoreIMC}</p>
+        <p><strong>Score RCQ:</strong> ${payload.scoreRCQ}</p>
+        <p><strong>Faixa etária informada:</strong> ${getFaixaEtaria(payload.idade)}</p>
+      </div>
+    `;
+  }
+
   async function chamarBodyInsightIA(userId, photoFrontUrl, photoSideUrl) {
     if (!GAS_URL) {
       throw new Error('Serviço de IA indisponível no momento.');
@@ -267,7 +289,11 @@
       const iaResponse = normalizeBodyInsightIAResponse(iaRawResponse);
 
       if (iaResponse.status === 'limit_exceeded') {
-        setResultMessage('Seu limite da análise IA foi atingido. Faça upgrade para continuar.');
+        biScanText.textContent = 'Cálculo parcial concluído';
+        renderResultadoFallback({
+          ...biometria,
+          idade
+        });
         return;
       }
 
