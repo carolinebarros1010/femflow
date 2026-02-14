@@ -126,6 +126,45 @@ function getPerguntasTraduzidas() {
     window.FEMFLOW_ACTIVE?.scriptUrl ||
     "";
 
+  async function syncFirebaseAuthAccount(emailRaw, senhaRaw) {
+    if (!window.firebase || !firebase.auth) {
+      console.warn("[Anamnese] Firebase Auth indisponível. Fluxo seguirá com sessão backend.");
+      return;
+    }
+
+    const auth = firebase.auth();
+    const email = String(emailRaw || "").trim().toLowerCase();
+    const senha = String(senhaRaw || "").trim();
+    const currentUser = auth.currentUser;
+
+    if (
+      currentUser &&
+      !currentUser.isAnonymous &&
+      String(currentUser.email || "").toLowerCase() === email
+    ) {
+      return;
+    }
+
+    if (currentUser && currentUser.isAnonymous) {
+      try {
+        await currentUser.delete();
+      } catch (_) {
+        await auth.signOut();
+      }
+    }
+
+    try {
+      await auth.createUserWithEmailAndPassword(email, senha);
+      return;
+    } catch (createErr) {
+      if (createErr && createErr.code !== "auth/email-already-in-use") {
+        throw createErr;
+      }
+    }
+
+    await auth.signInWithEmailAndPassword(email, senha);
+  }
+
   // ------------------------------------------------------------
   //  VALIDAÇÃO
   // ------------------------------------------------------------
@@ -354,6 +393,15 @@ if (loginResp?.status === "ok") {
   FEMFLOW.setSessionToken?.(loginResp.sessionToken);
   if (loginResp.sessionExpira) {
     localStorage.setItem("femflow_session_expira", String(loginResp.sessionExpira));
+  }
+
+  try {
+    await syncFirebaseAuthAccount(email, senha);
+  } catch (firebaseErr) {
+    console.error("[Anamnese] Falha ao sincronizar conta no Firebase Auth:", firebaseErr);
+    FEMFLOW.toast?.("Conta criada, mas sessão Firebase falhou.", true);
+    finalMsgEl.textContent = "Erro ao concluir.";
+    return;
   }
 } else {
   const msg = loginResp?.msg || "Erro ao concluir.";

@@ -40,6 +40,8 @@
     window.FEMFLOW?.API_URL ||
     '';
 
+  let authUserFromObserver = null;
+
   const state = {
     userReady: false,
     isLoading: false,
@@ -58,7 +60,7 @@
       return null;
     }
 
-    const user = firebase.auth().currentUser;
+    const user = firebase.auth().currentUser || authUserFromObserver;
     // Segurança: este módulo exige usuário autenticado não-anônimo.
     if (!user || !user.uid || user.isAnonymous) {
       return null;
@@ -435,6 +437,8 @@
     }
 
     firebase.auth().onAuthStateChanged(async (user) => {
+      authUserFromObserver = user || null;
+
       if (!user || !user.uid || user.isAnonymous) {
         window.BI_USER_ID = null;
         setAuthUI(false);
