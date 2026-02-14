@@ -141,9 +141,12 @@ document.addEventListener("DOMContentLoaded", () => {
   const getLoginMsg = () => LOGIN_MSG[currentLoginLang()] || LOGIN_MSG.pt;
 
   let firebaseAuthUser = null;
+  let firebaseAuthObserverStarted = false;
+  let loginInProgress = false;
 
   function startFirebaseAuthObserver() {
-    if (!window.firebase || !firebase.auth) return;
+    if (!window.firebase || !firebase.auth || firebaseAuthObserverStarted) return;
+    firebaseAuthObserverStarted = true;
     firebase.auth().onAuthStateChanged((user) => {
       firebaseAuthUser = user || null;
     });
@@ -177,21 +180,15 @@ document.addEventListener("DOMContentLoaded", () => {
     const emailNorm = String(email || "").trim().toLowerCase();
     const senhaNorm = String(senha || "").trim();
 
-    const activeUser = auth.currentUser || firebaseAuthUser;
-    if (
-      activeUser &&
-      !activeUser.isAnonymous &&
-      String(activeUser.email || "").toLowerCase() === emailNorm
-    ) {
+    const activeUser = auth.currentUser;
+    const activeEmail = String(activeUser?.email || "").trim().toLowerCase();
+
+    if (activeUser && activeEmail === emailNorm) {
       return;
     }
 
-    if (activeUser && activeUser.isAnonymous) {
-      try {
-        await activeUser.delete();
-      } catch (_) {
-        await auth.signOut();
-      }
+    if (activeUser && activeEmail !== emailNorm) {
+      await auth.signOut();
     }
 
     try {
@@ -203,11 +200,13 @@ document.addEventListener("DOMContentLoaded", () => {
         console.error("[Login] Firebase Email/Senha desativado. Verifique Auth > Sign-in method no projeto correto:", hint);
         throw new Error("Firebase Auth (Email/Senha) desativado no projeto. Ative em Auth > Sign-in method.");
       }
+
       if (error && (error.code === "auth/invalid-api-key" || error.code === "auth/app-not-authorized")) {
         const hint = firebaseConfigHint();
         console.error("[Login] Configuração Firebase inválida para este app:", hint, error);
         throw new Error("Configuração do Firebase inválida (apiKey/projeto). Revise projectId, authDomain e apiKey.");
       }
+
       if (error && error.code === "auth/user-not-found") {
         const gasResponse = await validarNoGAS(emailNorm, senhaNorm);
 
@@ -219,10 +218,12 @@ document.addEventListener("DOMContentLoaded", () => {
 
         throw new Error((gasResponse && gasResponse.msg) || "E-mail ou senha incorretos.");
       }
+
       if (error && error.code === "auth/wrong-password") {
-        throw new Error("Senha inválida para autenticação Firebase.");
+        throw new Error("Senha incorreta. Confira sua senha e tente novamente.");
       }
-      throw error;
+
+      throw new Error(error?.message || "Erro ao autenticar com Firebase.");
     }
   }
 
@@ -261,96 +262,105 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function entrar(){
-    const email = $("#loginEmail").value.trim().toLowerCase();
-    const senha = $("#loginSenha").value.trim();
-
-    if (!email){
-      setErr("Digite seu e-mail.");
-      return;
-    }
-
-    setMsg("Verificando...");
-
-    let res;
-    try {
-      res = await postGAS({
-        action: "login",
-        email,
-        senha,
-        deviceId: FEMFLOW.getDeviceId()
-      });
-    } catch (e) {
-      console.error(e);
-      setErr("Erro ao processar resposta do servidor.");
-      return;
-    }
-
-    if (res.status !== "ok") {
-      if (res.status === "blocked") {
-        setErr(getLoginMsg().blocked);
-        FEMFLOW.clearSession?.();
-        return;
-      }
-
-      if (res.status === "expired") {
-        setErr(res.msg || "Sua assinatura expirou.");
-        return;
-      }
-
-      if (res.status === "inactive") {
-        setErr(res.msg || "Assinatura inativa.");
-        return;
-      }
-
-      if (res.status === "error" && res.msg === "device_required") {
-        setErr("Não foi possível identificar o dispositivo. Tente novamente.");
-        return;
-      }
-
-      if (res.status === "senha_incorreta" || res.status === "not_registered") {
-        setMsg("Complete seu cadastro para continuar ✨");
-        setTimeout(() => location.href = "anamnese_deluxe.html", 600);
-        return;
-      }
-
-      setErr(res.msg || "E-mail ou senha incorretos.");
-      return;
-    }
+    if (loginInProgress) return;
+    loginInProgress = true;
 
     try {
-      await syncFirebaseAuthSession(email, senha);
-    } catch (firebaseErr) {
-      console.error("[Login] Falha ao sincronizar Firebase Auth:", firebaseErr);
-      setErr(firebaseErr?.message || "Conta validada, mas não foi possível iniciar sessão segura. Tente novamente.");
-      return;
-    }
+      const email = $("#loginEmail").value.trim().toLowerCase();
+      const senha = $("#loginSenha").value.trim();
 
-    /* ===== SESSÃO MÍNIMA ===== */
-    localStorage.setItem("femflow_auth", "yes");
-    localStorage.setItem("femflow_id", res.id);
-    localStorage.setItem("femflow_email", res.email || email);
+      if (!email){
+        setErr("Digite seu e-mail.");
+        return;
+      }
 
-    if (res.deviceId) {
-      localStorage.setItem(
-  "femflow_device_id",
-  res.deviceId || FEMFLOW.getDeviceId()
-);
-    }
+      setMsg("Verificando...");
 
-    if (res.sessionToken) {
-      FEMFLOW.setSessionToken(res.sessionToken);
-    }
+      let res;
+      try {
+        res = await postGAS({
+          action: "login",
+          email,
+          senha,
+          deviceId: FEMFLOW.getDeviceId()
+        });
+      } catch (e) {
+        console.error(e);
+        setErr("Erro ao processar resposta do servidor.");
+        return;
+      }
 
-    await syncCiclo(res.id);
-    
-// 🧠 NOVO — reconciliação silenciosa
-if (res.deviceUpdated) {
-  console.info("🔁 Device atualizado automaticamente pelo backend");
-}
-    
-    setMsg("Acesso liberado ✨", true);
-    setTimeout(() => location.href = "home.html", 500);
+      if (res.status !== "ok") {
+        if (res.status === "blocked") {
+          setErr(getLoginMsg().blocked);
+          FEMFLOW.clearSession?.();
+          return;
+        }
+
+        if (res.status === "expired") {
+          setErr(res.msg || "Sua assinatura expirou.");
+          return;
+        }
+
+        if (res.status === "inactive") {
+          setErr(res.msg || "Assinatura inativa.");
+          return;
+        }
+
+        if (res.status === "error" && res.msg === "device_required") {
+          setErr("Não foi possível identificar o dispositivo. Tente novamente.");
+          return;
+        }
+
+        if (res.status === "senha_incorreta" || res.status === "not_registered") {
+          setMsg("Complete seu cadastro para continuar ✨");
+          setTimeout(() => location.href = "anamnese_deluxe.html", 600);
+          return;
+        }
+
+        setErr(res.msg || "E-mail ou senha incorretos.");
+        return;
+      }
+
+      try {
+        await syncFirebaseAuthSession(email, senha);
+      } catch (firebaseErr) {
+        console.error("[Login] Falha ao sincronizar Firebase Auth:", firebaseErr);
+        setErr(firebaseErr?.message || "Conta validada, mas não foi possível iniciar sessão segura. Tente novamente.");
+        return;
+      }
+
+      /* ===== SESSÃO MÍNIMA ===== */
+      localStorage.setItem("femflow_auth", "yes");
+      localStorage.setItem("femflow_id", res.id);
+      localStorage.setItem("femflow_email", res.email || email);
+
+      if (res.deviceId) {
+        localStorage.setItem(
+    "femflow_device_id",
+    res.deviceId || FEMFLOW.getDeviceId()
+  );
+      }
+
+      if (res.sessionToken) {
+        FEMFLOW.setSessionToken(res.sessionToken);
+      }
+
+      await syncCiclo(res.id);
+      await validarPerfilAposLogin();
+
+  // 🧠 NOVO — reconciliação silenciosa
+  if (res.deviceUpdated) {
+    console.info("🔁 Device atualizado automaticamente pelo backend");
   }
+
+      setMsg("Acesso liberado ✨", true);
+      setTimeout(() => location.href = "home.html", 500);
+    } finally {
+      loginInProgress = false;
+    }
+  }
+
 
   $("#btnEntrar").onclick = entrar;
   $("#loginSenha").addEventListener("keydown", e => {
