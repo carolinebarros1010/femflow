@@ -253,6 +253,10 @@ function _processarHotmart(data) {
     if (produtoEmail === "treino_personal") {
       emailEnviado = _enviarBoasVindasPersonal_(email, nome, lang);
       emailTipo = "personal";
+    } else {
+      const nomeProduto = _getHotmartProductName_(data) || plano.produto;
+      emailEnviado = _enviarBoasVindasAcessoApp_(email, nome, idAluno, nomeProduto, lang);
+      emailTipo = "acesso_app";
     }
 
     return {
@@ -453,6 +457,78 @@ function _enviarBoasVindasNewsletter_(email, nome, lang) {
     return true;
   } catch (err) {
     console.log("Erro ao enviar e-mail de boas-vindas newsletter:", err);
+    return false;
+  }
+}
+
+function _enviarBoasVindasAcessoApp_(email, nome, idAluno, produto, lang) {
+  const nomeFinal = String(nome || "").trim() || "aluna";
+  const idFinal = String(idAluno || "").trim();
+  const produtoFinal = String(produto || "FemFlow App").trim() || "FemFlow App";
+  const cadastroLink = "https://carolinebarros1010.github.io/femflow/app/anamnese_deluxe.html";
+  const appLink = "https://carolinebarros1010.github.io/femflow/app";
+
+  const copy = {
+    pt: {
+      subject: "Seu acesso FemFlow",
+      intro: `Olá, ${nomeFinal}!`,
+      idLabel: "Seu ID FemFlow",
+      programLabel: "Programa",
+      body1: "Boas-vindas! Para começar, faça seu cadastro inicial no link abaixo:",
+      body2: "Depois, siga o login normalmente no app usando seu e-mail, como aluna sem cadastro prévio.",
+      appLabel: "Acesso do app",
+      team: "Equipe FemFlow 💫"
+    },
+    en: {
+      subject: "Your FemFlow access",
+      intro: `Hi, ${nomeFinal}!`,
+      idLabel: "Your FemFlow ID",
+      programLabel: "Program",
+      body1: "Welcome! To get started, complete your initial registration using the link below:",
+      body2: "Then log in normally in the app using your email, as a student without previous registration.",
+      appLabel: "App access",
+      team: "FemFlow Team 💫"
+    },
+    fr: {
+      subject: "Votre accès FemFlow",
+      intro: `Bonjour, ${nomeFinal} !`,
+      idLabel: "Votre identifiant FemFlow",
+      programLabel: "Programme",
+      body1: "Bienvenue ! Pour commencer, complétez votre inscription initiale via le lien ci-dessous :",
+      body2: "Ensuite, connectez-vous normalement dans l'application avec votre e-mail, comme une élève sans inscription préalable.",
+      appLabel: "Accès à l'application",
+      team: "Équipe FemFlow 💫"
+    }
+  };
+
+  const t = copy[lang] || copy.pt;
+  const subject = t.subject;
+  const htmlBody = [
+    `<p>${t.intro}</p>`,
+    `<p><strong>${t.idLabel}:</strong> ${idFinal}</p>`,
+    `<p><strong>${t.programLabel}:</strong> ${produtoFinal}</p>`,
+    `<p>${t.body1}</p>`,
+    `<p><a href="${cadastroLink}">${cadastroLink}</a></p>`,
+    `<p>${t.body2}</p>`,
+    `<p><strong>${t.appLabel}:</strong> <a href="${appLink}">${appLink}</a></p>`,
+    `<p>${t.team}</p>`
+  ].join("");
+  const body = [
+    t.intro,
+    `${t.idLabel}: ${idFinal}`,
+    `${t.programLabel}: ${produtoFinal}`,
+    t.body1,
+    cadastroLink,
+    t.body2,
+    `${t.appLabel}: ${appLink}`,
+    t.team
+  ].join("\n");
+
+  try {
+    MailApp.sendEmail({ to: email, subject, htmlBody, body });
+    return true;
+  } catch (err) {
+    console.log("Erro ao enviar e-mail de boas-vindas do app:", err);
     return false;
   }
 }

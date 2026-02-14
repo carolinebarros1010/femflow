@@ -183,6 +183,7 @@ function doPost(e) {
     const email = data.data?.buyer?.email || '';
     const nome = data.data?.buyer?.name || '';
     const product = data.data?.product?.name || '';
+    const linkAnamneseDeluxe = 'https://carolinebarros1010.github.io/femflow/app/anamnese_deluxe.html';
     const produtoLower = product.toLowerCase();
 
     let nivelAcesso = 'transicao_15';
@@ -203,8 +204,56 @@ function doPost(e) {
 
     MailApp.sendEmail(
       email,
-      'Seu acesso FemFlow',
-      `Olá ${nome}!\n\nSeu ID FemFlow: ${newId}\nPrograma: ${product}\n\nAcesse:\n${link_planilha}\n\n\uD83C\uDF38 Bem-vinda ao seu ciclo!`
+      'Seu acesso FemFlow | Your FemFlow Access | Votre accès FemFlow',
+      `🇧🇷 PT
+Olá ${nome}!
+
+Seu ID FemFlow: ${newId}
+Programa: ${product}
+
+Boas-vindas! Para começar, faça seu cadastro inicial aqui:
+${linkAnamneseDeluxe}
+
+Depois, siga o login normalmente no app usando seu e-mail, como aluna sem cadastro prévio.
+
+Link do seu programa:
+${link_planilha}
+
+🌸 Bem-vinda ao seu ciclo!
+
+────────────────────
+🇺🇸 EN
+Hi ${nome}!
+
+Your FemFlow ID: ${newId}
+Program: ${product}
+
+Welcome! To get started, complete your initial registration here:
+${linkAnamneseDeluxe}
+
+Then log in normally in the app using your email, as a student without previous registration.
+
+Your program link:
+${link_planilha}
+
+🌸 Welcome to your cycle!
+
+────────────────────
+🇫🇷 FR
+Bonjour ${nome} !
+
+Votre identifiant FemFlow : ${newId}
+Programme : ${product}
+
+Bienvenue ! Pour commencer, complétez votre inscription initiale ici :
+${linkAnamneseDeluxe}
+
+Ensuite, connectez-vous normalement dans l'application avec votre e-mail, comme une élève sans inscription préalable.
+
+Lien de votre programme :
+${link_planilha}
+
+🌸 Bienvenue dans votre cycle !`
     );
 
     _logUpgrade({ id: newId, nivel: nivelAcesso, origem: 'PURCHASE_APPROVED', status: 'ok' });
