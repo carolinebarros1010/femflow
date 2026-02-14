@@ -1596,6 +1596,33 @@ resp: {
 };
 
 /* ============================================================
+   🧍 BODY INSIGHT (strings específicas da página)
+============================================================ */
+FEMFLOW.langs.pt.bodyInsight = {
+  helpTrigger: "i",
+  waistHelpText: "Meça a parte mais fina do abdômen, após soltar o ar.",
+  hipHelpText: "Meça na parte mais larga do quadril/glúteos, fita reta.",
+  waistHelpAria: "Como medir a cintura",
+  hipHelpAria: "Como medir o quadril"
+};
+
+FEMFLOW.langs.en.bodyInsight = {
+  helpTrigger: "info",
+  waistHelpText: "Measure the narrowest point of your waist after exhaling.",
+  hipHelpText: "Measure around the widest part of your hips/glutes with the tape level.",
+  waistHelpAria: "How to measure the waist",
+  hipHelpAria: "How to measure the hips"
+};
+
+FEMFLOW.langs.fr.bodyInsight = {
+  helpTrigger: "info",
+  waistHelpText: "Mesurez la partie la plus fine de la taille après avoir expiré.",
+  hipHelpText: "Mesurez la partie la plus large des hanches/fessiers avec le ruban bien droit.",
+  waistHelpAria: "Comment mesurer la taille",
+  hipHelpAria: "Comment mesurer les hanches"
+};
+
+/* ============================================================
    🔔 SINALIZAR QUE OS IDIOMAS ESTÃO PRONTOS
 ============================================================ */
 // Disparar após garantir carregamento completo

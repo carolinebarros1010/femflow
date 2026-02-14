@@ -219,10 +219,11 @@ body {
 }
 
 .bi-help-tooltip path,
+.bi-help-tooltip circle,
 .bi-help-tooltip line {
   fill: none;
   stroke: var(--bi-teal-deep);
-  stroke-width: 4;
+  stroke-width: 3.2;
   stroke-linecap: round;
   stroke-linejoin: round;
 }

@@ -33,6 +33,10 @@
     return;
   }
 
+  applyBodyInsightLanguage();
+  document.addEventListener('femflow:langReady', applyBodyInsightLanguage);
+  document.addEventListener('femflow:langChange', applyBodyInsightLanguage);
+
   const GAS_URL =
     window.BODY_INSIGHT_GAS_URL ||
     window.GAS_URL ||
@@ -50,6 +54,32 @@
     previewFrontUrl: '',
     previewSideUrl: ''
   };
+
+
+  function getBodyInsightLangCopy() {
+    const lang = window.FEMFLOW?.lang || localStorage.getItem('femflow_lang') || 'pt';
+    return window.FEMFLOW?.langs?.[lang]?.bodyInsight || window.FEMFLOW?.langs?.pt?.bodyInsight || {};
+  }
+
+  function applyBodyInsightLanguage() {
+    const copy = getBodyInsightLangCopy();
+
+    document.querySelectorAll('[data-bi-i18n="helpTrigger"]').forEach((btn) => {
+      btn.textContent = copy.helpTrigger || 'i';
+    });
+
+    const waistText = document.querySelector('#bi-help-cintura [data-bi-i18n="waistHelpText"]');
+    if (waistText) waistText.textContent = copy.waistHelpText || waistText.textContent;
+
+    const hipText = document.querySelector('#bi-help-quadril [data-bi-i18n="hipHelpText"]');
+    if (hipText) hipText.textContent = copy.hipHelpText || hipText.textContent;
+
+    const waistTrigger = document.querySelector('button[aria-describedby="bi-help-cintura"]');
+    if (waistTrigger && copy.waistHelpAria) waistTrigger.setAttribute('aria-label', copy.waistHelpAria);
+
+    const hipTrigger = document.querySelector('button[aria-describedby="bi-help-quadril"]');
+    if (hipTrigger && copy.hipHelpAria) hipTrigger.setAttribute('aria-label', copy.hipHelpAria);
+  }
 
   function setResultMessage(message) {
     biResults.innerHTML = `<p>${message}</p>`;
