@@ -52,6 +52,7 @@ function obterLimiteBodyInsightPorPlano_(tipoPlano) {
  */
 function verificarLimiteBodyInsight_(userId, tipoPlano) {
   try {
+    Logger.log("BODY_INSIGHT: Verificando limite para userId:", userId);
     const ss = abrirPlanilhaBodyInsight_();
     const sheet = ss.getSheetByName("body_insight_usage");
     const limite = obterLimiteBodyInsightPorPlano_(tipoPlano);
@@ -94,6 +95,8 @@ function verificarLimiteBodyInsight_(userId, tipoPlano) {
       }
     }
 
+    Logger.log("BODY_INSIGHT: Total permitido encontrado:", countMes);
+
     return {
       permitido: countMes < limite,
       countMes: countMes,
@@ -116,13 +119,28 @@ function verificarLimiteBodyInsight_(userId, tipoPlano) {
  */
 function registrarUsoBodyInsight_(userId, tipoPlano, status) {
   try {
+    Logger.log("BODY_INSIGHT: Iniciando registro de uso");
+    const props = PropertiesService.getScriptProperties();
+    const SPREADSHEET_ID = String(props.getProperty("SPREADSHEET_ID") || "").trim();
+    Logger.log("BODY_INSIGHT: SPREADSHEET_ID =", SPREADSHEET_ID);
+
     const ss = abrirPlanilhaBodyInsight_();
+    Logger.log("BODY_INSIGHT: Planilha aberta com sucesso");
+
+    Logger.log("BODY_INSIGHT: Procurando aba body_insight_usage");
     let sheet = ss.getSheetByName("body_insight_usage");
 
     if (!sheet) {
+      Logger.log("BODY_INSIGHT: Aba não encontrada. Criando nova aba");
       sheet = ss.insertSheet("body_insight_usage");
       sheet.appendRow(["userId", "dataHora", "ambiente", "tipoPlano", "status"]);
     }
+
+    Logger.log("BODY_INSIGHT: Registrando linha:", {
+      userId: userId,
+      tipoPlano: tipoPlano,
+      status: status
+    });
 
     sheet.appendRow([
       String(userId || "").trim(),
@@ -131,12 +149,16 @@ function registrarUsoBodyInsight_(userId, tipoPlano, status) {
       String(tipoPlano || "free").trim().toLowerCase(),
       String(status || "").trim().toLowerCase()
     ]);
+    Logger.log("BODY_INSIGHT: Registro salvo com sucesso");
   } catch (err) {
+    Logger.log("BODY_INSIGHT: ERRO AO REGISTRAR:", err);
     console.log("❌ registrarUsoBodyInsight_ falhou:", err);
+    throw err;
   }
 }
 
 function analisarBodyInsightIA_(pedido) {
+  Logger.log("BODY_INSIGHT: analisarBodyInsightIA_ iniciada");
   const props = PropertiesService.getScriptProperties();
   const iaEnabled = String(props.getProperty("SAC_IA_ENABLED") || "").toLowerCase() === "true";
 
@@ -158,6 +180,7 @@ function analisarBodyInsightIA_(pedido) {
   const photoSideUrl = String((pedido && pedido.photoSideUrl) || "").trim();
 
   if (!userId) {
+    Logger.log("BODY_INSIGHT: userId ausente na requisição");
     return {
       status: "error",
       message: "userId é obrigatório."
@@ -165,6 +188,7 @@ function analisarBodyInsightIA_(pedido) {
   }
 
   if (!photoFrontUrl || !photoSideUrl) {
+    Logger.log("BODY_INSIGHT: Fotos obrigatórias ausentes");
     return {
       status: "error",
       message: "Envie as fotos frontal e lateral para análise."
@@ -172,6 +196,7 @@ function analisarBodyInsightIA_(pedido) {
   }
 
   const limiteInfo = verificarLimiteBodyInsight_(userId, tipoPlano);
+  Logger.log("BODY_INSIGHT: Resultado verificação limite:", limiteInfo);
   if (!limiteInfo.permitido) {
     registrarUsoBodyInsight_(userId, tipoPlano, "limitado");
     return {
@@ -328,6 +353,7 @@ function analisarBodyInsightIA_(pedido) {
       visual: visual
     };
   } catch (err) {
+    Logger.log("BODY_INSIGHT: ERRO em analisarBodyInsightIA_:", err);
     console.log("❌ body_insight_ia falha inesperada:", err);
     registrarUsoBodyInsight_(userId, tipoPlano, "erro");
     return {
