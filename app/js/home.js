@@ -705,8 +705,7 @@ const CARDS_BODYINSIGHT_SIMBOLICOS = [
     desc: "Análise visual da sua evolução corporal",
     color: "#335953",
     locked: false,
-    simbolico: true,
-    emBreve: true
+    simbolico: true
   }
 ];
 
@@ -1155,7 +1154,8 @@ function confirmarCustomTreino() {
 async function handleCardClick(enfase, locked) {
 
   if (enfase === "bodyinsight") {
-    FEMFLOW.toast(`✨ Body Insight: ${getComingSoonLabel()}.`);
+    localStorage.setItem("femflow_mode_personal", "false");
+    FEMFLOW.router("body_insight.html");
     return;
   }
 
