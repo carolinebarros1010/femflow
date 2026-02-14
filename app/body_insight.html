@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  <meta name="format-detection" content="telephone=no" />
+  <script src="./config/config.js"></script>
+
+  <title>FemFlow • Body Insight</title>
+
+  <link rel="icon" href="favicon.ico">
+  <link rel="manifest" href="manifest.json">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+
+  <link rel="stylesheet" href="css/core.css">
+  <link rel="stylesheet" href="css/header.css">
+  <link rel="stylesheet" href="css/themes.css">
+  <link rel="stylesheet" href="css/body_insight.css">
+</head>
+<body>
+  <header class="bi-header">
+    <button type="button" class="bi-back-btn" id="biBackBtn">← Voltar</button>
+    <div>
+      <h1>Body Insight</h1>
+      <p class="bi-subtitle">Análise corporal com biometria + IA visual</p>
+    </div>
+  </header>
+
+  <main class="bi-main" id="biMain" aria-live="polite">
+    <p class="bi-auth-warning" id="biAuthWarning">Verificando autenticação...</p>
+
+    <section class="bi-scan-container" id="biScanContainer" aria-live="polite">
+      <div class="bi-preview-grid" aria-label="Previews frontal e lateral para análise corporal">
+        <div class="bi-preview-slot">
+          <img id="biPhotoFront" class="hidden" alt="Preview da foto frontal para análise corporal" />
+          <span class="bi-preview-label">Frontal</span>
+        </div>
+        <div class="bi-preview-slot">
+          <img id="biPhotoSide" class="hidden" alt="Preview da foto lateral para análise corporal" />
+          <span class="bi-preview-label">Lateral</span>
+        </div>
+      </div>
+
+      <div class="bi-overlay" aria-hidden="true"></div>
+      <div class="bi-scan-line" aria-hidden="true"></div>
+      <p class="bi-scan-text" id="bi-scan-text">Analisando seus parâmetros...</p>
+    </section>
+
+    <section class="bi-form-wrapper">
+      <form id="bi-form" class="bi-form" novalidate>
+        <label for="altura">Altura (cm)</label>
+        <input type="number" id="altura" min="100" max="250" required />
+
+        <label for="peso">Peso (kg)</label>
+        <input type="number" id="peso" min="20" max="300" step="0.1" required />
+
+        <label for="cintura">Cintura (cm)</label>
+        <input type="number" id="cintura" min="40" max="200" step="0.1" required />
+
+        <label for="quadril">Quadril (cm)</label>
+        <input type="number" id="quadril" min="50" max="220" step="0.1" required />
+
+        <label for="idade">Idade</label>
+        <input type="number" id="idade" min="12" max="120" required />
+
+        <label for="biPhotoFrontInput">Foto frontal</label>
+        <input type="file" id="biPhotoFrontInput" accept="image/*" required />
+
+        <label for="biPhotoSideInput">Foto lateral</label>
+        <input type="file" id="biPhotoSideInput" accept="image/*" required />
+
+        <button type="submit" id="bi-calc-btn" disabled>Calcular Parâmetros</button>
+      </form>
+
+      <div class="bi-results" id="bi-results" aria-live="polite"></div>
+    </section>
+  </main>
+
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-storage-compat.js"></script>
+
+  <script src="services/firebase-init.js?v=20250127"></script>
+  <script src="js/lang.js"></script>
+  <script src="core/femflow-core.js"></script>
+  <script src="js/body_insight.js"></script>
+</body>
+</html>

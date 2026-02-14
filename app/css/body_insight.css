@@ -1,0 +1,247 @@
+:root {
+  --bi-teal-deep: #2f5752;
+  --bi-teal-mid: #3f6c65;
+  --bi-terracotta: #c7765d;
+  --bi-peach: #ebb497;
+  --bi-text: #f8f2ee;
+  --bi-border: rgba(255, 255, 255, 0.3);
+  --bi-card: rgba(255, 255, 255, 0.09);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: 'Lato', Arial, sans-serif;
+  color: var(--bi-text);
+  background: linear-gradient(160deg, var(--bi-teal-mid), var(--bi-teal-deep));
+  padding: 16px;
+}
+
+.bi-header {
+  max-width: 920px;
+  margin: 0 auto 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.bi-header h1 {
+  margin: 0;
+  font-family: 'Playfair Display', serif;
+  font-size: 1.8rem;
+}
+
+.bi-subtitle {
+  margin: 4px 0 0;
+  opacity: 0.85;
+}
+
+.bi-back-btn {
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 14px;
+  font-weight: 700;
+  color: #2f211b;
+  background: linear-gradient(180deg, var(--bi-peach), var(--bi-terracotta));
+  cursor: pointer;
+}
+
+.bi-main {
+  max-width: 920px;
+  margin: 0 auto;
+  display: grid;
+  gap: 14px;
+}
+
+.bi-main.bi-locked {
+  opacity: 0.72;
+  pointer-events: none;
+}
+
+.bi-auth-warning {
+  margin: 0;
+  border: 1px solid var(--bi-border);
+  border-radius: 12px;
+  background: rgba(22, 35, 33, 0.45);
+  padding: 10px 12px;
+}
+
+.bi-scan-container {
+  position: relative;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid var(--bi-border);
+  min-height: 340px;
+  background: linear-gradient(160deg, #2f5f58, #2b4d48);
+}
+
+.bi-preview-grid {
+  width: 100%;
+  height: 100%;
+  min-height: 340px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  padding: 6px;
+}
+
+.bi-preview-slot {
+  position: relative;
+  border-radius: 14px;
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.09);
+}
+
+.bi-preview-slot img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(0.92) brightness(0.92);
+}
+
+.bi-preview-label {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  z-index: 2;
+  font-size: 0.84rem;
+  border-radius: 999px;
+  padding: 4px 10px;
+  background: rgba(20, 30, 29, 0.68);
+}
+
+.bi-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(72, 131, 122, 0.2), rgba(57, 108, 101, 0.25));
+}
+
+.bi-scan-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -8px;
+  height: 5px;
+  opacity: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0), rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0));
+}
+
+.scanning .bi-scan-line {
+  opacity: 1;
+  animation: biScanMove 2.4s ease-in-out infinite;
+}
+
+.bi-scan-text {
+  position: absolute;
+  inset: auto 0 14px;
+  margin: 0;
+  z-index: 3;
+  text-align: center;
+  font-weight: 700;
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.45);
+}
+
+.bi-form-wrapper {
+  border-radius: 18px;
+  border: 1px solid var(--bi-border);
+  background: var(--bi-card);
+  padding: 14px;
+}
+
+.bi-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.bi-form label {
+  font-size: 0.92rem;
+}
+
+.bi-form input,
+#bi-calc-btn {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid var(--bi-border);
+  padding: 10px;
+  font-size: 0.96rem;
+}
+
+.bi-form input {
+  color: var(--bi-text);
+  background: rgba(255, 255, 255, 0.16);
+}
+
+#bi-calc-btn {
+  grid-column: 1 / -1;
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+  color: #2f211b;
+  background: linear-gradient(180deg, var(--bi-peach), var(--bi-terracotta));
+}
+
+#bi-calc-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.bi-results {
+  margin-top: 12px;
+  min-height: 70px;
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px dashed var(--bi-border);
+  background: rgba(255, 255, 255, 0.08);
+}
+
+.bi-indice-grande {
+  margin: 8px 0;
+  text-align: center;
+  font-size: 54px;
+  font-weight: 700;
+}
+
+.bi-fade-in {
+  animation: biFadeIn 0.38s ease;
+}
+
+.hidden {
+  display: none;
+}
+
+@keyframes biScanMove {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(170px); }
+  100% { transform: translateY(340px); }
+}
+
+@keyframes biFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 720px) {
+  .bi-form,
+  .bi-preview-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .bi-scan-container,
+  .bi-preview-grid {
+    min-height: 400px;
+  }
+
+  @keyframes biScanMove {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(200px); }
+    100% { transform: translateY(400px); }
+  }
+}
