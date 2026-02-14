@@ -1,0 +1,90 @@
+{
+  "issues": [
+    {
+      "file": "app/js/body_insight.js",
+      "line": 231,
+      "type": "auth-misuse",
+      "message": "O submit confia em window.BI_USER_ID (global mutável) em vez de ler firebase.auth().currentUser.uid no momento da operação.",
+      "severity": "high",
+      "suggestedFix": "No submit, substitua por: const user = firebase.auth().currentUser; if (!user?.uid) { setResultMessage('Faça login para continuar.'); return; } const userId = user.uid; e remova a dependência de window.BI_USER_ID."
+    },
+    {
+      "file": "app/js/body_insight.js",
+      "line": 328,
+      "type": "auth-misuse",
+      "message": "onAuthStateChanged aceita usuário anônimo criado globalmente por firebase-init, podendo liberar o módulo para sessão não autenticada por credencial real.",
+      "severity": "high",
+      "suggestedFix": "Valide tipo de usuário: if (!user || user.isAnonymous) { setAuthUI(false); ... } e só habilite fluxo para usuário não anônimo quando essa for a regra de negócio."
+    },
+    {
+      "file": "app/js/body_insight.js",
+      "line": 150,
+      "type": "firebase-conflict",
+      "message": "Gravação em coleção raiz body_insight com .add() pode conflitar com rules que exigem escopo por UID no caminho do documento.",
+      "severity": "high",
+      "suggestedFix": "Preferir caminho por usuário: firebase.firestore().collection('users').doc(userId).collection('body_insight').add({...}); ou doc com id determinístico incluindo uid e timestamp."
+    },
+    {
+      "file": "app/js/body_insight.js",
+      "line": 150,
+      "type": "firebase-conflict",
+      "message": "saveBodyInsightToFirestore não verifica consistência entre payload.userId e usuário autenticado atual antes de persistir.",
+      "severity": "high",
+      "suggestedFix": "Dentro de saveBodyInsightToFirestore, validar const currentUid = firebase.auth().currentUser?.uid; if (!currentUid || currentUid !== payload.userId) throw new Error('Usuário inválido para gravação.');"
+    },
+    {
+      "file": "app/js/body_insight.js",
+      "line": 140,
+      "type": "firebase-conflict",
+      "message": "Upload envia sempre extensão .jpg mesmo quando file.type indica png/heic/webp; isso pode quebrar content-type esperado e validações downstream.",
+      "severity": "medium",
+      "suggestedFix": "Derivar extensão do MIME real (ou padronizar conversão para JPEG antes do upload). Ex.: const ext = (file.type.split('/')[1] || 'jpg').replace('jpeg','jpg'); const storagePath = `body_insight/${userId}/${timestamp}_${safeType}.${ext}`;"
+    },
+    {
+      "file": "app/js/body_insight.js",
+      "line": 137,
+      "type": "logic",
+      "message": "response.json() é chamado sem tratar JSON inválido do GAS; erro de parse cai genérico e dificulta diagnóstico.",
+      "severity": "medium",
+      "suggestedFix": "Envolver parse em try/catch local e incluir status/texto da resposta para troubleshooting."
+    },
+    {
+      "file": "app/js/body_insight.js",
+      "line": 122,
+      "type": "logic",
+      "message": "fetch para GAS não possui timeout/AbortController; em instabilidade a UI pode parecer travada por longo período.",
+      "severity": "medium",
+      "suggestedFix": "Implementar AbortController com timeout (ex. 20s) e mensagem específica de timeout para usuário."
+    },
+    {
+      "file": "app/js/body_insight.js",
+      "line": 2,
+      "type": "logic",
+      "message": "O módulo assume que todos os elementos DOM existem. Se script for carregado fora da página esperada, addEventListener em null gera TypeError imediato.",
+      "severity": "medium",
+      "suggestedFix": "Adicionar guard clause no início: if (!biForm || !biMain || !biCalcButton || !biBackBtn || !biResults) return;"
+    },
+    {
+      "file": "app/body_insight.html",
+      "line": 95,
+      "type": "firebase-conflict",
+      "message": "Dependência de ordem de scripts: body_insight.js assume firebase-init.js já criou FEMFLOW.firebaseAuthReady. Mudança de ordem em futuros merges quebra auth guard silenciosamente.",
+      "severity": "low",
+      "suggestedFix": "Manter ordem atual documentada e reforçar fallback robusto no JS (checar firebase.apps e auth() diretamente)."
+    }
+  ],
+  "summary": {
+    "totalIssues": 9,
+    "byType": {
+      "syntax": 0,
+      "logic": 3,
+      "firebase-conflict": 4,
+      "auth-misuse": 2
+    }
+  },
+  "patches": {
+    "app/js/body_insight.js": "@@\n- if (!state.userReady || !window.BI_USER_ID) {\n+ const auth = firebase.auth();\n+ const user = auth && auth.currentUser;\n+ if (!state.userReady || !user || !user.uid || user.isAnonymous) {\n    setResultMessage('Faça login para continuar.');\n    return;\n  }\n@@\n- const userId = window.BI_USER_ID;\n+ const userId = user.uid;\n@@\n- async function saveBodyInsightToFirestore(payload) {\n-   await firebase.firestore().collection('body_insight').add({\n-     ...payload,\n-     createdAt: firebase.firestore.FieldValue.serverTimestamp()\n-   });\n- }\n+ async function saveBodyInsightToFirestore(payload) {\n+   const currentUid = firebase.auth().currentUser?.uid;\n+   if (!currentUid || currentUid !== payload.userId) {\n+     throw new Error('Usuário inválido para gravação.');\n+   }\n+   await firebase.firestore()\n+     .collection('users')\n+     .doc(currentUid)\n+     .collection('body_insight')\n+     .add({\n+       ...payload,\n+       createdAt: firebase.firestore.FieldValue.serverTimestamp()\n+     });\n+ }\n@@\n- const response = await fetch(GAS_URL, { ... });\n+ const controller = new AbortController();\n+ const timeout = setTimeout(() => controller.abort(), 20000);\n+ const response = await fetch(GAS_URL, { ... , signal: controller.signal });\n+ clearTimeout(timeout);\n+ let data;\n+ try { data = await response.json(); } catch { throw new Error('Resposta inválida do serviço de análise.'); }\n+ return data;\n@@\n- const storagePath = `body_insight/${userId}/${timestamp}_${safeType}.jpg`;\n+ const ext = ((file.type || 'image/jpeg').split('/')[1] || 'jpg').replace('jpeg', 'jpg');\n+ const storagePath = `body_insight/${userId}/${timestamp}_${safeType}.${ext}`;",
+    "app/body_insight.html": "@@\n <script src=\"services/firebase-init.js?v=20250127\"></script>\n <script src=\"js/lang.js\"></script>\n <script src=\"core/femflow-core.js\"></script>\n+<!-- Dependência: body_insight.js requer Firebase inicializado e auth pronto -->\n <script src=\"js/body_insight.js\"></script>",
+    "app/css/body_insight.css": "@@\n+/* Sem erros de sintaxe CSS detectados. Ajuste opcional: garantir contraste da label para acessibilidade. */\n .bi-preview-label {\n+  color: #fff;\n }"
+  }
+}
