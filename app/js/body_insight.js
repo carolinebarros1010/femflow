@@ -12,6 +12,27 @@
   const biCalcButton = document.getElementById('bi-calc-btn');
   const biBackBtn = document.getElementById('biBackBtn');
 
+  // Guard clause: evita execução do módulo fora da página Body Insight.
+  const requiredElements = [
+    biForm,
+    biMain,
+    biAuthWarning,
+    biScanContainer,
+    biScanText,
+    biPhotoFront,
+    biPhotoSide,
+    biPhotoFrontInput,
+    biPhotoSideInput,
+    biResults,
+    biCalcButton,
+    biBackBtn
+  ];
+
+  if (requiredElements.some((element) => !element)) {
+    console.warn('[BodyInsight] Elementos obrigatórios não encontrados. Inicialização ignorada.');
+    return;
+  }
+
   const GAS_URL =
     window.BODY_INSIGHT_GAS_URL ||
     window.GAS_URL ||
@@ -30,6 +51,20 @@
 
   function setResultMessage(message) {
     biResults.innerHTML = `<p>${message}</p>`;
+  }
+
+  function getCurrentAuthenticatedUser() {
+    if (!window.firebase || !firebase.auth) {
+      return null;
+    }
+
+    const user = firebase.auth().currentUser;
+    // Segurança: este módulo exige usuário autenticado não-anônimo.
+    if (!user || !user.uid || user.isAnonymous) {
+      return null;
+    }
+
+    return user;
   }
 
   function hasRequiredInputs() {
@@ -141,27 +176,53 @@
       throw new Error('Serviço de IA indisponível no momento.');
     }
 
-    const response = await fetch(GAS_URL, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        action: 'body_insight_ia',
-        userId,
-        photoFrontUrl,
-        photoSideUrl
-      })
-    });
+    // Segurança/rede: timeout para evitar requisições penduradas ao GAS.
+    const controller = new AbortController();
+    const timeoutId = window.setTimeout(() => controller.abort(), 20000);
+
+    let response;
+    try {
+      response = await fetch(GAS_URL, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          action: 'body_insight_ia',
+          userId,
+          photoFrontUrl,
+          photoSideUrl
+        }),
+        signal: controller.signal
+      });
+    } catch (error) {
+      if (error && error.name === 'AbortError') {
+        throw new Error('Tempo de resposta excedido na análise. Tente novamente.');
+      }
+      throw error;
+    } finally {
+      window.clearTimeout(timeoutId);
+    }
 
     if (!response.ok) {
       throw new Error('Falha de comunicação com o serviço de análise.');
     }
 
-    return response.json();
+    try {
+      return await response.json();
+    } catch (error) {
+      throw new Error('Resposta inválida do serviço de análise.');
+    }
   }
 
   async function uploadPhotoToStorage(userId, file, timestamp, type) {
+    const currentUser = getCurrentAuthenticatedUser();
+    if (!currentUser || currentUser.uid !== userId) {
+      throw new Error('Faça login para continuar.');
+    }
+
     const safeType = type === 'front' ? 'front' : 'side';
-    const storagePath = `body_insight/${userId}/${timestamp}_${safeType}.jpg`;
+    // Ajuste: extensão derivada do MIME real do arquivo.
+    const ext = ((file.type || 'image/jpeg').split('/')[1] || 'jpg').toLowerCase().replace('jpeg', 'jpg');
+    const storagePath = `body_insight/${userId}/${timestamp}_${safeType}.${ext}`;
     const metadata = { contentType: file.type || 'image/jpeg' };
     const storageRef = firebase.storage().ref(storagePath);
     await storageRef.put(file, metadata);
@@ -169,7 +230,21 @@
   }
 
   async function saveBodyInsightToFirestore(payload) {
-    await firebase.firestore().collection('body_insight').add({
+    const currentUser = getCurrentAuthenticatedUser();
+    // Segurança: garante que o payload pertence ao usuário autenticado.
+    if (!currentUser || !payload || payload.userId !== currentUser.uid) {
+      throw new Error('Sessão inválida para salvar a análise. Faça login novamente.');
+    }
+
+    // Conflito Firestore: evita add() na raiz sem vínculo de UID.
+    const docRef = firebase
+      .firestore()
+      .collection('users')
+      .doc(currentUser.uid)
+      .collection('body_insight')
+      .doc(String(payload.createdAtMs || Date.now()));
+
+    await docRef.set({
       ...payload,
       createdAt: firebase.firestore.FieldValue.serverTimestamp()
     });
@@ -250,7 +325,9 @@
   biForm.addEventListener('submit', async (event) => {
     event.preventDefault();
 
-    if (!state.userReady || !window.BI_USER_ID) {
+    const currentUser = getCurrentAuthenticatedUser();
+    // Segurança: não confiar em window.BI_USER_ID antes de upload/salvamento.
+    if (!state.userReady || !currentUser) {
       setResultMessage('Faça login para continuar.');
       return;
     }
@@ -275,7 +352,12 @@
       setLoadingState(true);
       setResultMessage('Processando análise com IA...');
 
-      const userId = window.BI_USER_ID;
+      const userAtSubmit = getCurrentAuthenticatedUser();
+      if (!userAtSubmit) {
+        throw new Error('Faça login para continuar.');
+      }
+
+      const userId = userAtSubmit.uid;
       const timestamp = Date.now();
 
       const biometria = calcularIndiceFemFlow({ altura, peso, cintura, quadril });
@@ -314,6 +396,7 @@
 
       await saveBodyInsightToFirestore({
         userId,
+        createdAtMs: timestamp,
         altura,
         peso,
         cintura,
@@ -352,7 +435,7 @@
     }
 
     firebase.auth().onAuthStateChanged(async (user) => {
-      if (!user) {
+      if (!user || !user.uid || user.isAnonymous) {
         window.BI_USER_ID = null;
         setAuthUI(false);
         window.setTimeout(() => {
