@@ -206,6 +206,8 @@ function getPerguntasTraduzidas() {
     await auth.signInWithEmailAndPassword(email, senha);
   }
 
+  window.syncFirebaseAuthAccount = syncFirebaseAuthAccount;
+
   // ------------------------------------------------------------
   //  VALIDAÇÃO
   // ------------------------------------------------------------
@@ -455,7 +457,15 @@ if (loginResp?.status === "ok") {
   }
 
   try {
-    await syncFirebaseAuthAccount(email, senha);
+    const syncAuth =
+      (typeof syncFirebaseAuthAccount === "function" && syncFirebaseAuthAccount) ||
+      window.syncFirebaseAuthAccount;
+
+    if (typeof syncAuth !== "function") {
+      throw new ReferenceError("syncFirebaseAuthAccount is not defined");
+    }
+
+    await syncAuth(email, senha);
   } catch (firebaseErr) {
     console.error("[Anamnese] Falha ao sincronizar conta no Firebase Auth:", firebaseErr);
     marcarFallbackFirebaseAuth(firebaseErr?.code || firebaseErr?.message || "unknown");
