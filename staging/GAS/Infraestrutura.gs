@@ -46,6 +46,22 @@ function jsonOK_(obj) {
   return _json(obj);
 }
 
+/**
+ * Script Properties salva valores como string plana.
+ * A chave RSA vem com "\n" literal e precisa ser convertida para quebra real.
+ */
+function getFirebasePrivateKey_() {
+  const rawKey = PropertiesService
+    .getScriptProperties()
+    .getProperty("FIREBASE_PRIVATE_KEY");
+
+  if (!rawKey) return "";
+
+  // Converte os \n literais em quebras reais para uso seguro em JWT/assinatura.
+  return String(rawKey).replace(/\\n/g, "\n");
+}
+
+
 /* ============================================================
  * 🔹 2) UTILITÁRIOS DE PLANILHA
  * ============================================================ */

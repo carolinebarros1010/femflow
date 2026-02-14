@@ -30,6 +30,10 @@
 
   <script src="https://accounts.google.com/gsi/client" async defer></script>
   <script defer src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
+  <script defer src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+  <script defer src="services/firebase-init.js?v=20250127"></script>
 
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/core.css">
@@ -136,6 +140,57 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const getLoginMsg = () => LOGIN_MSG[currentLoginLang()] || LOGIN_MSG.pt;
 
+  let firebaseAuthUser = null;
+
+  function startFirebaseAuthObserver() {
+    if (!window.firebase || !firebase.auth) return;
+    firebase.auth().onAuthStateChanged((user) => {
+      firebaseAuthUser = user || null;
+    });
+  }
+
+  async function syncFirebaseAuthSession(email, senha) {
+    if (!window.firebase || !firebase.auth) {
+      console.warn("[Login] Firebase Auth indisponível. Login seguirá apenas com sessão do backend.");
+      return;
+    }
+
+    const auth = firebase.auth();
+    const emailNorm = String(email || "").trim().toLowerCase();
+    const senhaNorm = String(senha || "").trim();
+
+    const activeUser = auth.currentUser || firebaseAuthUser;
+    if (
+      activeUser &&
+      !activeUser.isAnonymous &&
+      String(activeUser.email || "").toLowerCase() === emailNorm
+    ) {
+      return;
+    }
+
+    if (activeUser && activeUser.isAnonymous) {
+      try {
+        await activeUser.delete();
+      } catch (_) {
+        await auth.signOut();
+      }
+    }
+
+    try {
+      await auth.signInWithEmailAndPassword(emailNorm, senhaNorm);
+      return;
+    } catch (err) {
+      if (err && err.code === "auth/user-not-found") {
+        await auth.createUserWithEmailAndPassword(emailNorm, senhaNorm);
+        return;
+      }
+      if (err && err.code === "auth/wrong-password") {
+        throw new Error("Senha inválida para autenticação Firebase.");
+      }
+      throw err;
+    }
+  }
+
   async function postGAS(p){
     const r = await fetch(scriptURL, {
       method:"POST",
@@ -237,6 +292,14 @@ document.addEventListener("DOMContentLoaded", () => {
       }
 
       setErr(res.msg || "E-mail ou senha incorretos.");
+      return;
+    }
+
+    try {
+      await syncFirebaseAuthSession(email, senha);
+    } catch (firebaseErr) {
+      console.error("[Login] Falha ao sincronizar Firebase Auth:", firebaseErr);
+      setErr("Conta validada, mas não foi possível iniciar sessão segura. Tente novamente.");
       return;
     }
 
@@ -543,6 +606,7 @@ if (res.deviceUpdated) {
   };
 
   aplicarIdiomaLogin(localStorage.getItem("femflow_lang") || "pt");
+  startFirebaseAuthObserver();
 
 });
 </script>
