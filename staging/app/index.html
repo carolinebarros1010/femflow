@@ -149,6 +149,15 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  async function validarNoGAS(email, senha) {
+    return postGAS({
+      action: "login",
+      email,
+      senha,
+      deviceId: FEMFLOW.getDeviceId()
+    });
+  }
+
   async function syncFirebaseAuthSession(email, senha) {
     if (!window.firebase || !firebase.auth) {
       console.warn("[Login] Firebase Auth indisponível. Login seguirá apenas com sessão do backend.");
@@ -179,15 +188,22 @@ document.addEventListener("DOMContentLoaded", () => {
     try {
       await auth.signInWithEmailAndPassword(emailNorm, senhaNorm);
       return;
-    } catch (err) {
-      if (err && err.code === "auth/user-not-found") {
-        await auth.createUserWithEmailAndPassword(emailNorm, senhaNorm);
-        return;
+    } catch (error) {
+      if (error && error.code === "auth/user-not-found") {
+        const gasResponse = await validarNoGAS(emailNorm, senhaNorm);
+
+        if (gasResponse && gasResponse.status === "ok") {
+          await auth.createUserWithEmailAndPassword(emailNorm, senhaNorm);
+          await auth.signInWithEmailAndPassword(emailNorm, senhaNorm);
+          return;
+        }
+
+        throw new Error((gasResponse && gasResponse.msg) || "E-mail ou senha incorretos.");
       }
-      if (err && err.code === "auth/wrong-password") {
+      if (error && error.code === "auth/wrong-password") {
         throw new Error("Senha inválida para autenticação Firebase.");
       }
-      throw err;
+      throw error;
     }
   }
 
