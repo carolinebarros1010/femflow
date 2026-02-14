@@ -10,13 +10,7 @@ function salvarTreino_(data) {
   const faseMetodo  = String(data.faseMetodo || data.fase || "").trim().toLowerCase();
   const caminhoMetodo = String(data.caminhoMetodo || "hormonal").trim().toLowerCase();
 
-  const caminhoRaw = data.caminhoNumero !== undefined && data.caminhoNumero !== null && String(data.caminhoNumero).trim() !== ""
-    ? data.caminhoNumero
-    : data.caminho;
-  const caminhoNumeroParsed = Number(caminhoRaw);
-  const caminhoNumero = Number.isInteger(caminhoNumeroParsed) && caminhoNumeroParsed >= 1 && caminhoNumeroParsed <= 5
-    ? caminhoNumeroParsed
-    : null;
+  const caminhoNumero = _parseCaminhoNumero_(data);
 
   const deviceId = String(data.deviceId || "").trim();
   const sessionToken = String(data.sessionToken || "").trim();

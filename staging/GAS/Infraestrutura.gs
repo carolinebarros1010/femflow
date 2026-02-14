@@ -222,6 +222,39 @@ function _calcularPontuacaoAnamnese(anamneseJSON) {
   }
 }
 
+
+function _parseCaminhoNumero_(data) {
+  const payload = data && typeof data === "object" ? data : {};
+  const candidates = [
+    payload.caminhoNumero,
+    payload.caminho,
+    payload.ultimoCaminho,
+    payload.ultimo_caminho,
+    payload.path,
+    payload.pathNumber
+  ];
+
+  for (let i = 0; i < candidates.length; i++) {
+    const raw = candidates[i];
+    if (raw === undefined || raw === null) continue;
+
+    const asString = String(raw).trim();
+    if (!asString) continue;
+
+    const direct = Number(asString);
+    if (Number.isInteger(direct) && direct >= 1 && direct <= 5) {
+      return direct;
+    }
+
+    const match = asString.match(/([1-5])/);
+    if (match) {
+      return Number(match[1]);
+    }
+  }
+
+  return null;
+}
+
 function _normalizarRespostasPremium_(respostas) {
   const raw = respostas && typeof respostas === "object" ? respostas : {};
   const out = [];
