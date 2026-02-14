@@ -295,30 +295,90 @@ function _processarHotmart(data) {
     eventoCanon === "compra_reembolsada" ||
     eventoCanon === "compra_expirada"
   ) {
-
     const row = findRowByEmail(email);
-    if (row <= 0) {
-      return { status: "notfound", email, evento };
-    }
+    const idAluno = row > 0 ? String(values[row - 1][0] || "").trim() : "";
 
-    sh.getRange(row, 8).setValue(false); // LicencaAtiva
+    const purgeResult = _purgeStudentDataByIdOrEmail_(idAluno, email);
 
-    if (typeof COL_ACESSO_PERSONAL === "number") {
-      sh.getRange(row, COL_ACESSO_PERSONAL + 1).setValue(false);
-    }
-
-    const COL_ACESSO_FOLLOWME = 31; // ajuste para a coluna real
-    if (typeof COL_ACESSO_FOLLOWME === "number") {
-      sh.getRange(row, COL_ACESSO_FOLLOWME + 1).setValue("");
-    }
-
-    return { status: "assinatura_inativa", email, evento };
+    return {
+      status: purgeResult.deletedRows > 0 ? "student_data_deleted" : "notfound",
+      email,
+      id: idAluno,
+      evento,
+      deletedRows: purgeResult.deletedRows,
+      affectedSheets: purgeResult.affectedSheets
+    };
   }
 
   /* ======================================================
      9) FALLBACK
   ====================================================== */
   return { status: "ignored", evento };
+}
+
+
+function _purgeStudentDataByIdOrEmail_(idAluno, email) {
+  const idNorm = String(idAluno || "").trim();
+  const emailNorm = String(email || "").trim().toLowerCase();
+
+  if (!idNorm && !emailNorm) {
+    return { deletedRows: 0, affectedSheets: [] };
+  }
+
+  const ss = SpreadsheetApp.getActive();
+  const sheets = ss.getSheets();
+  const affectedSheets = [];
+  let deletedRows = 0;
+
+  for (let i = 0; i < sheets.length; i++) {
+    const sheet = sheets[i];
+    const values = sheet.getDataRange().getValues();
+    if (!values || values.length <= 1) continue;
+
+    const header = values[0].map((cell) => String(cell || "").trim().toLowerCase());
+    const idCols = [];
+    const emailCols = [];
+
+    for (let col = 0; col < header.length; col++) {
+      const label = header[col];
+      if (
+        label === "id" ||
+        label === "id_aluna" ||
+        label === "idaluna" ||
+        label.includes("id aluno") ||
+        label.includes("id aluna")
+      ) {
+        idCols.push(col);
+      }
+      if (label.includes("email")) {
+        emailCols.push(col);
+      }
+    }
+
+    if (sheet.getName() === SHEET_ALUNAS) {
+      if (idCols.indexOf(0) === -1) idCols.push(0);
+      if (emailCols.indexOf(2) === -1) emailCols.push(2);
+    }
+
+    let removedInSheet = 0;
+    for (let row = values.length - 1; row >= 1; row--) {
+      const rowValues = values[row];
+      const hasIdMatch = idNorm && idCols.some((col) => String(rowValues[col] || "").trim() === idNorm);
+      const hasEmailMatch = emailNorm && emailCols.some((col) => String(rowValues[col] || "").trim().toLowerCase() === emailNorm);
+
+      if (hasIdMatch || hasEmailMatch) {
+        sheet.deleteRow(row + 1);
+        removedInSheet++;
+      }
+    }
+
+    if (removedInSheet > 0) {
+      deletedRows += removedInSheet;
+      affectedSheets.push(sheet.getName());
+    }
+  }
+
+  return { deletedRows, affectedSheets };
 }
 
 function _pareceHotmart_(data) {
