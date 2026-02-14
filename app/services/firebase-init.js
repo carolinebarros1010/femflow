@@ -1,5 +1,6 @@
 (function initFirebaseFemFlow() {
   const env = window.FEMFLOW_ENV || "prod";
+
   const activeConfig =
     window.FEMFLOW_ACTIVE?.firebaseConfig ||
     window.FEMFLOW_CONFIG?.firebaseConfigs?.[env];
@@ -23,6 +24,7 @@
 
   try {
     firebase.initializeApp(activeConfig);
+
     const db = firebase.firestore();
 
     const isIOSWebView =
@@ -36,49 +38,33 @@
       });
     }
 
-    window.db = db; // 👈 opcional, mas útil
+    window.db = db;
+
     console.info("[FemFlow] Firebase inicializado com sucesso.");
 
-  const criarAuthReadyPromise = () => {
-    if (!firebase.auth) return Promise.resolve();
+    /* =========================================================
+       AUTH READY PROMISE — SEM LOGIN ANÔNIMO
+    ========================================================= */
 
-    return new Promise((resolve) => {
-      let settled = false;
-      const done = () => {
-        if (settled) return;
-        settled = true;
-        resolve();
-      };
+    const criarAuthReadyPromise = () => {
+      if (!firebase.auth) return Promise.resolve();
 
-      const timeoutMs = 4500;
-      const timer = window.setTimeout(() => {
-        console.warn("[FemFlow] Timeout aguardando auth anônimo.");
-        done();
-      }, timeoutMs);
-
-      firebase.auth().onAuthStateChanged((user) => {
-        if (user) {
-          window.clearTimeout(timer);
-          done();
-        }
-      });
-
-      firebase.auth().signInAnonymously()
-        .then(() => {
-          window.clearTimeout(timer);
-          done();
-        })
-        .catch((err) => {
-          window.clearTimeout(timer);
-          console.warn("[FemFlow] Auth anônimo falhou:", err);
-          done();
+      return new Promise((resolve) => {
+        const unsubscribe = firebase.auth().onAuthStateChanged(() => {
+          unsubscribe();
+          resolve();
         });
-    });
-  };
 
-  window.FEMFLOW = window.FEMFLOW || {};
-  window.FEMFLOW.firebaseAuthReady = criarAuthReadyPromise();
+        // fallback de segurança (caso nunca dispare)
+        setTimeout(() => resolve(), 4000);
+      });
+    };
+
+    window.FEMFLOW = window.FEMFLOW || {};
+    window.FEMFLOW.firebaseAuthReady = criarAuthReadyPromise();
+
   } catch (err) {
     logError("[FemFlow] Erro ao inicializar Firebase:", err);
   }
 })();
+
