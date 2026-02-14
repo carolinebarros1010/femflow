@@ -120,11 +120,31 @@ function getPerguntasTraduzidas() {
         eSenha = $("#eSenha"), eConf = $("#eConf");
 
   const reEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const query = new URLSearchParams(window.location.search);
 
   const SCRIPT_URL =
     FEMFLOW?.SCRIPT_URL ||
     window.FEMFLOW_ACTIVE?.scriptUrl ||
     "";
+
+  function aplicarDadosHotmartIniciais() {
+    const origem = String(query.get("origem") || "").toLowerCase();
+    if (!origem.includes("hotmart")) return;
+
+    const emailHotmart = String(query.get("email") || "").trim().toLowerCase();
+    const idHotmart = String(query.get("id") || "").trim();
+
+    if (emailHotmart) {
+      email.value = emailHotmart;
+      localStorage.setItem("lead_email", emailHotmart);
+      localStorage.setItem("femflow_email", emailHotmart);
+    }
+
+    if (idHotmart) {
+      localStorage.setItem("femflow_hotmart_id", idHotmart);
+      localStorage.setItem("femflow_id", idHotmart);
+    }
+  }
 
   async function syncFirebaseAuthAccount(emailRaw, senhaRaw) {
     if (!window.firebase || !firebase.auth) {
@@ -193,6 +213,9 @@ function getPerguntasTraduzidas() {
   ["input","blur"].forEach(evt => {
     [nome,email,tel,dataNascimento,senha,conf].forEach(el => el.addEventListener(evt, validate));
   });
+
+  aplicarDadosHotmartIniciais();
+  validate();
 
   // ------------------------------------------------------------
   // Registrar lead parcial
@@ -269,12 +292,25 @@ function getPerguntasTraduzidas() {
   // ------------------------------------------------------------
   function pegarDadosLead() {
     const lead = FEMFLOW?._leadCadastro || {};
+    const hotmartId = String(
+      new URLSearchParams(window.location.search).get("id") ||
+      localStorage.getItem("femflow_hotmart_id") ||
+      ""
+    ).trim();
+    const origem = String(
+      new URLSearchParams(window.location.search).get("origem") ||
+      localStorage.getItem("lead_origem") ||
+      ""
+    ).trim().toLowerCase();
+
     return {
       nome:     lead.nome     || localStorage.getItem("lead_nome") || "",
       email:    lead.email    || localStorage.getItem("lead_email") || "",
       telefone: lead.telefone || localStorage.getItem("lead_telefone") || "",
       dataNascimento: lead.dataNascimento || localStorage.getItem("lead_data_nascimento") || "",
-      senha:    lead.senha || $("#senha")?.value || ""
+      senha:    lead.senha || $("#senha")?.value || "",
+      hotmartId,
+      origem
     };
   }
 
@@ -336,7 +372,7 @@ async function finalizarAnamnese() {
   });
   const payloadAnamnese = JSON.stringify({ respostas, objetivo: objetivoSelecionado });
 
-  const { nome, email, telefone, dataNascimento, senha } = pegarDadosLead();
+  const { nome, email, telefone, dataNascimento, senha, hotmartId, origem } = pegarDadosLead();
 
   if (!nome || !email || !senha) {
     FEMFLOW.toast?.("Erro ao finalizar", true);
@@ -357,6 +393,8 @@ async function finalizarAnamnese() {
       telefone,
       dataNascimento,
       senha,
+      hotmartId,
+      origem: origem || "anamnese_deluxe",
       objetivo: objetivoSelecionado,
       respostas: JSON.stringify(respostas),
       anamnese: payloadAnamnese,

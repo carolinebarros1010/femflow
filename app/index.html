@@ -140,6 +140,59 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const getLoginMsg = () => LOGIN_MSG[currentLoginLang()] || LOGIN_MSG.pt;
 
+  function getHotmartContext() {
+    const params = new URLSearchParams(window.location.search);
+    const origem = String(
+      params.get("origem") ||
+      params.get("source") ||
+      params.get("utm_source") ||
+      ""
+    ).toLowerCase();
+
+    const email = String(
+      params.get("email") ||
+      params.get("user_email") ||
+      params.get("buyer_email") ||
+      ""
+    ).trim().toLowerCase();
+
+    const id = String(
+      params.get("id") ||
+      params.get("hotmart_id") ||
+      params.get("subscriber_id") ||
+      ""
+    ).trim();
+
+    const cameFromHotmart = origem.includes("hotmart") || params.has("hotmart") || params.has("hotmart_id");
+    return { cameFromHotmart, email, id };
+  }
+
+  function encaminharHotmartParaAnamnese() {
+    const ctx = getHotmartContext();
+    if (!ctx.cameFromHotmart) return;
+
+    if (ctx.email) {
+      $("#loginEmail").value = ctx.email;
+      localStorage.setItem("femflow_email", ctx.email);
+      localStorage.setItem("lead_email", ctx.email);
+    }
+
+    if (ctx.id) {
+      localStorage.setItem("femflow_id", ctx.id);
+      localStorage.setItem("femflow_hotmart_id", ctx.id);
+    }
+
+    const anamneseParams = new URLSearchParams();
+    anamneseParams.set("origem", "hotmart");
+    if (ctx.email) anamneseParams.set("email", ctx.email);
+    if (ctx.id) anamneseParams.set("id", ctx.id);
+
+    setMsg("Redirecionando para completar sua anamnese...");
+    setTimeout(() => {
+      location.href = `anamnese_deluxe.html?${anamneseParams.toString()}`;
+    }, 300);
+  }
+
   let firebaseAuthUser = null;
   let firebaseAuthObserverStarted = false;
   let loginInProgress = false;
@@ -651,6 +704,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   aplicarIdiomaLogin(localStorage.getItem("femflow_lang") || "pt");
   startFirebaseAuthObserver();
+  encaminharHotmartParaAnamnese();
 
 });
 </script>
