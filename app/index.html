@@ -163,8 +163,24 @@ document.addEventListener("DOMContentLoaded", () => {
       ""
     ).trim();
 
+    const nome = String(
+      params.get("nome") ||
+      params.get("name") ||
+      params.get("buyer_name") ||
+      params.get("user_name") ||
+      ""
+    ).trim();
+
+    const telefone = String(
+      params.get("telefone") ||
+      params.get("phone") ||
+      params.get("buyer_phone") ||
+      params.get("user_phone") ||
+      ""
+    ).trim();
+
     const cameFromHotmart = origem.includes("hotmart") || params.has("hotmart") || params.has("hotmart_id");
-    return { cameFromHotmart, email, id };
+    return { cameFromHotmart, email, id, nome, telefone };
   }
 
   function encaminharHotmartParaAnamnese() {
@@ -182,10 +198,20 @@ document.addEventListener("DOMContentLoaded", () => {
       localStorage.setItem("femflow_hotmart_id", ctx.id);
     }
 
+    if (ctx.nome) {
+      localStorage.setItem("lead_nome", ctx.nome);
+    }
+
+    if (ctx.telefone) {
+      localStorage.setItem("lead_telefone", ctx.telefone);
+    }
+
     const anamneseParams = new URLSearchParams();
     anamneseParams.set("origem", "hotmart");
     if (ctx.email) anamneseParams.set("email", ctx.email);
     if (ctx.id) anamneseParams.set("id", ctx.id);
+    if (ctx.nome) anamneseParams.set("nome", ctx.nome);
+    if (ctx.telefone) anamneseParams.set("telefone", ctx.telefone);
 
     setMsg("Redirecionando para completar sua anamnese...");
     setTimeout(() => {

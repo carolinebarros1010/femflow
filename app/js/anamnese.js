@@ -131,13 +131,25 @@ function getPerguntasTraduzidas() {
     const origem = String(query.get("origem") || "").toLowerCase();
     if (!origem.includes("hotmart")) return;
 
+    const nomeHotmart = String(query.get("nome") || "").trim();
     const emailHotmart = String(query.get("email") || "").trim().toLowerCase();
+    const telefoneHotmart = String(query.get("telefone") || "").trim();
     const idHotmart = String(query.get("id") || "").trim();
+
+    if (nomeHotmart) {
+      nome.value = nomeHotmart;
+      localStorage.setItem("lead_nome", nomeHotmart);
+    }
 
     if (emailHotmart) {
       email.value = emailHotmart;
       localStorage.setItem("lead_email", emailHotmart);
       localStorage.setItem("femflow_email", emailHotmart);
+    }
+
+    if (telefoneHotmart) {
+      tel.value = telefoneHotmart;
+      localStorage.setItem("lead_telefone", telefoneHotmart);
     }
 
     if (idHotmart) {
