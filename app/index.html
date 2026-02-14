@@ -223,6 +223,15 @@ document.addEventListener("DOMContentLoaded", () => {
   let firebaseAuthObserverStarted = false;
   let loginInProgress = false;
 
+  function marcarFallbackFirebaseAuth(causa = "") {
+    try {
+      localStorage.setItem("femflow_firebase_auth_fallback", "1");
+      if (causa) {
+        localStorage.setItem("femflow_firebase_auth_fallback_reason", String(causa));
+      }
+    } catch (_) {}
+  }
+
   function startFirebaseAuthObserver() {
     if (!window.firebase || !firebase.auth || firebaseAuthObserverStarted) return;
     firebaseAuthObserverStarted = true;
@@ -454,8 +463,8 @@ document.addEventListener("DOMContentLoaded", () => {
         await syncFirebaseAuthSession(email, senha);
       } catch (firebaseErr) {
         console.error("[Login] Falha ao sincronizar Firebase Auth:", firebaseErr);
-        setErr(firebaseErr?.message || "Conta validada, mas não foi possível iniciar sessão segura. Tente novamente.");
-        return;
+        marcarFallbackFirebaseAuth(firebaseErr?.code || firebaseErr?.message || "unknown");
+        console.warn("[Login] Aplicando fallback: acesso liberado sem sessão Firebase. Recursos que exigem Firebase pedirão novo login.");
       }
 
       /* ===== SESSÃO MÍNIMA ===== */
