@@ -42,8 +42,9 @@ function _loginOuCadastro(data) {
   const dataNascimento  = String(data.dataNascimento || "").trim();
   const senha           = String(data.senha || "").trim();
   const anamneseRaw     = data.anamnese || "";
-  const objetivo        = String(data.objetivo || "").toLowerCase().trim();
-  const respostasRaw    = data.respostas || "";
+  const objetivoInput   = data.objetivo !== undefined ? data.objetivo : (data.Objetivo !== undefined ? data.Objetivo : data.objetivoFinal);
+  const objetivo        = String(objetivoInput || "").toLowerCase().trim();
+  const respostasRaw    = data.respostas || data.Respostas || "";
   const lang            = typeof _resolverLangHotmart_ === "function"
     ? _resolverLangHotmart_(data)
     : "pt";
@@ -79,8 +80,25 @@ function _loginOuCadastro(data) {
 
   const calcPremium = calcularNivelPremium(respostas, objetivo || anamneseObj.objetivo || "");
   const nivelDetectado = calcPremium.nivel;
-  const scoreFinal = Number(calcPremium.scoreFinal || 0);
-  const scoreDetalhado = JSON.stringify(calcPremium.detalhado || {});
+
+  const scoreFinalPayload = data.scoreFinal !== undefined ? data.scoreFinal : data.ScoreFinal;
+  const scoreFinalNumero = Number(scoreFinalPayload);
+  const scoreFinal = Number.isFinite(scoreFinalNumero)
+    ? scoreFinalNumero
+    : Number(calcPremium.scoreFinal || 0);
+
+  const scoreDetalhadoPayload = data.scoreDetalhado !== undefined
+    ? data.scoreDetalhado
+    : data.ScoreDetalhado;
+  let scoreDetalhado = JSON.stringify(calcPremium.detalhado || {});
+  if (scoreDetalhadoPayload !== undefined && scoreDetalhadoPayload !== null && String(scoreDetalhadoPayload).trim() !== "") {
+    if (typeof scoreDetalhadoPayload === "string") {
+      scoreDetalhado = scoreDetalhadoPayload;
+    } else if (typeof scoreDetalhadoPayload === "object") {
+      scoreDetalhado = JSON.stringify(scoreDetalhadoPayload);
+    }
+  }
+
   const objetivoFinal = objetivo || String(anamneseObj.objetivo || "").toLowerCase().trim();
   const anamnese = JSON.stringify({ respostas, objetivo: objetivoFinal });
 

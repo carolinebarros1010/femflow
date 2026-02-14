@@ -79,6 +79,7 @@ function legacyRecuperarId_(data) {
 
 function legacyRegistrarPSE_(data) {
   const ss = SpreadsheetApp.getActive();
+  const agora = new Date();
   let treinoSheet = ss.getSheetByName("Treinos");
   if (!treinoSheet) {
     treinoSheet = ss.insertSheet("Treinos");
@@ -92,7 +93,7 @@ function legacyRegistrarPSE_(data) {
 
   treinoSheet.appendRow([
     data.id || "",
-    new Date(),
+    agora,
     data.fase || "",
     data.diaPrograma || "",
     data.pse,
@@ -104,7 +105,20 @@ function legacyRegistrarPSE_(data) {
     ""
   ]);
 
-  return { status: "ok" };
+  const id = String(data.id || "").trim();
+  const caminhoNumero = _parseCaminhoNumero_(data);
+  if (id && caminhoNumero !== null) {
+    const shA = ensureSheet(SHEET_ALUNAS, HEADER_ALUNAS);
+    const rows = shA.getDataRange().getValues();
+    for (let i = 1; i < rows.length; i++) {
+      if (String(rows[i][0] || "").trim() !== id) continue;
+      shA.getRange(i + 1, COL_ULTIMO_CAMINHO + 1).setValue(caminhoNumero);
+      shA.getRange(i + 1, COL_ULTIMO_CAMINHO_DATA + 1).setValue(agora);
+      break;
+    }
+  }
+
+  return { status: "ok", caminhoNumero };
 }
 
 function legacyRegistrarDescanso_(data) {
