@@ -140,14 +140,89 @@
   }
 
   function renderResultadoFinal(resultado) {
+    const narrativa = gerarNarrativaBodyInsight(resultado);
+
     biResults.innerHTML = `
       <div class="bi-fade-in">
-        <h2>Índice FemFlow</h2>
+        <h2>🌿 Seu Relatório Corporal</h2>
         <p class="bi-indice-grande">${resultado.indiceFemFlowFinal}</p>
-        <p>IMC: ${resultado.imc.toFixed(2)}</p>
-        <p>RCQ: ${resultado.rcq.toFixed(2)}</p>
-        <p>Análise IA: ${getTendenciaVisualLabel(resultado.tendenciaVisual)}</p>
+        ${narrativa}
+        <p><strong>🤖 Tendência visual da IA:</strong> ${getTendenciaVisualLabel(resultado.tendenciaVisual)}</p>
       </div>
+    `;
+  }
+
+  function formatDecimal(value) {
+    const num = Number(value);
+    if (!Number.isFinite(num)) return '-';
+    return num.toFixed(2).replace('.', ',');
+  }
+
+  function interpretarIMC(imc) {
+    if (imc < 18.5) {
+      return 'Esse valor sugere que seu corpo pode ganhar mais reserva de força e energia com pequenos ajustes na alimentação e no treino.';
+    }
+
+    if (imc <= 24.9) {
+      return 'Isso indica que você está em uma faixa saudável, com bom equilíbrio entre peso e altura para sustentar energia e vitalidade.';
+    }
+
+    if (imc <= 29.9) {
+      return 'Esse número mostra uma zona de atenção leve, e com ajustes simples de rotina você pode melhorar sua composição corporal de forma consistente.';
+    }
+
+    return 'Esse resultado indica espaço para evolução gradual, e com constância em hábitos saudáveis você pode melhorar disposição, mobilidade e bem-estar.';
+  }
+
+  function interpretarRCQ(rcq) {
+    if (rcq <= 0.8) {
+      return 'Essa proporção está em uma faixa positiva para mulheres e costuma se associar a boa distribuição corporal e menor risco metabólico.';
+    }
+
+    if (rcq <= 0.85) {
+      return 'Esse valor indica um ponto intermediário, com potencial de melhora usando fortalecimento de core e hábitos consistentes no dia a dia.';
+    }
+
+    return 'Esse número sugere uma oportunidade de cuidar ainda mais da cintura e da estabilidade corporal com pequenos ajustes progressivos.';
+  }
+
+  function interpretarScore(score, labelPositivo, labelMelhoria) {
+    if (score >= 85) return labelPositivo;
+    if (score >= 70) return `${labelMelhoria} Você já tem uma boa base para evoluir.`;
+    return `${labelMelhoria} Com pequenos ajustes, seu corpo pode responder muito bem.`;
+  }
+
+  function gerarNarrativaBodyInsight(resultado) {
+    const imcTexto = interpretarIMC(resultado.imc);
+    const rcqTexto = interpretarRCQ(resultado.rcq);
+    const scoreImcTexto = interpretarScore(
+      resultado.scoreIMC,
+      'Seu resultado está alto, o que reforça um estado corporal funcional para continuar evoluindo com segurança.',
+      'Seu score mostra que há espaço para fortalecer ainda mais seu equilíbrio entre peso e altura.'
+    );
+    const scoreRcqTexto = interpretarScore(
+      resultado.scoreRCQ,
+      'Esse score confirma um bom equilíbrio de proporções corporais para mobilidade e desempenho no treino.',
+      'Seu score aponta chance de melhora na distribuição corporal com foco em força e consistência.'
+    );
+
+    return `
+      <p><strong>📊 Seu Índice de Massa Corporal (IMC):</strong> ${formatDecimal(resultado.imc)}</p>
+      <p>👉 ${imcTexto}</p>
+
+      <p><strong>📏 Proporção Cintura–Quadril (RCQ):</strong> ${formatDecimal(resultado.rcq)}</p>
+      <p>👉 ${rcqTexto}</p>
+
+      <p><strong>💪 Score de IMC:</strong> ${resultado.scoreIMC}</p>
+      <p>👉 ${scoreImcTexto}</p>
+
+      <p><strong>🧘 Score de RCQ:</strong> ${resultado.scoreRCQ}</p>
+      <p>👉 ${scoreRcqTexto}</p>
+
+      <p><strong>📍 Faixa etária analisada:</strong> ${getFaixaEtaria(resultado.idade)}</p>
+      <p>👉 Essa comparação ajuda a entender seus resultados dentro do contexto da sua fase de vida.</p>
+
+      <p><strong>✨ Sugestão prática:</strong> mantenha treinos de força 2 a 4 vezes por semana, inclua caminhadas e priorize sono regular — com pequenos ajustes, seu corpo tende a evoluir de forma consistente.</p>
     `;
   }
 
@@ -159,16 +234,14 @@
   }
 
   function renderResultadoFallback(payload) {
+    const narrativa = gerarNarrativaBodyInsight(payload);
+
     biResults.innerHTML = `
       <div class="bi-fade-in">
         <h2>Análise parcial disponível</h2>
         <p>Seu limite da análise IA foi atingido. Faça upgrade para continuar.</p>
-        <p>Enquanto isso, exibimos apenas os cálculos possíveis com seus dados:</p>
-        <p><strong>IMC:</strong> ${payload.imc.toFixed(2)}</p>
-        <p><strong>RCQ:</strong> ${payload.rcq.toFixed(2)}</p>
-        <p><strong>Score IMC:</strong> ${payload.scoreIMC}</p>
-        <p><strong>Score RCQ:</strong> ${payload.scoreRCQ}</p>
-        <p><strong>Faixa etária informada:</strong> ${getFaixaEtaria(payload.idade)}</p>
+        <p>Enquanto isso, aqui está sua leitura técnica explicada de forma simples:</p>
+        ${narrativa}
       </div>
     `;
   }
@@ -420,6 +493,9 @@
         indiceFemFlowFinal,
         imc: biometria.imc,
         rcq: biometria.rcq,
+        scoreIMC: biometria.scoreIMC,
+        scoreRCQ: biometria.scoreRCQ,
+        idade,
         tendenciaVisual
       });
     } catch (error) {
