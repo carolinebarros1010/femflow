@@ -60,10 +60,44 @@
         <label for="peso">Peso (kg)</label>
         <input type="number" id="peso" min="20" max="300" step="0.1" required />
 
-        <label for="cintura">Cintura (cm)</label>
+        <div class="bi-label-row">
+          <button
+            type="button"
+            class="bi-help-trigger"
+            aria-label="Como medir a cintura"
+            aria-describedby="bi-help-cintura"
+          >i</button>
+          <label for="cintura">Cintura (cm)</label>
+          <div id="bi-help-cintura" class="bi-help-tooltip" role="note">
+            <p><strong>PT:</strong> Meça a parte mais fina do abdômen, após soltar o ar.</p>
+            <p><strong>EN:</strong> Measure the narrowest point of the waist, after exhaling.</p>
+            <p><strong>ES:</strong> Mide la parte más estrecha de la cintura, tras exhalar.</p>
+            <svg viewBox="0 0 120 140" aria-label="Silhueta indicando medição da cintura">
+              <path d="M60 12c-12 0-22 9-22 21v16c0 8-6 14-14 16l8 48c2 12 12 21 28 21s26-9 28-21l8-48c-8-2-14-8-14-16V33c0-12-10-21-22-21z" />
+              <line x1="28" y1="72" x2="92" y2="72" />
+            </svg>
+          </div>
+        </div>
         <input type="number" id="cintura" min="40" max="200" step="0.1" required />
 
-        <label for="quadril">Quadril (cm)</label>
+        <div class="bi-label-row">
+          <button
+            type="button"
+            class="bi-help-trigger"
+            aria-label="Como medir o quadril"
+            aria-describedby="bi-help-quadril"
+          >i</button>
+          <label for="quadril">Quadril (cm)</label>
+          <div id="bi-help-quadril" class="bi-help-tooltip" role="note">
+            <p><strong>PT:</strong> Meça na parte mais larga do quadril/glúteos, fita reta.</p>
+            <p><strong>EN:</strong> Measure around the widest part of hips/glutes, tape level.</p>
+            <p><strong>ES:</strong> Mide la parte más ancha de cadera/glúteos, cinta recta.</p>
+            <svg viewBox="0 0 120 140" aria-label="Silhueta indicando medição do quadril">
+              <path d="M60 12c-12 0-22 9-22 21v16c0 8-6 14-14 16l8 48c2 12 12 21 28 21s26-9 28-21l8-48c-8-2-14-8-14-16V33c0-12-10-21-22-21z" />
+              <line x1="20" y1="92" x2="100" y2="92" />
+            </svg>
+          </div>
+        </div>
         <input type="number" id="quadril" min="50" max="220" step="0.1" required />
 
         <label for="idade">Idade</label>
