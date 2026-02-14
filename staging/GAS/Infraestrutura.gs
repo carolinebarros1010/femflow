@@ -42,6 +42,10 @@ function _json(obj) {
     .setMimeType(ContentService.MimeType.JSON);
 }
 
+function jsonOK_(obj) {
+  return _json(obj);
+}
+
 /* ============================================================
  * 🔹 2) UTILITÁRIOS DE PLANILHA
  * ============================================================ */
