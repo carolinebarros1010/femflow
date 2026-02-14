@@ -19,6 +19,7 @@ const biPhotoFrontInput = document.getElementById('biPhotoFrontInput');
 const biPhotoSideInput = document.getElementById('biPhotoSideInput');
 const biResults = document.getElementById('bi-results');
 const biCalcButton = document.getElementById('bi-calc-btn');
+const GAS_URL = window.GAS_URL || window.FEMFLOW_GAS_URL || window.BODY_INSIGHT_GAS_URL || '';
 
 // ------------------------
 // Estado do módulo
@@ -38,6 +39,22 @@ function setResultMessage(message) {
  */
 function updateCalculateButtonState() {
   biCalcButton.disabled = !(selectedFrontFile && selectedSideFile);
+}
+
+/**
+ * Ajusta o estado de carregamento visual da análise.
+ */
+function setLoadingState(isLoading) {
+  if (isLoading) {
+    biScanContainer.classList.add('scanning');
+    biScanText.textContent = 'Analisando composição corporal...';
+    setResultMessage('Processando análise com IA...');
+    biCalcButton.disabled = true;
+    return;
+  }
+
+  biScanContainer.classList.remove('scanning');
+  updateCalculateButtonState();
 }
 
 /**
@@ -74,6 +91,90 @@ function calcularIndiceFemFlow({ altura, peso, cintura, quadril }) {
     scoreRCQ,
     indiceFinal
   };
+}
+
+/**
+ * Combina scores biométricos + visuais para gerar o índice final.
+ */
+function calcularIndiceFinal(scoreIMC, scoreRCQ, scoreVisual) {
+  return Math.round((0.4 * scoreIMC) + (0.3 * scoreRCQ) + (0.3 * scoreVisual));
+}
+
+/**
+ * Mapeia tendência técnica para texto amigável na interface.
+ */
+function getTendenciaVisualLabel(tendenciaVisual) {
+  const map = {
+    reducao_gordura: 'Redução de gordura',
+    aumento_massa: 'Aumento de massa',
+    neutro: 'Manutenção corporal'
+  };
+
+  return map[tendenciaVisual] || 'Análise corporal em equilíbrio';
+}
+
+/**
+ * Chama a action body_insight_ia no endpoint do Google Apps Script.
+ */
+async function chamarBodyInsightIA(userId, photoFrontUrl, photoSideUrl) {
+  if (!GAS_URL) {
+    throw new Error('Endpoint de análise visual não configurado.');
+  }
+
+  const response = await fetch(GAS_URL, {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json'
+    },
+    body: JSON.stringify({
+      action: 'body_insight_ia',
+      userId,
+      photoFrontUrl,
+      photoSideUrl
+    })
+  });
+
+  if (!response.ok) {
+    throw new Error('Falha de comunicação com o serviço de análise visual.');
+  }
+
+  return response.json();
+}
+
+/**
+ * Normaliza o retorno do endpoint (com ou sem envelope data/result).
+ */
+function normalizeBodyInsightIAResponse(responseJson) {
+  if (!responseJson || typeof responseJson !== 'object') {
+    return { status: 'error' };
+  }
+
+  if (responseJson.data && typeof responseJson.data === 'object') {
+    return responseJson.data;
+  }
+
+  if (responseJson.result && typeof responseJson.result === 'object') {
+    return responseJson.result;
+  }
+
+  return responseJson;
+}
+
+/**
+ * Renderiza o quadro final completo da análise Body Insight.
+ */
+function renderResultadoFinal({ indiceFemFlowFinal, imc, rcq, tendenciaVisual }) {
+  biResults.innerHTML = `
+    <div class="resultado-final bi-fade-in">
+      <h2>Índice FemFlow</h2>
+      <div class="score-grande">${indiceFemFlowFinal}</div>
+      <div class="detalhes">
+        <p>IMC: ${imc.toFixed(2)}</p>
+        <p>RCQ: ${rcq.toFixed(2)}</p>
+        <p>Análise IA: ${getTendenciaVisualLabel(tendenciaVisual)}</p>
+      </div>
+    </div>
+  `;
 }
 
 /**
@@ -182,18 +283,14 @@ biForm.addEventListener('submit', async (event) => {
       return;
     }
 
-    biScanContainer.classList.add('scanning');
-    biScanText.textContent = 'Analisando seus parâmetros...';
-    setResultMessage('Analisando...');
+    setLoadingState(true);
 
-    const { imc, rcq, scoreIMC, scoreRCQ, indiceFinal } = calcularIndiceFemFlow({
+    const { imc, rcq, scoreIMC, scoreRCQ } = calcularIndiceFemFlow({
       altura,
       peso,
       cintura,
       quadril
     });
-
-    await new Promise((resolve) => setTimeout(resolve, 2000));
 
     const userId = getCurrentUserId();
     const timestamp = Date.now();
@@ -203,6 +300,27 @@ biForm.addEventListener('submit', async (event) => {
       uploadPhotoToStorage(userId, selectedFrontFile, timestamp, 'front'),
       uploadPhotoToStorage(userId, selectedSideFile, timestamp, 'side')
     ]);
+
+    const iaRawResponse = await chamarBodyInsightIA(userId, photoFrontUrl, photoSideUrl);
+    const iaResponse = normalizeBodyInsightIAResponse(iaRawResponse);
+
+    if (iaResponse.status !== 'ok') {
+      throw new Error('IA_BODY_INSIGHT_ERROR');
+    }
+
+    const scoreVisual = Number(
+      iaResponse.visual
+      && Number.isFinite(Number(iaResponse.visual.score_visual_geral))
+        ? iaResponse.visual.score_visual_geral
+        : 0
+    );
+
+    const tendenciaVisual =
+      (iaResponse.visual && iaResponse.visual.tendencia_visual) ||
+      (iaResponse.visual && iaResponse.visual.tendenciaVisual) ||
+      'neutro';
+
+    const indiceFemFlowFinal = calcularIndiceFinal(scoreIMC, scoreRCQ, scoreVisual);
 
     const payload = {
       userId,
@@ -215,27 +333,32 @@ biForm.addEventListener('submit', async (event) => {
       rcq,
       scoreIMC,
       scoreRCQ,
-      indiceFemFlow: indiceFinal,
+      scoreVisual,
+      indiceFemFlowFinal,
+      tendenciaVisual,
       photoFrontUrl,
       photoSideUrl
     };
 
     await saveBodyInsightToFirestore(payload, docId);
 
-    biScanText.textContent = `Índice FemFlow: ${indiceFinal}`;
-    biResults.innerHTML = `
-      <div class="bi-fade-in">
-        <h2 class="bi-indice-grande">${indiceFinal}</h2>
-        <p class="bi-indice-label">Índice FemFlow</p>
-        <p><strong>IMC:</strong> ${imc.toFixed(2)}</p>
-        <p><strong>RCQ:</strong> ${rcq.toFixed(2)}</p>
-      </div>
-    `;
+    biScanText.textContent = `Índice FemFlow: ${indiceFemFlowFinal}`;
+    renderResultadoFinal({
+      indiceFemFlowFinal,
+      imc,
+      rcq,
+      tendenciaVisual
+    });
   } catch (error) {
+    if (error.message === 'IA_BODY_INSIGHT_ERROR') {
+      setResultMessage('Não foi possível concluir a análise visual. Tente novamente.');
+    } else {
+      setResultMessage(`Erro ao processar Body Insight: ${error.message}`);
+    }
+
     biScanText.textContent = 'Analisando seus parâmetros...';
-    setResultMessage(`Erro ao processar Body Insight: ${error.message}`);
   } finally {
-    biScanContainer.classList.remove('scanning');
+    setLoadingState(false);
   }
 });
 
