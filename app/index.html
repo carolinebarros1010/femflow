@@ -189,6 +189,10 @@ document.addEventListener("DOMContentLoaded", () => {
       await auth.signInWithEmailAndPassword(emailNorm, senhaNorm);
       return;
     } catch (error) {
+      if (error && error.code === "auth/operation-not-allowed") {
+        console.warn("[Login] Provedor Email/Senha desativado no Firebase. Sessão seguirá apenas no backend.");
+        return;
+      }
       if (error && error.code === "auth/user-not-found") {
         const gasResponse = await validarNoGAS(emailNorm, senhaNorm);
 
@@ -315,8 +319,11 @@ document.addEventListener("DOMContentLoaded", () => {
       await syncFirebaseAuthSession(email, senha);
     } catch (firebaseErr) {
       console.error("[Login] Falha ao sincronizar Firebase Auth:", firebaseErr);
-      setErr("Conta validada, mas não foi possível iniciar sessão segura. Tente novamente.");
-      return;
+      const providerDisabled = firebaseErr && firebaseErr.code === "auth/operation-not-allowed";
+      if (!providerDisabled) {
+        setErr("Conta validada, mas não foi possível iniciar sessão segura. Tente novamente.");
+        return;
+      }
     }
 
     /* ===== SESSÃO MÍNIMA ===== */
