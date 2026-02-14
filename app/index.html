@@ -149,6 +149,15 @@ document.addEventListener("DOMContentLoaded", () => {
     });
   }
 
+  function firebaseConfigHint() {
+    const cfg = window.FEMFLOW_ACTIVE?.firebaseConfig || window.FEMFLOW_CONFIG?.firebaseConfig || {};
+    return {
+      projectId: cfg.projectId || "(não definido)",
+      authDomain: cfg.authDomain || "(não definido)",
+      apiKeyPrefix: cfg.apiKey ? `${String(cfg.apiKey).slice(0, 8)}...` : "(não definido)"
+    };
+  }
+
   async function validarNoGAS(email, senha) {
     return postGAS({
       action: "login",
@@ -190,8 +199,14 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     } catch (error) {
       if (error && error.code === "auth/operation-not-allowed") {
-        console.warn("[Login] Provedor Email/Senha desativado no Firebase. Sessão seguirá apenas no backend.");
-        return;
+        const hint = firebaseConfigHint();
+        console.error("[Login] Firebase Email/Senha desativado. Verifique Auth > Sign-in method no projeto correto:", hint);
+        throw new Error("Firebase Auth (Email/Senha) desativado no projeto. Ative em Auth > Sign-in method.");
+      }
+      if (error && (error.code === "auth/invalid-api-key" || error.code === "auth/app-not-authorized")) {
+        const hint = firebaseConfigHint();
+        console.error("[Login] Configuração Firebase inválida para este app:", hint, error);
+        throw new Error("Configuração do Firebase inválida (apiKey/projeto). Revise projectId, authDomain e apiKey.");
       }
       if (error && error.code === "auth/user-not-found") {
         const gasResponse = await validarNoGAS(emailNorm, senhaNorm);
@@ -319,11 +334,8 @@ document.addEventListener("DOMContentLoaded", () => {
       await syncFirebaseAuthSession(email, senha);
     } catch (firebaseErr) {
       console.error("[Login] Falha ao sincronizar Firebase Auth:", firebaseErr);
-      const providerDisabled = firebaseErr && firebaseErr.code === "auth/operation-not-allowed";
-      if (!providerDisabled) {
-        setErr("Conta validada, mas não foi possível iniciar sessão segura. Tente novamente.");
-        return;
-      }
+      setErr(firebaseErr?.message || "Conta validada, mas não foi possível iniciar sessão segura. Tente novamente.");
+      return;
     }
 
     /* ===== SESSÃO MÍNIMA ===== */
