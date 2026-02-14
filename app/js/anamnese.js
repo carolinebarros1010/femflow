@@ -222,7 +222,8 @@ function getPerguntasTraduzidas() {
   const finalMsgEl = $("#final-msg");
 
   let perguntas = getPerguntasTraduzidas();
-  let idx = 0, score = 0;
+  let idx = 0;
+  let objetivoSelecionado = "iniciar";
 
   // ------------------------------------------------------------
   //  Pegar dados da etapa 1
@@ -256,7 +257,7 @@ function getPerguntasTraduzidas() {
 
       b.onclick = () => {
         p.escolha = opt.v;
-        score += opt.v;
+        if (p.tipo === "objetivo") objetivoSelecionado = String(opt.v || "iniciar").toLowerCase();
         idx++;
         mostrarPergunta();
       };
@@ -282,17 +283,19 @@ async function finalizarAnamnese() {
   }[lang];
 
   // --------------------------------------------------------
-  // 1) DEFINIR NÍVEL PELO SCORE
-  // --------------------------------------------------------
-  let nivel = "iniciante";
-  if (score >= 23) nivel = "avancada";
-  else if (score >= 13) nivel = "intermediaria";
-
-  // --------------------------------------------------------
-  // 2) COLETAR RESPOSTAS
+  // 1) COLETAR RESPOSTAS (12 perguntas + objetivo)
   // --------------------------------------------------------
   const respostas = {};
-  perguntas.forEach((p, i) => respostas["q" + (i + 1)] = p.escolha || 0);
+  let q = 1;
+  perguntas.forEach((p) => {
+    if (p.tipo === "objetivo") {
+      objetivoSelecionado = String(p.escolha || objetivoSelecionado || "iniciar").toLowerCase();
+      return;
+    }
+    respostas["q" + q] = Number(p.escolha ?? 0);
+    q++;
+  });
+  const payloadAnamnese = JSON.stringify({ respostas, objetivo: objetivoSelecionado });
 
   const { nome, email, telefone, dataNascimento, senha } = pegarDadosLead();
 
@@ -315,8 +318,9 @@ async function finalizarAnamnese() {
       telefone,
       dataNascimento,
       senha,
-      nivel,
-      anamnese: JSON.stringify(respostas),
+      objetivo: objetivoSelecionado,
+      respostas: JSON.stringify(respostas),
+      anamnese: payloadAnamnese,
       enviarBoasVindasTrial: true,
       lang
     });
@@ -364,7 +368,7 @@ if (loginResp?.status === "ok") {
   // --------------------------------------------------------
   localStorage.setItem("femflow_id", r.id);
   localStorage.setItem("femflow_email", email);
-  const nivelBackend = String(r.nivel || loginResp?.nivel || nivel || "").toLowerCase();
+  const nivelBackend = String(r.nivel || loginResp?.nivel || "").toLowerCase();
   if (nivelBackend) {
     localStorage.setItem("femflow_nivel", nivelBackend);
   }
@@ -376,11 +380,11 @@ if (loginResp?.status === "ok") {
   // --------------------------------------------------------
   // 5) MENSAGEM FINAL
   // --------------------------------------------------------
-  const nivelFinal = (nivelBackend || nivel || "").toLowerCase();
+  const nivelFinal = (nivelBackend || "").toLowerCase();
   finalMsgEl.textContent =
     (lang === "pt" ? "Seu nível é: " :
      lang === "en" ? "Your level is: " :
-     "Ton niveau est : ") + (nivelFinal || nivel).toUpperCase();
+     "Ton niveau est : ") + (nivelFinal || "INICIANTE").toUpperCase();
 
   // --------------------------------------------------------
   // 6) REDIRECIONAR PARA CICLO
@@ -399,7 +403,7 @@ if (loginResp?.status === "ok") {
 
     window.iniciarQuizFemFlow = function(){
       idx=0;
-      score=0;
+      objetivoSelecionado = "iniciar";
       perguntas = getPerguntasTraduzidas();
 
 if (!perguntas.length) {

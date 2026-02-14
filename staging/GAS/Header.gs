@@ -30,8 +30,8 @@ const HEADER_ALUNAS = [
   "Pontuacao","AnamneseJSON","TokenReset","TokenExpira","Perfil_Hormonal","ciclodate","DiaPrograma",
   "DeviceId","SessionToken","SessionExpira",
   "DataInicioPrograma","UltimaAtividade", "FreeEnabled" , "FreeEnfases", "FreeUntil", "acesso_personal",
-  "TreinosSemana","AusenciaAtiva","AusenciaInicio","DataNascimento","novo_treino_endurance"
-  ,"UltimoCaminho","UltimoCaminhoData"
+  "TreinosSemana","AusenciaAtiva","AusenciaInicio","DataNascimento","novo_treino_endurance",
+  "UltimoCaminho","UltimoCaminhoData","ScoreFinal","ScoreDetalhado","Objetivo"
 ];
 
 // índices (0-based) para leitura rápida
@@ -47,3 +47,6 @@ const COL_DATA_INICIO_PROGRAMA = 25; // col 26
 const COL_ULTIMA_ATIVIDADE     = 26; // col 27
 const COL_ULTIMO_CAMINHO       = 36; // col 37
 const COL_ULTIMO_CAMINHO_DATA  = 37; // col 38
+const COL_SCORE_FINAL          = 38; // col 39
+const COL_SCORE_DETALHADO      = 39; // col 40
+const COL_OBJETIVO             = 40; // col 41

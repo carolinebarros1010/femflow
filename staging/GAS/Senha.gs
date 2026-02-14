@@ -41,7 +41,9 @@ function _loginOuCadastro(data) {
   const telefone        = String(data.telefone || "").trim();
   const dataNascimento  = String(data.dataNascimento || "").trim();
   const senha           = String(data.senha || "").trim();
-  const anamnese        = data.anamnese || "";
+  const anamneseRaw     = data.anamnese || "";
+  const objetivo        = String(data.objetivo || "").toLowerCase().trim();
+  const respostasRaw    = data.respostas || "";
   const lang            = typeof _resolverLangHotmart_ === "function"
     ? _resolverLangHotmart_(data)
     : "pt";
@@ -53,13 +55,37 @@ function _loginOuCadastro(data) {
     return { status: "error", msg: "Nome, e-mail e senha são obrigatórios." };
   }
 
+  let respostas = {};
+  try {
+    if (typeof respostasRaw === "string" && respostasRaw.trim()) {
+      respostas = JSON.parse(respostasRaw);
+    } else if (respostasRaw && typeof respostasRaw === "object") {
+      respostas = respostasRaw;
+    }
+  } catch (_) {}
+
+  let anamneseObj = {};
+  try {
+    if (typeof anamneseRaw === "string" && anamneseRaw.trim()) {
+      anamneseObj = JSON.parse(anamneseRaw);
+    } else if (anamneseRaw && typeof anamneseRaw === "object") {
+      anamneseObj = anamneseRaw;
+    }
+  } catch (_) {}
+
+  if (!Object.keys(respostas).length && anamneseObj && typeof anamneseObj === "object") {
+    respostas = anamneseObj.respostas || anamneseObj;
+  }
+
+  const calcPremium = calcularNivelPremium(respostas, objetivo || anamneseObj.objetivo || "");
+  const nivelDetectado = calcPremium.nivel;
+  const scoreFinal = Number(calcPremium.scoreFinal || 0);
+  const scoreDetalhado = JSON.stringify(calcPremium.detalhado || {});
+  const objetivoFinal = objetivo || String(anamneseObj.objetivo || "").toLowerCase().trim();
+  const anamnese = JSON.stringify({ respostas, objetivo: objetivoFinal });
+
   const senhaHash = _hashSenha(senha);
   const rows = sh.getDataRange().getValues();
-
-  let pont = _calcularPontuacaoAnamnese(anamnese);
-  let nivelDetectado = "iniciante";
-  if (pont >= 13 && pont < 23) nivelDetectado = "intermediaria";
-  if (pont >= 23) nivelDetectado = "avancada";
 
   /* ======================================================
    * 🔁 ATUALIZAR ALUNA EXISTENTE
@@ -87,8 +113,11 @@ function _loginOuCadastro(data) {
       }
 
       sh.getRange(linha, 9).setValue(nivelDetectado);
-      sh.getRange(linha, 16).setValue(pont);
+      sh.getRange(linha, 16).setValue(scoreFinal);
       sh.getRange(linha, 17).setValue(anamnese);
+      sh.getRange(linha, COL_SCORE_FINAL + 1).setValue(scoreFinal);
+      sh.getRange(linha, COL_SCORE_DETALHADO + 1).setValue(scoreDetalhado);
+      sh.getRange(linha, COL_OBJETIVO + 1).setValue(objetivoFinal);
 
       // Corrigir DataInicio inválida
       const dataIni = row[10];
@@ -106,7 +135,10 @@ function _loginOuCadastro(data) {
         id,
         email,
         nivel: nivelDetectado,
-        pontuacao: pont
+        pontuacao: scoreFinal,
+        scoreFinal,
+        scoreDetalhado: calcPremium.detalhado,
+        objetivo: objetivoFinal
       };
     }
   }
@@ -133,7 +165,7 @@ function _loginOuCadastro(data) {
     "nenhuma",              // Enfase
     "",                     // Fase
     "",                     // DiaCiclo
-    pont,                   // Pontuacao
+    scoreFinal,            // Pontuacao
     anamnese,               // AnamneseJSON
     "",                     // TokenReset
     "",                     // TokenExpira
@@ -143,8 +175,8 @@ function _loginOuCadastro(data) {
     "",                     // DeviceId
     "",                     // SessionToken
     "",                     // SessionExpira
-    "",                     // data
-    "",                     // ultima
+    "",                     // DataInicioPrograma
+    "",                     // UltimaAtividade
     "",                     // FreeEnabled (AB)
     "",                     // FreeEnfases (AC)
     "",                     // FreeUntil (AD)
@@ -152,7 +184,13 @@ function _loginOuCadastro(data) {
     "",                     // TreinosSemana (AF)
     "",                     // AusenciaAtiva (AG)
     "",                     // AusenciaInicio (AH)
-    dataNascimento          // DataNascimento (AI)
+    dataNascimento,         // DataNascimento (AI)
+    "",                     // novo_treino_endurance (AJ)
+    "",                     // UltimoCaminho
+    "",                     // UltimoCaminhoData
+    scoreFinal,             // ScoreFinal
+    scoreDetalhado,         // ScoreDetalhado
+    objetivoFinal           // Objetivo
   ]);
 
   let emailEnviado = false;
@@ -165,7 +203,10 @@ function _loginOuCadastro(data) {
     id: novoID,
     email,
     nivel: nivelDetectado,
-    pontuacao: pont,
+    pontuacao: scoreFinal,
+    scoreFinal,
+    scoreDetalhado: calcPremium.detalhado,
+    objetivo: objetivoFinal,
     email_boas_vindas: emailEnviado,
     email_tipo: emailEnviado ? "newsletter" : ""
   };

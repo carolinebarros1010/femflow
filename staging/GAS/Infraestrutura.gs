@@ -202,6 +202,10 @@ function _calcularPontuacaoAnamnese(anamneseJSON) {
   if (!anamneseJSON) return 0;
   try {
     const obj = JSON.parse(anamneseJSON);
+    if (obj && typeof obj === "object" && obj.respostas) {
+      const premium = calcularNivelPremium(obj.respostas, obj.objetivo);
+      return Number(premium.scoreFinal || 0);
+    }
     let score = 0;
     const keys = Object.keys(obj);
     for (let i = 0; i < keys.length; i++) {
@@ -212,6 +216,65 @@ function _calcularPontuacaoAnamnese(anamneseJSON) {
   } catch (e) {
     return 0;
   }
+}
+
+function _normalizarRespostasPremium_(respostas) {
+  const raw = respostas && typeof respostas === "object" ? respostas : {};
+  const out = [];
+  for (let i = 1; i <= 12; i++) {
+    const valor = Number(raw["q" + i]);
+    out.push(Math.max(0, Math.min(3, isNaN(valor) ? 0 : valor)));
+  }
+  return out;
+}
+
+function calcularNivelPremium(respostas, objetivo) {
+  const answers = _normalizarRespostasPremium_(respostas);
+  const tecnicoRaw = answers[0] + answers[1] + answers[2];
+  const consistenciaRaw = answers[3] + answers[4] + answers[5];
+  const intensidadeRaw = answers[6] + answers[7] + answers[8];
+  const recuperacaoRaw = answers[9] + answers[10] + answers[11];
+
+  const tecnico = (tecnicoRaw / 9) * 100;
+  const consistencia = (consistenciaRaw / 9) * 100;
+  const intensidade = (intensidadeRaw / 9) * 100;
+  const recuperacao = (recuperacaoRaw / 9) * 100;
+
+  const pesosPorObjetivo = {
+    iniciar: { tecnico: 0.35, consistencia: 0.30, intensidade: 0.15, recuperacao: 0.20 },
+    emagrecimento: { tecnico: 0.30, consistencia: 0.30, intensidade: 0.20, recuperacao: 0.20 },
+    definicao: { tecnico: 0.30, consistencia: 0.25, intensidade: 0.30, recuperacao: 0.15 },
+    performance: { tecnico: 0.35, consistencia: 0.20, intensidade: 0.30, recuperacao: 0.15 }
+  };
+
+  const pesosBase = { tecnico: 0.30, consistencia: 0.25, intensidade: 0.25, recuperacao: 0.20 };
+  const objetivoNorm = String(objetivo || "").toLowerCase().trim();
+  const pesos = pesosPorObjetivo[objetivoNorm] || pesosBase;
+
+  const scoreFinal =
+    tecnico * pesos.tecnico +
+    consistencia * pesos.consistencia +
+    intensidade * pesos.intensidade +
+    recuperacao * pesos.recuperacao;
+
+  let nivel = "iniciante";
+  if (scoreFinal >= 70) nivel = "avancada";
+  else if (scoreFinal >= 45) nivel = "intermediaria";
+
+  if (nivel === "avancada" && (tecnico < 40 || recuperacao < 35)) {
+    nivel = "intermediaria";
+  }
+
+  return {
+    nivel,
+    scoreFinal: Math.round(scoreFinal * 100) / 100,
+    detalhado: {
+      tecnico: Math.round(tecnico * 100) / 100,
+      consistencia: Math.round(consistencia * 100) / 100,
+      intensidade: Math.round(intensidade * 100) / 100,
+      recuperacao: Math.round(recuperacao * 100) / 100
+    }
+  };
 }
 
 
