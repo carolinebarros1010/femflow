@@ -127,6 +127,15 @@ function getPerguntasTraduzidas() {
     window.FEMFLOW_ACTIVE?.scriptUrl ||
     "";
 
+  function marcarFallbackFirebaseAuth(causa = "") {
+    try {
+      localStorage.setItem("femflow_firebase_auth_fallback", "1");
+      if (causa) {
+        localStorage.setItem("femflow_firebase_auth_fallback_reason", String(causa));
+      }
+    } catch (_) {}
+  }
+
   function aplicarDadosHotmartIniciais() {
     const origem = String(query.get("origem") || "").toLowerCase();
     if (!origem.includes("hotmart")) return;
@@ -449,9 +458,8 @@ if (loginResp?.status === "ok") {
     await syncFirebaseAuthAccount(email, senha);
   } catch (firebaseErr) {
     console.error("[Anamnese] Falha ao sincronizar conta no Firebase Auth:", firebaseErr);
-    FEMFLOW.toast?.("Conta criada, mas sessão Firebase falhou.", true);
-    finalMsgEl.textContent = "Erro ao concluir.";
-    return;
+    marcarFallbackFirebaseAuth(firebaseErr?.code || firebaseErr?.message || "unknown");
+    FEMFLOW.toast?.("Conta criada. Você poderá entrar normalmente.");
   }
 } else {
   const msg = loginResp?.msg || "Erro ao concluir.";
