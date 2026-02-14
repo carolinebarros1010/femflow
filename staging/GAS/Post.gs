@@ -13,6 +13,8 @@ function doPost(e) {
 
   setAppContext_(data.app || data.modelo || data.produto);
 
+  const pedido = data;
+
   const action = String(data.action || "")
     .trim()
     .toLowerCase();
@@ -60,8 +62,7 @@ function doPost(e) {
         break;
 
       case "body_insight_ia":
-        resposta = analisarBodyInsightIA_(data);
-        break;
+        return jsonOK_(analisarBodyInsightIA_(pedido));
 
       /* ===========================
          🔔 NOTIFICATIONS
