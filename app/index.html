@@ -219,6 +219,42 @@ document.addEventListener("DOMContentLoaded", () => {
         throw new Error((gasResponse && gasResponse.msg) || "E-mail ou senha incorretos.");
       }
 
+      if (error && error.code === "auth/invalid-login-credentials") {
+        const gasResponse = await validarNoGAS(emailNorm, senhaNorm);
+
+        if (gasResponse && gasResponse.status === "ok") {
+          try {
+            const methods = await auth.fetchSignInMethodsForEmail(emailNorm);
+
+            if (methods && methods.length > 0) {
+              try {
+                await auth.signInWithEmailAndPassword(emailNorm, senhaNorm);
+                return;
+              } catch (_) {
+                // senha divergente — vamos recriar
+              }
+            }
+
+            if (auth.currentUser) {
+              try {
+                await auth.currentUser.delete();
+              } catch (_) {
+                await auth.signOut();
+              }
+            }
+
+            await auth.createUserWithEmailAndPassword(emailNorm, senhaNorm);
+            await auth.signInWithEmailAndPassword(emailNorm, senhaNorm);
+            return;
+          } catch (recreateError) {
+            console.error("[Login] Falha ao recriar usuário Firebase:", recreateError);
+            throw new Error("Erro ao sincronizar credenciais com Firebase.");
+          }
+        }
+
+        throw new Error("Credenciais inválidas.");
+      }
+
       if (error && error.code === "auth/wrong-password") {
         throw new Error("Senha incorreta. Confira sua senha e tente novamente.");
       }
