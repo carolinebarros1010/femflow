@@ -120,20 +120,32 @@ function ensureSheet(name, header) {
     return sh;
   }
 
-  // Garante que tem colunas suficientes
-  const maxCols = sh.getMaxColumns();
-  if (maxCols < header.length) {
-    sh.insertColumnsAfter(maxCols, header.length - maxCols);
+  const lastCol = Math.max(sh.getLastColumn(), 1);
+  const firstRow = sh.getRange(1, 1, 1, lastCol).getValues()[0];
+  const existing = firstRow.map((v) => String(v || "").trim());
+
+  // Expande apenas com colunas faltantes, preservando ordem existente para não quebrar índices legados.
+  const missing = header.filter((h) => existing.indexOf(h) === -1);
+  if (missing.length) {
+    const maxCols = sh.getMaxColumns();
+    sh.insertColumnsAfter(maxCols, missing.length);
+    sh.getRange(1, maxCols + 1, 1, missing.length).setValues([missing]);
   }
 
-  // Lê o header atual (linha 1) no tamanho do header novo
-  const firstRow = sh.getRange(1, 1, 1, header.length).getValues()[0];
-
-  // Se for diferente, sobrescreve a linha 1 (sem empurrar dados)
-  const diff = header.some((h, i) => (firstRow[i] || "").toString().trim() !== h);
-
-  if (diff) {
-    sh.getRange(1, 1, 1, header.length).setValues([header]);
+  // Se houver células vazias no prefixo do header oficial, preenche por posição.
+  const colsToCheck = Math.max(header.length, sh.getLastColumn());
+  const currentPrefix = sh.getRange(1, 1, 1, colsToCheck).getValues()[0];
+  const patched = currentPrefix.slice();
+  let changed = false;
+  for (let i = 0; i < header.length; i++) {
+    const cur = String(currentPrefix[i] || "").trim();
+    if (!cur) {
+      patched[i] = header[i];
+      changed = true;
+    }
+  }
+  if (changed) {
+    sh.getRange(1, 1, 1, colsToCheck).setValues([patched]);
   }
 
   return sh;

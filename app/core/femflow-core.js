@@ -77,6 +77,16 @@ FEMFLOW.getDeviceId = function () {
 };
 
 
+FEMFLOW.setDeviceId = function (deviceId) {
+  const d = String(deviceId || "").trim();
+  if (!d) return;
+  localStorage.setItem("femflow_device_id", d);
+  document.cookie =
+    "ff_device=" +
+    encodeURIComponent(d) +
+    "; path=/; max-age=31536000; SameSite=Lax";
+};
+
 FEMFLOW.getSessionToken = function () {
   return localStorage.getItem("femflow_session_token") || "";
 };
@@ -87,8 +97,19 @@ FEMFLOW.setSessionToken = function (token) {
   }
 };
 
+FEMFLOW.getSessionExpira = function () {
+  return localStorage.getItem("femflow_session_expira") || "";
+};
+
+FEMFLOW.setSessionExpira = function (iso) {
+  const value = String(iso || "").trim();
+  if (!value) return;
+  localStorage.setItem("femflow_session_expira", value);
+};
+
 FEMFLOW.clearSession = function () {
   localStorage.removeItem("femflow_session_token");
+  localStorage.removeItem("femflow_session_expira");
 };
 
 FEMFLOW.sessionTransport = {
@@ -903,7 +924,8 @@ FEMFLOW.getLocalDateKey = function (date = new Date()) {
 FEMFLOW.getSession = function () {
   return {
     deviceId: FEMFLOW.getDeviceId(),
-    sessionToken: FEMFLOW.getSessionToken()
+    sessionToken: FEMFLOW.getSessionToken(),
+    sessionExpira: FEMFLOW.getSessionExpira()
   };
 };
 /* ============================================================
@@ -917,6 +939,12 @@ FEMFLOW.post = async function (payload) {
   }
 
   const session = FEMFLOW.getSession();
+  const expiraMs = Date.parse(session.sessionExpira || "");
+  if (session.sessionExpira && Number.isFinite(expiraMs) && Date.now() > expiraMs) {
+    FEMFLOW.clearSession();
+    FEMFLOW.toast?.("Sessão expirada. Faça login novamente.", true);
+    return { status: "denied", msg: "session_expired_local" };
+  }
 
   const body = {
     ...payload,
@@ -1613,7 +1641,7 @@ FEMFLOW.enviarSAC = async function () {
    7. AÇÕES DO MENU
 =========================================================== */
 
-FEMFLOW._acaoMenu = function (op) {
+FEMFLOW._acaoMenu = async function (op) {
   document.querySelector(".ff-menu-modal")?.classList.remove("active");
 
   switch (op) {
@@ -1667,6 +1695,12 @@ FEMFLOW.dispatch("stateChanged", {
       break;
 
     case "logout":
+      try {
+        await FEMFLOW.post({
+          action: "logoutDevice",
+          id: localStorage.getItem("femflow_id") || ""
+        });
+      } catch (_) {}
       FEMFLOW.clearSession();
       localStorage.removeItem("femflow_id");
       localStorage.removeItem("femflow_auth");

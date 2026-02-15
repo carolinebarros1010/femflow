@@ -94,6 +94,14 @@ function doPost(e) {
         resposta = resetDevice_(data);
         break;
 
+      case "logoutdevice":
+        resposta = logoutDevice_(data);
+        break;
+
+      case "migrarauth2batch":
+        resposta = migrarAuth2Batch_();
+        break;
+
       /* ===========================
          🌸 SALVAR ÊNFASE
       ============================ */

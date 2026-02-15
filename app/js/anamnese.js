@@ -449,11 +449,11 @@ const loginResp = await FEMFLOW.post({
 
 if (loginResp?.status === "ok") {
   if (loginResp.deviceId && loginResp.deviceId !== deviceId) {
-    localStorage.setItem("femflow_device_id", loginResp.deviceId);
+    FEMFLOW.setDeviceId?.(loginResp.deviceId);
   }
   FEMFLOW.setSessionToken?.(loginResp.sessionToken);
   if (loginResp.sessionExpira) {
-    localStorage.setItem("femflow_session_expira", String(loginResp.sessionExpira));
+    FEMFLOW.setSessionExpira?.(loginResp.sessionExpira);
   }
 
   try {
