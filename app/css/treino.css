@@ -199,14 +199,22 @@ body {
 ============================================================ */
 .fix-footer {
   position: fixed;
-  bottom: 0;
+  left: 0;
+  right: 0;
+  bottom: max(env(safe-area-inset-bottom, 0px), 12px);
   width: 100%;
-  padding: 14px 0 calc(env(safe-area-inset-bottom,12px));
+  padding: 12px 14px;
   background: transparent;
   display: flex;
   justify-content: center;
+  align-items: center;
+  flex-wrap: wrap;
   gap: 14px;
   z-index: 10;
+}
+
+body {
+  padding-bottom: calc(110px + env(safe-area-inset-bottom, 0px));
 }
 
 @supports (-webkit-touch-callout: none) {
@@ -238,22 +246,6 @@ body {
   .carousel-item {
     -webkit-overflow-scrolling: touch;
     pointer-events: auto;
-  }
-}
-
-@supports (-webkit-touch-callout: none) {
-  .fix-footer {
-    -webkit-transform: translateZ(0);
-    transform: translateZ(0);
-    will-change: transform;
-    backface-visibility: hidden;
-  }
-
-  .carousel-container,
-  .carousel-track,
-  .carousel-item {
-    position: relative;
-    z-index: 0;
   }
 }
 
