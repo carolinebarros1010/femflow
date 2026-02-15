@@ -190,19 +190,14 @@ body {
 
 .bi-help-tooltip {
   position: absolute;
-  top: calc(100% + 8px);
-  left: 0;
-  z-index: 5;
-  width: min(290px, 80vw);
-  padding: 10px;
-  border: 1px solid var(--bi-border);
-  border-radius: 12px;
-  background: rgba(255, 255, 255, 0.96);
-  box-shadow: 0 8px 18px rgba(42, 45, 44, 0.16);
-  opacity: 0;
-  transform: translateY(-4px);
-  pointer-events: none;
-  transition: opacity 0.2s ease, transform 0.2s ease;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
 }
 
 .bi-help-tooltip p {
@@ -211,31 +206,70 @@ body {
   line-height: 1.3;
 }
 
-.bi-help-tooltip svg {
-  width: 96px;
-  height: 112px;
-  display: block;
-  margin: 6px auto 0;
+.bi-help-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
 }
 
-.bi-help-tooltip path,
-.bi-help-tooltip circle,
-.bi-help-tooltip line {
-  fill: none;
-  stroke: var(--bi-teal-deep);
-  stroke-width: 3.2;
-  stroke-linecap: round;
-  stroke-linejoin: round;
+.bi-help-modal.hidden {
+  display: none;
 }
 
-.bi-help-tooltip line {
-  stroke: var(--bi-terracotta);
+.bi-help-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(23, 23, 23, 0.4);
 }
 
-.bi-label-row:hover .bi-help-tooltip,
-.bi-label-row:focus-within .bi-help-tooltip {
-  opacity: 1;
-  transform: translateY(0);
+.bi-help-modal__dialog {
+  position: relative;
+  width: min(360px, calc(100vw - 28px));
+  border-radius: 16px;
+  border: 1px solid var(--bi-border);
+  background: #fff;
+  box-shadow: 0 12px 30px rgba(18, 35, 32, 0.24);
+  padding: 18px 16px 14px;
+}
+
+.bi-help-modal__close {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--bi-teal-deep);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.bi-help-modal__dialog h2 {
+  margin: 0 20px 8px 0;
+  font-size: 1rem;
+}
+
+.bi-help-modal__dialog p {
+  margin: 0;
+  font-size: 0.87rem;
+  line-height: 1.35;
+}
+
+.bi-help-modal__figure {
+  margin-top: 10px;
+  min-height: 112px;
+  display: grid;
+  place-items: center;
+}
+
+.bi-help-modal__figure svg {
+  width: 110px;
+  height: 132px;
 }
 
 .bi-form input,
