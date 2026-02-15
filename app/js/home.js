@@ -1155,6 +1155,8 @@ async function handleCardClick(enfase, locked) {
 
   if (enfase === "bodyinsight") {
     localStorage.setItem("femflow_mode_personal", "false");
+    const canProceed = await FEMFLOW.ensureFirebaseAuthForBodyInsight?.();
+    if (canProceed === false) return;
     FEMFLOW.router("body_insight.html");
     return;
   }
