@@ -245,6 +245,9 @@ document.addEventListener("DOMContentLoaded", () => {
   async function syncFirebaseAuthSession(email, senha) {
     if (!window.firebase || !firebase.auth) {
       console.warn("[Login] Firebase Auth indisponível. Login seguirá apenas com sessão do backend.");
+      try {
+        localStorage.setItem("firebase_sync_failed", "true");
+      } catch (_) {}
       return;
     }
 
@@ -265,6 +268,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
       await auth.signInWithEmailAndPassword(emailNorm, senhaNorm);
+      try {
+        localStorage.removeItem("firebase_sync_failed");
+      } catch (_) {}
       return;
     } catch (error) {
       if (error && error.code === "auth/operation-not-allowed") {
@@ -285,6 +291,9 @@ document.addEventListener("DOMContentLoaded", () => {
         if (gasResponse && gasResponse.status === "ok") {
           await auth.createUserWithEmailAndPassword(emailNorm, senhaNorm);
           await auth.signInWithEmailAndPassword(emailNorm, senhaNorm);
+          try {
+            localStorage.removeItem("firebase_sync_failed");
+          } catch (_) {}
           return;
         }
 
@@ -317,6 +326,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
             await auth.createUserWithEmailAndPassword(emailNorm, senhaNorm);
             await auth.signInWithEmailAndPassword(emailNorm, senhaNorm);
+            try {
+              localStorage.removeItem("firebase_sync_failed");
+            } catch (_) {}
             return;
           } catch (recreateError) {
             console.error("[Login] Falha ao recriar usuário Firebase:", recreateError);
@@ -447,6 +459,9 @@ document.addEventListener("DOMContentLoaded", () => {
         await syncFirebaseAuthSession(email, senha);
       } catch (firebaseErr) {
         console.error("[Login] Falha ao sincronizar Firebase Auth:", firebaseErr);
+        try {
+          localStorage.setItem("firebase_sync_failed", "true");
+        } catch (_) {}
         marcarFallbackFirebaseAuth(firebaseErr?.code || firebaseErr?.message || "unknown");
         console.warn("[Login] Aplicando fallback: acesso liberado sem sessão Firebase. Recursos que exigem Firebase pedirão novo login.");
       }
@@ -476,7 +491,16 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
       setMsg("Acesso liberado ✨", true);
-      setTimeout(() => location.href = "home.html", 500);
+      const redirectParam = new URLSearchParams(location.search).get("redirect");
+      const savedRedirect = localStorage.getItem("post_login_redirect");
+      const shouldRedirectBodyInsight = redirectParam === "body_insight" || savedRedirect === "body_insight.html";
+      const nextPage = shouldRedirectBodyInsight ? "body_insight.html" : "home.html";
+
+      if (shouldRedirectBodyInsight) {
+        localStorage.removeItem("post_login_redirect");
+      }
+
+      setTimeout(() => location.href = nextPage, 500);
     } finally {
       loginInProgress = false;
     }

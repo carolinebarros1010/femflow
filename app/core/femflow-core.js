@@ -130,6 +130,42 @@ FEMFLOW.openInternal = function (path) {
   window.location.href = path;
 };
 
+FEMFLOW.requireFirebaseAuthIfNeeded = function () {
+  const currentPath = (location.pathname.split("/").pop() || "").toLowerCase();
+  if (!currentPath || currentPath === "index.html") return;
+  if (!window.firebase || !firebase.auth) return;
+
+  firebase.auth().onAuthStateChanged((user) => {
+    if (user && !user.isAnonymous) return;
+
+    const isBodyInsight = currentPath.includes("body_insight");
+    if (!isBodyInsight) return;
+
+    const syncFailed = localStorage.getItem("firebase_sync_failed") === "true";
+    if (syncFailed) {
+      console.info("[FemFlow] Firebase sync pendente. Redirecionando para login antes do Body Insight.");
+    }
+
+    localStorage.setItem("post_login_redirect", "body_insight.html");
+    location.href = "index.html?redirect=body_insight";
+  });
+};
+
+FEMFLOW.ensureFirebaseAuthForBodyInsight = async function () {
+  if (!window.firebase || !firebase.auth) {
+    localStorage.setItem("post_login_redirect", "body_insight.html");
+    location.href = "index.html?redirect=body_insight";
+    return false;
+  }
+
+  const user = firebase.auth().currentUser;
+  if (user && !user.isAnonymous) return true;
+
+  localStorage.setItem("post_login_redirect", "body_insight.html");
+  location.href = "index.html?redirect=body_insight";
+  return false;
+};
+
 
 FEMFLOW.dev = () => localStorage.getItem("femflow_dev") === "on";
 FEMFLOW.log   = (...a) => FEMFLOW.dev() && console.log("%c[FEMFLOW]", "color:#cc6a5a", ...a);
@@ -1908,6 +1944,7 @@ document.addEventListener("femflow:stateChanged", e => {
 
 FEMFLOW.init = async function () {
   const p = (location.pathname.split("/").pop() || "").toLowerCase();
+  FEMFLOW.requireFirebaseAuthIfNeeded?.();
   FEMFLOW.renderVipBadge?.();
 
   // HOME → sem SYNC
