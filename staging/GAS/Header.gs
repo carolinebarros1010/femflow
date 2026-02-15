@@ -9,6 +9,11 @@ const SECURITY_TOKEN = "Bmc082849$";
 const HYBRID_EXERCISES = true;
 
 const SCRIPT_URL = ScriptApp.getService().getUrl();
+const AUTH_VERSION = 2;
+const DEVICE_SLOTS = 2;
+const SESSION_DAYS = 30;
+const LASTACTIVE_THROTTLE_SEC = 60;
+const MIGRATION_ALLOW_NO_DEVICE = false;
 
 const COL_FREE_ENABLED = 27; // AB
 const COL_FREE_ENFASES = 28; // AC
@@ -31,7 +36,8 @@ const HEADER_ALUNAS = [
   "DeviceId","SessionToken","SessionExpira",
   "DataInicioPrograma","UltimaAtividade", "FreeEnabled" , "FreeEnfases", "FreeUntil", "acesso_personal",
   "TreinosSemana","AusenciaAtiva","AusenciaInicio","DataNascimento","novo_treino_endurance",
-  "UltimoCaminho","UltimoCaminhoData","ScoreFinal","ScoreDetalhado","Objetivo"
+  "UltimoCaminho","UltimoCaminhoData","ScoreFinal","ScoreDetalhado","Objetivo",
+  "Devices", "AuthVersion", "LastAuthMigrationAt"
 ];
 
 // índices (0-based) para leitura rápida
@@ -50,3 +56,6 @@ const COL_ULTIMO_CAMINHO_DATA  = 37; // col 38
 const COL_SCORE_FINAL          = 38; // col 39
 const COL_SCORE_DETALHADO      = 39; // col 40
 const COL_OBJETIVO             = 40; // col 41
+const COL_DEVICES              = 41; // col 42
+const COL_AUTH_VERSION         = 42; // col 43
+const COL_AUTH_MIGRATION_AT    = 43; // col 44

@@ -208,7 +208,10 @@ function _loginOuCadastro(data) {
     "",                     // UltimoCaminhoData
     scoreFinal,             // ScoreFinal
     scoreDetalhado,         // ScoreDetalhado
-    objetivoFinal           // Objetivo
+    objetivoFinal,          // Objetivo
+    "",                     // Devices (AP)
+    "",                     // AuthVersion (AQ)
+    ""                      // LastAuthMigrationAt (AR)
   ]);
 
   let emailEnviado = false;
@@ -230,6 +233,175 @@ function _loginOuCadastro(data) {
   };
 }
 
+
+function nowIso_() {
+  return new Date().toISOString();
+}
+
+function toTime_(isoOrDateOrNumber) {
+  if (isoOrDateOrNumber instanceof Date) return isoOrDateOrNumber.getTime();
+  if (typeof isoOrDateOrNumber === "number") return Number.isFinite(isoOrDateOrNumber) ? isoOrDateOrNumber : NaN;
+  const str = String(isoOrDateOrNumber || "").trim();
+  if (!str) return NaN;
+  const ms = Date.parse(str);
+  return Number.isFinite(ms) ? ms : NaN;
+}
+
+function parseDevices_(raw) {
+  if (Array.isArray(raw)) return raw.filter(Boolean);
+  const txt = String(raw || "").trim();
+  if (!txt) return [];
+  try {
+    const parsed = JSON.parse(txt);
+    return Array.isArray(parsed) ? parsed.filter(Boolean) : [];
+  } catch (err) {
+    Logger.log('[Auth2] parseDevices_ JSON inválido: ' + err);
+    return [];
+  }
+}
+
+function serializeDevices_(arr) {
+  const normalized = (Array.isArray(arr) ? arr : []).map((d) => {
+    const deviceId = String(d && d.deviceId || "").trim();
+    const sessionToken = String(d && d.sessionToken || "").trim();
+    const expMs = toTime_(d && d.expira);
+    if (!deviceId || !sessionToken || !Number.isFinite(expMs)) return null;
+    const lastActiveMs = toTime_(d && d.lastActive);
+    return {
+      deviceId,
+      sessionToken,
+      lastActive: Number.isFinite(lastActiveMs) ? new Date(lastActiveMs).toISOString() : nowIso_(),
+      expira: new Date(expMs).toISOString()
+    };
+  }).filter(Boolean);
+  return JSON.stringify(normalized);
+}
+
+function limparDevicesExpirados_(devices, nowMs) {
+  const now = Number.isFinite(nowMs) ? nowMs : Date.now();
+  const src = Array.isArray(devices) ? devices : [];
+  const clean = [];
+  let removedCount = 0;
+  for (let i = 0; i < src.length; i++) {
+    const d = src[i] || {};
+    const expMs = toTime_(d.expira);
+    if (!Number.isFinite(expMs) || expMs <= now) {
+      removedCount++;
+      continue;
+    }
+    clean.push(d);
+  }
+  return { devicesLimpos: clean, removedCount };
+}
+
+function findDeviceIndex_(devices, deviceId) {
+  const id = String(deviceId || '').trim();
+  if (!id) return -1;
+  const src = Array.isArray(devices) ? devices : [];
+  for (let i = 0; i < src.length; i++) {
+    if (String(src[i] && src[i].deviceId || '').trim() === id) return i;
+  }
+  return -1;
+}
+
+function findSessionIndex_(devices, token, deviceIdOpt) {
+  const tk = String(token || '').trim();
+  if (!tk) return -1;
+  const devOpt = String(deviceIdOpt || '').trim();
+  const src = Array.isArray(devices) ? devices : [];
+  for (let i = 0; i < src.length; i++) {
+    const d = src[i] || {};
+    if (String(d.sessionToken || '').trim() !== tk) continue;
+    if (devOpt && String(d.deviceId || '').trim() !== devOpt) continue;
+    return i;
+  }
+  return -1;
+}
+
+function removerDeviceAntigoLRU_(devices) {
+  const src = Array.isArray(devices) ? devices.slice() : [];
+  if (!src.length) return { devicesAtualizados: [], removidoDeviceId: '' };
+  src.sort((a, b) => {
+    const ta = Number.isFinite(toTime_(a && a.lastActive)) ? toTime_(a.lastActive) : 0;
+    const tb = Number.isFinite(toTime_(b && b.lastActive)) ? toTime_(b.lastActive) : 0;
+    return ta - tb;
+  });
+  const removed = src.shift() || {};
+  return { devicesAtualizados: src, removidoDeviceId: String(removed.deviceId || '') };
+}
+
+function upsertDeviceSession_(devices, deviceId, token, expiraIso, nowIso, slots) {
+  const src = Array.isArray(devices) ? devices.slice() : [];
+  const id = String(deviceId || '').trim();
+  let evictedDeviceId = null;
+  let idx = findDeviceIndex_(src, id);
+
+  const next = {
+    deviceId: id,
+    sessionToken: String(token || '').trim(),
+    expira: String(expiraIso || '').trim(),
+    lastActive: String(nowIso || nowIso_()).trim()
+  };
+
+  if (idx >= 0) {
+    src[idx] = next;
+  } else {
+    const maxSlots = Number(slots) > 0 ? Number(slots) : DEVICE_SLOTS;
+    if (src.length >= maxSlots) {
+      const lru = removerDeviceAntigoLRU_(src);
+      evictedDeviceId = lru.removidoDeviceId || null;
+      src.length = 0;
+      Array.prototype.push.apply(src, lru.devicesAtualizados || []);
+    }
+    src.push(next);
+  }
+
+  return { devicesAtualizados: src, evictedDeviceId, used: src.length };
+}
+
+function shouldUpdateLastActive_(deviceEntry, nowMs, throttleSec) {
+  const now = Number.isFinite(nowMs) ? nowMs : Date.now();
+  const throttle = Number(throttleSec) > 0 ? Number(throttleSec) : LASTACTIVE_THROTTLE_SEC;
+  const prevMs = toTime_(deviceEntry && deviceEntry.lastActive);
+  if (!Number.isFinite(prevMs)) return true;
+  return (now - prevMs) >= throttle * 1000;
+}
+
+function migrarLegadoParaDevicesSeNecessario_(row, nowIso) {
+  const current = parseDevices_(row[COL_DEVICES]);
+  if (current.length) return { migrated: false, devices: current, devicesString: serializeDevices_(current) };
+
+  const deviceId = String(row[COL_DEVICE_ID] || '').trim();
+  const sessionToken = String(row[COL_SESSION_TOKEN] || '').trim();
+  const expMs = toTime_(row[COL_SESSION_EXP]);
+  if (!deviceId || !sessionToken || !Number.isFinite(expMs)) {
+    return { migrated: false, devices: [], devicesString: '[]' };
+  }
+
+  const migratedDevices = [{
+    deviceId,
+    sessionToken,
+    lastActive: nowIso || nowIso_(),
+    expira: new Date(expMs).toISOString()
+  }];
+  Logger.log('[Auth2] Migração lazy legado->devices para deviceId=' + deviceId);
+  return { migrated: true, devices: migratedDevices, devicesString: serializeDevices_(migratedDevices) };
+}
+
+function atualizarLastActive(deviceId) {
+  const id = String(deviceId || '').trim();
+  if (!id) return { status: 'ignored' };
+  return { status: 'ok', deviceId: id };
+}
+
+function limparDevicesExpirados() {
+  return { status: 'ok', msg: 'Use limparDevicesExpirados_ no fluxo autenticado.' };
+}
+
+function removerDeviceAntigo() {
+  return { status: 'ok', msg: 'Use removerDeviceAntigoLRU_ no fluxo autenticado.' };
+}
+
 /* ============================================================
    LOGIN (corrigido + upgrade automático)
 ============================================================ */
@@ -240,8 +412,11 @@ function _fazerLogin(data) {
   const email = String(data.email || "").trim().toLowerCase();
   const senha = String(data.senha || "").trim();
   const deviceId = String(data.deviceId || "").trim();
-
   if (!email) return { status: "error", msg: "email_required" };
+  if (!deviceId) {
+    Logger.log('[Auth2] Login sem deviceId para email=' + email);
+    return { status: "error", msg: "deviceId obrigatório" };
+  }
 
   const rows = sh.getDataRange().getValues();
 
@@ -251,54 +426,65 @@ function _fazerLogin(data) {
     if (emailDB !== email) continue;
 
     const linha = i + 1;
-
-    // ✅ senha segura
     const conf = _senhaConfereSegura_(senha, row[4]);
     if (!conf.ok) return { status: "senha_incorreta" };
-
-    // ✅ upgrade se estava em texto puro / vazio
     if (conf.needsUpgrade) {
-      sh.getRange(linha, 5).setValue(_hashSenha(senha)); // col 5 (1-based) = row[4]
+      sh.getRange(linha, 5).setValue(_hashSenha(senha));
     }
 
-    // device lock + tolerância de migração
-    const deviceDB = String(row[COL_DEVICE_ID] || "").trim();
-    const sessionTokenDB = String(row[COL_SESSION_TOKEN] || "").trim();
-    const expDB = row[COL_SESSION_EXP];
-    const now = new Date();
-    const hasActiveSession =
-      sessionTokenDB &&
-      expDB instanceof Date &&
-      expDB.getTime() > now.getTime();
+    const nowMs = Date.now();
+    const nowIso = new Date(nowMs).toISOString();
+    const migrated = migrarLegadoParaDevicesSeNecessario_(row, nowIso);
+    let devices = migrated.devices;
 
-    let deviceUpdated = false;
-
-    if (deviceDB && deviceId && deviceDB !== deviceId) {
-      if (hasActiveSession) return { status: "blocked" };
-      sh.getRange(linha, COL_DEVICE_ID + 1).setValue(deviceId);
-      deviceUpdated = true;
+    const cleaned = limparDevicesExpirados_(devices, nowMs);
+    devices = cleaned.devicesLimpos;
+    if (cleaned.removedCount > 0) {
+      Logger.log('[Auth2] Login removeu expirados=' + cleaned.removedCount + ' id=' + row[0]);
     }
 
-    if (deviceId && !deviceDB) {
-      sh.getRange(linha, COL_DEVICE_ID + 1).setValue(deviceId);
-      deviceUpdated = true;
-    }
-
-    // session
     const sessionToken = Utilities.getUuid();
-    const sessionExpira = new Date(Date.now() + 1000 * 60 * 60 * 24 * 30);
+    const sessionExpiraIso = new Date(nowMs + SESSION_DAYS * 24 * 60 * 60 * 1000).toISOString();
 
-    sh.getRange(linha, COL_SESSION_TOKEN + 1).setValue(sessionToken);
-    sh.getRange(linha, COL_SESSION_EXP + 1).setValue(sessionExpira);
+    const upsert = upsertDeviceSession_(
+      devices,
+      deviceId,
+      sessionToken,
+      sessionExpiraIso,
+      nowIso,
+      DEVICE_SLOTS
+    );
+
+    const lock = LockService.getScriptLock();
+    lock.waitLock(5000);
+    try {
+      sh.getRange(linha, COL_DEVICES + 1).setValue(serializeDevices_(upsert.devicesAtualizados));
+      sh.getRange(linha, COL_AUTH_VERSION + 1).setValue(AUTH_VERSION);
+      if (migrated.migrated) {
+        sh.getRange(linha, COL_AUTH_MIGRATION_AT + 1).setValue(nowIso);
+      }
+
+      // Dual-write para retrocompatibilidade durante rollout.
+      sh.getRange(linha, COL_DEVICE_ID + 1).setValue(deviceId);
+      sh.getRange(linha, COL_SESSION_TOKEN + 1).setValue(sessionToken);
+      sh.getRange(linha, COL_SESSION_EXP + 1).setValue(new Date(sessionExpiraIso));
+    } finally {
+      lock.releaseLock();
+    }
+
+    if (upsert.evictedDeviceId) {
+      Logger.log('[Auth2] LRU evict no login id=' + row[0] + ' evicted=' + upsert.evictedDeviceId);
+    }
 
     return {
       status: "ok",
       id: row[0],
       email,
-      deviceId: deviceId || deviceDB,
+      deviceId,
       sessionToken,
-      sessionExpira,
-      deviceUpdated
+      sessionExpira: sessionExpiraIso,
+      slots: { limit: DEVICE_SLOTS, used: upsert.used },
+      evictedDeviceId: upsert.evictedDeviceId || ""
     };
   }
 
@@ -349,34 +535,113 @@ function _assertSession_(id, deviceId, sessionToken) {
   const idNorm = String(id || "").trim();
   const token = String(sessionToken || "").trim();
   const device = String(deviceId || "").trim();
-
   if (!idNorm || !token) return { ok: false, msg: "Sessão inválida" };
 
   const rows = sh.getDataRange().getValues();
-  const now = new Date();
+  const nowMs = Date.now();
+  const nowIso = new Date(nowMs).toISOString();
 
   for (let i = 1; i < rows.length; i++) {
     const row = rows[i];
     if (String(row[0] || "").trim() !== idNorm) continue;
 
-    const tokenDB = String(row[COL_SESSION_TOKEN] || "").trim();
-    const expDB = row[COL_SESSION_EXP];
-    const deviceDB = String(row[COL_DEVICE_ID] || "").trim();
+    const linha = i + 1;
+    const migrated = migrarLegadoParaDevicesSeNecessario_(row, nowIso);
+    let devices = migrated.devices;
 
-    if (!tokenDB || tokenDB !== token) return { ok: false, msg: "Sessão inválida" };
-    if (!(expDB instanceof Date) || expDB.getTime() < now.getTime()) {
-      return { ok: false, msg: "Sessão expirada" };
+    const cleaned = limparDevicesExpirados_(devices, nowMs);
+    devices = cleaned.devicesLimpos;
+
+    let changed = migrated.migrated || cleaned.removedCount > 0;
+    if (cleaned.removedCount > 0) {
+      Logger.log('[Auth2] Assert removeu expirados=' + cleaned.removedCount + ' id=' + idNorm);
     }
 
-    if (deviceDB && device && deviceDB !== device) {
+    let idx = findSessionIndex_(devices, token, device || null);
+    if (idx < 0 && !device) {
+      idx = findSessionIndex_(devices, token, null);
+    }
+
+    if (idx >= 0) {
+      if (!device && !MIGRATION_ALLOW_NO_DEVICE) {
+        Logger.log('[Auth2] Assert negado sem deviceId id=' + idNorm);
+        return { ok: false, msg: "Sessão inválida" };
+      }
+
+      const target = devices[idx];
+      if (device && String(target.deviceId || '').trim() !== device) {
+        Logger.log('[Auth2] Assert bloqueado por mismatch id=' + idNorm);
+        return { ok: false, msg: "Sessão bloqueada" };
+      }
+
+      if (shouldUpdateLastActive_(target, nowMs, LASTACTIVE_THROTTLE_SEC)) {
+        devices[idx] = Object.assign({}, target, { lastActive: nowIso });
+        changed = true;
+      }
+
+      if (changed) {
+        const lock = LockService.getScriptLock();
+        lock.waitLock(5000);
+        try {
+          sh.getRange(linha, COL_DEVICES + 1).setValue(serializeDevices_(devices));
+          sh.getRange(linha, COL_AUTH_VERSION + 1).setValue(AUTH_VERSION);
+          if (migrated.migrated) {
+            sh.getRange(linha, COL_AUTH_MIGRATION_AT + 1).setValue(nowIso);
+          }
+        } finally {
+          lock.releaseLock();
+        }
+      }
+
+      return { ok: true };
+    }
+
+    // Fallback legado (dual-read durante rollout)
+    const tokenDB = String(row[COL_SESSION_TOKEN] || "").trim();
+    const expMs = toTime_(row[COL_SESSION_EXP]);
+    const deviceDB = String(row[COL_DEVICE_ID] || "").trim();
+
+    if (!tokenDB || tokenDB !== token) {
+      Logger.log('[Auth2] Assert token inválido id=' + idNorm);
+      return { ok: false, msg: "Sessão inválida" };
+    }
+    if (!Number.isFinite(expMs) || expMs <= nowMs) {
+      Logger.log('[Auth2] Assert token expirado id=' + idNorm);
+      return { ok: false, msg: "Sessão expirada" };
+    }
+    if (!device) {
+      Logger.log('[Auth2] Assert legado sem deviceId id=' + idNorm);
+      return { ok: false, msg: "Sessão inválida" };
+    }
+    if (deviceDB && deviceDB !== device) {
+      Logger.log('[Auth2] Assert legado bloqueado id=' + idNorm);
       return { ok: false, msg: "Sessão bloqueada" };
     }
 
+    const legacyDevices = [{
+      deviceId: device,
+      sessionToken: token,
+      lastActive: nowIso,
+      expira: new Date(expMs).toISOString()
+    }];
+
+    const lock = LockService.getScriptLock();
+    lock.waitLock(5000);
+    try {
+      sh.getRange(linha, COL_DEVICES + 1).setValue(serializeDevices_(legacyDevices));
+      sh.getRange(linha, COL_AUTH_VERSION + 1).setValue(AUTH_VERSION);
+      sh.getRange(linha, COL_AUTH_MIGRATION_AT + 1).setValue(nowIso);
+    } finally {
+      lock.releaseLock();
+    }
+
+    Logger.log('[Auth2] Assert fez migração fallback legado id=' + idNorm);
     return { ok: true };
   }
 
   return { ok: false, msg: "Sessão inválida" };
 }
+
 
 /* ============================================================
    RESET SENHA (token gravado na planilha)
@@ -553,4 +818,78 @@ function _resetSenha(data) {
   }
 
   return { status: "notfound" };
+}
+
+
+function logoutDevice_(data) {
+  const sh = ensureSheet(SHEET_ALUNAS, HEADER_ALUNAS);
+  if (!sh) return { status: "error", msg: "Aba Alunas não encontrada." };
+
+  const id = String(data.id || "").trim();
+  const deviceId = String(data.deviceId || "").trim();
+  const sessionToken = String(data.sessionToken || "").trim();
+
+  const auth = _assertSession_(id, deviceId, sessionToken);
+  if (!auth.ok) return { status: "denied", msg: auth.msg || "Sessão inválida" };
+
+  const rows = sh.getDataRange().getValues();
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i];
+    if (String(row[0] || '').trim() !== id) continue;
+
+    const linha = i + 1;
+    const devices = parseDevices_(row[COL_DEVICES]);
+    const next = devices.filter((d) => String(d && d.sessionToken || '').trim() !== sessionToken);
+
+    const lock = LockService.getScriptLock();
+    lock.waitLock(5000);
+    try {
+      sh.getRange(linha, COL_DEVICES + 1).setValue(serializeDevices_(next));
+      if (
+        String(row[COL_SESSION_TOKEN] || '').trim() === sessionToken &&
+        (!String(row[COL_DEVICE_ID] || '').trim() || String(row[COL_DEVICE_ID] || '').trim() === deviceId)
+      ) {
+        sh.getRange(linha, COL_DEVICE_ID + 1).setValue('');
+        sh.getRange(linha, COL_SESSION_TOKEN + 1).setValue('');
+        sh.getRange(linha, COL_SESSION_EXP + 1).setValue('');
+      }
+    } finally {
+      lock.releaseLock();
+    }
+
+    return { status: "ok" };
+  }
+
+  return { status: "not_registered" };
+}
+
+function migrarAuth2Batch_() {
+  const sh = ensureSheet(SHEET_ALUNAS, HEADER_ALUNAS);
+  if (!sh) return { status: 'error', msg: 'Aba Alunas não encontrada.' };
+
+  const values = sh.getDataRange().getValues();
+  let migratedCount = 0;
+  const nowIso = nowIso_();
+
+  const lock = LockService.getScriptLock();
+  lock.waitLock(5000);
+  try {
+    for (let i = 1; i < values.length; i++) {
+      const row = values[i];
+      if (parseDevices_(row[COL_DEVICES]).length) continue;
+      const mig = migrarLegadoParaDevicesSeNecessario_(row, nowIso);
+      if (!mig.migrated) continue;
+
+      const linha = i + 1;
+      sh.getRange(linha, COL_DEVICES + 1).setValue(mig.devicesString);
+      sh.getRange(linha, COL_AUTH_VERSION + 1).setValue(AUTH_VERSION);
+      sh.getRange(linha, COL_AUTH_MIGRATION_AT + 1).setValue(nowIso);
+      migratedCount++;
+    }
+  } finally {
+    lock.releaseLock();
+  }
+
+  Logger.log('[Auth2] migrarAuth2Batch_ migradas=' + migratedCount);
+  return { status: 'ok', migratedCount };
 }
