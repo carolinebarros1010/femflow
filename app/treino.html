@@ -82,6 +82,7 @@
       <h3 class="modal-title" id="pseTitulo">Como foi o treino?</h3>
 
       <label class="modal-label" id="pseLabel">PSE (0 a 10)</label>
+      <p class="modal-helper" id="pseHint">PSE é sua percepção de esforço no treino (0 = muito leve, 10 = máximo).</p>
       <div class="pse-slider-wrapper">
         <div class="pse-emoji" id="pseEmojiWrap" aria-live="polite">
           <span id="pseEmoji">😴</span>
@@ -231,6 +232,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     document.getElementById("pseTitulo").textContent         = L.treino.pseTitulo;
     document.getElementById("pseLabel").textContent          = L.treino.pseLabel;
+    document.getElementById("pseHint").textContent           = L.treino.pseHint;
     document.getElementById("btnConfirmarPSE").textContent   = L.treino.pseSalvar;
     document.getElementById("btnCancelarPSE").textContent    = L.treino.pseCancelar;
     const modalProximoTitulo = document.getElementById("modalProximoTitulo");

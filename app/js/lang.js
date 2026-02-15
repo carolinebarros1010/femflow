@@ -571,6 +571,7 @@ home: {
     btnCancelar: "Cancelar",
     pseTitulo: "Como foi o treino?",
     pseLabel: "PSE (0 a 10)",
+    pseHint: "PSE é sua percepção de esforço no treino (0 = muito leve, 10 = máximo).",
     pseSalvar: "Salvar",
     pseCancelar: "Cancelar",
     proximoModal: {
@@ -993,6 +994,7 @@ home: {
     btnCancelar: "Cancel",
     pseTitulo: "How was the workout?",
     pseLabel: "RPE (0 to 10)",
+    pseHint: "RPE is your perceived effort in the workout (0 = very easy, 10 = maximum).",
     pseSalvar: "Save",
     pseCancelar: "Cancel",
     proximoModal: {
@@ -1417,6 +1419,7 @@ fr: {
     btnCancelar: "Annuler",
     pseTitulo: "Comment était l'entraînement ?",
     pseLabel: "PSE (0 à 10)",
+    pseHint: "Le PSE est votre perception de l'effort pendant l'entraînement (0 = très facile, 10 = maximal).",
     pseSalvar: "Enregistrer",
     pseCancelar: "Annuler",
     proximoModal: {
