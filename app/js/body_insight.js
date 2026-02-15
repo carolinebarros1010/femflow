@@ -11,6 +11,12 @@
   const biResults = document.getElementById('bi-results');
   const biCalcButton = document.getElementById('bi-calc-btn');
   const biBackBtn = document.getElementById('biBackBtn');
+  const biHelpModal = document.getElementById('biHelpModal');
+  const biHelpModalClose = document.getElementById('biHelpModalClose');
+  const biHelpModalDialog = biHelpModal ? biHelpModal.querySelector('.bi-help-modal__dialog') : null;
+  const biHelpModalDescription = document.getElementById('biHelpModalDescription');
+  const biHelpModalFigure = document.getElementById('biHelpModalFigure');
+  const biHelpTriggers = Array.from(document.querySelectorAll('.bi-help-trigger'));
 
   // Guard clause: evita execução do módulo fora da página Body Insight.
   const requiredElements = [
@@ -25,7 +31,12 @@
     biPhotoSideInput,
     biResults,
     biCalcButton,
-    biBackBtn
+    biBackBtn,
+    biHelpModal,
+    biHelpModalClose,
+    biHelpModalDialog,
+    biHelpModalDescription,
+    biHelpModalFigure
   ];
 
   if (requiredElements.some((element) => !element)) {
@@ -45,6 +56,9 @@
     '';
 
   let authUserFromObserver = null;
+  let biLastHelpTrigger = null;
+  let biModalFetchId = 0;
+  const biHelpSvgCache = new Map();
 
   const state = {
     userReady: false,
@@ -79,6 +93,97 @@
 
     const hipTrigger = document.querySelector('button[aria-describedby="bi-help-quadril"]');
     if (hipTrigger && copy.hipHelpAria) hipTrigger.setAttribute('aria-label', copy.hipHelpAria);
+  }
+
+  function getHelpDescription(trigger) {
+    const describedBy = trigger.getAttribute('aria-describedby');
+    if (!describedBy) return '';
+
+    const tooltip = document.getElementById(describedBy);
+    if (!tooltip) return '';
+
+    const paragraph = tooltip.querySelector('p');
+    return paragraph ? paragraph.textContent.trim() : '';
+  }
+
+  async function getHelpSvgMarkup(assetPath) {
+    if (!assetPath) throw new Error('Ilustração indisponível.');
+
+    if (biHelpSvgCache.has(assetPath)) {
+      return biHelpSvgCache.get(assetPath);
+    }
+
+    const response = await fetch(assetPath, { cache: 'force-cache' });
+    if (!response.ok) throw new Error('Não foi possível carregar a ilustração.');
+
+    const svgMarkup = await response.text();
+    biHelpSvgCache.set(assetPath, svgMarkup);
+    return svgMarkup;
+  }
+
+  function closeHelpModal() {
+    if (biHelpModal.classList.contains('hidden')) return;
+
+    biHelpModal.classList.add('hidden');
+    biHelpModal.setAttribute('aria-hidden', 'true');
+
+    if (biLastHelpTrigger) {
+      biLastHelpTrigger.focus();
+    }
+  }
+
+  async function openHelpModal(trigger) {
+    biLastHelpTrigger = trigger;
+    biModalFetchId += 1;
+    const currentFetchId = biModalFetchId;
+
+    biHelpModal.classList.remove('hidden');
+    biHelpModal.setAttribute('aria-hidden', 'false');
+
+    const helpDescription = getHelpDescription(trigger);
+    biHelpModalDescription.textContent = helpDescription || 'Sem descrição disponível.';
+    biHelpModalFigure.innerHTML = '<p>Carregando ilustração...</p>';
+
+    window.requestAnimationFrame(() => {
+      biHelpModalDialog.focus();
+    });
+
+    try {
+      const svgMarkup = await getHelpSvgMarkup(trigger.dataset.biHelpAsset || '');
+      if (currentFetchId !== biModalFetchId) return;
+
+      biHelpModalFigure.innerHTML = svgMarkup;
+      const renderedSvg = biHelpModalFigure.querySelector('svg');
+      if (renderedSvg && !renderedSvg.getAttribute('role')) {
+        renderedSvg.setAttribute('role', 'img');
+      }
+    } catch (error) {
+      if (currentFetchId !== biModalFetchId) return;
+      biHelpModalFigure.innerHTML = '<p>Não foi possível carregar a ilustração agora.</p>';
+    }
+  }
+
+  function handleHelpModalKeydown(event) {
+    if (event.key === 'Escape') {
+      closeHelpModal();
+      return;
+    }
+
+    if (event.key !== 'Tab' || biHelpModal.classList.contains('hidden')) return;
+
+    const focusable = biHelpModal.querySelectorAll('button, [href], input, select, textarea, [tabindex]:not([tabindex="-1"])');
+    if (!focusable.length) return;
+
+    const first = focusable[0];
+    const last = focusable[focusable.length - 1];
+
+    if (event.shiftKey && document.activeElement === first) {
+      event.preventDefault();
+      last.focus();
+    } else if (!event.shiftKey && document.activeElement === last) {
+      event.preventDefault();
+      first.focus();
+    }
   }
 
   function setResultMessage(message) {
@@ -416,6 +521,21 @@
   biBackBtn.addEventListener('click', () => {
     window.location.href = 'home.html';
   });
+
+  biHelpTriggers.forEach((trigger) => {
+    trigger.addEventListener('click', () => {
+      openHelpModal(trigger);
+    });
+  });
+
+  biHelpModal.addEventListener('click', (event) => {
+    if (event.target && event.target.dataset.biHelpClose === 'backdrop') {
+      closeHelpModal();
+    }
+  });
+
+  biHelpModalClose.addEventListener('click', closeHelpModal);
+  biHelpModal.addEventListener('keydown', handleHelpModalKeydown);
 
   biPhotoFrontInput.addEventListener('change', () => {
     handlePhotoInputChange(biPhotoFrontInput, biPhotoFront, 'front');

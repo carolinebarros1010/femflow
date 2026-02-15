@@ -67,20 +67,11 @@
             data-bi-i18n="helpTrigger"
             aria-label="Como medir a cintura"
             aria-describedby="bi-help-cintura"
+            data-bi-help-asset="assets/silhueta_cintura.svg"
           >i</button>
           <label for="cintura">Cintura (cm)</label>
           <div id="bi-help-cintura" class="bi-help-tooltip" role="note">
             <p data-bi-i18n="waistHelpText">Meça a parte mais fina do abdômen, após soltar o ar.</p>
-            <svg viewBox="0 0 120 180" aria-label="Silhueta feminina indicando medição da cintura">
-              <circle cx="60" cy="22" r="12" />
-              <path d="M45 40c-5 8-9 16-9 26v24c0 9 6 17 15 20l-3 28c-1 13-7 23-12 32" />
-              <path d="M75 40c5 8 9 16 9 26v24c0 9-6 17-15 20l3 28c1 13 7 23 12 32" />
-              <path d="M40 74l-14 18" />
-              <path d="M80 74l14 18" />
-              <path d="M49 164l-10 0" />
-              <path d="M81 164l-10 0" />
-              <line x1="34" y1="84" x2="86" y2="84" />
-            </svg>
           </div>
         </div>
         <input type="number" id="cintura" min="40" max="200" step="0.1" required />
@@ -92,20 +83,11 @@
             data-bi-i18n="helpTrigger"
             aria-label="Como medir o quadril"
             aria-describedby="bi-help-quadril"
+            data-bi-help-asset="assets/silhueta_quadril.svg"
           >i</button>
           <label for="quadril">Quadril (cm)</label>
           <div id="bi-help-quadril" class="bi-help-tooltip" role="note">
             <p data-bi-i18n="hipHelpText">Meça na parte mais larga do quadril/glúteos, fita reta.</p>
-            <svg viewBox="0 0 120 180" aria-label="Silhueta feminina indicando medição do quadril">
-              <circle cx="60" cy="22" r="12" />
-              <path d="M45 40c-5 8-9 16-9 26v24c0 9 6 17 15 20l-3 28c-1 13-7 23-12 32" />
-              <path d="M75 40c5 8 9 16 9 26v24c0 9-6 17-15 20l3 28c1 13 7 23 12 32" />
-              <path d="M40 74l-14 18" />
-              <path d="M80 74l14 18" />
-              <path d="M49 164l-10 0" />
-              <path d="M81 164l-10 0" />
-              <line x1="28" y1="108" x2="92" y2="108" />
-            </svg>
           </div>
         </div>
         <input type="number" id="quadril" min="50" max="220" step="0.1" required />
@@ -125,6 +107,23 @@
       <div class="bi-results" id="bi-results" aria-live="polite"></div>
     </section>
   </main>
+
+  <div class="bi-help-modal hidden" id="biHelpModal" aria-hidden="true">
+    <div class="bi-help-modal__backdrop" data-bi-help-close="backdrop"></div>
+    <div
+      class="bi-help-modal__dialog"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="biHelpModalTitle"
+      aria-describedby="biHelpModalDescription"
+      tabindex="-1"
+    >
+      <button type="button" class="bi-help-modal__close" id="biHelpModalClose" aria-label="Fechar ajuda">×</button>
+      <h2 id="biHelpModalTitle">Como medir corretamente</h2>
+      <p id="biHelpModalDescription"></p>
+      <div class="bi-help-modal__figure" id="biHelpModalFigure" aria-live="polite"></div>
+    </div>
+  </div>
 
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
