@@ -25,12 +25,55 @@ window.FEMFLOW = window.FEMFLOW || {};
 
 (() => {
   const STORAGE_KEY = "femflow_last_caminho";
+  const DISTRIBUICAO_FALLBACK = "ABCDE";
+  const DISTRIBUICOES_VALIDAS = new Set(["AB", "ABC", "ABCD", "ABCDE"]);
+  const BASE_FASE = {
+    menstrual: 1,
+    follicular: 6,
+    ovulatory: 14,
+    luteal: 19
+  };
+
+  function normalizarDistribuicao(raw) {
+    const valor = typeof raw === "string" ? raw.trim().toUpperCase() : "";
+    return DISTRIBUICOES_VALIDAS.has(valor) ? valor : DISTRIBUICAO_FALLBACK;
+  }
+
+  function gerarDiasPorFase(faseMetodo, distribuicao) {
+    const faseNorm = normalizarFaseMetodo(faseMetodo);
+    const inicio = BASE_FASE[faseNorm];
+    if (!Number.isFinite(inicio)) return [];
+    const dist = normalizarDistribuicao(distribuicao);
+    return dist.split("").map((_, idx) => inicio + idx);
+  }
+
+  async function getDistribuicaoDoTreino(nivel, enfase) {
+    const nivelNorm = FEMFLOW.engineTreino?.normalizarNivel?.(nivel) || String(nivel || "").trim().toLowerCase();
+    const enfaseNorm = String(enfase || "").trim().toLowerCase();
+
+    if (!nivelNorm || !enfaseNorm || FEMFLOW.engineTreino?.isExtraEnfase?.(enfaseNorm)) {
+      return DISTRIBUICAO_FALLBACK;
+    }
+
+    try {
+      const snap = await firebase.firestore()
+        .collection("exercicios")
+        .doc(`${nivelNorm}_${enfaseNorm}`)
+        .get();
+
+      if (!snap.exists) return DISTRIBUICAO_FALLBACK;
+      return normalizarDistribuicao(snap.data()?.distribuicao);
+    } catch (err) {
+      console.warn("[treino-caminhos] falha ao buscar distribuicao, usando fallback", err);
+      return DISTRIBUICAO_FALLBACK;
+    }
+  }
 
   const mapaSequenciaPorFase = {
-    menstrual: [1, 2, 3, 4, 5],
-    follicular: [6, 7, 8, 9, 10],
-    ovulatory: [14, 15, 16, 17, 18],
-    luteal: [19, 20, 21, 22, 23]
+    menstrual: gerarDiasPorFase("menstrual", DISTRIBUICAO_FALLBACK),
+    follicular: gerarDiasPorFase("follicular", DISTRIBUICAO_FALLBACK),
+    ovulatory: gerarDiasPorFase("ovulatory", DISTRIBUICAO_FALLBACK),
+    luteal: gerarDiasPorFase("luteal", DISTRIBUICAO_FALLBACK)
   };
 
   function normalizarFaseMetodo(raw) {
@@ -52,18 +95,17 @@ window.FEMFLOW = window.FEMFLOW || {};
     }[fase] || fase;
   }
 
-  function diaParaPasso(faseMetodo, diaCiclo) {
-    const faseNorm = normalizarFaseMetodo(faseMetodo);
-    const lista = mapaSequenciaPorFase[faseNorm];
+  function diaParaPasso(faseMetodo, diaCiclo, distribuicao) {
+    const lista = gerarDiasPorFase(faseMetodo, distribuicao);
     if (!Array.isArray(lista)) return 0;
     const idx = lista.indexOf(Number(diaCiclo));
     if (idx === -1) return 0;
     return idx + 1;
   }
 
-  function resolverDiaPorCaminho(faseMetodo, caminho) {
+  function resolverDiaPorCaminho(faseMetodo, caminho, distribuicao) {
     const faseNorm = normalizarFaseMetodo(faseMetodo);
-    const dias = mapaSequenciaPorFase[faseNorm];
+    const dias = gerarDiasPorFase(faseNorm, distribuicao);
     if (!Array.isArray(dias)) {
       console.warn("[treino-caminhos] faseMetodo inválida em resolverDiaPorCaminho", {
         faseMetodo,
@@ -93,32 +135,37 @@ window.FEMFLOW = window.FEMFLOW || {};
     return null;
   }
 
-  function resolverContextoDeBusca(faseMetodo, caminho) {
+  function resolverContextoDeBusca(faseMetodo, caminho, distribuicao) {
     const faseMetodoNorm = normalizarFaseMetodo(faseMetodo);
-    const diaUsado = resolverDiaPorCaminho(faseMetodoNorm, caminho);
+    const dias = gerarDiasPorFase(faseMetodoNorm, distribuicao);
+    const total = dias.length;
+    let caminhoValido = Number(caminho);
+    if (!Number.isFinite(caminhoValido) || caminhoValido < 1) caminhoValido = 1;
+    if (caminhoValido > total) caminhoValido = 1;
+    const diaUsado = resolverDiaPorCaminho(faseMetodoNorm, caminhoValido, distribuicao);
     const faseFirestore = resolverFaseFirestorePorDia(diaUsado);
 
     if (!diaUsado || !faseFirestore) {
       console.warn("[treino-caminhos] inconsistência ao resolver contexto de busca", {
         faseMetodo,
         faseMetodoNorm,
-        caminho,
+        caminho: caminhoValido,
         diaUsado,
         faseFirestore
       });
     }
 
     // debug explícito para o caso crítico dia 18
-    if (faseMetodoNorm === "ovulatory" && Number(caminho) === 5) {
+    if (faseMetodoNorm === "ovulatory" && Number(caminhoValido) === 5) {
       console.log("[treino-caminhos] transição esperada: ovulatory caminho 5 -> dia 18 -> faseFirestore luteal", {
         faseMetodo: faseMetodoNorm,
-        caminho: Number(caminho),
+        caminho: Number(caminhoValido),
         diaUsado,
         faseFirestore
       });
     }
 
-    return { diaUsado, faseFirestore };
+    return { diaUsado, faseFirestore, totalCaminhos: total, caminhoValido };
   }
 
   function proximoCaminho(caminhoAtual, total = 5) {
@@ -173,6 +220,10 @@ window.FEMFLOW = window.FEMFLOW || {};
 
   FEMFLOW.treinoCaminhos = {
     mapaSequenciaPorFase,
+    DISTRIBUICAO_FALLBACK,
+    normalizarDistribuicao,
+    gerarDiasPorFase,
+    getDistribuicaoDoTreino,
     normalizarFaseMetodo,
     diaParaPasso,
     resolverDiaPorCaminho,
