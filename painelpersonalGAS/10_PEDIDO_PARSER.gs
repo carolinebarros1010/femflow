@@ -252,7 +252,7 @@ function validarPedido_(p) {
   }
 
   // padrao ciclo (agora aceita ABCDE direto também)
-  const padroesValidos = ['3', '4', '5', 'abc', 'abcd', 'abcde'];
+  const padroesValidos = ['2', '3', '4', '5', 'ab', 'abc', 'abcd', 'abcde'];
   if (pedido.padraoCiclo && !padroesValidos.includes(pedido.padraoCiclo)) {
     erros.push('padrão de ciclo inválido');
   }
@@ -260,7 +260,7 @@ function validarPedido_(p) {
   // MaleFlow: se ciclo vier, deve ser ABC/ABCD/ABCDE
   if (isMale && pedido.ciclo) {
     const c = normalizarCiclo_(pedido.ciclo);
-    if (!c) erros.push('ciclo inválido (use ABC, ABCD ou ABCDE)');
+    if (!c) erros.push('ciclo inválido (use AB, ABC, ABCD ou ABCDE)');
   }
 
   if (isMale && pedido.diatreino) {
@@ -327,7 +327,7 @@ function normalizarSerieEspecialDiaTipo_(valor) {
     const match = raw.match(/^(\d{1,2})\s*[:\-]?\s*([a-z]{1,2})$/i);
     if (!match) return;
     const dia = Number(match[1]);
-    if (!dia || dia < 1 || dia > 30) return;
+    if (!dia || dia < 1 || dia > 23) return;
     const tipo = String(match[2] || '').toLowerCase();
     if (!tipo) return;
     mapa[dia] = tipo;
@@ -341,11 +341,12 @@ function normalizarPadraoCiclo_(valor) {
   if (!txt) return null;
 
   // legado
-  if (txt === '3' || txt === '4' || txt === '5') return txt;
-  if (txt === 'abc' || txt === 'abcd' || txt === 'abcde') return txt;
+  if (txt === '2' || txt === '3' || txt === '4' || txt === '5') return txt;
+  if (txt === 'ab' || txt === 'abc' || txt === 'abcd' || txt === 'abcde') return txt;
 
   // novo: permite "ABCDE" direto e converte para abcde
   const up = txt.toUpperCase();
+  if (up === 'AB') return 'ab';
   if (up === 'ABC') return 'abc';
   if (up === 'ABCD') return 'abcd';
   if (up === 'ABCDE') return 'abcde';

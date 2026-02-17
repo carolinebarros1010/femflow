@@ -625,7 +625,7 @@
     <div class="topbar">
       <div class="brand">
         <h1 class="brand-title">FemFlow • Painel Personal</h1>
-        <span class="brand-sub">Gestão de treinos 30 dias com mood sunset premium</span>
+        <span class="brand-sub">Gestão de treinos por distribuição de fase com mood sunset premium</span>
       </div>
       <div class="topbar-actions">
         <div class="status" id="statusIndicator">
@@ -655,7 +655,7 @@
     <aside class="sidebar" id="sidebar">
       <h3>Navegação</h3>
       <nav class="nav">
-        <a href="#gerar">Gerar 30 dias</a>
+        <a href="#gerar">Gerar distribuição por fase</a>
         <a href="#relinkar">Relinkar aba</a>
         <a href="#importar">Importar</a>
       </nav>
@@ -686,6 +686,7 @@
             <label for="padraoCiclo">Padrão do ciclo</label>
             <select id="padraoCiclo" name="padrao_ciclo" required>
               <option value="">Selecione</option>
+              <option value="2">AB (2 dias)</option>
               <option value="3">ABC (3 dias)</option>
               <option value="4">ABCD (4 dias)</option>
               <option value="5">ABCDE (5 dias)</option>
@@ -735,7 +736,7 @@
               <option value="nao">Não aplicar</option>
               <option value="sim">Aplicar</option>
             </select>
-            <small>Usada na etapa Distribuir 30 dias para preencher o box de série especial.</small>
+            <small>Usada na etapa Distribuir por fase para preencher o box de série especial.</small>
           </div>
           <div>
             <label for="serieEspecialFase">Fase da série especial</label>
@@ -770,13 +771,13 @@
               name="serie_especial_dia_tipo"
               placeholder="Ex: 4:rp, 7:t, 12:b"
             />
-            <small>Use dia:tipo (1–30). Exemplo: 4:rp aplica RP apenas no dia 4.</small>
+            <small>Use dia:tipo (1–23). Exemplo: 14:rp aplica RP apenas no dia 14.</small>
           </div>
         </form>
         <div class="actions-row">
           <button class="button secondary" id="btnGerarBase" type="button">Gerar base ovulatória</button>
           <button class="button secondary" id="btnSerieEspecial" type="button">Aplicar série especial na base</button>
-          <button class="button secondary" id="btnDistribuir" type="button">Distribuir 30 dias</button>
+          <button class="button secondary" id="btnDistribuir" type="button">Distribuir</button>
         </div>
         <div class="preview" id="previewUrl">Preview do Request: configure o endpoint.</div>
         <div class="preview" id="previewInfo">
@@ -786,10 +787,10 @@
           <div>Ênfase: <span data-preview="enfase">—</span></div>
           <div style="margin-top: 10px;">
             ℹ️ O sistema irá gerar automaticamente:
-            <div>- Dias 1–5: Menstrual</div>
-            <div>- Dias 6–13: Folicular</div>
-            <div>- Dias 14–17: Ovulatória</div>
-            <div>- Dias 18–30: Lútea</div>
+            <div>- Menstrual: 1–2 (AB), 1–3 (ABC), 1–4 (ABCD), 1–5 (ABCDE)</div>
+            <div>- Folicular: 6–7 (AB), 6–8 (ABC), 6–9 (ABCD), 6–10 (ABCDE)</div>
+            <div>- Ovulatória: 14–15 (AB), 14–16 (ABC), 14–17 (ABCD), 14–18 (ABCDE)</div>
+            <div>- Lútea: 19–20 (AB), 19–21 (ABC), 19–22 (ABCD), 19–23 (ABCDE)</div>
           </div>
         </div>
       </section>
@@ -1124,7 +1125,7 @@ const sha256Hex = async (text) => {
       }
 
       if (normalizedAction === "distribuir30" && !params.destino) {
-        const reason = "Preencha o destino para distribuir.";
+        const reason = "Preencha o destino para distribuir por fase.";
         toast(reason);
         reportFailure(action, params, reason);
         return false;
@@ -1269,7 +1270,7 @@ const sha256Hex = async (text) => {
             gerarbase: "Gerar base ovulatória",
             gerarbase_male: "Gerar base MaleFlow",
             serieespecial: "Aplicar série especial",
-            distribuir30: "Distribuir 30 dias",
+            distribuir30: "Distribuir",
             linkar: "Relinkar",
             importar: "Importar",
           };
