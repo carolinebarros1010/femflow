@@ -607,6 +607,10 @@ function initFlowCenter() {
   const caminhosApi = FEMFLOW.treinoCaminhos;
   const faseMetodoAtual = caminhosApi?.normalizarFaseMetodo?.(ciclo.fase || localStorage.getItem("femflow_fase") || "follicular") || (ciclo.fase || localStorage.getItem("femflow_fase") || "follicular");
   const caminhoSelecionadoState = { caminho: null };
+  const distribuicaoState = {
+    valor: caminhosApi?.DISTRIBUICAO_FALLBACK || "ABCDE",
+    totalCaminhos: 5
+  };
 
   const abrirModalComLock = (modalEl) => {
     if (!modalEl) return;
@@ -640,20 +644,37 @@ function initFlowCenter() {
     return L?.[faseMetodoAtual] || faseMetodoAtual;
   };
 
+  const carregarDistribuicaoTreino = async () => {
+    if (!caminhosApi?.getDistribuicaoDoTreino) {
+      return distribuicaoState;
+    }
+    const nivel = perfil.nivel || localStorage.getItem("femflow_nivel") || "";
+    const enfase = localStorage.getItem("femflow_enfase") || "";
+    const distribuicao = await caminhosApi.getDistribuicaoDoTreino(nivel, enfase, {
+      fase: faseMetodoAtual,
+      diaCiclo: ciclo.diaCiclo
+    });
+    distribuicaoState.valor = caminhosApi.normalizarDistribuicao(distribuicao);
+    distribuicaoState.totalCaminhos = distribuicaoState.valor.length;
+    return distribuicaoState;
+  };
+
   const obterSugestaoCaminho = () => {
     const ultimo = caminhosApi?.lerUltimoCaminho?.();
     const ultimoMesmoMetodo = ultimo && ultimo.faseMetodo === faseMetodoAtual ? ultimo : null;
     const ultimoCaminho = ultimoMesmoMetodo?.caminho || 1;
     const sugerido = ultimoMesmoMetodo
-      ? (caminhosApi?.proximoCaminho?.(ultimoCaminho, 5) || 1)
+      ? (caminhosApi?.proximoCaminho?.(ultimoCaminho, distribuicaoState.totalCaminhos) || 1)
       : 1;
     return { ultimo: ultimoMesmoMetodo, ultimoCaminho, sugerido };
   };
 
-  const abrirModalEscolhaCaminho = () => {
+  const abrirModalEscolhaCaminho = async () => {
     if (!caminhosApi || !modalCaminhosEscolha || !modalCaminhosBotoes) {
       return FEMFLOW.router("treino.html");
     }
+
+    await carregarDistribuicaoTreino();
 
     const { ultimo, ultimoCaminho, sugerido } = obterSugestaoCaminho();
     if (modalCaminhosUltimo) {
@@ -671,7 +692,7 @@ function initFlowCenter() {
     }
 
     modalCaminhosBotoes.innerHTML = "";
-    for (let caminho = 1; caminho <= 5; caminho += 1) {
+    for (let caminho = 1; caminho <= distribuicaoState.totalCaminhos; caminho += 1) {
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = `caminho-btn${caminho === sugerido ? " is-sugerido" : ""}`;
@@ -691,7 +712,11 @@ function initFlowCenter() {
     }
 
     caminhoSelecionadoState.caminho = Number(caminho);
-    const contexto = caminhosApi.resolverContextoDeBusca(faseMetodoAtual, caminhoSelecionadoState.caminho);
+    const contexto = caminhosApi.resolverContextoDeBusca(
+      faseMetodoAtual,
+      caminhoSelecionadoState.caminho,
+      distribuicaoState.valor
+    );
 
     if (!contexto?.diaUsado || !contexto?.faseFirestore) {
       FEMFLOW.toast("Não foi possível carregar esse caminho agora.");

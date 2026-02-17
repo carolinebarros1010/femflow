@@ -819,7 +819,8 @@ const hasPersonal =
     const fase = faseMetodoPerfil;
     const diaCiclo = Number(perfil.diaCiclo || localStorage.getItem("femflow_diaCiclo") || 1);
     const caminhosApi = FEMFLOW.treinoCaminhos;
-    const caminhoValido = Number.isFinite(caminhoParam) && caminhoParam >= 1 && caminhoParam <= 5;
+    const distribuicaoFallback = caminhosApi?.DISTRIBUICAO_FALLBACK || "ABCDE";
+    let distribuicaoTreino = distribuicaoFallback;
     contextoCaminhoSelecionado = null;
 
     // Opção A (padrão): personal ignora a fase do método para busca de conteúdo.
@@ -827,21 +828,34 @@ const hasPersonal =
     const personalHormonalAtivo =
       localStorage.getItem("femflow_personal_hormonal") === "true";
 
+    if (caminhosApi?.getDistribuicaoDoTreino && nivel && enfaseFinal && !FEMFLOW.engineTreino?.isExtraEnfase?.(enfaseFinal)) {
+      distribuicaoTreino = await caminhosApi.getDistribuicaoDoTreino(nivel, enfaseFinal, {
+        fase: faseMetodoPerfil,
+        diaCiclo
+      });
+    }
+    distribuicaoTreino = caminhosApi?.normalizarDistribuicao?.(distribuicaoTreino) || distribuicaoFallback;
+
+    const totalCaminhos = distribuicaoTreino.length;
+    const caminhoValido = Number.isFinite(caminhoParam) && caminhoParam >= 1 && caminhoParam <= totalCaminhos;
+
     if (caminhoValido && caminhosApi) {
       const faseMetodo = caminhosApi.normalizarFaseMetodo(faseMetodoPerfil);
-      const ctx = caminhosApi.resolverContextoDeBusca(faseMetodo, caminhoParam);
+      const ctx = caminhosApi.resolverContextoDeBusca(faseMetodo, caminhoParam, distribuicaoTreino);
       if (ctx?.diaUsado && ctx?.faseFirestore) {
         contextoCaminhoSelecionado = {
-          caminho: caminhoParam,
+          caminho: ctx.caminhoValido || caminhoParam,
           faseMetodo,
           diaUsado: ctx.diaUsado,
-          faseFirestore: ctx.faseFirestore
+          faseFirestore: ctx.faseFirestore,
+          distribuicao: distribuicaoTreino
         };
         console.log("[treino.js] contexto do caminho aplicado", contextoCaminhoSelecionado);
       } else {
         console.warn("[treino.js] caminho inválido para contexto atual; fallback padrão", {
           caminhoParam,
-          faseMetodo
+          faseMetodo,
+          distribuicaoTreino
         });
       }
     }
