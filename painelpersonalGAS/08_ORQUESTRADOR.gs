@@ -288,11 +288,64 @@ function distribuirBaseOvulatoriaPara30Dias_(p, padrao) {
     const dados = Array.isArray(lista) ? lista : [];
     return dados.filter(item => String(item.tipo || '').trim() === 'treino').length;
   };
-  const maxPorBox_ = (nivelTreino) => {
-    const nivelNormalizado = String(nivelTreino || '').toLowerCase();
-    if (nivelNormalizado === 'avancada') return 5;
-    if (nivelNormalizado === 'intermediaria') return 4;
-    return 3;
+  const reorganizarTreinosPorBox_ = (lista, limitePorBox) => {
+    const linhas = Array.isArray(lista) ? lista : [];
+    const saida = [];
+    let boxSequencial = 0;
+    let boxNormalAtual = null;
+    let ordemNormalAtual = 0;
+
+    const limite = Math.max(1, Number(limitePorBox) || 3);
+
+    const sufixoEspecialDaLinha_ = (linha) => {
+      const boxRaw = String(linha?.box || '').trim();
+      const matchBox = boxRaw.match(/[a-z]+$/i);
+      if (matchBox) return String(matchBox[0]).toUpperCase();
+
+      const especial = String(linha?.especial || '').trim().toUpperCase();
+      return especial || '';
+    };
+
+    const ehTreinoEspecial_ = (linha) => {
+      const tipo = String(linha?.tipo || '').trim();
+      if (tipo !== 'treino') return false;
+      if (String(linha?.especial || '').trim()) return true;
+      return /[a-z]+$/i.test(String(linha?.box || '').trim());
+    };
+
+    linhas.forEach(linha => {
+      const copia = Object.assign({}, linha);
+      if (String(copia.tipo || '').trim() !== 'treino') {
+        saida.push(copia);
+        return;
+      }
+
+      if (ehTreinoEspecial_(copia)) {
+        boxSequencial += 1;
+        const sufixo = sufixoEspecialDaLinha_(copia);
+        copia.box = `${boxSequencial}${sufixo}`;
+        copia.ordem = 1;
+
+        boxNormalAtual = null;
+        ordemNormalAtual = 0;
+
+        saida.push(copia);
+        return;
+      }
+
+      if (!boxNormalAtual || ordemNormalAtual >= limite) {
+        boxSequencial += 1;
+        boxNormalAtual = boxSequencial;
+        ordemNormalAtual = 0;
+      }
+
+      ordemNormalAtual += 1;
+      copia.box = String(boxNormalAtual);
+      copia.ordem = ordemNormalAtual;
+      saida.push(copia);
+    });
+
+    return saida;
   };
   const isolarBoxesEspeciais_ = (lista) => {
     const linhas = Array.isArray(lista) ? lista : [];
@@ -370,7 +423,6 @@ function distribuirBaseOvulatoriaPara30Dias_(p, padrao) {
       repsPorSeries_(ctx.nivel, seriesBase, ctx.fase, ctx.estrutura)
     );
     const hiitRegra = hiitPermitidoOuObrigatorio_(ctx.fase);
-    const maxPorBox = maxPorBox_(ctx.nivel);
 
     const treinosDiaBase = contarTreinos_(porDiaBase[diaBase] || []);
     if (!treinosDiaBase) {
@@ -426,26 +478,20 @@ function distribuirBaseOvulatoriaPara30Dias_(p, padrao) {
       return copia;
     });
 
-    const boxCounts = {};
     const linhasDiaFiltradas = [];
     linhasDia.forEach(linha => {
       if (linha.tipo === 'hiit' && !hiitRegra.allow) return;
-      if (linha.tipo === 'treino') {
-        const boxKey = String(linha.box || '').trim();
-        boxCounts[boxKey] = (boxCounts[boxKey] || 0) + 1;
-        if (boxCounts[boxKey] > maxPorBox) return;
-      }
       linhasDiaFiltradas.push(linha);
     });
 
-    const linhasDiaComBoxesIsolados = isolarBoxesEspeciais_(linhasDiaFiltradas);
+    const linhasDiaNormalizadas = reorganizarTreinosPorBox_(linhasDiaFiltradas, 3);
 
     const distribuicao = Array.isArray(padrao) ? padrao.join('') : 'ABCDE';
-    const qtdTreinoDia = linhasDiaComBoxesIsolados
+    const qtdTreinoDia = linhasDiaNormalizadas
       .filter(linha => String(linha?.tipo || '').trim() === 'treino')
       .length;
 
-    linhasDiaComBoxesIsolados.forEach(linha => {
+    linhasDiaNormalizadas.forEach(linha => {
       linha.distribuicao = distribuicao;
       linha.qttd_exercicio = qtdTreinoDia;
       rows.push(linha);
