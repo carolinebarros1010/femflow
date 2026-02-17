@@ -47,7 +47,7 @@ window.FEMFLOW = window.FEMFLOW || {};
     return dist.split("").map((_, idx) => inicio + idx);
   }
 
-  async function getDistribuicaoDoTreino(nivel, enfase) {
+  async function getDistribuicaoDoTreino(nivel, enfase, contexto = {}) {
     const nivelNorm = FEMFLOW.engineTreino?.normalizarNivel?.(nivel) || String(nivel || "").trim().toLowerCase();
     const enfaseNorm = String(enfase || "").trim().toLowerCase();
 
@@ -55,19 +55,47 @@ window.FEMFLOW = window.FEMFLOW || {};
       return DISTRIBUICAO_FALLBACK;
     }
 
-    try {
-      const snap = await firebase.firestore()
-        .collection("exercicios")
-        .doc(`${nivelNorm}_${enfaseNorm}`)
-        .get();
+    const faseNorm = FEMFLOW.engineTreino?.normalizarFase?.(contexto?.fase || "") || "";
+    const diaNum = Number(contexto?.diaCiclo);
+    const diaKey = Number.isFinite(diaNum) && diaNum > 0 ? `dia_${diaNum}` : "";
 
-      if (!snap.exists) return DISTRIBUICAO_FALLBACK;
-      return normalizarDistribuicao(snap.data()?.distribuicao);
+    try {
+      const docRef = firebase.firestore()
+        .collection("exercicios")
+        .doc(`${nivelNorm}_${enfaseNorm}`);
+
+      const treinoSnap = await docRef.get();
+      const distribuicaoTreino = normalizarDistribuicao(treinoSnap.data()?.distribuicao);
+
+      // Se o documento principal já traz distribuição válida, prioriza esse contrato.
+      if (DISTRIBUICOES_VALIDAS.has(String(treinoSnap.data()?.distribuicao || "").trim().toUpperCase())) {
+        return distribuicaoTreino;
+      }
+
+      // Compatibilidade retroativa: alguns ambientes publicaram `distribuicao` no nível de bloco.
+      if (faseNorm && diaKey) {
+        const blocosSnap = await docRef
+          .collection("fases")
+          .doc(faseNorm)
+          .collection("dias")
+          .doc(diaKey)
+          .collection("blocos")
+          .limit(1)
+          .get();
+
+        if (!blocosSnap.empty) {
+          const distribuicaoBloco = normalizarDistribuicao(blocosSnap.docs[0]?.data()?.distribuicao);
+          return distribuicaoBloco;
+        }
+      }
+
+      return distribuicaoTreino;
     } catch (err) {
       console.warn("[treino-caminhos] falha ao buscar distribuicao, usando fallback", err);
       return DISTRIBUICAO_FALLBACK;
     }
   }
+
 
   const mapaSequenciaPorFase = {
     menstrual: gerarDiasPorFase("menstrual", DISTRIBUICAO_FALLBACK),

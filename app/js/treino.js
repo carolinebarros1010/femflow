@@ -829,7 +829,10 @@ const hasPersonal =
       localStorage.getItem("femflow_personal_hormonal") === "true";
 
     if (caminhosApi?.getDistribuicaoDoTreino && nivel && enfaseFinal && !FEMFLOW.engineTreino?.isExtraEnfase?.(enfaseFinal)) {
-      distribuicaoTreino = await caminhosApi.getDistribuicaoDoTreino(nivel, enfaseFinal);
+      distribuicaoTreino = await caminhosApi.getDistribuicaoDoTreino(nivel, enfaseFinal, {
+        fase: faseMetodoPerfil,
+        diaCiclo
+      });
     }
     distribuicaoTreino = caminhosApi?.normalizarDistribuicao?.(distribuicaoTreino) || distribuicaoFallback;
 

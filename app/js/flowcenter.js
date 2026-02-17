@@ -650,7 +650,10 @@ function initFlowCenter() {
     }
     const nivel = perfil.nivel || localStorage.getItem("femflow_nivel") || "";
     const enfase = localStorage.getItem("femflow_enfase") || "";
-    const distribuicao = await caminhosApi.getDistribuicaoDoTreino(nivel, enfase);
+    const distribuicao = await caminhosApi.getDistribuicaoDoTreino(nivel, enfase, {
+      fase: faseMetodoAtual,
+      diaCiclo: ciclo.diaCiclo
+    });
     distribuicaoState.valor = caminhosApi.normalizarDistribuicao(distribuicao);
     distribuicaoState.totalCaminhos = distribuicaoState.valor.length;
     return distribuicaoState;
