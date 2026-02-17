@@ -14,6 +14,18 @@
 
 const MAX_TREINO_EXERCICIOS_POR_DIA = 10; // MaleFlow regra: teto para 1h20
 
+function enriquecerResumoDia_(linhas, ctx) {
+  const lista = Array.isArray(linhas) ? linhas : [];
+  const distribuicao = String(ctx?.distribuicao || '').trim().toUpperCase() || 'ABCDE';
+  const qtdTreino = lista.filter(item => String(item?.tipo || '').trim() === 'treino').length;
+
+  return lista.map(item => Object.assign({}, item, {
+    distribuicao,
+    qttd_exercicio: qtdTreino
+  }));
+}
+
+
 /**
  * Gera todas as linhas de UM dia de treino
  */
@@ -69,7 +81,9 @@ function gerarDia_(ctx) {
         intervalo: ex.intervalo || FEMFLOW.INTERVALO_TREINO,
         forte: '',
         leve: '',
-        ciclos: ''
+        ciclos: '',
+        distribuicao: String(ctx?.distribuicao || '').trim().toUpperCase() || '',
+        qttd_exercicio: Number(ctx?.qtdExercicios || 0)
       });
     });
   });
@@ -90,8 +104,9 @@ function gerarDia_(ctx) {
   const ordemResfriamento = (ctx.hiit && ctx.hiit.permitido) ? 3 : 2;
   linhas.push(linhaTempo_('resfriamento', 0, ordemResfriamento, ctx, FEMFLOW.TEMPO_RESFRIAMENTO));
 
-  return linhas;
+  return enriquecerResumoDia_(linhas, ctx);
 }
+
 
 
 /**
@@ -123,7 +138,9 @@ function linhaTempo_(tipo, box, ordem, ctx, tempoSeg) {
     intervalo: '',
     forte: '',
     leve: '',
-    ciclos: ''
+    ciclos: '',
+    distribuicao: String(ctx?.distribuicao || '').trim().toUpperCase() || '',
+    qttd_exercicio: Number(ctx?.qtdExercicios || 0)
   };
 }
 
@@ -157,7 +174,9 @@ function linhaHiit0_(ctx, forte, leve, ciclos, ordem) {
     intervalo: '',
     forte: String(forte),
     leve: String(leve),
-    ciclos: String(ciclos)
+    ciclos: String(ciclos),
+    distribuicao: String(ctx?.distribuicao || '').trim().toUpperCase() || '',
+    qttd_exercicio: Number(ctx?.qtdExercicios || 0)
   };
 }
 

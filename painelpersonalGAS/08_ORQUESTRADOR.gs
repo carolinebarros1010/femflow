@@ -35,6 +35,7 @@ function proximaFase_(fase) {
 
 function resolverPadraoCiclo_(padrao) {
   const txt = String(padrao || '').toLowerCase();
+  if (txt === '2' || txt === 'ab') return ['A', 'B'];
   if (txt === '3' || txt === 'abc') return ['A', 'B', 'C'];
   if (txt === '4' || txt === 'abcd') return ['A', 'B', 'C', 'D'];
   return ['A', 'B', 'C', 'D', 'E'];
@@ -42,9 +43,35 @@ function resolverPadraoCiclo_(padrao) {
 
 function resolverDiasBaseOvulatoria_(padrao) {
   const tamanho = Array.isArray(padrao) ? padrao.length : 5;
+  if (tamanho === 2) return [14, 15];
   if (tamanho === 3) return [14, 15, 16];
   if (tamanho === 4) return [14, 15, 16, 17];
   return [14, 15, 16, 17, 18];
+}
+
+function resolverDiasDistribuicaoPorFase_(padrao) {
+  const quantidade = Array.isArray(padrao) && padrao.length ? padrao.length : 5;
+  const fases = [
+    { nome: 'menstrual', inicio: 1 },
+    { nome: 'folicular', inicio: 6 },
+    { nome: 'ovulatoria', inicio: 14 },
+    { nome: 'lutea', inicio: 19 }
+  ];
+
+  const dias = [];
+  fases.forEach(fase => {
+    for (let i = 0; i < quantidade; i++) {
+      const diaCalculado = fase.inicio + i;
+      const faseCalculada = diaCalculado === 18 ? 'lutea' : fase.nome;
+      dias.push({
+        dia: diaCalculado,
+        fase: faseCalculada,
+        indiceNaFase: i
+      });
+    }
+  });
+
+  return dias;
 }
 
 function fasePorDiaCiclo_(dia) {
@@ -112,6 +139,7 @@ function gerarBaseOvulatoria_(p, padrao, base) {
       serieEspecialTipo: p.serieEspecialTipo,
       serieEspecialDiaTipo: p.serieEspecialDiaTipo,
       padraoCiclo: padrao,
+      distribuicao: Array.isArray(padrao) ? padrao.join('') : 'ABCDE',
       historico: [],
       _planoFase: planoFaseAtual,
       _ancoras: ctxAnterior?._ancoras || {}
@@ -220,6 +248,7 @@ function distribuirBaseOvulatoriaSomente_(pedidoTexto) {
 function distribuirBaseOvulatoriaPara30Dias_(p, padrao) {
   const baseRows = carregarBaseOvulatoria_();
   const diasBase = resolverDiasBaseOvulatoria_(padrao);
+  const diasDistribuicao = resolverDiasDistribuicaoPorFase_(padrao);
   const porDiaBase = {};
   const nivel = String(p.nivel || '').toLowerCase();
   const restringirEspecial = nivel === 'intermediaria' || nivel === 'avancada';
@@ -294,13 +323,13 @@ function distribuirBaseOvulatoriaPara30Dias_(p, padrao) {
 
   const usoDiaBase = {};
   let ultimoDiaBase = null;
-  const baseAnchor = 14;
-
-  for (let dia = 1; dia <= FEMFLOW.DIAS_TOTAL; dia++) {
-    const idxBase = ((dia - baseAnchor) % diasBase.length + diasBase.length) % diasBase.length;
+  for (let i = 0; i < diasDistribuicao.length; i++) {
+    const diaInfo = diasDistribuicao[i];
+    const dia = diaInfo.dia;
+    const idxBase = i % diasBase.length;
     let diaBase = diasBase[idxBase];
-    const fase = fasePorDiaCiclo_(dia);
-    const estrutura = padrao[(dia - 1) % padrao.length];
+    const fase = diaInfo.fase;
+    const estrutura = padrao[diaInfo.indiceNaFase % padrao.length];
     const especialPermitido = !restringirEspecial || (dia >= 12 && dia <= 22);
 
     const ctx = {
@@ -308,7 +337,8 @@ function distribuirBaseOvulatoriaPara30Dias_(p, padrao) {
       fase,
       nivel: p.nivel,
       enfase: p.enfase,
-      estrutura
+      estrutura,
+      distribuicao: Array.isArray(padrao) ? padrao.join('') : 'ABCDE'
     };
 
     const seriesBase = seriesPorFaseNivel_(ctx.nivel, ctx.fase, ctx.estrutura);
@@ -327,7 +357,7 @@ function distribuirBaseOvulatoriaPara30Dias_(p, padrao) {
     const linhasDia = (porDiaBase[diaBase] || []).map(row => {
       const copia = Object.assign({}, row);
       copia.dia = dia;
-      copia.fase = ctx.fase;
+      copia.fase = dia === 18 ? 'lutea' : ctx.fase;
       copia.enfase = ctx.enfase;
       copia.reps = normalizarReps_(copia.reps);
       const especialRaw = String(copia.especial || '').trim();
@@ -369,6 +399,7 @@ function distribuirBaseOvulatoriaPara30Dias_(p, padrao) {
     });
 
     const boxCounts = {};
+    const linhasDiaFiltradas = [];
     linhasDia.forEach(linha => {
       if (linha.tipo === 'hiit' && !hiitRegra.allow) return;
       if (linha.tipo === 'treino') {
@@ -376,6 +407,17 @@ function distribuirBaseOvulatoriaPara30Dias_(p, padrao) {
         boxCounts[boxKey] = (boxCounts[boxKey] || 0) + 1;
         if (boxCounts[boxKey] > maxPorBox) return;
       }
+      linhasDiaFiltradas.push(linha);
+    });
+
+    const distribuicao = Array.isArray(padrao) ? padrao.join('') : 'ABCDE';
+    const qtdTreinoDia = linhasDiaFiltradas
+      .filter(linha => String(linha?.tipo || '').trim() === 'treino')
+      .length;
+
+    linhasDiaFiltradas.forEach(linha => {
+      linha.distribuicao = distribuicao;
+      linha.qttd_exercicio = qtdTreinoDia;
       rows.push(linha);
     });
   }
@@ -568,6 +610,7 @@ function gerarBaseABCDE_MaleFlow_(p, padrao, base) {
       serieEspecialDiaTipo: p.serieEspecialDiaTipo,
 
       padraoCiclo: padrao,
+      distribuicao: cicloTxt,
       historico: []
     };
     ctx.serieEspecialTipoDia = resolverTipoSerieEspecialDia_(ctx);
