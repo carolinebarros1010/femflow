@@ -347,6 +347,33 @@ function distribuirBaseOvulatoriaPara30Dias_(p, padrao) {
 
     return saida;
   };
+  const isolarBoxesEspeciais_ = (lista) => {
+    const linhas = Array.isArray(lista) ? lista : [];
+    const saida = [];
+    let ultimoBoxRaw = null;
+    let boxSequencial = 0;
+
+    linhas.forEach(linha => {
+      const copia = Object.assign({}, linha);
+      if (String(copia.tipo || '').trim() !== 'treino') {
+        saida.push(copia);
+        return;
+      }
+
+      const boxRaw = String(copia.box || '').trim();
+      if (boxRaw !== ultimoBoxRaw) {
+        boxSequencial += 1;
+        ultimoBoxRaw = boxRaw;
+      }
+
+      const matchSufixo = boxRaw.match(/[a-z]+$/i);
+      const sufixo = matchSufixo ? String(matchSufixo[0]).toUpperCase() : '';
+      copia.box = `${boxSequencial}${sufixo}`;
+      saida.push(copia);
+    });
+
+    return saida;
+  };
   const selecionarDiaBase_ = (diaBase, ctx, usoDiaBase, ultimoDiaBase) => {
     const minimoTreinos = qtdExerciciosTreino_(ctx.nivel, ctx.fase, ctx.estrutura);
     const totalDias = diasBase.length;
