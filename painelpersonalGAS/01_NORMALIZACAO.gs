@@ -189,18 +189,20 @@ function limparComplementosSemanticos_(txt) {
 ============================================================ */
 
 /**
- * Normaliza ciclo: aceita "3/4/5", "abc/abcd/abcde", "ABCDE", etc.
- * Retorna "abc", "abcd" ou "abcde" (string).
+ * Normaliza ciclo: aceita "2/3/4/5", "ab/abc/abcd/abcde", "ABCDE", etc.
+ * Retorna "ab", "abc", "abcd" ou "abcde" (string).
  */
 function normalizarCiclo_(valor) {
   if (!valor) return null;
   const v = normalizar_(valor).replace(/[^a-z0-9]/g, '');
 
+  if (v === '2' || v === 'ab') return 'ab';
   if (v === '3' || v === 'abc') return 'abc';
   if (v === '4' || v === 'abcd') return 'abcd';
   if (v === '5' || v === 'abcde') return 'abcde';
 
   // se vier "ABCDE" (ou "A,B,C,D,E")
+  if (v.includes('a') && v.includes('b') && !v.includes('c')) return 'ab';
   if (v.includes('a') && v.includes('b') && v.includes('c') && v.includes('d') && v.includes('e')) return 'abcde';
   if (v.includes('a') && v.includes('b') && v.includes('c') && v.includes('d')) return 'abcd';
   if (v.includes('a') && v.includes('b') && v.includes('c')) return 'abc';
