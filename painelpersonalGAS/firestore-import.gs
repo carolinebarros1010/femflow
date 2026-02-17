@@ -332,6 +332,8 @@ function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, pers
     ciclos: col("ciclos"),
     estimulo: col("estimulo"),
     modalidade: colAlias("modalidade", "modalidade_slug", "modalidade norm"),
+    distribuicao: colAlias("distribuicao", "distribuição"),
+    qttd_exercicio: colAlias("qttd_exercicio", "qtd_exercicio"),
   };
 
   const usaCicloDiaTreino = idx.ciclo !== -1 && idx.diatreino !== -1;
@@ -544,6 +546,8 @@ function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, pers
         leve: { stringValue: String(r[idx.leve] || "") },
         ciclos: { stringValue: String(r[idx.ciclos] || "") },
         estimulo: { stringValue: String(isEndurancePublic ? estimuloPublic : (idx.estimulo !== -1 ? (r[idx.estimulo] || "") : "")) },
+        distribuicao: { stringValue: String(idx.distribuicao !== -1 ? (r[idx.distribuicao] || "") : "") },
+        qttd_exercicio: { integerValue: Number(idx.qttd_exercicio !== -1 ? (r[idx.qttd_exercicio] || 0) : 0) },
 
         // metadados úteis
         updatedAt: { timestampValue: new Date().toISOString() },
