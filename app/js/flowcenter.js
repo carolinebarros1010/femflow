@@ -446,12 +446,6 @@ function initFlowCenter() {
     const enduranceLabel = enduranceEnabled ? "🏃‍♂️" : "🔒";
     document.getElementById("toEndurance").textContent =
       `${enduranceLabel} ${L.endurance}`;
-    const nextTreinoBtn = document.getElementById("toNextTreino");
-    if (nextTreinoBtn) {
-      const nextLabel = !isCustomTreino && treinoAcessoOk ? "🗓️" : "🔒";
-      nextTreinoBtn.textContent = `${nextLabel} ${L.proximoTreino}`;
-    }
-
     const extraTitle = document.getElementById("extraTitle");
     const extraSub = document.getElementById("extraSub");
     if (extraTitle) extraTitle.textContent = L.treinoExtraTitulo;
@@ -704,12 +698,12 @@ function initFlowCenter() {
 
     const { ultimo, ultimoCaminho, sugerido } = obterSugestaoCaminho();
     if (modalCaminhosUltimo) {
-      modalCaminhosUltimo.textContent = ultimo
-        ? `Seu último treino foi Caminho ${ultimo.caminho}`
-        : "Seu último treino foi Caminho 1";
+      modalCaminhosUltimo.textContent = t("flowcenter.caminhosUltimoTreino", {
+        caminho: ultimo ? ultimo.caminho : 1
+      });
     }
     if (modalCaminhosSugerido) {
-      modalCaminhosSugerido.textContent = `Sugerimos Caminho ${sugerido}`;
+      modalCaminhosSugerido.textContent = `Comparativo → ${t("flowcenter.caminhosSugerido", { caminho: sugerido })}`;
     }
     if (modalCaminhosFase) {
       modalCaminhosFase.textContent = personal
@@ -1017,107 +1011,6 @@ function initFlowCenter() {
     }
     return config;
   };
-
-  const modalProximoTreino = document.getElementById("modalProximoTreino");
-  const modalProximoTitulo = document.getElementById("modalProximoTitulo");
-  const modalProximoSub = document.getElementById("modalProximoSub");
-  const modalProximoListaTitulo = document.getElementById("modalProximoListaTitulo");
-  const modalProximoLista = document.getElementById("modalProximoLista");
-  let modalProximoTimeout = null;
-
-  const abrirModalProximoTreino = () => {
-    if (!modalProximoTreino) return;
-    if (modalProximoTimeout) window.clearTimeout(modalProximoTimeout);
-    modalProximoTreino.classList.remove("hidden");
-    modalProximoTreino.setAttribute("aria-hidden", "false");
-    modalProximoTimeout = window.setTimeout(() => {
-      modalProximoTreino.classList.add("hidden");
-      modalProximoTreino.setAttribute("aria-hidden", "true");
-    }, 9000);
-  };
-
-  const definirModalProximoTextos = ({ diaAtual, proximoDia }) => {
-    const faseLabel =
-      FEMFLOW.langs?.[FEMFLOW.lang || "pt"]?.flowcenter?.[normalizarFase(ciclo.fase)] ||
-      ciclo.fase;
-    if (modalProximoTitulo) {
-      modalProximoTitulo.textContent = t("treino.proximoModal.titulo", {
-        diaAtual,
-        fase: faseLabel
-      });
-    }
-    if (modalProximoSub) {
-      modalProximoSub.textContent = t("treino.proximoModal.subtitulo", {
-        proximoDia,
-        fase: faseLabel
-      });
-    }
-    if (modalProximoListaTitulo) {
-      modalProximoListaTitulo.textContent = t("treino.proximoModal.listaTitulo");
-    }
-  };
-
-  const carregarProximoTreino = async () => {
-    if (!modalProximoLista || !FEMFLOW.engineTreino?.listarExerciciosDia) return;
-
-    const enfaseAtual = localStorage.getItem("femflow_enfase");
-    if (!personal && !enfaseAtual) {
-      FEMFLOW.toast("Escolha um treino na Home 🌸");
-      return;
-    }
-
-    const diaAtual = Number(ciclo.diaCiclo || 1);
-    if (!Number.isFinite(diaAtual) || diaAtual < 1) return;
-
-    const cicloLength = Number(localStorage.getItem("femflow_cycleLength"));
-    const cicloPerfil = Number(perfil.ciclo_duracao || 0);
-    const cicloValido =
-      Number.isFinite(cicloLength) && cicloLength > 0
-        ? cicloLength
-        : Number.isFinite(cicloPerfil) && cicloPerfil > 0
-        ? cicloPerfil
-        : 28;
-    const proximoDia = diaAtual + 1 > cicloValido ? 1 : diaAtual + 1;
-
-    const exercicios = await FEMFLOW.engineTreino.listarExerciciosDia({
-      id: localStorage.getItem("femflow_id"),
-      nivel: perfil.nivel,
-      enfase: enfaseAtual,
-      fase: perfil.fase,
-      diaCiclo: proximoDia,
-      personal
-    });
-
-    modalProximoLista.innerHTML = "";
-    definirModalProximoTextos({ diaAtual, proximoDia });
-
-    if (!exercicios.length) {
-      const li = document.createElement("li");
-      li.textContent = t("treino.proximoModal.vazio");
-      modalProximoLista.appendChild(li);
-      abrirModalProximoTreino();
-      return;
-    }
-
-    exercicios.forEach((nome) => {
-      const li = document.createElement("li");
-      li.textContent = nome;
-      modalProximoLista.appendChild(li);
-    });
-
-    abrirModalProximoTreino();
-  };
-
-  const nextTreinoBtn = document.getElementById("toNextTreino");
-  if (nextTreinoBtn) {
-    nextTreinoBtn.onclick = () => {
-      if (!treinoAcessoOk) {
-        FEMFLOW.toast("Seu acesso expirou. Assine para continuar.");
-        return FEMFLOW.openExternal(LINK_ACESSO_APP);
-      }
-      void carregarProximoTreino();
-    };
-  }
 
   document.querySelectorAll("[data-extra-enfase]").forEach(btn => {
     btn.addEventListener("click", () => {
