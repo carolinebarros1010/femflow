@@ -526,7 +526,11 @@ function initFlowCenter() {
     if (enduranceTreinosLabel) enduranceTreinosLabel.textContent = L.enduranceTreinosLabel;
     if (enduranceDiasLabel) enduranceDiasLabel.textContent = L.enduranceDiasLabel;
     if (enduranceRitmoLabel) enduranceRitmoLabel.textContent = L.enduranceRitmoLabel;
-    if (enduranceRitmoInfo) enduranceRitmoInfo.title = L.enduranceRitmoInfo;
+    if (enduranceRitmoInfo) {
+      enduranceRitmoInfo.title = L.enduranceRitmoInfo;
+      enduranceRitmoInfo.setAttribute("aria-label", L.enduranceRitmoInfo);
+      enduranceRitmoInfo.dataset.tooltip = L.enduranceRitmoInfo;
+    }
     if (enduranceRitmoInput) enduranceRitmoInput.placeholder = L.enduranceRitmoPlaceholder;
     if (enduranceCancelar) enduranceCancelar.textContent = L.enduranceCancelar;
     if (enduranceSalvar) enduranceSalvar.textContent = L.enduranceSalvar;
@@ -588,6 +592,7 @@ function initFlowCenter() {
   const modalEnduranceSalvar = document.getElementById("enduranceSalvar");
   const modalEnduranceSemana = document.getElementById("enduranceSemana");
   const modalEnduranceDia = document.getElementById("enduranceDia");
+  const modalEnduranceRitmoInfo = document.getElementById("enduranceRitmoInfo");
   const modalEnduranceSelecaoCancelar = document.getElementById("enduranceSelecaoCancelar");
   const modalEnduranceSelecaoContinuar = document.getElementById("enduranceSelecaoContinuar");
   const modalCaminhosEscolha = document.getElementById("modalCaminhosEscolha");
@@ -611,6 +616,27 @@ function initFlowCenter() {
     valor: caminhosApi?.DISTRIBUICAO_FALLBACK || "ABCDE",
     totalCaminhos: 5
   };
+
+  const closeEnduranceInfoTooltip = () => {
+    modalEnduranceRitmoInfo?.setAttribute("data-open", "false");
+  };
+
+  if (modalEnduranceRitmoInfo) {
+    modalEnduranceRitmoInfo.addEventListener("click", (event) => {
+      event.preventDefault();
+      const isOpen = modalEnduranceRitmoInfo.getAttribute("data-open") === "true";
+      modalEnduranceRitmoInfo.setAttribute("data-open", isOpen ? "false" : "true");
+    });
+
+    modalEnduranceRitmoInfo.addEventListener("blur", closeEnduranceInfoTooltip);
+    modalEnduranceRitmoInfo.addEventListener("mouseleave", closeEnduranceInfoTooltip);
+
+    document.addEventListener("click", (event) => {
+      if (!modalEnduranceRitmoInfo.contains(event.target)) {
+        closeEnduranceInfoTooltip();
+      }
+    });
+  }
 
   const abrirModalComLock = (modalEl) => {
     if (!modalEl) return;
