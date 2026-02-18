@@ -11,12 +11,14 @@
   top: 0;
   left: 0;
   right: 0;
-  height: 56px;
+  padding-top: env(safe-area-inset-top, 0px);
+  height: calc(56px + env(safe-area-inset-top, 0px));
   background: #fff5ef;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  padding: 0 16px;
+  padding-left: 16px;
+  padding-right: 16px;
   border-bottom: 1px solid rgba(0,0,0,0.08);
   z-index: 9999;
 }
