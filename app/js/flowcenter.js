@@ -833,6 +833,29 @@ function initFlowCenter() {
     abrirModalComLock(modalEnduranceSelecao);
   };
 
+
+  function abrirModalEnduranceSelecaoPersonal(data) {
+
+    const { modalidade, semanasDisponiveis, diasDisponiveis } = data;
+
+    const modal = document.getElementById("modal-endurance-selecao");
+    if (!modal) return;
+
+    modal.dataset.personalModalidade = modalidade;
+
+    document.querySelectorAll("[data-semana]").forEach(btn => {
+      const semana = btn.dataset.semana;
+      btn.classList.toggle("is-disabled", !semanasDisponiveis.includes(semana));
+    });
+
+    document.querySelectorAll("[data-dia]").forEach(btn => {
+      const dia = btn.dataset.dia;
+      btn.classList.toggle("is-disabled", !diasDisponiveis.includes(dia));
+    });
+
+    abrirModalComLock(modal);
+  }
+
   const fecharModalEnduranceSelecao = () => {
     fecharModalComUnlock(modalEnduranceSelecao);
   };
@@ -1284,6 +1307,18 @@ function initFlowCenter() {
   }
 
   enduranceBtn.onclick = async () => {
+    const hasPersonal = localStorage.getItem("femflow_has_personal") === "true";
+    const modePersonal = localStorage.getItem("femflow_mode_personal") === "true";
+    const personal = hasPersonal && modePersonal;
+
+    if (personal) {
+      await iniciarFluxoEndurancePersonal();
+      return;
+    }
+
+    // DEBUG temporário
+    console.log("[Endurance] personal ativo:", personal);
+
     if (!enduranceEnabled) {
       FEMFLOW.toast("Endurance indisponível no momento.");
       return;
@@ -1327,4 +1362,35 @@ function initFlowCenter() {
 
       FEMFLOW.loading.hide();
     });
+}
+
+async function iniciarFluxoEndurancePersonal() {
+
+  const id = localStorage.getItem("femflow_id");
+  if (!id) {
+    FEMFLOW.toast("Sessão inválida.");
+    return;
+  }
+
+  try {
+
+    const enduranceSnap = await firebase.firestore()
+      .collection("personal_trainings")
+      .doc(id)
+      .collection("endurance")
+      .get();
+
+    if (enduranceSnap.empty) {
+      FEMFLOW.toast("Endurance personal não configurado.");
+      return;
+    }
+
+    const modalidadeDoc = enduranceSnap.docs[0];
+    const modalidade = modalidadeDoc.id;
+
+    console.log("[Endurance Personal] Modalidade:", modalidade);
+
+  } catch (err) {
+    console.error("Erro ao carregar endurance personal:", err);
+  }
 }
