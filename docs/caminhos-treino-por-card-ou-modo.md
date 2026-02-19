@@ -62,14 +62,14 @@ Este documento resume os fluxos de navegação e estado para os caminhos de trei
 
 ## 4) Planilha de corrida
 
-**Origem:** cards `planilha_corrida_5k`, `planilha_corrida_10k`, `planilha_corrida_15k`.
+**Origem:** cards `planilha_corrida_5k`, `planilha_corrida_10k`, `planilha_corrida_15k`, `planilha_corrida_21k`, `planilha_corrida_42k`.
 
 **Fluxo:**
 1. Usuária clica na planilha.
 2. Home marca intenção pública de endurance:
    - `femflow_endurance_public_intent = "true"`
    - `femflow_endurance_public_enabled = "true"`
-   - `femflow_endurance_modalidade = "corrida_5k|10k|15k"`
+   - `femflow_endurance_modalidade = "corrida_5k|10k|15k|21k|42k"`
 3. Mostra toast e envia para `flowcenter`.
 4. No Flow Center, usuária configura Endurance (modalidade, treinos/semana, dias, ritmo).
 5. Ao salvar configuração:

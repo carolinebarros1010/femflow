@@ -760,6 +760,40 @@ const CARDS_PLANILHAS_30_DIAS = [
     color: "#ddb09f",
     locked: false,
     simbolico: true
+  },
+  {
+    enfase: "planilha_corrida_21k",
+    modalidade: "corrida_21k",
+    titulo: {
+      pt: "Meia Maratona",
+      en: "Half Marathon",
+      fr: "Semi-marathon"
+    },
+    desc: {
+      pt: "Planilha de 30 dias para corrida 21K",
+      en: "30-day plan for a 21K race",
+      fr: "Plan de 30 jours pour une course 21K"
+    },
+    color: "#cf9f8f",
+    locked: false,
+    simbolico: true
+  },
+  {
+    enfase: "planilha_corrida_42k",
+    modalidade: "corrida_42k",
+    titulo: {
+      pt: "Maratona",
+      en: "Marathon",
+      fr: "Marathon"
+    },
+    desc: {
+      pt: "Planilha de 30 dias para corrida 42K",
+      en: "30-day plan for a 42K race",
+      fr: "Plan de 30 jours pour une course 42K"
+    },
+    color: "#c28f7f",
+    locked: false,
+    simbolico: true
   }
 ];
 
@@ -814,9 +848,18 @@ const CARD_THUMBS = {
   planilha_corrida_5k: "corrida_5k.jpg",
   planilha_corrida_10k: "corrida_10k.jpg",
   planilha_corrida_15k: "corrida_15k.jpg",
+  planilha_corrida_21k: "corrida_21k.jpg",
+  planilha_corrida_42k: "corrida_42k.jpg",
   corrida_5k: "corrida_5k.jpg",
   corrida_10k: "corrida_10k.jpg",
   corrida_15k: "corrida_15k.jpg",
+  corrida_21k: "corrida_21k.jpg",
+  corrida_42k: "corrida_42k.jpg",
+  bike_20000m: "bike_20000m.jpg",
+  bike_40000m: "bike_40000m.jpg",
+  natacao_750m: "natacao_750m.jpg",
+  natacao_1500m: "natacao_1500m.jpg",
+  natacao_2000m: "natacao_2000m.jpg",
   monte_seu_treino: "monte_seu_treino.jpg",
   bodyinsight: "body_insight.jpg"
 };
