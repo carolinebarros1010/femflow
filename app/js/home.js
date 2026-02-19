@@ -908,7 +908,7 @@ const CARD_THUMBS = {
   gluteo: "gluteos.jpg",
   gluteos: "gluteos.jpg",
   casa_core_gluteo: "casa_core_gluteo.jpg",
-  casa_melhor_idade: "casa_mobilidade.jpg",
+  casa_melhor_idade: "casa_melhor_idade.jpg",
   casa_mobilidade: "casa_mobilidade.jpg",
   casa_queima_gordura: "casa_queima_gordura.jpg",
   casa_fullbody_praia: "casa_fullbody_praia.jpg",
