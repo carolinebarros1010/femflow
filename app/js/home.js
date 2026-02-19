@@ -794,6 +794,91 @@ const CARDS_PLANILHAS_30_DIAS = [
     color: "#c28f7f",
     locked: false,
     simbolico: true
+  },
+  {
+    enfase: "planilha_bike_20000m",
+    modalidade: "bike_20000m",
+    titulo: {
+      pt: "Ciclismo 20K",
+      en: "Cycling 20K",
+      fr: "Cyclisme 20K"
+    },
+    desc: {
+      pt: "Planilha de 30 dias para ciclismo 20K",
+      en: "30-day plan for a 20K cycling ride",
+      fr: "Plan de 30 jours pour une sortie vélo 20K"
+    },
+    color: "#b7ccd9",
+    locked: false,
+    simbolico: true
+  },
+  {
+    enfase: "planilha_bike_40000m",
+    modalidade: "bike_40000m",
+    titulo: {
+      pt: "Ciclismo 40K",
+      en: "Cycling 40K",
+      fr: "Cyclisme 40K"
+    },
+    desc: {
+      pt: "Planilha de 30 dias para ciclismo 40K",
+      en: "30-day plan for a 40K cycling ride",
+      fr: "Plan de 30 jours pour une sortie vélo 40K"
+    },
+    color: "#9bb6c8",
+    locked: false,
+    simbolico: true
+  },
+  {
+    enfase: "planilha_natacao_750m",
+    modalidade: "natacao_750m",
+    titulo: {
+      pt: "Natação 750m",
+      en: "Swimming 750m",
+      fr: "Natation 750m"
+    },
+    desc: {
+      pt: "Planilha de 30 dias para natação 750m",
+      en: "30-day plan for a 750m swim",
+      fr: "Plan de 30 jours pour une nage de 750m"
+    },
+    color: "#9fd2df",
+    locked: false,
+    simbolico: true
+  },
+  {
+    enfase: "planilha_natacao_1500m",
+    modalidade: "natacao_1500m",
+    titulo: {
+      pt: "Natação 1500m",
+      en: "Swimming 1500m",
+      fr: "Natation 1500m"
+    },
+    desc: {
+      pt: "Planilha de 30 dias para natação 1500m",
+      en: "30-day plan for a 1500m swim",
+      fr: "Plan de 30 jours pour une nage de 1500m"
+    },
+    color: "#84c4d5",
+    locked: false,
+    simbolico: true
+  },
+  {
+    enfase: "planilha_natacao_2000m",
+    modalidade: "natacao_2000m",
+    titulo: {
+      pt: "Natação 2000m",
+      en: "Swimming 2000m",
+      fr: "Natation 2000m"
+    },
+    desc: {
+      pt: "Planilha de 30 dias para natação 2000m",
+      en: "30-day plan for a 2000m swim",
+      fr: "Plan de 30 jours pour une nage de 2000m"
+    },
+    color: "#6fb7cc",
+    locked: false,
+    simbolico: true
   }
 ];
 
@@ -850,6 +935,11 @@ const CARD_THUMBS = {
   planilha_corrida_15k: "corrida_15k.jpg",
   planilha_corrida_21k: "corrida_21k.jpg",
   planilha_corrida_42k: "corrida_42k.jpg",
+  planilha_bike_20000m: "bike_20000m.jpg",
+  planilha_bike_40000m: "bike_40000m.jpg",
+  planilha_natacao_750m: "natacao_750m.jpg",
+  planilha_natacao_1500m: "natacao_1500m.jpg",
+  planilha_natacao_2000m: "natacao_2000m.jpg",
   corrida_5k: "corrida_5k.jpg",
   corrida_10k: "corrida_10k.jpg",
   corrida_15k: "corrida_15k.jpg",
@@ -1204,7 +1294,7 @@ async function handleCardClick(enfase, locked) {
     return;
   }
 
-  if (enfase.startsWith("planilha_corrida_")) {
+  if (enfase.startsWith("planilha_")) {
     abrirModalNovoPrograma(enfase, () => iniciarPlanilhaCorrida(enfase));
     return;
   }
