@@ -1,120 +1,199 @@
-# Relatório técnico — funcionamento do **Modo Personal**
+# Modo Personal no FemFlow — documentação pormenorizada
 
-## 1) Objetivo do modo
+## 1) Visão geral
 
-O **Modo Personal** é um estado de navegação/execução no frontend que muda a regra de acesso ao treino para priorizar um plano personalizado.
+O **Modo Personal** é uma combinação de duas condições independentes:
 
-Ele **não é o mesmo que ter direito ao personal**. O sistema separa:
+1. **Direito de acesso ao serviço Personal** (autorização): `femflow_has_personal`
+2. **Modo Personal ligado na sessão atual** (intenção de uso): `femflow_mode_personal`
 
-- **Direito de acesso**: `femflow_has_personal`
-- **Modo ativo na sessão**: `femflow_mode_personal`
-
-A regra canônica usada no app é:
+A regra canônica do app é:
 
 ```js
 const personal = hasPersonal && modePersonal;
 ```
 
-Ou seja, só entra em modo personal quando a usuária **tem direito** e o modo foi **explicitamente ativado**.
+Ou seja: mesmo com direito ativo, a pessoa usuária só entra no fluxo personal quando o modo estiver explicitamente ligado. Esse desenho evita acesso indevido por estado legado em `localStorage`.
 
 ---
 
-## 2) Origem dos dados e persistência
+## 2) Modelo de estado (chaves e responsabilidades)
 
-### 2.1. Direito personal (`has_personal`)
+### 2.1 `femflow_has_personal` (direito)
 
-Ao carregar perfil (`validar`), o core normaliza várias possíveis chaves de resposta e grava `femflow_has_personal` no `localStorage`.
+- **Tipo**: string booleana (`"true"`/`"false"`)
+- **Origem**: dados de perfil vindos do backend
+- **Responsabilidade**: informar se a usuária pode usar recursos Personal
 
-Fontes aceitas:
+### 2.2 `femflow_mode_personal` (modo de navegação)
+
+- **Tipo**: string booleana (`"true"`/`"false"`)
+- **Origem**: interação de UI (principalmente Home)
+- **Responsabilidade**: sinalizar que a usuária quer navegar no fluxo Personal agora
+
+### 2.3 Regra de segurança
+
+- Nunca usar apenas `femflow_mode_personal` para liberar acesso
+- Nunca usar apenas `femflow_has_personal` para assumir intenção
+- Sempre derivar:
+
+```js
+personal = hasPersonal && modePersonal
+```
+
+---
+
+## 3) Origem dos dados: como o direito Personal é calculado
+
+Quando o perfil é carregado/sincronizado, o core aceita múltiplas assinaturas de payload para robustez com versões de backend:
 
 - `acessos.personal`
 - `r.personal`
 - `r.Personal`
 - `r.has_personal`
 - `r.hasPersonal`
-- ou VIP (`produto === "vip"`)
+- fallback VIP (`produto === "vip"`)
 
-### 2.2. Modo personal (`mode_personal`)
+Depois normaliza para `femflow_has_personal = "true"|"false"`.
 
-Na Home, o modo é protegido:
+### Por que isso importa?
 
-- se **não** tem direito personal, força `femflow_mode_personal = "false"`;
-- se tem direito, inicializa em `false` caso ainda não exista.
-
-Isso evita “travar” modo personal ligado para quem não deveria.
+Esse normalizador reduz regressões quando a API muda naming (`snake_case`/`camelCase`) ou quando produtos VIP herdam acesso Personal por regra de negócio.
 
 ---
 
-## 3) Como o modo é ativado/desativado
+## 4) Inicialização e saneamento na Home
 
-## 3.1. Ativação
+Ao persistir o perfil na Home, o app:
 
-Na Home, ao clicar no card `personal` **desbloqueado**:
+1. Recalcula `hasPersonal` com base em `acessos.personal` e VIP;
+2. Grava `femflow_has_personal`;
+3. Remove chave legada `femflow_personal`;
+4. Faz **hardening do modo**:
+   - se **não** tem direito Personal, força `femflow_mode_personal = "false"`;
+   - se tem direito e a chave ainda não existe, inicializa como `"false"`.
 
-1. mostra toast “Modo Personal ativado”;
-2. grava `femflow_mode_personal = "true"`;
-3. roteia para `flowcenter.html`.
-
-## 3.2. Desativação
-
-O modo é desativado quando:
-
-- clica em card normal de treino (qualquer ênfase não personal) → `femflow_mode_personal = "false"`;
-- escolhe coach FollowMe → `false`;
-- seleciona “Monte seu treino” → `false`;
-- perfil sem direito personal ao sincronizar Home → `false` (forçado).
+Com isso, evita-se cenário de “modo preso em true” por cache antigo.
 
 ---
 
-## 4) Efeito na navegação
+## 5) Ativação e desativação do modo
 
-O router global adiciona `?personal=1` automaticamente quando `femflow_mode_personal === "true"`.
+## 5.1 Ativação
 
-Isso garante que a intenção de navegação em modo personal acompanhe os redirecionamentos entre telas.
+Na Home, quando o card `personal` desbloqueado é acionado:
 
----
+1. Exibe toast de confirmação;
+2. Salva `femflow_mode_personal = "true"`;
+3. Navega para `flowcenter.html`.
 
-## 5) Efeito no FlowCenter
+> Importante: não vai direto ao treino; o FlowCenter segue como orquestrador de contexto.
 
-No FlowCenter:
+## 5.2 Desativação automática
 
-- calcula `personal = hasPersonal && modePersonal`;
-- considera treino liberado quando `personal || acessoAtivo || freeOkUI`;
-- botão principal “Treinar” dá **prioridade absoluta** ao personal:
-  - se `personal === true`, envia direto para `treino.html` sem exigir ênfase normal.
+O modo é desligado em ações de fluxo comum, por exemplo:
 
-Além disso, ao buscar prévia de próximo treino (`listarExerciciosDia`), envia `personal` no payload para o motor.
-
----
-
-## 6) Efeito na página de Treino (`treino.html`)
-
-Existe middleware de acesso por URL direta:
-
-- valida sessão (`id` + `produto`);
-- se **não** estiver em personal:
-  - exige ciclo configurado;
-  - exige ênfase (ou flag endurance).
-
-Quando `personal === true`, esse bloqueio de ciclo/ênfase é flexibilizado para permitir o fluxo personalizado.
+- seleção de ênfases não personal;
+- fluxo FollowMe;
+- fluxo “Monte seu treino”;
+- alguns botões/ações de navegação que retomam treino padrão;
+- sincronização da Home sem direito Personal (forçado para `false`).
 
 ---
 
-## 7) Resumo operacional (passo a passo)
+## 6) Efeito no roteador global
 
-1. Backend marca direito personal (`acessos.personal`) ou VIP.
-2. Front grava `femflow_has_personal`.
-3. Usuária ativa card Personal na Home.
-4. Front grava `femflow_mode_personal = true`.
-5. Router passa a anexar `?personal=1`.
-6. FlowCenter calcula `personal = hasPersonal && modePersonal`.
-7. Botão Treinar segue rota prioritária para treino em modo personal.
-8. Ao trocar para treinos comuns, modo personal é desligado.
+O roteador (`FEMFLOW.router`) anexa `?personal=1` quando `femflow_mode_personal === "true"`.
+
+### Objetivo
+
+- Propagar a intenção de modo personal entre telas;
+- Preservar contexto de navegação mesmo com redirects internos;
+- Reduzir necessidade de cada tela reconstruir estado sozinha.
 
 ---
 
-## 8) Conclusão
+## 7) Efeito no FlowCenter (ponto central de decisão)
 
-O modo personal foi implementado com separação correta entre **autorização** e **estado de uso**. Isso reduz bugs de permissão, evita acesso indevido por cache/localStorage legado e mantém a experiência previsível ao alternar entre personal e treinos padrão.
+No FlowCenter, a sequência lógica é:
 
-A combinação `hasPersonal && modePersonal` é a peça central de segurança e comportamento do fluxo.
+1. Ler `hasPersonal` e `modePersonal` do `localStorage`;
+2. Derivar `personal = hasPersonal && modePersonal`;
+3. Derivar `treinoAcessoOk = personal || acessoAtivo || freeOkUI`.
+
+### Consequência prática
+
+Se `personal === true`, o fluxo de treino fica liberado mesmo que outras condições do fluxo padrão (como combinação de acesso e contexto normal) não sejam as mesmas do caminho tradicional.
+
+Além disso, requests que montam prévia e seleção de treino enviam sinalizadores de personal no payload, permitindo ao backend/motor ajustar regras.
+
+---
+
+## 8) Efeito na página de treino (`treino.html`)
+
+Existe um middleware de proteção contra acesso direto por URL.
+
+### Regras de validação
+
+1. Confere sessão básica (`id` + `produto`);
+2. Se **não** estiver em personal:
+   - exige ciclo configurado;
+   - exige ênfase selecionada (ou flag de endurance).
+
+Quando `personal === true`, o bloqueio de ciclo/ênfase do caminho padrão é flexibilizado, mantendo apenas as proteções essenciais de sessão.
+
+---
+
+## 9) Fluxo ponta a ponta (sequência operacional)
+
+1. Usuária autentica e perfil é sincronizado;
+2. Sistema normaliza direito Personal e grava `femflow_has_personal`;
+3. Home saneia/normaliza `femflow_mode_personal`;
+4. Usuária clica no card Personal;
+5. Home ativa `femflow_mode_personal = "true"` e roteia ao FlowCenter;
+6. Router injeta `?personal=1` enquanto o modo estiver ativo;
+7. FlowCenter calcula `personal = hasPersonal && modePersonal` e prioriza o caminho personal;
+8. Treino aplica middleware compatível com esse contexto;
+9. Ao voltar para fluxos não personal, a Home desliga o modo (`"false"`).
+
+---
+
+## 10) Casos de borda importantes
+
+### 10.1 Usuária perde direito Personal no backend
+
+- Na próxima sincronização de perfil, `femflow_has_personal` vira `"false"`;
+- A Home força `femflow_mode_personal = "false"`.
+
+### 10.2 `femflow_mode_personal` ficou `"true"` por histórico antigo
+
+- Se não houver direito (`has_personal`), o hardening da Home corrige;
+- O cálculo canônico no FlowCenter/Treino impede liberação indevida.
+
+### 10.3 VIP sem flag explícita de personal
+
+- VIP entra como `hasPersonal = true` por regra de produto.
+
+---
+
+## 11) Estratégia de troubleshooting (rápida)
+
+Se “Modo Personal não está funcionando”, validar nesta ordem:
+
+1. `localStorage.femflow_has_personal` está `"true"`?
+2. `localStorage.femflow_mode_personal` está `"true"` após clicar no card?
+3. URL contém `?personal=1` após navegar?
+4. No FlowCenter, `personal` resultou em `true`?
+5. Há alguma ação posterior desligando o modo para `false`?
+
+Se qualquer etapa falhar, o problema costuma estar em:
+
+- payload de perfil (direito não veio/veio em formato inesperado);
+- fluxo de UI que sobrescreve modo para `false`;
+- limpeza de storage entre páginas/sessões.
+
+---
+
+## 12) Resumo executivo
+
+O Modo Personal do FemFlow foi implementado com separação correta entre **autorização** e **estado de uso**. A combinação `hasPersonal && modePersonal` é o ponto de controle central para segurança e previsibilidade do comportamento. Essa arquitetura reduz bugs de permissão, protege contra estado legado em cache e facilita manutenção evolutiva do fluxo.
