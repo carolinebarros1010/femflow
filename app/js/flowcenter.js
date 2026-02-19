@@ -1373,7 +1373,7 @@ async function iniciarFluxoEndurancePersonal() {
   }
 
   try {
-
+    // 1️⃣ Buscar modalidades disponíveis
     const enduranceSnap = await firebase.firestore()
       .collection("personal_trainings")
       .doc(id)
@@ -1388,9 +1388,90 @@ async function iniciarFluxoEndurancePersonal() {
     const modalidadeDoc = enduranceSnap.docs[0];
     const modalidade = modalidadeDoc.id;
 
-    console.log("[Endurance Personal] Modalidade:", modalidade);
+    // 2️⃣ Buscar semanas disponíveis
+    const semanaSnap = await firebase.firestore()
+      .collection("personal_trainings")
+      .doc(id)
+      .collection("endurance")
+      .doc(modalidade)
+      .collection("treinos")
+      .doc("base")
+      .collection("semana")
+      .get();
+
+    if (semanaSnap.empty) {
+      FEMFLOW.toast("Semanas não configuradas no endurance personal.");
+      return;
+    }
+
+    const semanasDisponiveis = semanaSnap.docs
+      .map(d => d.id)
+      .sort((a, b) => Number(a) - Number(b));
+
+    // 3️⃣ Buscar dias da primeira semana disponível
+    const primeiraSemana = semanasDisponiveis[0];
+
+    const diasSnap = await firebase.firestore()
+      .collection("personal_trainings")
+      .doc(id)
+      .collection("endurance")
+      .doc(modalidade)
+      .collection("treinos")
+      .doc("base")
+      .collection("semana")
+      .doc(primeiraSemana)
+      .collection("dias")
+      .get();
+
+    if (diasSnap.empty) {
+      FEMFLOW.toast("Dias não configurados no endurance personal.");
+      return;
+    }
+
+    const diasDisponiveis = [];
+
+    for (const diaDoc of diasSnap.docs) {
+      const blocosSnap = await firebase.firestore()
+        .collection("personal_trainings")
+        .doc(id)
+        .collection("endurance")
+        .doc(modalidade)
+        .collection("treinos")
+        .doc("base")
+        .collection("semana")
+        .doc(primeiraSemana)
+        .collection("dias")
+        .doc(diaDoc.id)
+        .collection("blocos")
+        .limit(1)
+        .get();
+
+      if (!blocosSnap.empty) {
+        diasDisponiveis.push(diaDoc.id);
+      }
+    }
+
+    if (!diasDisponiveis.length) {
+      FEMFLOW.toast("Nenhum dia válido encontrado no endurance personal.");
+      return;
+    }
+
+    const diasNormalizados = diasDisponiveis
+      .map(d => String(d).toLowerCase().trim());
+
+    localStorage.setItem("femflow_endurance_semana", String(primeiraSemana));
+    localStorage.setItem("femflow_endurance_dia", String(diasNormalizados[0]));
+    localStorage.setItem("femflow_endurance_modalidade", modalidade);
+
+    // 4️⃣ Abrir modal 2 adaptado
+    abrirModalEnduranceSelecaoPersonal({
+      modalidade,
+      semanasDisponiveis,
+      diasDisponiveis: diasNormalizados
+    });
 
   } catch (err) {
     console.error("Erro ao carregar endurance personal:", err);
+    FEMFLOW.toast("Erro ao carregar seu endurance personal.");
   }
 }
