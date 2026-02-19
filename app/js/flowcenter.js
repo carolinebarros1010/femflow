@@ -1246,6 +1246,29 @@ function initFlowCenter() {
 
   if (modalEnduranceSelecaoContinuar) {
     modalEnduranceSelecaoContinuar.addEventListener("click", async () => {
+      const hasPersonal = localStorage.getItem("femflow_has_personal") === "true";
+      const modePersonal = localStorage.getItem("femflow_mode_personal") === "true";
+      const personal = hasPersonal && modePersonal;
+
+      if (personal) {
+        const semana = modalEnduranceSemana?.dataset.value || "";
+        const dia = modalEnduranceDia?.dataset.value || "";
+        const modalidade = localStorage.getItem("femflow_endurance_modalidade") || "";
+
+        if (!semana || !dia || !modalidade) {
+          FEMFLOW.toast("Selecione semana e dia para continuar.");
+          return;
+        }
+
+        localStorage.setItem("femflow_endurance_semana", String(semana));
+        localStorage.setItem("femflow_endurance_dia", String(dia));
+        localStorage.setItem("femflow_endurance_personal", "true");
+
+        fecharModalEnduranceSelecao();
+        FEMFLOW.router("treino.html?endurance=1");
+        return;
+      }
+
       const semana = modalEnduranceSemana?.dataset.value || "";
       const dia = normalizarDiaEndurance(modalEnduranceDia?.dataset.value || "");
       const diasDisponiveis = getDiasEnduranceDisponiveis().map(normalizarDiaEndurance);

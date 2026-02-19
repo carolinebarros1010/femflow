@@ -87,6 +87,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let enduranceAtivo = enduranceParamActive;
   let enduranceConfig = null;
   let endurancePublicAtivo = false;
+  const isPersonalEndurance =
+    localStorage.getItem("femflow_endurance_personal") === "true";
   let personalFinal = isPersonal;
   const cardioZonaModalState = { open: false };
   let contextoCaminhoSelecionado = null;
@@ -890,7 +892,7 @@ const hasPersonal =
     const endurancePublicIntent =
       localStorage.getItem("femflow_endurance_public_intent") === "true";
     const endurancePublicAtivoContexto =
-      endurancePublicEnabled && (endurancePublicIntent || !hasPersonalStorage);
+      !isPersonalEndurance && endurancePublicEnabled && (endurancePublicIntent || !hasPersonalStorage);
     const enduranceAllowed = hasPersonalStorage || enduranceSetupExists || endurancePublicAtivoContexto;
 
     if (!enduranceAllowed && enduranceAtivo) {
