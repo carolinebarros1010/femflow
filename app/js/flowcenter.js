@@ -1311,13 +1311,13 @@ function initFlowCenter() {
     const modePersonal = localStorage.getItem("femflow_mode_personal") === "true";
     const personal = hasPersonal && modePersonal;
 
+    // DEBUG temporário
+    console.log("[Endurance] personal ativo:", personal);
+
     if (personal) {
       await iniciarFluxoEndurancePersonal();
       return;
     }
-
-    // DEBUG temporário
-    console.log("[Endurance] personal ativo:", personal);
 
     if (!enduranceEnabled) {
       FEMFLOW.toast("Endurance indisponível no momento.");
