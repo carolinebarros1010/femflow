@@ -1387,6 +1387,50 @@ function initFlowCenter() {
     });
 }
 
+async function discoverEnduranceModalidadesPersonal_(id) {
+  const fs = firebase.firestore();
+  const enduranceCol = fs.collection("personal_trainings").doc(id).collection("endurance");
+
+  // (A) índice opcional
+  try {
+    const metaSnap = await enduranceCol.doc("__meta").get();
+    if (metaSnap.exists) {
+      const metas = metaSnap.data() || {};
+      if (Array.isArray(metas.modalidades) && metas.modalidades.length) {
+        return Array.from(new Set(
+          metas.modalidades.map(s => String(s).toLowerCase().trim()).filter(Boolean)
+        ));
+      }
+    }
+  } catch (e) {
+    console.warn("[Endurance Personal] __meta não disponível:", e);
+  }
+
+  // (B) probe por docs conhecidos
+  const candidatos = [
+    "corrida", "run",
+    "bike", "ciclismo", "cycle",
+    "natacao", "nado", "swim",
+    "remo", "rowing",
+    "caminhada", "walk",
+    "eliptico", "elliptical"
+  ];
+
+  const snaps = await Promise.all(
+    candidatos.map(async (m) => {
+      const key = String(m).toLowerCase().trim();
+      try {
+        const s = await enduranceCol.doc(key).get();
+        return s.exists ? key : null;
+      } catch (e) {
+        return null;
+      }
+    })
+  );
+
+  return Array.from(new Set(snaps.filter(Boolean)));
+}
+
 async function iniciarFluxoEndurancePersonal() {
 
   const id = localStorage.getItem("femflow_id");
@@ -1396,20 +1440,25 @@ async function iniciarFluxoEndurancePersonal() {
   }
 
   try {
-    // 1️⃣ Buscar modalidades disponíveis
-    const enduranceSnap = await firebase.firestore()
-      .collection("personal_trainings")
-      .doc(id)
-      .collection("endurance")
-      .get();
+    const modalidades = await discoverEnduranceModalidadesPersonal_(id);
 
-    if (enduranceSnap.empty) {
+    if (!modalidades.length) {
       FEMFLOW.toast("Endurance personal não configurado.");
       return;
     }
 
-    const modalidadeDoc = enduranceSnap.docs[0];
-    const modalidade = modalidadeDoc.id;
+    const preferida = String(localStorage.getItem("femflow_endurance_modalidade") || "")
+      .toLowerCase().trim();
+
+    const modalidade = (preferida && modalidades.includes(preferida))
+      ? preferida
+      : modalidades[0];
+
+    if (modalidades.length > 1 && !modalidades.includes(preferida)) {
+      FEMFLOW.toast("Modalidade selecionada automaticamente. Você poderá trocar na próxima versão.");
+    }
+
+    localStorage.setItem("femflow_endurance_modalidade", modalidade);
 
     // 2️⃣ Buscar semanas disponíveis
     const semanaSnap = await firebase.firestore()
