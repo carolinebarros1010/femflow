@@ -223,6 +223,44 @@
   </div>
 </div>
 
+<!-- MODAL ENDURANCE PERSONAL — EXCLUSIVO -->
+<div id="modal-endurance-personal" class="modal-endurance modal-endurance-personal oculto" aria-hidden="true" data-mode="personal">
+  <div class="modal-endurance-box" role="dialog" aria-modal="true">
+    <h2>✨ Endurance Personal</h2>
+    <p class="modal-endurance-sub" id="endurancePersonalSub">
+      Treino individual do seu personal. Selecione apenas opções disponíveis.
+    </p>
+
+    <div class="endurance-personal-modalidade" id="endurancePersonalModalidadeBadge">—</div>
+
+    <div id="endurancePersonalLoading" class="endurance-personal-loading oculto">Carregando agenda do seu personal...</div>
+
+    <div id="endurancePersonalContent">
+      <div class="endurance-field">
+        <span>Semana disponível</span>
+        <div class="endurance-options" id="endurancePersonalSemanas"></div>
+      </div>
+
+      <div class="endurance-field">
+        <span>Dia disponível</span>
+        <div class="endurance-options endurance-days" id="endurancePersonalDias"></div>
+        <small id="endurancePersonalHint" class="endurance-personal-hint">Selecione uma semana para ver os dias.</small>
+      </div>
+    </div>
+
+    <div id="endurancePersonalEmpty" class="endurance-personal-empty oculto">
+      <div class="endurance-personal-empty-icon">🌸</div>
+      <p>Seu personal ainda não configurou seu endurance.</p>
+      <button type="button" class="endurance-btn ghost" id="endurancePersonalFalar">Falar com meu personal</button>
+    </div>
+
+    <div class="endurance-actions" id="endurancePersonalActions">
+      <button type="button" class="endurance-btn ghost" id="endurancePersonalCancelar">Cancelar</button>
+      <button type="button" class="endurance-btn" id="endurancePersonalConfirmar" disabled>Confirmar treino</button>
+    </div>
+  </div>
+</div>
+
 <!-- MODAL CAMINHOS — ESCOLHA -->
 <div id="modalCaminhosEscolha" class="modal-caminhos oculto" aria-hidden="true">
   <div class="modal-caminhos-box" role="dialog" aria-modal="true">

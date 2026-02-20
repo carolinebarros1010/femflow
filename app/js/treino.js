@@ -87,8 +87,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let enduranceAtivo = enduranceParamActive;
   let enduranceConfig = null;
   let endurancePublicAtivo = false;
-  const isPersonalEndurance =
-    localStorage.getItem("femflow_endurance_personal") === "true";
+  const enduranceMode = String(localStorage.getItem("femflow_endurance_mode") || "normal").toLowerCase();
+  const isPersonalEndurance = enduranceMode === "personal";
   let personalFinal = isPersonal;
   const cardioZonaModalState = { open: false };
   let contextoCaminhoSelecionado = null;

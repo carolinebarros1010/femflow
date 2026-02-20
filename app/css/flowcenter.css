@@ -280,6 +280,59 @@ h1 {
   animation: fadeIn .15s ease-out;
 }
 
+.modal-endurance-personal {
+  backdrop-filter: blur(4px);
+}
+
+.modal-endurance-personal .modal-endurance-box {
+  background: linear-gradient(165deg, #fff8f4 0%, #fff1ea 100%);
+  border: 1px solid rgba(204, 106, 90, 0.22);
+  animation: personalModalIn .28s cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+.endurance-personal-modalidade {
+  display: inline-flex;
+  align-items: center;
+  margin-bottom: 14px;
+  padding: 6px 12px;
+  border-radius: 999px;
+  border: 1px solid rgba(51, 89, 83, 0.35);
+  background: rgba(51, 89, 83, 0.08);
+  color: #335953;
+  font-weight: 700;
+  text-transform: capitalize;
+}
+.endurance-personal-loading {
+  padding: 10px 12px;
+  border-radius: 10px;
+  margin-bottom: 12px;
+  background: rgba(51, 89, 83, 0.08);
+  color: #335953;
+  font-size: 0.85rem;
+}
+
+.endurance-personal-hint {
+  color: #7c6a65;
+  font-size: 0.78rem;
+}
+
+.endurance-personal-empty {
+  text-align: center;
+  padding: 10px 4px 4px;
+}
+
+.endurance-personal-empty-icon {
+  font-size: 1.8rem;
+  margin-bottom: 6px;
+}
+
+.endurance-btn:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  pointer-events: none;
+}
+
+
 .modal-endurance-box h2 {
   margin-bottom: 8px;
   font-family: "Playfair Display", serif;
@@ -347,6 +400,18 @@ h1 {
   border-color: var(--terracota);
 }
 
+.modal-endurance-personal .endurance-chip {
+  transform: scale(1);
+}
+
+.modal-endurance-personal .endurance-chip.is-active {
+  box-shadow: 0 8px 18px rgba(204, 106, 90, 0.24);
+}
+
+.modal-endurance-personal .endurance-chip.is-feedback {
+  animation: chipFeedback 0.22s ease-out;
+}
+
 .endurance-chip.is-disabled {
   opacity: 0.45;
   pointer-events: none;
@@ -410,6 +475,23 @@ h1 {
   background: transparent;
   border: 1px solid rgba(204,106,90,0.35);
   color: var(--terracota);
+}
+
+@keyframes personalModalIn {
+  from {
+    opacity: 0;
+    transform: translateY(18px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+@keyframes chipFeedback {
+  0% { transform: scale(1); }
+  50% { transform: scale(1.06); }
+  100% { transform: scale(1); }
 }
 
 /* ==========================================================
