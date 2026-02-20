@@ -1769,10 +1769,10 @@ function initFlowCenter() {
   enduranceBtn.onclick = async () => {
     const hasPersonal = localStorage.getItem("femflow_has_personal") === "true";
     const modePersonal = localStorage.getItem("femflow_mode_personal") === "true";
-    const personal = hasPersonal && modePersonal;
+    const personal = hasPersonal;
 
     // DEBUG temporário
-    console.log("[Endurance] personal ativo:", personal);
+    console.log("[Endurance] personal ativo:", personal, "modo personal:", modePersonal);
 
     if (personal) {
       await iniciarFluxoEndurancePersonal();
