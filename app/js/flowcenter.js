@@ -331,8 +331,15 @@ function initFlowCenter() {
   const endurancePlanAvailable = Boolean(endurancePlanToken);
 
   // 🔥 regra canônica
-  const personal = hasPersonal && modePersonal;
   const endurancePublicIntent = localStorage.getItem("femflow_endurance_public_intent") === "true";
+
+  // Quando a usuária vem da planilha pública, o modo personal precisa ser
+  // desligado para evitar conflito de fonte de treino.
+  if (endurancePublicIntent && modePersonal) {
+    localStorage.setItem("femflow_mode_personal", "false");
+  }
+
+  const personal = hasPersonal && (localStorage.getItem("femflow_mode_personal") === "true");
   const endurancePublicEnabled = localStorage.getItem("femflow_endurance_public_enabled") === "true";
   const enduranceEnabled = personal || endurancePlanAvailable || endurancePublicEnabled || endurancePublicIntent;
 
@@ -668,6 +675,10 @@ function initFlowCenter() {
 
   const fecharModalComUnlock = (modalEl) => {
     if (!modalEl) return;
+    const activeEl = document.activeElement;
+    if (activeEl && modalEl.contains(activeEl) && typeof activeEl.blur === "function") {
+      activeEl.blur();
+    }
     modalEl.classList.add("oculto");
     modalEl.setAttribute("aria-hidden", "true");
     if (
@@ -1833,7 +1844,9 @@ function initFlowCenter() {
     }
 
     const hasPersonal = localStorage.getItem("femflow_has_personal") === "true";
-    const modePersonal = localStorage.getItem("femflow_mode_personal") === "true";
+    const modePersonal =
+      localStorage.getItem("femflow_mode_personal") === "true" &&
+      localStorage.getItem("femflow_endurance_public_intent") !== "true";
     const personal = hasPersonal && modePersonal;
 
     // DEBUG temporário
