@@ -435,7 +435,7 @@ function initFlowCenter() {
     document.getElementById("toBreath").textContent    = `💨 ${L.respiracao}`;
     const customLabel = isCustomTreino ? "🔓" : "🔒";
     const treinoDisponivel = !isCustomTreino && treinoAcessoOk;
-    const treinoLabel = treinoDisponivel ? "🏃" : "🔒";
+    const treinoLabel = treinoDisponivel ? "🏋️‍♂️" : "🔒";
     const extraLabel = !isCustomTreino && treinoAcessoOk ? "✨" : "🔒";
     const treinoBtn = document.getElementById("toTrain");
     treinoBtn.textContent = `${treinoLabel} ${L.treino}`;
