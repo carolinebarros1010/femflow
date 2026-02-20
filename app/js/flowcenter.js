@@ -716,7 +716,7 @@ function initFlowCenter() {
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = `caminho-btn${caminho === sugerido ? " is-sugerido" : ""}`;
-      btn.textContent = `Caminho ${caminho}`;
+      btn.textContent = `Treino ${caminho}`;
       btn.addEventListener("click", () => {
         void abrirModalPreviewCaminho(caminho);
       });
@@ -739,12 +739,12 @@ function initFlowCenter() {
     );
 
     if (!contexto?.diaUsado || !contexto?.faseFirestore) {
-      FEMFLOW.toast("Não foi possível carregar esse caminho agora.");
+      FEMFLOW.toast("Não foi possível carregar esse treino agora.");
       return;
     }
 
     if (modalCaminhosPreviewTitulo) {
-      modalCaminhosPreviewTitulo.textContent = `Caminho ${caminhoSelecionadoState.caminho} — Fase ${getFaseLabelAtual()}`;
+      modalCaminhosPreviewTitulo.textContent = `Treino ${caminhoSelecionadoState.caminho} — Fase ${getFaseLabelAtual()}`;
     }
 
     modalCaminhosPreviewLista.innerHTML = "";
@@ -774,7 +774,7 @@ function initFlowCenter() {
 
     if (!nomes.length) {
       const li = document.createElement("li");
-      li.textContent = "Nenhum exercício encontrado para este caminho.";
+      li.textContent = "Nenhum exercício encontrado para este treino.";
       modalCaminhosPreviewLista.appendChild(li);
     } else {
       nomes.forEach((nome) => {
