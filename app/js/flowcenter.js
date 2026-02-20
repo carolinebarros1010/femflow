@@ -353,7 +353,7 @@ function initFlowCenter() {
   const enfaseAtualPerfil = String(perfil.enfase || "").toLowerCase();
   const enduranceSelecionado = enfaseAtualPerfil.startsWith("endurance_");
   const bloquearEnduranceApp =
-    isAppProduto && !isPersonalPerfil && !enduranceSelecionado && !endurancePublicIntent;
+    isAppProduto && !personal && !isPersonalPerfil && !enduranceSelecionado && !endurancePublicIntent;
 
   const freeAccess = normalizarFreeAccess(perfil);
   const freeEnabled = freeAccess?.enabled === true;
