@@ -42,6 +42,14 @@ FEMFLOW.engineTreino.normalizarNivel = raw => {
   return n; // 🔥 respeita backend
 };
 
+FEMFLOW.engineTreino.normalizarEnfaseEndurance = raw => {
+  return String(raw || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase();
+};
+
 FEMFLOW.engineTreino.selecionarTitulo = bloco => {
   const lang = FEMFLOW.lang || "pt";
   const key = `titulo_${lang}`;
@@ -336,15 +344,17 @@ FEMFLOW.engineTreino.carregarBlocosPersonal = async ({
    5B) FIREBASE — BLOCO ENDURANCE (PERSONAL)
 ============================================================ */
 FEMFLOW.engineTreino.carregarBlocosEndurance = async ({
-  id, semana, dia
+  id, semana, dia, enfase
 }) => {
   const authUid = firebase?.auth?.()?.currentUser?.uid || null;
   console.log("🔍 [ENDURANCE] Firebase auth status:", authUid ? "logado" : "sem login", {
     uid: authUid
   });
 
-  if (!id) {
-    console.error("❌ Dados inválidos para consulta Endurance:", { id });
+  const enfaseNorm = FEMFLOW.engineTreino.normalizarEnfaseEndurance(enfase);
+
+  if (!id || !enfaseNorm) {
+    console.error("❌ Dados inválidos para consulta Endurance:", { id, enfase });
     return [];
   }
 
@@ -365,16 +375,17 @@ FEMFLOW.engineTreino.carregarBlocosEndurance = async ({
     return [];
   }
 
-  const semanaKey = `semana_${semanaNum}`;
-  const path = `/personal_trainings/${id}/endurance/${semanaKey}/dias/${diaNorm}/blocos`;
+  const semanaKey = String(semanaNum);
+  const path = `/personal_trainings/${id}/endurance/${enfaseNorm}/treinos/base/semana/${semanaKey}/dias/${diaNorm}/blocos`;
 
   console.log("🔥 FIREBASE PATH (ENDURANCE):", {
     id,
+    enfase: enfaseNorm,
     semana: semanaKey,
     dia: diaNorm
   });
 
-  FEMFLOW.log("🔥 [ENDURANCE] Firebase:", { semanaKey, dia: diaNorm });
+  FEMFLOW.log("🔥 [ENDURANCE] Firebase:", { enfase: enfaseNorm, semanaKey, dia: diaNorm });
 
   let snap;
   try {
@@ -382,6 +393,10 @@ FEMFLOW.engineTreino.carregarBlocosEndurance = async ({
       .collection("personal_trainings")
       .doc(id)
       .collection("endurance")
+      .doc(enfaseNorm)
+      .collection("treinos")
+      .doc("base")
+      .collection("semana")
       .doc(semanaKey)
       .collection("dias")
       .doc(diaNorm)
@@ -396,6 +411,7 @@ FEMFLOW.engineTreino.carregarBlocosEndurance = async ({
     FEMFLOW.error("❌ Nenhum treino ENDURANCE encontrado no Firebase:", {
       path,
       id,
+      enfase: enfaseNorm,
       semana: semanaKey,
       dia: diaNorm
     });
@@ -714,12 +730,13 @@ return FEMFLOW.engineTreino.converterParaFront(filtrados);
    7B) MONTAR TREINO ENDURANCE (PERSONAL)
 ============================================================ */
 FEMFLOW.engineTreino.montarTreinoEndurance = async ({
-  id, semana, dia
+  id, semana, dia, enfase
 }) => {
   const blocosRaw = await FEMFLOW.engineTreino.carregarBlocosEndurance({
     id,
     semana,
-    dia
+    dia,
+    enfase
   });
 
   if (!blocosRaw.length) return [];
