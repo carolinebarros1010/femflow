@@ -334,12 +334,21 @@ function initFlowCenter() {
   const personal = hasPersonal && modePersonal;
   const endurancePublicIntent = localStorage.getItem("femflow_endurance_public_intent") === "true";
   const endurancePublicEnabled = localStorage.getItem("femflow_endurance_public_enabled") === "true";
-  const enduranceEnabled = hasPersonal || endurancePlanAvailable || endurancePublicEnabled || endurancePublicIntent;
+  const enduranceEnabled = personal || endurancePlanAvailable || endurancePublicEnabled || endurancePublicIntent;
 
   const isApp    = produtoRaw === "acesso_app" || isTrial;
   const isFollow = produtoRaw.startsWith("followme_");
   const enfaseAtualUI = localStorage.getItem("femflow_enfase");
   const acessoAtivo = isVip || ativa;
+
+  /* ============================================================
+     🔒 BLOQUEIO ENDURANCE — APP sem personal e sem seleção
+  ============================================================ */
+  const isAppProduto = produtoRaw === "acesso_app";
+  const isPersonalPerfil = parseBooleanish(perfil.personal) || produtoRaw.startsWith("personal");
+  const enfaseAtualPerfil = String(perfil.enfase || "").toLowerCase();
+  const enduranceSelecionado = enfaseAtualPerfil.startsWith("endurance_");
+  const bloquearEnduranceApp = isAppProduto && !isPersonalPerfil && !enduranceSelecionado;
 
   const freeAccess = normalizarFreeAccess(perfil);
   const freeEnabled = freeAccess?.enabled === true;
@@ -1484,7 +1493,10 @@ function initFlowCenter() {
   }
 
   const enduranceBtn = document.getElementById("toEndurance");
-  if (enduranceBtn) enduranceBtn.disabled = false;
+  if (enduranceBtn) {
+    enduranceBtn.disabled = false;
+    enduranceBtn.classList.toggle("btn-locked", bloquearEnduranceApp);
+  }
 
   const getEnduranceDiaLabel = () => {
     const map = {
@@ -1767,9 +1779,14 @@ function initFlowCenter() {
 
 
   enduranceBtn.onclick = async () => {
+    if (bloquearEnduranceApp) {
+      FEMFLOW.toast(t("flowcenter.enduranceBloqueado"));
+      return;
+    }
+
     const hasPersonal = localStorage.getItem("femflow_has_personal") === "true";
     const modePersonal = localStorage.getItem("femflow_mode_personal") === "true";
-    const personal = hasPersonal;
+    const personal = hasPersonal && modePersonal;
 
     // DEBUG temporário
     console.log("[Endurance] personal ativo:", personal, "modo personal:", modePersonal);
@@ -1780,7 +1797,7 @@ function initFlowCenter() {
     }
 
     if (!enduranceEnabled) {
-      FEMFLOW.toast("Endurance indisponível no momento.");
+      FEMFLOW.toast(t("flowcenter.enduranceBloqueado"));
       return;
     }
 
