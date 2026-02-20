@@ -21,6 +21,7 @@
   <link rel="stylesheet" href="css/header.css">
   <link rel="stylesheet" href="css/themes.css">
   <link rel="stylesheet" href="css/home.css">
+  <link rel="stylesheet" href="css/home-hero.css">
 </head>
 
 <body>
@@ -35,6 +36,28 @@
   
   <!-- BEM-VINDA -->
   <h1 id="bvTexto" class="bemvinda">Bem-vinda!</h1>
+
+  <section class="ff-hero">
+    <video
+      id="ffHeroVideo"
+      class="ff-hero-video"
+      autoplay
+      muted
+      playsinline
+      loop>
+      <source id="ffHeroSource" type="video/mp4">
+    </video>
+
+    <div class="ff-hero-overlay"></div>
+
+    <div class="ff-hero-content">
+      <h1 id="ffHeroWelcome"></h1>
+
+      <button id="ffHeroCTA" class="ff-hero-btn">
+        Continuar seu treino
+      </button>
+    </div>
+  </section>
   
 <div class="video">
   <div class="video-wrapper">

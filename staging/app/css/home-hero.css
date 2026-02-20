@@ -1,0 +1,87 @@
+.ff-hero {
+  position: relative;
+  width: 100%;
+  height: 420px;
+  overflow: hidden;
+  border-radius: 28px;
+  margin-bottom: 40px;
+}
+
+.ff-hero-video {
+  position: absolute;
+  width: 110%;
+  height: 110%;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  object-fit: cover;
+  filter: brightness(0.65);
+  z-index: 1;
+}
+
+.ff-hero-overlay {
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(to right, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.2)),
+    linear-gradient(to bottom, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.7));
+  z-index: 2;
+}
+
+.ff-hero-content {
+  position: relative;
+  z-index: 3;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 48px 60px;
+  color: white;
+}
+
+.ff-hero-content h1 {
+  font-size: 38px;
+  font-family: 'Playfair Display', serif;
+  margin-bottom: 20px;
+}
+
+.ff-hero-btn {
+  background: linear-gradient(135deg, #335953, #CC6A5A);
+  color: white;
+  border: none;
+  padding: 16px 36px;
+  border-radius: 40px;
+  font-size: 16px;
+  font-weight: 600;
+  cursor: pointer;
+  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
+  transition: all 0.3s ease;
+  margin-top: auto;
+}
+
+.ff-hero-btn:hover {
+  transform: translateY(-3px);
+}
+
+@media (max-width: 768px) {
+  .ff-hero {
+    height: 340px;
+    border-radius: 20px;
+  }
+
+  .ff-hero-content {
+    padding: 32px 24px;
+  }
+
+  .ff-hero-content h1 {
+    font-size: 30px;
+    margin-bottom: 16px;
+  }
+
+  .ff-hero-btn {
+    width: 100%;
+    max-width: 280px;
+    padding: 14px 28px;
+  }
+}
