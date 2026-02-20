@@ -19,6 +19,63 @@ const TREINOS_SEMANA_KEY = "femflow_treinos_semana";
 const TREINOS_SEMANA_PADRAO = 3;
 let treinosSemanaResolve = null;
 let treinosSemanaSelecionado = null;
+let heroObserver = null;
+
+function ffHeroInit() {
+
+  const nome = localStorage.getItem("femflow_nome") || "Aluna";
+  const primeiroNome = nome.split(" ")[0];
+
+  const lang = FEMFLOW.lang || "pt";
+
+  const base =
+    "https://cdn.jsdelivr.net/gh/carolinebarros1010/femflow@main/app/assets/";
+
+  const videos = {
+    pt: "heropt.mp4",
+    en: "heroen.mp4",
+    fr: "herofr.mp4"
+  };
+
+  const source = document.getElementById("ffHeroSource");
+  const video = document.getElementById("ffHeroVideo");
+
+  if (source && video) {
+    source.src = base + (videos[lang] || videos.pt);
+    video.load();
+  }
+
+  const welcome = document.getElementById("ffHeroWelcome");
+  if (welcome) {
+    welcome.innerText = `Bem-vinda, ${primeiroNome}`;
+  }
+
+  const btn = document.getElementById("ffHeroCTA");
+  if (btn) {
+    btn.onclick = () => FEMFLOW.router("flowcenter");
+  }
+
+  if (heroObserver) {
+    heroObserver.disconnect();
+    heroObserver = null;
+  }
+
+  const hero = document.querySelector(".ff-hero");
+  if (hero && video && "IntersectionObserver" in window) {
+    heroObserver = new IntersectionObserver((entries) => {
+      entries.forEach((entry) => {
+        if (entry.isIntersecting) {
+          video.play().catch(() => {});
+        } else {
+          video.pause();
+        }
+      });
+    }, { threshold: 0.4 });
+
+    heroObserver.observe(hero);
+  }
+}
+
 
 function atualizarModalTreinosSemana() {
   const modal = document.getElementById("treinosSemanaModal");
@@ -1203,3 +1260,5 @@ document.addEventListener("DOMContentLoaded", async () => {
    🔥 Quando o idioma mudar → traduz de novo a home
 =========================================================== */
 document.addEventListener("femflow:langChange", aplicarIdiomaHome);
+document.addEventListener("DOMContentLoaded", ffHeroInit);
+document.addEventListener("femflow:langChange", ffHeroInit);
