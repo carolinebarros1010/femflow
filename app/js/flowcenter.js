@@ -269,7 +269,8 @@ function initFlowCenter() {
       "femflow_endurance_public_enabled",
       "femflow_endurance_estimulo",
       "femflow_endurance_public_intent",
-      "femflow_endurance_mode"
+      "femflow_endurance_mode",
+      "femflow_endurance_personal_cache"
     ].forEach((key) => localStorage.removeItem(key));
 
     if (preservePublicIntent && publicIntentAtual === "true") {
@@ -854,6 +855,8 @@ function initFlowCenter() {
 
   const ENDURANCE_PERSONAL_LAST_SEMANA_KEY = "femflow_endurance_last_personal_semana";
   const ENDURANCE_PERSONAL_LAST_DIA_KEY = "femflow_endurance_last_personal_dia";
+  const ENDURANCE_PERSONAL_CACHE_KEY = "femflow_endurance_personal_cache";
+  const ENDURANCE_PERSONAL_CACHE_TTL_MS = 5 * 60 * 1000;
   const endurancePersonalState = {
     modalidade: "",
     semanasDisponiveis: [],
@@ -891,6 +894,50 @@ function initFlowCenter() {
     } catch (err) {
       console.warn("Falha ao ler última seleção endurance personal:", err);
       return null;
+    }
+  };
+
+  const lerCacheEndurancePersonal = (id) => {
+    try {
+      const raw = localStorage.getItem(ENDURANCE_PERSONAL_CACHE_KEY);
+      if (!raw) return null;
+      const cache = JSON.parse(raw);
+      if (!cache || typeof cache !== "object") return null;
+
+      const cacheId = String(cache.id || "").trim();
+      const cacheTime = Number(cache.updatedAt || 0);
+      const expirado = !cacheTime || (Date.now() - cacheTime) > ENDURANCE_PERSONAL_CACHE_TTL_MS;
+      if (!cacheId || cacheId !== String(id || "").trim() || expirado) return null;
+
+      const modalidade = String(cache.modalidade || "").trim();
+      const semanasDisponiveis = Array.isArray(cache.semanasDisponiveis)
+        ? cache.semanasDisponiveis.map((semana) => String(semana || "").trim()).filter(Boolean)
+        : [];
+      const diasPorSemana = cache.diasPorSemana && typeof cache.diasPorSemana === "object"
+        ? cache.diasPorSemana
+        : {};
+
+      if (!modalidade || !semanasDisponiveis.length) return null;
+      return { modalidade, semanasDisponiveis, diasPorSemana };
+    } catch (err) {
+      console.warn("Falha ao ler cache do endurance personal:", err);
+      return null;
+    }
+  };
+
+  const salvarCacheEndurancePersonal = ({ id, modalidade, semanasDisponiveis, diasPorSemana }) => {
+    try {
+      localStorage.setItem(ENDURANCE_PERSONAL_CACHE_KEY, JSON.stringify({
+        id: String(id || "").trim(),
+        modalidade: String(modalidade || "").trim(),
+        semanasDisponiveis: Array.isArray(semanasDisponiveis)
+          ? semanasDisponiveis.map((semana) => String(semana || "").trim()).filter(Boolean)
+          : [],
+        diasPorSemana: diasPorSemana && typeof diasPorSemana === "object" ? diasPorSemana : {},
+        updatedAt: Date.now()
+      }));
+    } catch (err) {
+      console.warn("Falha ao salvar cache do endurance personal:", err);
     }
   };
 
@@ -1586,6 +1633,16 @@ function initFlowCenter() {
 
     if (endurancePersonalState.carregando) return;
 
+    const cacheValido = lerCacheEndurancePersonal(id);
+    if (cacheValido) {
+      abrirModalEndurancePersonal({
+        modalidade: cacheValido.modalidade,
+        semanasDisponiveis: cacheValido.semanasDisponiveis,
+        diasDisponiveis: cacheValido.diasPorSemana
+      });
+      return;
+    }
+
     modalEndurancePersonalEmpty?.classList.add("oculto");
     modalEndurancePersonalContent?.classList.add("oculto");
     modalEndurancePersonalActions?.classList.add("oculto");
@@ -1690,6 +1747,13 @@ function initFlowCenter() {
         modalidade,
         semanasDisponiveis: semanasComDias,
         diasDisponiveis: diasPorSemana
+      });
+
+      salvarCacheEndurancePersonal({
+        id,
+        modalidade,
+        semanasDisponiveis: semanasComDias,
+        diasPorSemana
       });
 
     } catch (err) {
