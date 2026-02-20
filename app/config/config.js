@@ -45,9 +45,15 @@
     prod: ""
   };
 
+  const OAUTH_AUTHORIZED_DOMAINS = {
+    staging: ["localhost", "127.0.0.1", "femflow.com.br", "www.femflow.com.br"],
+    prod: ["localhost", "127.0.0.1", "femflow.com.br", "www.femflow.com.br"]
+  };
+
   const activeScriptUrl = SCRIPT_URLS[ENV];
   const activeFirebaseConfig = FIREBASE_CONFIGS[ENV];
   const activeVapidKey = PUSH_VAPID_KEYS[ENV];
+  const activeOAuthAuthorizedDomains = OAUTH_AUTHORIZED_DOMAINS[ENV] || [];
 
   global.FEMFLOW_ENV = ENV;
   global.FEMFLOW_CONFIG = {
@@ -56,7 +62,8 @@
     scriptUrlsAdmin: SCRIPT_URLS_ADMIN,
     scriptUrlsModulos: SCRIPT_URLS_MODULOS,
     firebaseConfigs: FIREBASE_CONFIGS,
-    pushVapidKeys: PUSH_VAPID_KEYS
+    pushVapidKeys: PUSH_VAPID_KEYS,
+    oauthAuthorizedDomains: OAUTH_AUTHORIZED_DOMAINS
   };
   global.FEMFLOW_ACTIVE = {
     env: ENV,
@@ -64,7 +71,8 @@
     scriptUrlAdmin: SCRIPT_URLS_ADMIN[ENV],
     scriptUrlModulos: SCRIPT_URLS_MODULOS[ENV],
     firebaseConfig: activeFirebaseConfig,
-    pushVapidKey: activeVapidKey
+    pushVapidKey: activeVapidKey,
+    oauthAuthorizedDomains: activeOAuthAuthorizedDomains
   };
 
   if (!global.FEMFLOW_VAPID_KEY && activeVapidKey) {
