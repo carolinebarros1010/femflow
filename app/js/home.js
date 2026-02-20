@@ -1182,6 +1182,8 @@ function iniciarPlanilhaCorrida(enfase) {
 
   // Sempre iniciar um novo fluxo da planilha corrida, sem reaproveitar
   // seleção anterior de semana/dia/estímulo salva em cache/localStorage.
+  // Também limpamos flags legadas do endurance personal para impedir
+  // abertura indevida do modal personal quando a intenção é pública.
   [
     "femflow_endurance_config",
     "femflow_endurance_setup_done",
@@ -1189,7 +1191,9 @@ function iniciarPlanilhaCorrida(enfase) {
     "femflow_endurance_dia",
     "femflow_endurance_semana",
     "femflow_endurance_estimulo",
-    "femflow_treino_endurance"
+    "femflow_treino_endurance",
+    "femflow_endurance_personal",
+    "femflow_endurance_personal_cache"
   ].forEach((key) => localStorage.removeItem(key));
 
   localStorage.setItem("femflow_endurance_public_intent", "true");
