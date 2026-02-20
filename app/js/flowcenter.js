@@ -434,9 +434,13 @@ function initFlowCenter() {
 
     document.getElementById("toBreath").textContent    = `💨 ${L.respiracao}`;
     const customLabel = isCustomTreino ? "🔓" : "🔒";
-    const treinoLabel = !isCustomTreino && treinoAcessoOk ? "🏃" : "🔒";
+    const treinoDisponivel = !isCustomTreino && treinoAcessoOk;
+    const treinoLabel = treinoDisponivel ? "🏃" : "🔒";
     const extraLabel = !isCustomTreino && treinoAcessoOk ? "✨" : "🔒";
-    document.getElementById("toTrain").textContent     = `${treinoLabel} ${L.treino}`;
+    const treinoBtn = document.getElementById("toTrain");
+    treinoBtn.textContent = `${treinoLabel} ${L.treino}`;
+    treinoBtn.classList.toggle("tool-cta", treinoDisponivel);
+    treinoBtn.classList.toggle("tool-locked", !treinoDisponivel);
     document.getElementById("toExtraTrain").textContent = `${extraLabel} ${L.treinoExtra}`;
   const customBtn = document.getElementById("toCustomTrain");
     if (customBtn) {
