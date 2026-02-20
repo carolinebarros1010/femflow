@@ -910,9 +910,18 @@ lista.forEach(item => {
     if (indicator) {
       indicator.classList.add("is-hidden");
     }
+    const emptyStateMessage = personalFinal
+      ? `
+        <p>Seu personal ainda não ajustou seu treino.</p>
+        <p>
+          Entre em contato no
+          <a href="https://wa.me/551151942268" target="_blank" rel="noopener">WhatsApp +55 11 5194-2268</a>.
+        </p>
+      `
+      : "<p>Nenhum treino disponível para hoje.</p>";
     track.innerHTML = `
       <div class="carousel-item">
-        <p>Nenhum treino disponível para hoje.</p>
+        ${emptyStateMessage}
       </div>
     `;
     return;
