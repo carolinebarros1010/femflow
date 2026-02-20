@@ -95,18 +95,34 @@ document.addEventListener("DOMContentLoaded", () => {
   };
 
   const getEnduranceConfig = () => {
-    const lang = FEMFLOW.lang || "pt";
     const semanaRaw = localStorage.getItem("femflow_endurance_semana") || "1";
     const semana = Number(semanaRaw) || 1;
+    const configRaw = localStorage.getItem("femflow_endurance_config") || "{}";
+    let config = {};
+    try {
+      config = JSON.parse(configRaw);
+    } catch (err) {
+      console.warn("Config Endurance inválida:", err);
+    }
+
+    const modalidade = String(
+      config.modalidade ||
+      localStorage.getItem("femflow_endurance_modalidade") ||
+      ""
+    ).trim();
+
     let dia = localStorage.getItem("femflow_endurance_dia") || "";
     if (!dia) {
-      dia = getEnduranceDiaLabel(lang);
+      dia = getEnduranceDiaLabel(FEMFLOW.lang || "pt");
       localStorage.setItem("femflow_endurance_dia", dia);
     }
     if (!localStorage.getItem("femflow_endurance_semana")) {
       localStorage.setItem("femflow_endurance_semana", String(semana));
     }
-    return { semana, dia };
+    if (modalidade) {
+      localStorage.setItem("femflow_endurance_modalidade", modalidade);
+    }
+    return { semana, dia, enfase: modalidade, modalidade };
   };
 
   const getTreinoKey = ({ diaCiclo }) => {
@@ -783,7 +799,8 @@ const hasPersonal =
       ? await FEMFLOW.engineTreino.montarTreinoEndurance({
           id,
           semana: enduranceConfig?.semana,
-          dia: enduranceConfig?.dia
+          dia: enduranceConfig?.dia,
+          enfase: enduranceConfig?.enfase
         })
       : await FEMFLOW.engineTreino.montarTreinoFinal({
           id,
