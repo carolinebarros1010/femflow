@@ -152,17 +152,27 @@ FEMFLOW.requireFirebaseAuthIfNeeded = function () {
 };
 
 FEMFLOW.ensureFirebaseAuthForBodyInsight = async function () {
+  const lang = FEMFLOW.lang || "pt";
+  const fallbackMessage =
+    FEMFLOW.langs?.[lang]?.home?.bodyInsightReloginRequired ||
+    FEMFLOW.langs?.pt?.home?.bodyInsightReloginRequired ||
+    "Desculpe, precisamos que você faça login novamente para utilizar essa função.";
+
   if (!window.firebase || !firebase.auth) {
-    localStorage.setItem("post_login_redirect", "body_insight.html");
-    location.href = "index.html?redirect=body_insight";
+    FEMFLOW.toast(fallbackMessage, true);
     return false;
+  }
+
+  try {
+    await (window.FEMFLOW?.firebaseAuthReady || Promise.resolve());
+  } catch (error) {
+    console.warn("[FemFlow] firebaseAuthReady falhou:", error);
   }
 
   const user = firebase.auth().currentUser;
   if (user && !user.isAnonymous) return true;
 
-  localStorage.setItem("post_login_redirect", "body_insight.html");
-  location.href = "index.html?redirect=body_insight";
+  FEMFLOW.toast(fallbackMessage, true);
   return false;
 };
 
