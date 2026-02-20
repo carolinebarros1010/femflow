@@ -284,9 +284,15 @@ h1 {
   backdrop-filter: blur(4px);
 }
 
+.modal-endurance-personal.is-loading {
+  opacity: 0.6;
+  pointer-events: none;
+}
+
 .modal-endurance-personal .modal-endurance-box {
   background: linear-gradient(165deg, #fff8f4 0%, #fff1ea 100%);
   border: 1px solid rgba(204, 106, 90, 0.22);
+  transform-origin: bottom center;
   animation: personalModalIn .28s cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
@@ -480,12 +486,34 @@ h1 {
 @keyframes personalModalIn {
   from {
     opacity: 0;
-    transform: translateY(18px) scale(0.98);
+    transform: translateY(30px) scale(0.96);
   }
   to {
     opacity: 1;
     transform: translateY(0) scale(1);
   }
+}
+
+.endurance-empty-state {
+  text-align: center;
+  padding: 6px 4px;
+}
+
+.endurance-empty-icon {
+  font-size: 1.8rem;
+  margin-bottom: 8px;
+}
+
+.endurance-empty-title {
+  margin: 0 0 8px;
+  color: #5d4d48;
+  font-weight: 700;
+}
+
+.endurance-empty-sub {
+  margin: 0 0 14px;
+  color: #7c6a65;
+  font-size: 0.88rem;
 }
 
 @keyframes chipFeedback {
