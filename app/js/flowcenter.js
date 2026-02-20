@@ -1822,5 +1822,12 @@ function initFlowCenter() {
     abrirModalEnduranceSelecao();
   };
 
+    })
+    .catch((err) => {
+      console.error("Erro ao inicializar FlowCenter:", err);
+      FEMFLOW.toast("Erro ao carregar seu painel. Tente novamente.");
+    })
+    .finally(() => {
+      FEMFLOW.loading.hide();
     });
 }
