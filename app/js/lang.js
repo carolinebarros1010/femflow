@@ -481,6 +481,7 @@ home: {
   enduranceSelecaoDiaLabel: "Dia",
   enduranceSelecaoCancelar: "Cancelar",
   enduranceSelecaoContinuar: "Continuar",
+  enduranceBloqueado: "Selecione a planilha de treinamento Endurance na Home.",
 
   caminhosEscolhaTitulo: "Escolha seu treino",
   caminhosUltimoTreino: "Seu último treino foi Treino {caminho}",
@@ -907,6 +908,7 @@ home: {
   enduranceSelecaoDiaLabel: "Day",
   enduranceSelecaoCancelar: "Cancel",
   enduranceSelecaoContinuar: "Continue",
+  enduranceBloqueado: "Select your Endurance training plan on Home.",
 
   caminhosEscolhaTitulo: "Choose your workout",
   caminhosUltimoTreino: "Your last workout was Workout {caminho}",
@@ -1333,6 +1335,7 @@ fr: {
   enduranceSelecaoDiaLabel: "Jour",
   enduranceSelecaoCancelar: "Annuler",
   enduranceSelecaoContinuar: "Continuer",
+  enduranceBloqueado: "Sélectionnez votre plan d'entraînement Endurance sur l'accueil.",
 
   caminhosEscolhaTitulo: "Choisissez votre entraînement",
   caminhosUltimoTreino: "Votre dernier entraînement était Entraînement {caminho}",

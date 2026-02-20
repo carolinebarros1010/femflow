@@ -193,6 +193,20 @@ h1 {
   transform: none;
 }
 
+
+.btn-locked {
+  opacity: 0.45;
+  pointer-events: auto;
+  position: relative;
+}
+
+.btn-locked::after {
+  content: "🔒";
+  position: absolute;
+  right: 10px;
+  top: 6px;
+}
+
 .tool:hover {
   background: var(--terracota);
   color: #fff;
