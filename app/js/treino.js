@@ -957,7 +957,7 @@ const hasPersonal =
 
       if (tituloDia) {
         if (contextoCaminhoSelecionado) {
-          tituloDia.textContent = `Caminho ${contextoCaminhoSelecionado.caminho} • Dia ${contextoCaminhoSelecionado.diaUsado}`;
+          tituloDia.textContent = `Treino ${contextoCaminhoSelecionado.caminho} • Dia ${contextoCaminhoSelecionado.diaUsado}`;
         } else {
           tituloDia.textContent = t("treino.diaProgramaLabel", { dia: diaPrograma });
         }
