@@ -333,6 +333,12 @@ function initFlowCenter() {
   // 🔥 regra canônica
   const endurancePublicIntent = localStorage.getItem("femflow_endurance_public_intent") === "true";
 
+  // Hardening de estado: em fluxo público, desliga qualquer resquício
+  // legado de endurance personal para evitar abrir modal errado.
+  if (endurancePublicIntent) {
+    localStorage.removeItem("femflow_endurance_personal");
+  }
+
   // Quando a usuária vem da planilha pública, o modo personal precisa ser
   // desligado para evitar conflito de fonte de treino.
   if (endurancePublicIntent && modePersonal) {
@@ -1844,9 +1850,11 @@ function initFlowCenter() {
     }
 
     const hasPersonal = localStorage.getItem("femflow_has_personal") === "true";
+    const endurancePublicIntentAtivo =
+      localStorage.getItem("femflow_endurance_public_intent") === "true";
     const modePersonal =
       localStorage.getItem("femflow_mode_personal") === "true" &&
-      localStorage.getItem("femflow_endurance_public_intent") !== "true";
+      !endurancePublicIntentAtivo;
     const personal = hasPersonal && modePersonal;
 
     // DEBUG temporário
