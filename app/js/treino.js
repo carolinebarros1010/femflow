@@ -1351,16 +1351,10 @@ function renderBox(bloco) {
     const zonaBadgeHTML = mostrarInfoZona
       ? `<button class="ff-zona-info-btn" type="button" data-zona-info="true" aria-label="${t("treino.cardio.zonas.aria")}">i</button>`
       : "";
-    const zonaTreinoHTML = mostrarInfoZona
-      ? `<p class="ff-cardio-zona">${t("treino.cardio.zonas.label", { zona: zonaTreino })}</p>`
-      : "";
-
     return `
       <div class="carousel-item ff-box ff-cardio-box ${cardioClass}">
         ${zonaBadgeHTML}
         <h2 class="ff-ex-titulo">${tituloHTML}</h2>
-
-        ${zonaTreinoHTML}
 
         <p class="ff-cardio-descricao">${descricao}</p>
         ${detalhesHTML}

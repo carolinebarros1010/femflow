@@ -696,22 +696,26 @@ font-size: 0.9rem !important;
 }
 
 .ff-cardio-descricao {
-  font-size: 0.95rem;
+  font-size: 0.9rem;
   line-height: 1.4;
   text-align: center;
-  color: var(--ink);
-  margin: 8px 0 12px;
+  color: #4f6362;
+  margin: 8px 0 10px;
 }
 
 .ff-cardio-info {
   list-style: none;
-  padding: 0;
+  padding: 10px 12px;
   margin: 0 0 12px;
   display: grid;
-  gap: 6px;
-  text-align: center;
-  color: var(--ink);
-  font-size: 0.9rem;
+  gap: 8px;
+  text-align: left;
+  color: #0e3d3b;
+  font-size: 0.95rem;
+  font-weight: 700;
+  background: rgba(30, 125, 122, 0.1);
+  border: 1px solid rgba(30, 125, 122, 0.25);
+  border-radius: 12px;
 }
 
 .ff-cardio-box {
