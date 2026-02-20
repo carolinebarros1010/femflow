@@ -1407,10 +1407,12 @@ async function iniciarFluxoEndurancePersonal() {
 
     // tentar sondar modalidades conhecidas via semana
     const candidatos = ["corrida", "bike", "natacao", "remo"];
+    console.log("Candidatos:", candidatos);
 
     let modalidadeEncontrada = null;
 
     for (const mod of candidatos) {
+      console.log("Testando modalidade:", mod);
       const semanaSnap = await enduranceRoot
         .doc(mod)
         .collection("treinos")
@@ -1418,6 +1420,9 @@ async function iniciarFluxoEndurancePersonal() {
         .collection("semana")
         .limit(1)
         .get();
+
+      console.log("Semanas snap size:", semanaSnap.size);
+      console.log("Modalidade testada:", mod, "size:", semanaSnap.size);
 
       if (!semanaSnap.empty) {
         modalidadeEncontrada = mod;
