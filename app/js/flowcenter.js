@@ -333,13 +333,10 @@ function initFlowCenter() {
   // 🔥 regra canônica
   const endurancePublicIntent = localStorage.getItem("femflow_endurance_public_intent") === "true";
 
-  // Quando a usuária vem da planilha pública, o modo personal precisa ser
-  // desligado para evitar conflito de fonte de treino.
-  if (endurancePublicIntent && modePersonal) {
-    localStorage.setItem("femflow_mode_personal", "false");
-  }
-
-  const personal = hasPersonal && (localStorage.getItem("femflow_mode_personal") === "true");
+  // Personal e Endurance Público são estados independentes: durante o
+  // fluxo público, apenas priorizamos o público para Endurance sem sobrescrever
+  // flags de personal salvas em localStorage.
+  const personal = hasPersonal && modePersonal;
   const endurancePublicEnabled = localStorage.getItem("femflow_endurance_public_enabled") === "true";
   const enduranceEnabled = personal || endurancePlanAvailable || endurancePublicEnabled || endurancePublicIntent;
 
@@ -1844,13 +1841,14 @@ function initFlowCenter() {
     }
 
     const hasPersonal = localStorage.getItem("femflow_has_personal") === "true";
+    const endurancePublicIntentAtivo =
+      localStorage.getItem("femflow_endurance_public_intent") === "true";
     const modePersonal =
       localStorage.getItem("femflow_mode_personal") === "true" &&
-      localStorage.getItem("femflow_endurance_public_intent") !== "true";
+      !endurancePublicIntentAtivo;
     const personal = hasPersonal && modePersonal;
 
-    // DEBUG temporário
-    console.log("[Endurance] personal ativo:", personal, "modo personal:", modePersonal);
+    console.log("[Endurance] personal ativo:", personal, "modo personal:", modePersonal, "public intent:", endurancePublicIntentAtivo);
 
     if (personal) {
       await iniciarFluxoEndurancePersonal();

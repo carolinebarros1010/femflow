@@ -1177,11 +1177,10 @@ function confirmarNovoPrograma() {
 function iniciarPlanilhaCorrida(enfase) {
   const modalidade = enfase.replace("planilha_", "");
 
-  // Seleção de planilha sempre força saída do modo personal.
-  localStorage.setItem("femflow_mode_personal", "false");
-
   // Sempre iniciar um novo fluxo da planilha corrida, sem reaproveitar
   // seleção anterior de semana/dia/estímulo salva em cache/localStorage.
+  // Mantemos estado de personal separado; aqui limpamos apenas configuração
+  // operacional da planilha pública para iniciar novo ciclo de Endurance.
   [
     "femflow_endurance_config",
     "femflow_endurance_setup_done",
