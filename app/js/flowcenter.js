@@ -1391,50 +1391,6 @@ function initFlowCenter() {
     });
 }
 
-async function discoverEnduranceModalidadesPersonal_(id) {
-  const fs = firebase.firestore();
-  const enduranceCol = fs.collection("personal_trainings").doc(id).collection("endurance");
-
-  // (A) índice opcional
-  try {
-    const metaSnap = await enduranceCol.doc("__meta").get();
-    if (metaSnap.exists) {
-      const metas = metaSnap.data() || {};
-      if (Array.isArray(metas.modalidades) && metas.modalidades.length) {
-        return Array.from(new Set(
-          metas.modalidades.map(s => String(s).toLowerCase().trim()).filter(Boolean)
-        ));
-      }
-    }
-  } catch (e) {
-    console.warn("[Endurance Personal] __meta não disponível:", e);
-  }
-
-  // (B) probe por docs conhecidos
-  const candidatos = [
-    "corrida", "run",
-    "bike", "ciclismo", "cycle",
-    "natacao", "nado", "swim",
-    "remo", "rowing",
-    "caminhada", "walk",
-    "eliptico", "elliptical"
-  ];
-
-  const snaps = await Promise.all(
-    candidatos.map(async (m) => {
-      const key = String(m).toLowerCase().trim();
-      try {
-        const s = await enduranceCol.doc(key).get();
-        return s.exists ? key : null;
-      } catch (e) {
-        return null;
-      }
-    })
-  );
-
-  return Array.from(new Set(snaps.filter(Boolean)));
-}
-
 async function iniciarFluxoEndurancePersonal() {
 
   const id = localStorage.getItem("femflow_id");
@@ -1444,31 +1400,41 @@ async function iniciarFluxoEndurancePersonal() {
   }
 
   try {
-    const modalidades = await discoverEnduranceModalidadesPersonal_(id);
+    const enduranceRoot = firebase.firestore()
+      .collection("personal_trainings")
+      .doc(id)
+      .collection("endurance");
 
-    if (!modalidades.length) {
+    // tentar sondar modalidades conhecidas via semana
+    const candidatos = ["corrida", "bike", "natacao", "remo"];
+
+    let modalidadeEncontrada = null;
+
+    for (const mod of candidatos) {
+      const semanaSnap = await enduranceRoot
+        .doc(mod)
+        .collection("treinos")
+        .doc("base")
+        .collection("semana")
+        .limit(1)
+        .get();
+
+      if (!semanaSnap.empty) {
+        modalidadeEncontrada = mod;
+        break;
+      }
+    }
+
+    if (!modalidadeEncontrada) {
       FEMFLOW.toast("Endurance personal não configurado.");
       return;
     }
 
-    const preferida = String(localStorage.getItem("femflow_endurance_modalidade") || "")
-      .toLowerCase().trim();
-
-    const modalidade = (preferida && modalidades.includes(preferida))
-      ? preferida
-      : modalidades[0];
-
-    if (modalidades.length > 1 && !modalidades.includes(preferida)) {
-      FEMFLOW.toast("Modalidade selecionada automaticamente. Você poderá trocar na próxima versão.");
-    }
-
-    localStorage.setItem("femflow_endurance_modalidade", modalidade);
+    localStorage.setItem("femflow_endurance_modalidade", modalidadeEncontrada);
+    const modalidade = modalidadeEncontrada;
 
     // 2️⃣ Buscar semanas disponíveis
-    const semanaSnap = await firebase.firestore()
-      .collection("personal_trainings")
-      .doc(id)
-      .collection("endurance")
+    const semanaSnap = await enduranceRoot
       .doc(modalidade)
       .collection("treinos")
       .doc("base")
@@ -1487,10 +1453,7 @@ async function iniciarFluxoEndurancePersonal() {
     // 3️⃣ Buscar dias da primeira semana disponível
     const primeiraSemana = semanasDisponiveis[0];
 
-    const diasSnap = await firebase.firestore()
-      .collection("personal_trainings")
-      .doc(id)
-      .collection("endurance")
+    const diasSnap = await enduranceRoot
       .doc(modalidade)
       .collection("treinos")
       .doc("base")
@@ -1507,10 +1470,7 @@ async function iniciarFluxoEndurancePersonal() {
     const diasDisponiveis = [];
 
     for (const diaDoc of diasSnap.docs) {
-      const blocosSnap = await firebase.firestore()
-        .collection("personal_trainings")
-        .doc(id)
-        .collection("endurance")
+      const blocosSnap = await enduranceRoot
         .doc(modalidade)
         .collection("treinos")
         .doc("base")
