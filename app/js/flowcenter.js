@@ -857,6 +857,23 @@ function initFlowCenter() {
   const ENDURANCE_PERSONAL_LAST_DIA_KEY = "femflow_endurance_last_personal_dia";
   const ENDURANCE_PERSONAL_CACHE_KEY = "femflow_endurance_personal_cache";
   const ENDURANCE_PERSONAL_CACHE_TTL_MS = 5 * 60 * 1000;
+  const DIAS_ORDEM_SEMANAL = ["segunda", "terca", "quarta", "quinta", "sexta", "sabado", "domingo"];
+  const DIAS_ALIAS_MAP = {
+    seg: "segunda",
+    segunda: "segunda",
+    ter: "terca",
+    terca: "terca",
+    qua: "quarta",
+    quarta: "quarta",
+    qui: "quinta",
+    quinta: "quinta",
+    sex: "sexta",
+    sexta: "sexta",
+    sab: "sabado",
+    sabado: "sabado",
+    dom: "domingo",
+    domingo: "domingo"
+  };
   const endurancePersonalState = {
     modalidade: "",
     semanasDisponiveis: [],
@@ -874,6 +891,26 @@ function initFlowCenter() {
       remo: "Remo"
     };
     return labels[String(modalidade || "").toLowerCase()] || String(modalidade || "").trim();
+  };
+
+  const normalizarDiaTextoBase = (value) =>
+    String(value || "")
+      .normalize("NFD")
+      .replace(/[̀-ͯ]/g, "")
+      .trim()
+      .toLowerCase();
+
+  const normalizarDiaEndurance = (value) => {
+    const diaNormalizado = normalizarDiaTextoBase(value);
+    return DIAS_ALIAS_MAP[diaNormalizado] || diaNormalizado;
+  };
+
+  const ordenarDiasSemana = (dias = []) => {
+    const normalizados = dias
+      .map((dia) => normalizarDiaEndurance(dia))
+      .filter(Boolean);
+    const unicos = Array.from(new Set(normalizados));
+    return unicos.sort((a, b) => DIAS_ORDEM_SEMANAL.indexOf(a) - DIAS_ORDEM_SEMANAL.indexOf(b));
   };
 
   const salvarUltimaSelecaoEndurancePersonal = ({ semana, dia }) => {
@@ -914,7 +951,12 @@ function initFlowCenter() {
         ? cache.semanasDisponiveis.map((semana) => String(semana || "").trim()).filter(Boolean)
         : [];
       const diasPorSemana = cache.diasPorSemana && typeof cache.diasPorSemana === "object"
-        ? cache.diasPorSemana
+        ? Object.fromEntries(
+          Object.entries(cache.diasPorSemana).map(([semana, dias]) => [
+            String(semana || "").trim(),
+            ordenarDiasSemana(Array.isArray(dias) ? dias : [])
+          ])
+        )
         : {};
 
       if (!modalidade || !semanasDisponiveis.length) return null;
@@ -933,7 +975,14 @@ function initFlowCenter() {
         semanasDisponiveis: Array.isArray(semanasDisponiveis)
           ? semanasDisponiveis.map((semana) => String(semana || "").trim()).filter(Boolean)
           : [],
-        diasPorSemana: diasPorSemana && typeof diasPorSemana === "object" ? diasPorSemana : {},
+        diasPorSemana: diasPorSemana && typeof diasPorSemana === "object"
+          ? Object.fromEntries(
+            Object.entries(diasPorSemana).map(([semana, dias]) => [
+              String(semana || "").trim(),
+              ordenarDiasSemana(Array.isArray(dias) ? dias : [])
+            ])
+          )
+          : {},
         updatedAt: Date.now()
       }));
     } catch (err) {
@@ -1026,7 +1075,7 @@ function initFlowCenter() {
   const renderDiasEndurancePersonal = (semana, diaPreSelecionado = "") => {
     if (!modalEndurancePersonalDias) return;
 
-    const diasSemana = endurancePersonalState.diasPorSemana[String(semana)] || [];
+    const diasSemana = ordenarDiasSemana(endurancePersonalState.diasPorSemana[String(semana)] || []);
     modalEndurancePersonalDias.innerHTML = "";
     endurancePersonalState.diaSelecionado = "";
 
@@ -1068,7 +1117,14 @@ function initFlowCenter() {
     endurancePersonalState.semanasDisponiveis = Array.isArray(semanasDisponiveis)
       ? semanasDisponiveis.map(String)
       : [];
-    endurancePersonalState.diasPorSemana = diasDisponiveis || {};
+    endurancePersonalState.diasPorSemana = diasDisponiveis && typeof diasDisponiveis === "object"
+      ? Object.fromEntries(
+        Object.entries(diasDisponiveis).map(([semana, dias]) => [
+          String(semana || "").trim(),
+          ordenarDiasSemana(Array.isArray(dias) ? dias : [])
+        ])
+      )
+      : {};
     endurancePersonalState.semanaSelecionada = "";
     endurancePersonalState.diaSelecionado = "";
 
@@ -1275,13 +1331,6 @@ function initFlowCenter() {
     return Math.min(max, Math.max(min, num));
   };
 
-  const normalizarDiaEndurance = (value) =>
-    String(value || "")
-      .normalize("NFD")
-      .replace(/[̀-ͯ]/g, "")
-      .trim()
-      .toLowerCase();
-
   const getEstimulosAtivos = (treinosSemanaRaw) => {
     const n = clamp(Number(treinosSemanaRaw || 2), 2, 5);
     return ESTIMULOS_FULL.slice(0, n);
@@ -1300,8 +1349,7 @@ function initFlowCenter() {
       return null;
     }
 
-    const diasOrdenadosSemana = ["segunda", "terca", "quarta", "quinta", "sexta", "sabado", "domingo"];
-    diasSemana.sort((a, b) => diasOrdenadosSemana.indexOf(a) - diasOrdenadosSemana.indexOf(b));
+    diasSemana.sort((a, b) => DIAS_ORDEM_SEMANAL.indexOf(a) - DIAS_ORDEM_SEMANAL.indexOf(b));
 
     const treinosSelecionado = Number(modalEnduranceTreinos?.dataset.value || 2);
     let treinosSemana = clamp(treinosSelecionado, 2, 5);
@@ -1710,7 +1758,7 @@ function initFlowCenter() {
 
           await Promise.all(
             diasSnap.docs.map(async (diaDoc) => {
-              const diaRaw = String(diaDoc.id || "").trim().toLowerCase();
+              const diaRaw = normalizarDiaEndurance(diaDoc.id);
               if (!diaRaw) return;
 
               const blocosSnap = await enduranceRoot
@@ -1732,7 +1780,7 @@ function initFlowCenter() {
           );
 
           if (diasValidos.length) {
-            diasPorSemana[semana] = diasValidos;
+            diasPorSemana[semana] = ordenarDiasSemana(diasValidos);
           }
         })
       );
