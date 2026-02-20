@@ -1333,6 +1333,132 @@ function initFlowCenter() {
     });
   }
 
+  async function iniciarFluxoEndurancePersonal() {
+
+    const id = localStorage.getItem("femflow_id");
+    if (!id) {
+      FEMFLOW.toast("Sessão inválida.");
+      return;
+    }
+
+    try {
+      const enduranceRoot = firebase.firestore()
+        .collection("personal_trainings")
+        .doc(id)
+        .collection("endurance");
+
+      // tentar sondar modalidades conhecidas via semana
+      const candidatos = ["corrida", "bike", "natacao", "remo"];
+      console.log("Candidatos:", candidatos);
+
+      let modalidadeEncontrada = null;
+
+      for (const mod of candidatos) {
+        console.log("Testando modalidade:", mod);
+        const semanaSnap = await enduranceRoot
+          .doc(mod)
+          .collection("treinos")
+          .doc("base")
+          .collection("semana")
+          .limit(1)
+          .get();
+
+        console.log("Semanas snap size:", semanaSnap.size);
+        console.log("Modalidade testada:", mod, "size:", semanaSnap.size);
+
+        if (!semanaSnap.empty) {
+          modalidadeEncontrada = mod;
+          break;
+        }
+      }
+
+      if (!modalidadeEncontrada) {
+        FEMFLOW.toast("Endurance personal não configurado.");
+        return;
+      }
+
+      localStorage.setItem("femflow_endurance_modalidade", modalidadeEncontrada);
+      const modalidade = modalidadeEncontrada;
+
+      // 2️⃣ Buscar semanas disponíveis
+      const semanaSnap = await enduranceRoot
+        .doc(modalidade)
+        .collection("treinos")
+        .doc("base")
+        .collection("semana")
+        .get();
+
+      if (semanaSnap.empty) {
+        FEMFLOW.toast("Semanas não configuradas no endurance personal.");
+        return;
+      }
+
+      const semanasDisponiveis = semanaSnap.docs
+        .map(d => d.id)
+        .sort((a, b) => Number(a) - Number(b));
+
+      // 3️⃣ Buscar dias da primeira semana disponível
+      const primeiraSemana = semanasDisponiveis[0];
+
+      const diasSnap = await enduranceRoot
+        .doc(modalidade)
+        .collection("treinos")
+        .doc("base")
+        .collection("semana")
+        .doc(primeiraSemana)
+        .collection("dias")
+        .get();
+
+      if (diasSnap.empty) {
+        FEMFLOW.toast("Dias não configurados no endurance personal.");
+        return;
+      }
+
+      const diasDisponiveis = [];
+
+      for (const diaDoc of diasSnap.docs) {
+        const blocosSnap = await enduranceRoot
+          .doc(modalidade)
+          .collection("treinos")
+          .doc("base")
+          .collection("semana")
+          .doc(primeiraSemana)
+          .collection("dias")
+          .doc(diaDoc.id)
+          .collection("blocos")
+          .limit(1)
+          .get();
+
+        if (!blocosSnap.empty) {
+          diasDisponiveis.push(diaDoc.id);
+        }
+      }
+
+      if (!diasDisponiveis.length) {
+        FEMFLOW.toast("Nenhum dia válido encontrado no endurance personal.");
+        return;
+      }
+
+      const diasNormalizados = diasDisponiveis
+        .map(d => String(d).toLowerCase().trim());
+
+      localStorage.setItem("femflow_endurance_semana", String(primeiraSemana));
+      localStorage.setItem("femflow_endurance_dia", String(diasNormalizados[0]));
+      localStorage.setItem("femflow_endurance_modalidade", modalidade);
+
+      // 4️⃣ Abrir modal 2 adaptado
+      abrirModalEnduranceSelecaoPersonal({
+        modalidade,
+        semanasDisponiveis,
+        diasDisponiveis: diasNormalizados
+      });
+
+    } catch (err) {
+      console.error("Erro ao carregar endurance personal:", err);
+      FEMFLOW.toast("Erro ao carregar seu endurance personal.");
+    }
+  }
+
   enduranceBtn.onclick = async () => {
     const hasPersonal = localStorage.getItem("femflow_has_personal") === "true";
     const modePersonal = localStorage.getItem("femflow_mode_personal") === "true";
@@ -1389,130 +1515,4 @@ function initFlowCenter() {
 
       FEMFLOW.loading.hide();
     });
-}
-
-async function iniciarFluxoEndurancePersonal() {
-
-  const id = localStorage.getItem("femflow_id");
-  if (!id) {
-    FEMFLOW.toast("Sessão inválida.");
-    return;
-  }
-
-  try {
-    const enduranceRoot = firebase.firestore()
-      .collection("personal_trainings")
-      .doc(id)
-      .collection("endurance");
-
-    // tentar sondar modalidades conhecidas via semana
-    const candidatos = ["corrida", "bike", "natacao", "remo"];
-    console.log("Candidatos:", candidatos);
-
-    let modalidadeEncontrada = null;
-
-    for (const mod of candidatos) {
-      console.log("Testando modalidade:", mod);
-      const semanaSnap = await enduranceRoot
-        .doc(mod)
-        .collection("treinos")
-        .doc("base")
-        .collection("semana")
-        .limit(1)
-        .get();
-
-      console.log("Semanas snap size:", semanaSnap.size);
-      console.log("Modalidade testada:", mod, "size:", semanaSnap.size);
-
-      if (!semanaSnap.empty) {
-        modalidadeEncontrada = mod;
-        break;
-      }
-    }
-
-    if (!modalidadeEncontrada) {
-      FEMFLOW.toast("Endurance personal não configurado.");
-      return;
-    }
-
-    localStorage.setItem("femflow_endurance_modalidade", modalidadeEncontrada);
-    const modalidade = modalidadeEncontrada;
-
-    // 2️⃣ Buscar semanas disponíveis
-    const semanaSnap = await enduranceRoot
-      .doc(modalidade)
-      .collection("treinos")
-      .doc("base")
-      .collection("semana")
-      .get();
-
-    if (semanaSnap.empty) {
-      FEMFLOW.toast("Semanas não configuradas no endurance personal.");
-      return;
-    }
-
-    const semanasDisponiveis = semanaSnap.docs
-      .map(d => d.id)
-      .sort((a, b) => Number(a) - Number(b));
-
-    // 3️⃣ Buscar dias da primeira semana disponível
-    const primeiraSemana = semanasDisponiveis[0];
-
-    const diasSnap = await enduranceRoot
-      .doc(modalidade)
-      .collection("treinos")
-      .doc("base")
-      .collection("semana")
-      .doc(primeiraSemana)
-      .collection("dias")
-      .get();
-
-    if (diasSnap.empty) {
-      FEMFLOW.toast("Dias não configurados no endurance personal.");
-      return;
-    }
-
-    const diasDisponiveis = [];
-
-    for (const diaDoc of diasSnap.docs) {
-      const blocosSnap = await enduranceRoot
-        .doc(modalidade)
-        .collection("treinos")
-        .doc("base")
-        .collection("semana")
-        .doc(primeiraSemana)
-        .collection("dias")
-        .doc(diaDoc.id)
-        .collection("blocos")
-        .limit(1)
-        .get();
-
-      if (!blocosSnap.empty) {
-        diasDisponiveis.push(diaDoc.id);
-      }
-    }
-
-    if (!diasDisponiveis.length) {
-      FEMFLOW.toast("Nenhum dia válido encontrado no endurance personal.");
-      return;
-    }
-
-    const diasNormalizados = diasDisponiveis
-      .map(d => String(d).toLowerCase().trim());
-
-    localStorage.setItem("femflow_endurance_semana", String(primeiraSemana));
-    localStorage.setItem("femflow_endurance_dia", String(diasNormalizados[0]));
-    localStorage.setItem("femflow_endurance_modalidade", modalidade);
-
-    // 4️⃣ Abrir modal 2 adaptado
-    abrirModalEnduranceSelecaoPersonal({
-      modalidade,
-      semanasDisponiveis,
-      diasDisponiveis: diasNormalizados
-    });
-
-  } catch (err) {
-    console.error("Erro ao carregar endurance personal:", err);
-    FEMFLOW.toast("Erro ao carregar seu endurance personal.");
-  }
 }
