@@ -1188,7 +1188,9 @@ function iniciarPlanilhaCorrida(enfase) {
     "femflow_endurance_dia",
     "femflow_endurance_semana",
     "femflow_endurance_estimulo",
-    "femflow_treino_endurance"
+    "femflow_treino_endurance",
+    "femflow_endurance_personal",
+    "femflow_endurance_personal_cache"
   ].forEach((key) => localStorage.removeItem(key));
 
   localStorage.setItem("femflow_endurance_public_intent", "true");
