@@ -555,6 +555,10 @@ function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, pers
       },
     };
 
+    if (isPersonal) {
+      payload.fields.ativo = { booleanValue: true };
+    }
+
     // FemFlow fields
     if (!usaCicloDiaTreino) {
       if (isEndurancePersonal) {
@@ -919,18 +923,24 @@ function buildDocPayloadMaleFlow_(ctx, items) {
     return { mapValue: { fields: buildMaleFlowItemFields_(item) } };
   });
 
+  const fields = {
+    updatedAt: { timestampValue: new Date().toISOString() }, // ✅ padronizado
+    importTarget: { stringValue: "maleflow" },
+
+    nivel: { stringValue: String(ctx.nivel || "").toLowerCase() },
+    enfase: { stringValue: String(ctx.enfase || "").toLowerCase() },
+    ciclo: { stringValue: String(ctx.ciclo || "").toUpperCase() },
+    diatreino: { stringValue: String(ctx.diatreino || "").toUpperCase() },
+
+    itens: { arrayValue: { values } }
+  };
+
+  if (ctx.isPersonal === true) {
+    fields.ativo = { booleanValue: true };
+  }
+
   return {
-    fields: {
-      updatedAt: { timestampValue: new Date().toISOString() }, // ✅ padronizado
-      importTarget: { stringValue: "maleflow" },
-
-      nivel: { stringValue: String(ctx.nivel || "").toLowerCase() },
-      enfase: { stringValue: String(ctx.enfase || "").toLowerCase() },
-      ciclo: { stringValue: String(ctx.ciclo || "").toUpperCase() },
-      diatreino: { stringValue: String(ctx.diatreino || "").toUpperCase() },
-
-      itens: { arrayValue: { values } }
-    }
+    fields
   };
 }
 
