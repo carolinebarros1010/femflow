@@ -19,7 +19,6 @@ const TREINOS_SEMANA_KEY = "femflow_treinos_semana";
 const TREINOS_SEMANA_PADRAO = 3;
 let treinosSemanaResolve = null;
 let treinosSemanaSelecionado = null;
-let heroObserver = null;
 
 function isStagingRuntime() {
   const env = String(window.FEMFLOW_ENV || "").toLowerCase();
@@ -27,57 +26,50 @@ function isStagingRuntime() {
 }
 
 function ffHeroInit() {
-
-  const nome = localStorage.getItem("femflow_nome") || "Aluna";
-  const primeiroNome = nome.split(" ")[0];
-
   const lang = FEMFLOW.lang || "pt";
 
-  const base =
-    "https://cdn.jsdelivr.net/gh/carolinebarros1010/femflow@main/app/assets/";
+  // nome
+  const nome = (localStorage.getItem("femflow_nome") || "Aluna").trim();
+  const primeiroNome = nome.split(/\s+/)[0] || "Aluna";
 
-  const videos = {
-    pt: "heropt.mp4",
-    en: "heroen.mp4",
-    fr: "herofr.mp4"
-  };
+  const elHello = document.getElementById("ffHeroHello");
+  const elName = document.getElementById("ffHeroName");
+  if (elHello) elHello.textContent = (lang === "en") ? "Welcome," : (lang === "fr" ? "Bienvenue," : "Bem-vinda,");
+  if (elName) elName.textContent = primeiroNome + "!";
 
-  const source = document.getElementById("ffHeroSource");
+  // vídeo por idioma (GitHub/jsDelivr)
+  const base = "https://cdn.jsdelivr.net/gh/carolinebarros1010/femflow@main/app/assets/";
+  const videos = { pt: "heropt.mp4", en: "heroen.mp4", fr: "herofr.mp4" };
+
   const video = document.getElementById("ffHeroVideo");
-
-  if (source && video) {
-    source.src = base + (videos[lang] || videos.pt);
-    video.load();
+  const source = document.getElementById("ffHeroSource");
+  if (video && source) {
+    const next = base + (videos[lang] || videos.pt);
+    if (source.src !== next) {
+      source.src = next;
+      video.load();
+      video.play().catch(() => {});
+    }
   }
 
-  const welcome = document.getElementById("ffHeroWelcome");
-  if (welcome) {
-    welcome.innerText = `Bem-vinda, ${primeiroNome}`;
-  }
-
+  // CTA
   const btn = document.getElementById("ffHeroCTA");
-  if (btn) {
+  if (btn && !btn.dataset.bound) {
+    btn.dataset.bound = "1";
     btn.onclick = () => FEMFLOW.router("flowcenter");
   }
 
-  if (heroObserver) {
-    heroObserver.disconnect();
-    heroObserver = null;
-  }
-
+  // pausa ao rolar (1x)
   const hero = document.querySelector(".ff-hero");
-  if (hero && video && "IntersectionObserver" in window) {
-    heroObserver = new IntersectionObserver((entries) => {
-      entries.forEach((entry) => {
-        if (entry.isIntersecting) {
-          video.play().catch(() => {});
-        } else {
-          video.pause();
-        }
+  if (hero && video && !hero.dataset.observed && "IntersectionObserver" in window) {
+    hero.dataset.observed = "1";
+    const obs = new IntersectionObserver(entries => {
+      entries.forEach(e => {
+        if (e.isIntersecting) video.play().catch(() => {});
+        else video.pause();
       });
-    }, { threshold: 0.4 });
-
-    heroObserver.observe(hero);
+    }, { threshold: 0.35 });
+    obs.observe(hero);
   }
 }
 
@@ -1107,7 +1099,6 @@ function aplicarIdiomaHome() {
   const tEsportes = document.getElementById("tituloEsportes");
   const tCasa = document.getElementById("tituloCasa");
   const tEbooks = document.getElementById("tituloEbooks");
-  const btnFlow = document.getElementById("btnFlow");
 
   if (tPersonal) tPersonal.textContent = L.tituloPersonal;
   if (tFollowMe) tFollowMe.textContent = L.tituloFollowMe;
@@ -1115,17 +1106,6 @@ function aplicarIdiomaHome() {
   if (tEsportes) tEsportes.textContent = L.tituloEsportes;
   if (tCasa) tCasa.textContent = L.tituloCasa;
   if (tEbooks) tEbooks.textContent = L.tituloEbooks;
-  if (btnFlow && L.botaoFlowcenter) btnFlow.textContent = L.botaoFlowcenter;
-
-  // 🔥 VÍDEO
-  const vTitle = document.getElementById("homeVideoTitle");
-  const vSub = document.getElementById("homeVideoSub");
-  const vFrame = document.getElementById("homeVideoFrame");
-
-  if (vTitle && L.videoTitulo) vTitle.textContent = L.videoTitulo;
-  if (vSub && L.videoSub) vSub.textContent = L.videoSub;
-  if (vFrame && L.videoUrl) vFrame.src = L.videoUrl;
-
   atualizarModalTreinosSemana();
 }
 
