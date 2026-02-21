@@ -298,7 +298,13 @@ function persistPerfil(perfil) {
 
   // ✅ acesso personal = direito (backend), separado do modo personal (front)
   const acessos = perfil.acessos || {};
-  const hasPersonal = acessos.personal === true || isVip;
+  const personalRaw =
+    acessos.personal ??
+    perfil.personal ??
+    perfil.Personal ??
+    perfil.has_personal ??
+    perfil.hasPersonal;
+  const hasPersonal = parseBooleanish(personalRaw) || isVip;
   localStorage.setItem("femflow_has_personal", String(hasPersonal));
   localStorage.removeItem("femflow_personal"); // legado: nunca usar mais
 
