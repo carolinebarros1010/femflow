@@ -128,6 +128,11 @@ document.addEventListener("DOMContentLoaded", () => {
   let firebaseAuthObserverStarted = false;
   let loginInProgress = false;
 
+  function isStagingRuntime() {
+    const env = String(window.FEMFLOW_ENV || "").toLowerCase();
+    return env === "staging" || location.pathname.includes("/staging/");
+  }
+
   function startFirebaseAuthObserver() {
     if (!window.firebase || !firebase.auth || firebaseAuthObserverStarted) return;
     firebaseAuthObserverStarted = true;
@@ -155,6 +160,11 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function syncFirebaseAuthSession(email, senha) {
+    if (isStagingRuntime()) {
+      console.info("[Login] Staging detectado: ignorando sync de Firebase Auth.");
+      return;
+    }
+
     if (!window.firebase || !firebase.auth) {
       console.warn("[Login] Firebase Auth indisponível. Login seguirá apenas com sessão do backend.");
       return;
@@ -245,6 +255,19 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  async function validarPerfilAposLogin() {
+    try {
+      const perfil = await FEMFLOW.carregarPerfil?.();
+      if (perfil?.fase && perfil?.diaCiclo) {
+        localStorage.setItem("femflow_cycle_configured", "yes");
+      }
+      return perfil;
+    } catch (err) {
+      console.warn("Falha ao validar perfil:", err);
+      return null;
+    }
+  }
+
   async function entrar(){
     if (loginInProgress) return;
     loginInProgress = true;
@@ -309,9 +332,13 @@ document.addEventListener("DOMContentLoaded", () => {
       try {
         await syncFirebaseAuthSession(email, senha);
       } catch (firebaseErr) {
-        console.error("[Login] Falha ao sincronizar Firebase Auth:", firebaseErr);
-        setErr(firebaseErr?.message || "Conta validada, mas não foi possível iniciar sessão segura. Tente novamente.");
-        return;
+        if (!isStagingRuntime()) {
+          console.error("[Login] Falha ao sincronizar Firebase Auth:", firebaseErr);
+          setErr(firebaseErr?.message || "Conta validada, mas não foi possível iniciar sessão segura. Tente novamente.");
+          return;
+        }
+
+        console.warn("[Login] Erro de Firebase ignorado no staging:", firebaseErr);
       }
 
       /* ===== SESSÃO MÍNIMA ===== */
