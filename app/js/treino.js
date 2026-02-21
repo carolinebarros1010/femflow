@@ -970,11 +970,7 @@ document.addEventListener("DOMContentLoaded", () => {
       FEMFLOW.diaProgramaAtual = diaPrograma;
 
       if (tituloDia) {
-        if (contextoCaminhoSelecionado) {
-          tituloDia.textContent = `Treino ${contextoCaminhoSelecionado.caminho} • Dia ${contextoCaminhoSelecionado.diaUsado}`;
-        } else {
-          tituloDia.textContent = t("treino.diaProgramaLabel", { dia: diaPrograma });
-        }
+        tituloDia.textContent = t("treino.diaProgramaLabel", { dia: diaPrograma });
       }
     }
 
