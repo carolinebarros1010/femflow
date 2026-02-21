@@ -16,7 +16,6 @@
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
-  <link rel="preconnect" href="https://www.youtube-nocookie.com" crossorigin>
 
   <!-- Fontes -->
   <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
@@ -45,13 +44,16 @@
   <div class="video-wrapper">
     <h2 id="homeVideoTitle"></h2>
     <p id="homeVideoSub"></p>
-    <iframe
-      id="homeVideoFrame"
-      src="https://www.youtube-nocookie.com/embed/pAifTtNF9sQ?controls=0&modestbranding=1&rel=0&playsinline=1"
-      title="Vídeo de boas-vindas do FemFlow"
-      allowfullscreen
-      loading="lazy">
-    </iframe>
+    <video
+      id="homeVideoPlayer"
+      class="home-video-player"
+      playsinline
+      preload="metadata"
+      aria-label="Vídeo de boas-vindas do FemFlow">
+    </video>
+    <button id="homeVideoToggle" class="home-video-toggle" type="button" aria-label="Reproduzir vídeo">
+      <span id="homeVideoToggleIcon" aria-hidden="true">▶</span>
+    </button>
   </div>
 </div>
 

@@ -24,6 +24,89 @@ let treinosSemanaSelecionado = null;
 
 const CUSTOM_TREINO_KEY = "femflow_custom_treino";
 const CUSTOM_BLOCOS_KEY = "femflow_custom_blocos";
+const HOME_VIDEO_SOURCES = {
+  pt: "assets/heropt.mp4",
+  en: "assets/heroen.mp4",
+  fr: "assets/herofr.mp4"
+};
+
+function getHomeVideoSource(lang) {
+  return HOME_VIDEO_SOURCES[lang] || HOME_VIDEO_SOURCES.pt;
+}
+
+function atualizarBotaoVideo(video, toggleBtn, toggleIcon) {
+  if (!video || !toggleBtn || !toggleIcon) return;
+  const reproduzindo = !video.paused && !video.ended;
+  toggleIcon.textContent = reproduzindo ? "❚❚" : "▶";
+  toggleBtn.setAttribute("aria-label", reproduzindo ? "Pausar vídeo" : "Reproduzir vídeo");
+
+  const wrapper = video.closest(".video-wrapper");
+  if (wrapper) wrapper.classList.toggle("is-idle", !reproduzindo);
+}
+
+function aplicarCapaVideoInativo(video, toggleBtn, toggleIcon) {
+  if (!video) return;
+  const srcAtual = video.currentSrc || video.getAttribute("src") || "";
+  if (!srcAtual || video.dataset.previewSrc === srcAtual) return;
+
+  const mostrarFrame = () => {
+    const duracao = Number(video.duration);
+    const destino = Number.isFinite(duracao) && duracao > 0
+      ? Math.max(0, duracao - 1)
+      : 0;
+
+    if (destino <= 0) {
+      atualizarBotaoVideo(video, toggleBtn, toggleIcon);
+      return;
+    }
+
+    const finalizarPreview = () => {
+      video.pause();
+      atualizarBotaoVideo(video, toggleBtn, toggleIcon);
+    };
+
+    video.addEventListener("seeked", finalizarPreview, { once: true });
+    try {
+      video.currentTime = destino;
+    } catch (err) {
+      finalizarPreview();
+    }
+  };
+
+  video.dataset.previewSrc = srcAtual;
+
+  if (video.readyState >= 2) {
+    mostrarFrame();
+  } else {
+    video.addEventListener("loadeddata", mostrarFrame, { once: true });
+  }
+}
+
+function configurarVideoHome() {
+  const video = document.getElementById("homeVideoPlayer");
+  const toggleBtn = document.getElementById("homeVideoToggle");
+  const toggleIcon = document.getElementById("homeVideoToggleIcon");
+  if (!video || !toggleBtn || !toggleIcon || video.dataset.bound === "true") return;
+
+  video.dataset.bound = "true";
+
+  const alternar = () => {
+    if (video.paused) {
+      video.play().catch(() => {});
+    } else {
+      video.pause();
+    }
+  };
+
+  toggleBtn.addEventListener("click", alternar);
+  video.addEventListener("click", alternar);
+  ["play", "pause", "ended", "loadeddata"].forEach((evt) => {
+    video.addEventListener(evt, () => atualizarBotaoVideo(video, toggleBtn, toggleIcon));
+  });
+
+  atualizarBotaoVideo(video, toggleBtn, toggleIcon);
+}
+
 const CUSTOM_TREINO_OPCOES = {
   aquecimento: [
     { key: "aquecimento_superiores", value: "extra_aquecimento_superiores" },
@@ -1543,11 +1626,30 @@ function aplicarIdiomaHome() {
   // 🔥 VÍDEO
   const vTitle = document.getElementById("homeVideoTitle");
   const vSub = document.getElementById("homeVideoSub");
-  const vFrame = document.getElementById("homeVideoFrame");
+  const vPlayer = document.getElementById("homeVideoPlayer");
+  const vToggle = document.getElementById("homeVideoToggle");
+  const vToggleIcon = document.getElementById("homeVideoToggleIcon");
 
   if (vTitle && L.videoTitulo) vTitle.textContent = L.videoTitulo;
   if (vSub && L.videoSub) vSub.textContent = L.videoSub;
-  if (vFrame && L.videoUrl) vFrame.src = L.videoUrl;
+  if (vPlayer) {
+    const novoSrc = getHomeVideoSource(lang);
+    const srcAtual = vPlayer.getAttribute("src") || "";
+    if (!srcAtual.endsWith(novoSrc)) {
+      const pausado = vPlayer.paused;
+      vPlayer.pause();
+      vPlayer.src = novoSrc;
+      vPlayer.load();
+      if (!pausado) {
+        vPlayer.play().catch(() => {});
+      } else {
+        aplicarCapaVideoInativo(vPlayer, vToggle, vToggleIcon);
+      }
+    } else if (vPlayer.paused) {
+      aplicarCapaVideoInativo(vPlayer, vToggle, vToggleIcon);
+    }
+    atualizarBotaoVideo(vPlayer, vToggle, vToggleIcon);
+  }
 
   atualizarModalTreinosSemana();
 }
@@ -1557,6 +1659,7 @@ function aplicarIdiomaHome() {
 =========================================================== */
 document.addEventListener("DOMContentLoaded", async () => {
   FEMFLOW.loading.show("Carregando…");
+  configurarVideoHome();
 
   try {
     const treinosStorage = Number(localStorage.getItem(TREINOS_SEMANA_KEY));
