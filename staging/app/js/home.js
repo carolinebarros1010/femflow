@@ -43,27 +43,15 @@ function ffHeroInit() {
 
   const video = document.getElementById("ffHeroVideo");
   const source = document.getElementById("ffHeroSource");
-  const heroMedia = document.querySelector(".ff-hero-media");
-
-  if (video && heroMedia && !video.dataset.loadBound) {
-    video.dataset.loadBound = "1";
-    const markReady = () => heroMedia.classList.add("is-ready");
-    video.addEventListener("loadeddata", markReady);
-    video.addEventListener("canplay", markReady);
-    video.addEventListener("playing", markReady);
-    video.addEventListener("error", markReady);
-  }
 
   if (video && source) {
     const next = base + (videos[lang] || videos.pt);
-    if (source.src !== next) {
-      heroMedia?.classList.remove("is-ready");
+    if (video.dataset.heroSrc !== next) {
       source.src = next;
+      video.dataset.heroSrc = next;
       video.load();
-      video.play().catch(() => {});
-    } else if (video.readyState >= 2) {
-      heroMedia?.classList.add("is-ready");
     }
+    video.play().catch(() => {});
   }
 
   // CTA
@@ -79,10 +67,10 @@ function ffHeroInit() {
     hero.dataset.observed = "1";
     const obs = new IntersectionObserver(entries => {
       entries.forEach(e => {
-        if (e.isIntersecting && (video.readyState >= 2 || heroMedia?.classList.contains("is-ready"))) video.play().catch(() => {});
+        if (e.isIntersecting) video.play().catch(() => {});
         else video.pause();
       });
-    }, { threshold: 0.35 });
+    }, { threshold: 0.2 });
     obs.observe(hero);
   }
 }
