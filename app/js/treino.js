@@ -1136,9 +1136,6 @@ document.addEventListener("DOMContentLoaded", () => {
     if (hasSeries) {
       detalhes.push(t("treino.cardio.seriesLabel", { series }));
     }
-    if (hasZona) {
-      detalhes.push(t("treino.cardio.zonaLabel", { zona: zonaTreino }));
-    }
     if (hasTempo) {
       detalhes.push(t("treino.cardio.tempoLabel", { tempo: tempoOuDistancia }));
     } else if (usarFallback) {
@@ -1146,6 +1143,9 @@ document.addEventListener("DOMContentLoaded", () => {
     }
     if (hasIntervalo) {
       detalhes.push(t("treino.cardio.intervaloLabel", { intervalo: intervaloTexto }));
+    }
+    if (hasZona) {
+      detalhes.push(t("treino.cardio.zonaTreinoLabel", { zona: zonaTreino }));
     }
     if (hasDistanciaMilhas) {
       detalhes.push(t("treino.cardio.milhasLabel", { milhas: distanciaMilhas }));
@@ -1362,9 +1362,10 @@ function renderBox(bloco) {
         ? "ff-cardio-final"
         : "ff-cardio-intermediario";
     const link = c.link || "";
+    const tituloCardio = formatarTituloEndurancePublic(c.titulo);
     const tituloHTML = link
-      ? `<a href="${link}" target="_blank" rel="noopener">${c.titulo}</a>`
-      : c.titulo;
+      ? `<a href="${link}" target="_blank" rel="noopener">${tituloCardio}</a>`
+      : tituloCardio;
     const detalhesHTML = detalhes.length
       ? `
         <ul class="ff-cardio-info">
@@ -1387,12 +1388,16 @@ function renderBox(bloco) {
     const zonaBadgeHTML = mostrarInfoZona
       ? `<button class="ff-zona-info-btn" type="button" data-zona-info="true" aria-label="${t("treino.cardio.zonas.aria")}">i</button>`
       : "";
+    const descricaoHTML = endurancePublicAtivo
+      ? ""
+      : `<p class="ff-cardio-descricao">${descricao}</p>`;
+
     return `
       <div class="carousel-item ff-box ff-cardio-box ${cardioClass}">
         ${zonaBadgeHTML}
         <h2 class="ff-ex-titulo">${tituloHTML}</h2>
 
-        <p class="ff-cardio-descricao">${descricao}</p>
+        ${descricaoHTML}
         ${detalhesHTML}
         ${timerHTML}
       </div>
@@ -2553,3 +2558,13 @@ window.t = function (path, vars = {}) {
     FEMFLOW.dispatch("femflow:ready", perfil);
 
   })();
+  function formatarTituloEndurancePublic(tituloOriginal) {
+    if (!endurancePublicAtivo) return tituloOriginal;
+    const titulo = String(tituloOriginal || "").trim();
+    if (!titulo) return titulo;
+
+    if (/^aquecimento\b/i.test(titulo)) return "Aquecimento";
+    if (/^resfriamento\b/i.test(titulo)) return "Resfriamento";
+
+    return titulo;
+  }
