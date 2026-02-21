@@ -1074,24 +1074,6 @@ function aplicarIdiomaHome() {
   const L = FEMFLOW.langs?.[lang]?.home;
   if (!L) return;
 
-  const nomeRaw = localStorage.getItem("femflow_nome") || "Aluna";
-  const primeiroNome = nomeRaw.split(" ")[0];
-
-  // Saudação
-  const bv = document.getElementById("bvTexto");
-  if (bv) {
-    bv.textContent = "";
-    const saudacao = document.createElement("span");
-    saudacao.className = "bemvinda-texto";
-    saudacao.textContent = `${L.bemvinda}, `;
-
-    const nome = document.createElement("span");
-    nome.className = "bemvinda-nome";
-    nome.textContent = `${primeiroNome}!`;
-
-    bv.append(saudacao, nome);
-  }
-
   // Títulos das seções
   const tPersonal = document.getElementById("tituloPersonalTopo");
   const tFollowMe = document.getElementById("tituloFollowMe");
