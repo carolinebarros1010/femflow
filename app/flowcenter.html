@@ -118,25 +118,11 @@
       Responda para personalizarmos o seu treino de cardio.
     </p>
 
-    <label class="endurance-field">
+    <div class="endurance-field">
       <span id="enduranceModalidadeLabel">Qual modalidade?</span>
-      <select id="enduranceModalidade" class="endurance-select">
-        <option value="" selected id="enduranceModalidadePlaceholder">Selecione a modalidade</option>
-        <optgroup label="Corrida" id="enduranceModalidadeGrupoCorrida">
-          <option value="corrida" id="enduranceOptCorrida">Corrida (geral)</option>
-          <option value="corrida_5k" id="enduranceOptCorrida5k">Corrida 5 km</option>
-          <option value="corrida_10k" id="enduranceOptCorrida10k">Corrida 10 km</option>
-          <option value="corrida_15k" id="enduranceOptCorrida15k">Corrida 15 km</option>
-          <option value="corrida_21k" id="enduranceOptCorrida21k">Corrida 21 km</option>
-          <option value="corrida_42k" id="enduranceOptCorrida42k">Corrida 42 km</option>
-        </optgroup>
-        <optgroup label="Outras modalidades" id="enduranceModalidadeGrupoOutras">
-          <option value="natacao" id="enduranceOptNatacao">Natação</option>
-          <option value="bike" id="enduranceOptBike">Bike / Ciclismo</option>
-          <option value="remo" id="enduranceOptRemo">Remo</option>
-        </optgroup>
-      </select>
-    </label>
+      <div id="enduranceModalidadePlaceholder" class="endurance-modalidade-placeholder">Selecione a modalidade</div>
+      <div id="enduranceModalidade" class="endurance-options endurance-modalidade-options" role="group" aria-labelledby="enduranceModalidadeLabel"></div>
+    </div>
 
     <div class="endurance-field">
       <span id="enduranceTreinosLabel">Quantos treinos por semana?</span>

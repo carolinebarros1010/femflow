@@ -395,6 +395,38 @@ h1 {
   gap: 8px;
 }
 
+.endurance-modalidade-placeholder {
+  font-size: 0.8rem;
+  color: #8a7872;
+  margin-top: -4px;
+}
+
+.endurance-modalidade-options {
+  gap: 10px;
+  background: rgba(255,255,255,0.75);
+  border: 1px solid rgba(204,106,90,0.12);
+  border-radius: 14px;
+  padding: 12px;
+}
+
+.endurance-modalidade-group-title {
+  width: 100%;
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+  color: #9a6f62;
+  margin: 2px 0;
+}
+
+.endurance-modalidade-chip {
+  background: #fff8f5;
+  border-color: rgba(204,106,90,0.3);
+}
+
+.endurance-modalidade-chip.is-active {
+  box-shadow: 0 8px 18px rgba(204, 106, 90, 0.22);
+}
+
 .modal-endurance-selecao .endurance-options {
   justify-content: flex-start;
 }
