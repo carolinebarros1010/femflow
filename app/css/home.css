@@ -116,6 +116,15 @@ body {
   background: #000;
 }
 
+
+.video-wrapper.is-idle::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0.02));
+  pointer-events: none;
+}
+
 .home-video-toggle {
   position: absolute;
   right: 10px;
@@ -171,7 +180,16 @@ body {
     height: 194px !important;
   }
 
-  .home-video-toggle {
+  
+.video-wrapper.is-idle::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(to top, rgba(0, 0, 0, 0.22), rgba(0, 0, 0, 0.02));
+  pointer-events: none;
+}
+
+.home-video-toggle {
     right: 8px;
     bottom: 8px;
   }

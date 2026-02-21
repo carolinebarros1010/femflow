@@ -39,6 +39,47 @@ function atualizarBotaoVideo(video, toggleBtn, toggleIcon) {
   const reproduzindo = !video.paused && !video.ended;
   toggleIcon.textContent = reproduzindo ? "❚❚" : "▶";
   toggleBtn.setAttribute("aria-label", reproduzindo ? "Pausar vídeo" : "Reproduzir vídeo");
+
+  const wrapper = video.closest(".video-wrapper");
+  if (wrapper) wrapper.classList.toggle("is-idle", !reproduzindo);
+}
+
+function aplicarCapaVideoInativo(video, toggleBtn, toggleIcon) {
+  if (!video) return;
+  const srcAtual = video.currentSrc || video.getAttribute("src") || "";
+  if (!srcAtual || video.dataset.previewSrc === srcAtual) return;
+
+  const mostrarFrame = () => {
+    const duracao = Number(video.duration);
+    const destino = Number.isFinite(duracao) && duracao > 0
+      ? Math.min(1.2, Math.max(0.15, duracao * 0.2))
+      : 0;
+
+    if (destino <= 0) {
+      atualizarBotaoVideo(video, toggleBtn, toggleIcon);
+      return;
+    }
+
+    const finalizarPreview = () => {
+      video.pause();
+      atualizarBotaoVideo(video, toggleBtn, toggleIcon);
+    };
+
+    video.addEventListener("seeked", finalizarPreview, { once: true });
+    try {
+      video.currentTime = destino;
+    } catch (err) {
+      finalizarPreview();
+    }
+  };
+
+  video.dataset.previewSrc = srcAtual;
+
+  if (video.readyState >= 2) {
+    mostrarFrame();
+  } else {
+    video.addEventListener("loadeddata", mostrarFrame, { once: true });
+  }
 }
 
 function configurarVideoHome() {
@@ -1599,7 +1640,13 @@ function aplicarIdiomaHome() {
       vPlayer.pause();
       vPlayer.src = novoSrc;
       vPlayer.load();
-      if (!pausado) vPlayer.play().catch(() => {});
+      if (!pausado) {
+        vPlayer.play().catch(() => {});
+      } else {
+        aplicarCapaVideoInativo(vPlayer, vToggle, vToggleIcon);
+      }
+    } else if (vPlayer.paused) {
+      aplicarCapaVideoInativo(vPlayer, vToggle, vToggleIcon);
     }
     atualizarBotaoVideo(vPlayer, vToggle, vToggleIcon);
   }
