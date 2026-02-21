@@ -1381,6 +1381,19 @@ function getBodyInsightAuthLabels() {
   return FEMFLOW.langs?.[lang]?.home?.bodyInsightAuth || {};
 }
 
+function loginIndexAindaValido() {
+  const auth = localStorage.getItem("femflow_auth") === "yes";
+  const token = String(localStorage.getItem("femflow_session_token") || "").trim();
+  const expira = String(localStorage.getItem("femflow_session_expira") || "").trim();
+
+  if (!auth || !token) return false;
+  if (!expira) return true;
+
+  const expiraMs = Date.parse(expira);
+  if (!Number.isFinite(expiraMs)) return true;
+  return expiraMs > Date.now();
+}
+
 function abrirModalBodyInsightAuth() {
   if (!bodyInsightAuthModal) return Promise.resolve(false);
 
@@ -1472,6 +1485,17 @@ async function garantirAcessoBodyInsight() {
   const user = firebase.auth().currentUser;
   if (user && !user.isAnonymous) return true;
 
+  const labels = getBodyInsightAuthLabels();
+  const aviso =
+    labels.avisoSeguranca ||
+    "Desculpe, precisamos confirmar seu login pois temos dados e informações pessoais";
+
+  if (loginIndexAindaValido()) {
+    FEMFLOW.toast(aviso, true);
+    return true;
+  }
+
+  FEMFLOW.toast(aviso, true);
   return abrirModalBodyInsightAuth();
 }
 

@@ -367,7 +367,8 @@ home: {
         camposObrigatorios: "Informe e-mail e senha.",
         emailDivergente: "Use o mesmo e-mail da sua conta FemFlow.",
         loginInvalido: "E-mail ou senha inválidos. Tente novamente.",
-        indisponivel: "Não foi possível validar o login agora."
+        indisponivel: "Não foi possível validar o login agora.",
+        avisoSeguranca: "Desculpe, precisamos confirmar seu login pois temos dados e informações pessoais"
       },
       tituloMuscular:  "Treinos por ênfase",
       tituloEsportes:  "Fortalecimento Por Esportes",
@@ -811,7 +812,8 @@ home: {
         camposObrigatorios: "Enter your email and password.",
         emailDivergente: "Use the same email as your FemFlow account.",
         loginInvalido: "Invalid email or password. Please try again.",
-        indisponivel: "We couldn't validate your login right now."
+        indisponivel: "We couldn't validate your login right now.",
+        avisoSeguranca: "Sorry, we need to confirm your login because we handle personal data and information."
       },
       tituloMuscular:  "Muscle focus training",
       tituloEsportes:  "Strengthening Through Sports",
@@ -1252,7 +1254,8 @@ fr: {
         camposObrigatorios: "Renseignez l’e-mail et le mot de passe.",
         emailDivergente: "Utilisez le même e-mail que votre compte FemFlow.",
         loginInvalido: "E-mail ou mot de passe invalide. Réessayez.",
-        indisponivel: "Impossible de valider la connexion pour le moment."
+        indisponivel: "Impossible de valider la connexion pour le moment.",
+        avisoSeguranca: "Désolée, nous devons confirmer votre connexion car nous traitons des données personnelles."
       },
       tituloMuscular:  "Entraînements par groupe musculaire",
       tituloEsportes:  "Renforcement par le sport",
