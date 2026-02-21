@@ -2558,13 +2558,29 @@ window.t = function (path, vars = {}) {
     FEMFLOW.dispatch("femflow:ready", perfil);
 
   })();
-  function formatarTituloEndurancePublic(tituloOriginal) {
-    if (!endurancePublicAtivo) return tituloOriginal;
-    const titulo = String(tituloOriginal || "").trim();
-    if (!titulo) return titulo;
+function formatarTituloEndurancePublic(tituloOriginal) {
+  const endurancePublicEnabled =
+    localStorage.getItem("femflow_endurance_public_enabled") === "true";
+  const endurancePublicIntent =
+    localStorage.getItem("femflow_endurance_public_intent") === "true";
+  const hasPersonalStorage =
+    localStorage.getItem("femflow_has_personal") === "true";
+  const enduranceMode = String(
+    localStorage.getItem("femflow_endurance_mode") || "normal"
+  ).toLowerCase();
 
-    if (/^aquecimento\b/i.test(titulo)) return "Aquecimento";
-    if (/^resfriamento\b/i.test(titulo)) return "Resfriamento";
+  const endurancePublicAtivo =
+    enduranceMode !== "personal" &&
+    endurancePublicEnabled &&
+    (endurancePublicIntent || !hasPersonalStorage);
 
-    return titulo;
-  }
+  if (!endurancePublicAtivo) return tituloOriginal;
+
+  const titulo = String(tituloOriginal || "").trim();
+  if (!titulo) return titulo;
+
+  if (/^aquecimento\b/i.test(titulo)) return "Aquecimento";
+  if (/^resfriamento\b/i.test(titulo)) return "Resfriamento";
+
+  return titulo;
+}
