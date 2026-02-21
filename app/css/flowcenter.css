@@ -403,8 +403,8 @@ h1 {
 
 .endurance-modalidade-options {
   gap: 10px;
-  background: rgba(255,255,255,0.75);
-  border: 1px solid rgba(204,106,90,0.12);
+  background: rgba(255,255,255,0.78);
+  border: 1px solid rgba(204,106,90,0.16);
   border-radius: 14px;
   padding: 12px;
 }
@@ -420,11 +420,16 @@ h1 {
 
 .endurance-modalidade-chip {
   background: #fff8f5;
-  border-color: rgba(204,106,90,0.3);
+  border-color: rgba(204,106,90,0.34);
+  color: #bd6e58;
+  font-weight: 600;
 }
 
 .endurance-modalidade-chip.is-active {
-  box-shadow: 0 8px 18px rgba(204, 106, 90, 0.22);
+  background: #cc6a5a;
+  color: #fff;
+  border-color: #cc6a5a;
+  box-shadow: 0 10px 20px rgba(204, 106, 90, 0.30);
 }
 
 .modal-endurance-selecao .endurance-options {

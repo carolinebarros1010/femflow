@@ -852,6 +852,19 @@ function initFlowCenter() {
     });
   }
 
+  const getModalidadesRenderEndurancePublic = (idsDisponiveis = ENDURANCE_PUBLIC_IDS) => {
+    const ids = Array.isArray(idsDisponiveis) ? idsDisponiveis : ENDURANCE_PUBLIC_IDS;
+    const modalidadeCard = String(localStorage.getItem("femflow_endurance_modalidade") || "").trim();
+    const modoSimplificado = endurancePublicIntent && !!modalidadeCard;
+
+    if (modoSimplificado) {
+      if (ids.includes(modalidadeCard)) return [modalidadeCard];
+      if (ENDURANCE_PUBLIC_IDS.includes(modalidadeCard)) return [modalidadeCard];
+    }
+
+    return ids;
+  };
+
   const renderEndurancePublicModalidades = (idsDisponiveis = ENDURANCE_PUBLIC_IDS) => {
     if (!modalEnduranceModalidade) return;
 
@@ -870,18 +883,29 @@ function initFlowCenter() {
       natacao_2000m: L.enduranceNatacao2000m || ENDURANCE_PUBLIC_LABELS.natacao_2000m
     };
 
+    const idsParaRender = getModalidadesRenderEndurancePublic(idsDisponiveis);
+    const placeholder = document.getElementById("enduranceModalidadePlaceholder");
+    if (placeholder) {
+      placeholder.textContent = idsParaRender.length === 1
+        ? "Modalidade selecionada"
+        : (L.enduranceModalidadePlaceholder || "Selecione a modalidade");
+    }
+
     modalEnduranceModalidade.innerHTML = "";
     const grupos = [
-      { label: L.enduranceModalidadeGrupoCorrida || "Corrida", ids: idsDisponiveis.filter((id) => String(id).startsWith("corrida_")) },
-      { label: L.enduranceModalidadeGrupoOutras || "Outras modalidades", ids: idsDisponiveis.filter((id) => !String(id).startsWith("corrida_")) }
+      { label: L.enduranceModalidadeGrupoCorrida || "Corrida", ids: idsParaRender.filter((id) => String(id).startsWith("corrida_")) },
+      { label: L.enduranceModalidadeGrupoOutras || "Outras modalidades", ids: idsParaRender.filter((id) => !String(id).startsWith("corrida_")) }
     ];
 
+    const mostrarTituloGrupo = idsParaRender.length > 1;
     grupos.forEach((grupo) => {
       if (!grupo.ids.length) return;
-      const title = document.createElement("div");
-      title.className = "endurance-modalidade-group-title";
-      title.textContent = grupo.label;
-      modalEnduranceModalidade.appendChild(title);
+      if (mostrarTituloGrupo) {
+        const title = document.createElement("div");
+        title.className = "endurance-modalidade-group-title";
+        title.textContent = grupo.label;
+        modalEnduranceModalidade.appendChild(title);
+      }
 
       grupo.ids.forEach((id) => {
         const btn = document.createElement("button");
@@ -934,16 +958,17 @@ function initFlowCenter() {
     const travarModalidadePorCard = endurancePublicIntent && !!modalidadeCard;
     const chips = modalEnduranceModalidade.querySelectorAll(".endurance-modalidade-chip");
     chips.forEach((chip) => {
-      chip.classList.toggle("is-disabled", travarModalidadePorCard);
-      chip.setAttribute("aria-disabled", travarModalidadePorCard ? "true" : "false");
+      const travado = travarModalidadePorCard && !chip.classList.contains("is-active");
+      chip.classList.toggle("is-disabled", travado);
+      chip.setAttribute("aria-disabled", travado ? "true" : "false");
     });
     modalEnduranceModalidade.setAttribute("aria-disabled", travarModalidadePorCard ? "true" : "false");
   };
 
-  renderEndurancePublicModalidades();
+  renderEndurancePublicModalidades(getModalidadesRenderEndurancePublic());
   void (async () => {
     const idsDisponiveis = await listarIdsEndurancePublicDisponiveis();
-    renderEndurancePublicModalidades(idsDisponiveis);
+    renderEndurancePublicModalidades(getModalidadesRenderEndurancePublic(idsDisponiveis));
     prepararModalidadeEndurance();
   })();
 
