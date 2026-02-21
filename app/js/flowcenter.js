@@ -849,7 +849,30 @@ function initFlowCenter() {
     });
   }
 
+  const prepararModalidadeEndurance = () => {
+    if (!modalEnduranceModalidade) return;
+    const modalidadeCard = String(localStorage.getItem("femflow_endurance_modalidade") || "").trim();
+    let modalidadeSalva = "";
+    try {
+      modalidadeSalva = String(
+        JSON.parse(localStorage.getItem("femflow_endurance_config") || "{}")?.modalidade || ""
+      ).trim();
+    } catch (err) {
+      console.warn("Falha ao ler configuração endurance salva:", err);
+    }
+    const modalidadePadrao = modalidadeCard || modalidadeSalva;
+
+    if (modalidadePadrao && modalEnduranceModalidade.querySelector(`option[value="${modalidadePadrao}"]`)) {
+      modalEnduranceModalidade.value = modalidadePadrao;
+    }
+
+    const travarModalidadePorCard = endurancePublicIntent && !!modalidadeCard;
+    modalEnduranceModalidade.disabled = travarModalidadePorCard;
+    modalEnduranceModalidade.setAttribute("aria-disabled", travarModalidadePorCard ? "true" : "false");
+  };
+
   const abrirModalEndurance = () => {
+    prepararModalidadeEndurance();
     abrirModalComLock(modalEndurance);
   };
 
