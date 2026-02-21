@@ -50,6 +50,23 @@ FEMFLOW.engineTreino.normalizarEnfaseEndurance = raw => {
     .toLowerCase();
 };
 
+FEMFLOW.engineTreino.normalizeEndurancePersonalModalidade = value => {
+  const modalidade = String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "_");
+
+  const whitelist = ["corrida", "bike", "natacao", "remo"];
+  if (!whitelist.includes(modalidade)) {
+    console.warn("[ENDURANCE][PERSONAL] modalidade inválida, fallback corrida:", value);
+    return "corrida";
+  }
+
+  return modalidade;
+};
+
 FEMFLOW.engineTreino.ESTIMULOS_ENDURANCE_OFICIAIS = [
   "volume",
   "ritmo",
@@ -394,10 +411,26 @@ FEMFLOW.engineTreino.carregarBlocosEndurance = async ({
     uid: authUid
   });
 
-  const enfaseNorm = FEMFLOW.engineTreino.normalizarEnfaseEndurance(enfase);
+  const enduranceMode = String(localStorage.getItem("femflow_endurance_mode") || "normal").toLowerCase();
+  let enfaseNorm = "";
+
+  if (enduranceMode === "personal") {
+    enfaseNorm = FEMFLOW.engineTreino.normalizeEndurancePersonalModalidade(
+      localStorage.getItem("femflow_endurance_modalidade")
+    );
+    console.log("[ENDURANCE][PERSONAL] modalidade usada:", enfaseNorm);
+  } else {
+    enfaseNorm = FEMFLOW.engineTreino.normalizarEnfaseEndurance(enfase);
+  }
 
   if (!id || !enfaseNorm) {
-    console.error("❌ Dados inválidos para consulta Endurance:", { id, enfase });
+    console.error("❌ Dados inválidos para consulta Endurance:", {
+      id,
+      enduranceMode,
+      enfaseParam: enfase,
+      modalidadeLS: localStorage.getItem("femflow_endurance_modalidade"),
+      enfaseNorm
+    });
     return [];
   }
 
@@ -408,10 +441,10 @@ FEMFLOW.engineTreino.carregarBlocosEndurance = async ({
   }
 
   const diaNorm = String(dia || "")
-    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
     .trim()
-    .replace("terça", "terca")
-    .replace("sábado", "sabado");
+    .toLowerCase();
 
   if (!diaNorm) {
     console.error("❌ dia inválido. Abortando consulta Endurance:", dia);
