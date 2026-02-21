@@ -52,7 +52,7 @@ function aplicarCapaVideoInativo(video, toggleBtn, toggleIcon) {
   const mostrarFrame = () => {
     const duracao = Number(video.duration);
     const destino = Number.isFinite(duracao) && duracao > 0
-      ? Math.min(1.2, Math.max(0.15, duracao * 0.2))
+      ? Math.max(0, duracao - 1)
       : 0;
 
     if (destino <= 0) {
