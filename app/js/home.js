@@ -1369,14 +1369,119 @@ function confirmarCustomTreino() {
   location.href = "flowcenter.html";
 }
 
+let bodyInsightAuthModal;
+let bodyInsightAuthCancelar;
+let bodyInsightAuthEntrar;
+let bodyInsightAuthEmail;
+let bodyInsightAuthSenha;
+let bodyInsightAuthError;
+
+function getBodyInsightAuthLabels() {
+  const lang = FEMFLOW.lang || "pt";
+  return FEMFLOW.langs?.[lang]?.home?.bodyInsightAuth || {};
+}
+
+function abrirModalBodyInsightAuth() {
+  if (!bodyInsightAuthModal) return Promise.resolve(false);
+
+  const emailSalvo = String(localStorage.getItem("femflow_email") || "").trim().toLowerCase();
+  if (bodyInsightAuthEmail) bodyInsightAuthEmail.value = emailSalvo;
+  if (bodyInsightAuthSenha) bodyInsightAuthSenha.value = "";
+  if (bodyInsightAuthError) bodyInsightAuthError.textContent = "";
+
+  bodyInsightAuthModal.classList.remove("hidden");
+  bodyInsightAuthModal.setAttribute("aria-hidden", "false");
+  document.body.classList.add("ff-modal-open");
+
+  return new Promise((resolve) => {
+    bodyInsightAuthModal.dataset.resolve = "pending";
+
+    const concluir = (ok) => {
+      if (bodyInsightAuthModal.dataset.resolve !== "pending") return;
+      bodyInsightAuthModal.dataset.resolve = "done";
+      fecharModalBodyInsightAuth();
+      resolve(Boolean(ok));
+    };
+
+    bodyInsightAuthModal.dataset.onSuccess = "";
+    bodyInsightAuthModal._ffResolveAuth = concluir;
+  });
+}
+
+function fecharModalBodyInsightAuth() {
+  if (!bodyInsightAuthModal) return;
+  bodyInsightAuthModal.classList.add("hidden");
+  bodyInsightAuthModal.setAttribute("aria-hidden", "true");
+  document.body.classList.remove("ff-modal-open");
+}
+
+async function confirmarBodyInsightAuth() {
+  const labels = getBodyInsightAuthLabels();
+  const email = String(bodyInsightAuthEmail?.value || "").trim().toLowerCase();
+  const senha = String(bodyInsightAuthSenha?.value || "").trim();
+  const emailSalvo = String(localStorage.getItem("femflow_email") || "").trim().toLowerCase();
+
+  if (bodyInsightAuthError) bodyInsightAuthError.textContent = "";
+
+  if (!email || !senha) {
+    if (bodyInsightAuthError) bodyInsightAuthError.textContent = labels.camposObrigatorios || "Informe e-mail e senha.";
+    return;
+  }
+
+  if (emailSalvo && email !== emailSalvo) {
+    if (bodyInsightAuthError) bodyInsightAuthError.textContent = labels.emailDivergente || "Use o mesmo e-mail da sua conta FemFlow.";
+    return;
+  }
+
+  if (!window.firebase || !firebase.auth) {
+    if (bodyInsightAuthError) bodyInsightAuthError.textContent = labels.indisponivel || "Não foi possível validar o login agora.";
+    return;
+  }
+
+  if (bodyInsightAuthEntrar) bodyInsightAuthEntrar.disabled = true;
+
+  try {
+    await firebase.auth().signInWithEmailAndPassword(email, senha);
+    const resolver = bodyInsightAuthModal?._ffResolveAuth;
+    if (typeof resolver === "function") resolver(true);
+  } catch (error) {
+    if (bodyInsightAuthError) {
+      bodyInsightAuthError.textContent = labels.loginInvalido || "E-mail ou senha inválidos. Tente novamente.";
+    }
+  } finally {
+    if (bodyInsightAuthEntrar) bodyInsightAuthEntrar.disabled = false;
+  }
+}
+
+async function garantirAcessoBodyInsight() {
+  localStorage.setItem("femflow_mode_personal", "false");
+
+  if (!window.firebase || !firebase.auth) {
+    const msg = FEMFLOW.langs?.[FEMFLOW.lang || "pt"]?.home?.bodyInsightReloginRequired ||
+      "Desculpe, precisamos que você faça login novamente para utilizar essa função.";
+    FEMFLOW.toast(msg, true);
+    return false;
+  }
+
+  try {
+    await (window.FEMFLOW?.firebaseAuthReady || Promise.resolve());
+  } catch (error) {
+    console.warn("[FemFlow] firebaseAuthReady falhou:", error);
+  }
+
+  const user = firebase.auth().currentUser;
+  if (user && !user.isAnonymous) return true;
+
+  return abrirModalBodyInsightAuth();
+}
+
 /* ============================================================
    LÓGICA DE ACESSO POR PRODUTO
 =========================================================== */
 async function handleCardClick(enfase, locked) {
 
   if (enfase === "bodyinsight") {
-    localStorage.setItem("femflow_mode_personal", "false");
-    const canProceed = await FEMFLOW.ensureFirebaseAuthForBodyInsight?.();
+    const canProceed = await garantirAcessoBodyInsight();
     if (canProceed === false) return;
     FEMFLOW.router("body_insight.html");
     return;
@@ -1623,6 +1728,19 @@ function aplicarIdiomaHome() {
     if (customLabelResfriamento) customLabelResfriamento.textContent = L.customTreino.labels.resfriamento;
   }
 
+  if (L.bodyInsightAuth) {
+    const authTitle = document.getElementById("bodyInsightAuthTitle");
+    const authSub = document.getElementById("bodyInsightAuthSubtitle");
+    const authEmailLabel = document.getElementById("bodyInsightAuthEmailLabel");
+    const authPasswordLabel = document.getElementById("bodyInsightAuthPasswordLabel");
+    if (authTitle) authTitle.textContent = L.bodyInsightAuth.titulo;
+    if (authSub) authSub.textContent = L.bodyInsightAuth.subtitulo;
+    if (authEmailLabel) authEmailLabel.textContent = L.bodyInsightAuth.email;
+    if (authPasswordLabel) authPasswordLabel.textContent = L.bodyInsightAuth.senha;
+    if (bodyInsightAuthEntrar) bodyInsightAuthEntrar.textContent = L.bodyInsightAuth.entrar;
+    if (bodyInsightAuthCancelar) bodyInsightAuthCancelar.textContent = L.bodyInsightAuth.cancelar;
+  }
+
   // 🔥 VÍDEO
   const vTitle = document.getElementById("homeVideoTitle");
   const vSub = document.getElementById("homeVideoSub");
@@ -1759,6 +1877,42 @@ document.addEventListener("DOMContentLoaded", async () => {
       customTreinoModal.addEventListener("click", (event) => {
         if (event.target !== customTreinoModal) return;
         fecharModalCustomTreino();
+      });
+    }
+
+    bodyInsightAuthModal = document.getElementById("bodyInsightAuthModal");
+    bodyInsightAuthCancelar = document.getElementById("bodyInsightAuthCancelar");
+    bodyInsightAuthEntrar = document.getElementById("bodyInsightAuthEntrar");
+    bodyInsightAuthEmail = document.getElementById("bodyInsightAuthEmail");
+    bodyInsightAuthSenha = document.getElementById("bodyInsightAuthSenha");
+    bodyInsightAuthError = document.getElementById("bodyInsightAuthError");
+
+    if (bodyInsightAuthCancelar) {
+      bodyInsightAuthCancelar.addEventListener("click", () => {
+        const resolver = bodyInsightAuthModal?._ffResolveAuth;
+        if (typeof resolver === "function") resolver(false);
+      });
+    }
+
+    if (bodyInsightAuthEntrar) {
+      bodyInsightAuthEntrar.addEventListener("click", () => {
+        void confirmarBodyInsightAuth();
+      });
+    }
+
+    if (bodyInsightAuthSenha) {
+      bodyInsightAuthSenha.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter") return;
+        event.preventDefault();
+        void confirmarBodyInsightAuth();
+      });
+    }
+
+    if (bodyInsightAuthModal) {
+      bodyInsightAuthModal.addEventListener("click", (event) => {
+        if (event.target !== bodyInsightAuthModal) return;
+        const resolver = bodyInsightAuthModal?._ffResolveAuth;
+        if (typeof resolver === "function") resolver(false);
       });
     }
 
