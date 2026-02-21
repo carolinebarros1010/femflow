@@ -522,17 +522,6 @@ function initFlowCenter() {
     const enduranceModalSub = document.getElementById("enduranceModalSub");
     const enduranceModalidadeLabel = document.getElementById("enduranceModalidadeLabel");
     const enduranceModalidadePlaceholder = document.getElementById("enduranceModalidadePlaceholder");
-    const enduranceModalidadeGrupoCorrida = document.getElementById("enduranceModalidadeGrupoCorrida");
-    const enduranceModalidadeGrupoOutras = document.getElementById("enduranceModalidadeGrupoOutras");
-    const enduranceOptCorrida = document.getElementById("enduranceOptCorrida");
-    const enduranceOptCorrida5k = document.getElementById("enduranceOptCorrida5k");
-    const enduranceOptCorrida10k = document.getElementById("enduranceOptCorrida10k");
-    const enduranceOptCorrida15k = document.getElementById("enduranceOptCorrida15k");
-    const enduranceOptCorrida21k = document.getElementById("enduranceOptCorrida21k");
-    const enduranceOptCorrida42k = document.getElementById("enduranceOptCorrida42k");
-    const enduranceOptNatacao = document.getElementById("enduranceOptNatacao");
-    const enduranceOptBike = document.getElementById("enduranceOptBike");
-    const enduranceOptRemo = document.getElementById("enduranceOptRemo");
     const enduranceTreinosLabel = document.getElementById("enduranceTreinosLabel");
     const enduranceDiasLabel = document.getElementById("enduranceDiasLabel");
     const enduranceRitmoLabel = document.getElementById("enduranceRitmoLabel");
@@ -551,17 +540,6 @@ function initFlowCenter() {
     if (enduranceModalSub) enduranceModalSub.textContent = L.enduranceModalSub;
     if (enduranceModalidadeLabel) enduranceModalidadeLabel.textContent = L.enduranceModalidadeLabel;
     if (enduranceModalidadePlaceholder) enduranceModalidadePlaceholder.textContent = L.enduranceModalidadePlaceholder;
-    if (enduranceModalidadeGrupoCorrida) enduranceModalidadeGrupoCorrida.label = L.enduranceModalidadeGrupoCorrida;
-    if (enduranceModalidadeGrupoOutras) enduranceModalidadeGrupoOutras.label = L.enduranceModalidadeGrupoOutras;
-    if (enduranceOptCorrida) enduranceOptCorrida.textContent = L.enduranceOptCorrida;
-    if (enduranceOptCorrida5k) enduranceOptCorrida5k.textContent = L.enduranceOptCorrida5k;
-    if (enduranceOptCorrida10k) enduranceOptCorrida10k.textContent = L.enduranceOptCorrida10k;
-    if (enduranceOptCorrida15k) enduranceOptCorrida15k.textContent = L.enduranceOptCorrida15k;
-    if (enduranceOptCorrida21k) enduranceOptCorrida21k.textContent = L.enduranceOptCorrida21k;
-    if (enduranceOptCorrida42k) enduranceOptCorrida42k.textContent = L.enduranceOptCorrida42k;
-    if (enduranceOptNatacao) enduranceOptNatacao.textContent = L.enduranceOptNatacao;
-    if (enduranceOptBike) enduranceOptBike.textContent = L.enduranceOptBike;
-    if (enduranceOptRemo) enduranceOptRemo.textContent = L.enduranceOptRemo;
     if (enduranceTreinosLabel) enduranceTreinosLabel.textContent = L.enduranceTreinosLabel;
     if (enduranceDiasLabel) enduranceDiasLabel.textContent = L.enduranceDiasLabel;
     if (enduranceRitmoLabel) enduranceRitmoLabel.textContent = L.enduranceRitmoLabel;
@@ -876,43 +854,44 @@ function initFlowCenter() {
 
   const renderEndurancePublicModalidades = (idsDisponiveis = ENDURANCE_PUBLIC_IDS) => {
     if (!modalEnduranceModalidade) return;
-    const placeholder = modalEnduranceModalidade.querySelector('option[value=""]');
-    modalEnduranceModalidade.innerHTML = "";
-    if (placeholder) {
-      modalEnduranceModalidade.appendChild(placeholder);
-    } else {
-      const option = document.createElement("option");
-      option.value = "";
-      option.selected = true;
-      option.textContent = "Selecione a modalidade";
-      modalEnduranceModalidade.appendChild(option);
-    }
 
-    const grupos = {
-      corrida: { label: "Corrida", ids: [] },
-      outras: { label: "Outras modalidades", ids: [] }
+    const lang = FEMFLOW.lang || "pt";
+    const L = FEMFLOW.langs?.[lang]?.flowcenter || {};
+    const labels = {
+      bike_20000m: L.enduranceBike20k || ENDURANCE_PUBLIC_LABELS.bike_20000m,
+      bike_40000m: L.enduranceBike40k || ENDURANCE_PUBLIC_LABELS.bike_40000m,
+      corrida_5k: L.enduranceOptCorrida5k || ENDURANCE_PUBLIC_LABELS.corrida_5k,
+      corrida_10k: L.enduranceOptCorrida10k || ENDURANCE_PUBLIC_LABELS.corrida_10k,
+      corrida_15k: L.enduranceOptCorrida15k || ENDURANCE_PUBLIC_LABELS.corrida_15k,
+      corrida_21k: L.enduranceOptCorrida21k || ENDURANCE_PUBLIC_LABELS.corrida_21k,
+      corrida_42k: L.enduranceOptCorrida42k || ENDURANCE_PUBLIC_LABELS.corrida_42k,
+      natacao_750m: L.enduranceNatacao750m || ENDURANCE_PUBLIC_LABELS.natacao_750m,
+      natacao_1500m: L.enduranceNatacao1500m || ENDURANCE_PUBLIC_LABELS.natacao_1500m,
+      natacao_2000m: L.enduranceNatacao2000m || ENDURANCE_PUBLIC_LABELS.natacao_2000m
     };
 
-    idsDisponiveis.forEach((id) => {
-      if (String(id).startsWith("corrida_")) {
-        grupos.corrida.ids.push(id);
-      } else {
-        grupos.outras.ids.push(id);
-      }
-    });
+    modalEnduranceModalidade.innerHTML = "";
+    const grupos = [
+      { label: L.enduranceModalidadeGrupoCorrida || "Corrida", ids: idsDisponiveis.filter((id) => String(id).startsWith("corrida_")) },
+      { label: L.enduranceModalidadeGrupoOutras || "Outras modalidades", ids: idsDisponiveis.filter((id) => !String(id).startsWith("corrida_")) }
+    ];
 
-    Object.values(grupos).forEach((grupo) => {
+    grupos.forEach((grupo) => {
       if (!grupo.ids.length) return;
-      const optgroup = document.createElement("optgroup");
-      optgroup.label = grupo.label;
+      const title = document.createElement("div");
+      title.className = "endurance-modalidade-group-title";
+      title.textContent = grupo.label;
+      modalEnduranceModalidade.appendChild(title);
+
       grupo.ids.forEach((id) => {
-        const option = document.createElement("option");
-        option.value = id;
-        option.dataset.id = id;
-        option.textContent = ENDURANCE_PUBLIC_LABELS[id] || id;
-        optgroup.appendChild(option);
+        const btn = document.createElement("button");
+        btn.type = "button";
+        btn.className = "endurance-chip endurance-modalidade-chip";
+        btn.dataset.value = id;
+        btn.dataset.id = id;
+        btn.textContent = labels[id] || id;
+        modalEnduranceModalidade.appendChild(btn);
       });
-      modalEnduranceModalidade.appendChild(optgroup);
     });
   };
 
@@ -948,12 +927,16 @@ function initFlowCenter() {
     }
     const modalidadePadrao = modalidadeCard || modalidadeSalva;
 
-    if (modalidadePadrao && modalEnduranceModalidade.querySelector(`option[value="${modalidadePadrao}"]`)) {
-      modalEnduranceModalidade.value = modalidadePadrao;
+    if (modalidadePadrao) {
+      toggleChipSingle(modalEnduranceModalidade, modalidadePadrao);
     }
 
     const travarModalidadePorCard = endurancePublicIntent && !!modalidadeCard;
-    modalEnduranceModalidade.disabled = travarModalidadePorCard;
+    const chips = modalEnduranceModalidade.querySelectorAll(".endurance-modalidade-chip");
+    chips.forEach((chip) => {
+      chip.classList.toggle("is-disabled", travarModalidadePorCard);
+      chip.setAttribute("aria-disabled", travarModalidadePorCard ? "true" : "false");
+    });
     modalEnduranceModalidade.setAttribute("aria-disabled", travarModalidadePorCard ? "true" : "false");
   };
 
@@ -1385,6 +1368,14 @@ function initFlowCenter() {
     });
   };
 
+  if (modalEnduranceModalidade) {
+    modalEnduranceModalidade.addEventListener("click", (event) => {
+      const target = event.target.closest(".endurance-modalidade-chip");
+      if (!target || target.classList.contains("is-disabled")) return;
+      toggleChipSingle(modalEnduranceModalidade, target.dataset.value);
+    });
+  }
+
   if (modalEnduranceTreinos) {
     modalEnduranceTreinos.addEventListener("click", (event) => {
       const target = event.target.closest(".endurance-chip");
@@ -1471,7 +1462,7 @@ function initFlowCenter() {
   };
 
   const salvarConfigEndurance = async () => {
-    const modalidade = modalEnduranceModalidade?.value?.trim() || "";
+    const modalidade = String(modalEnduranceModalidade?.dataset?.value || "").trim();
     const ritmo = modalEnduranceRitmo?.value?.trim() || "";
     const diasSemanaRaw = Array.from(modalEnduranceDias?.querySelectorAll(".endurance-chip.is-active") || [])
       .map(chip => normalizarDiaEndurance(chip.dataset.value))
