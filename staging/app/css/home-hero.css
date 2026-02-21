@@ -37,6 +37,18 @@
   object-fit: cover;   /* remove barras / margens */
   object-position: center;
   transform: scale(1.03); /* “sangra” um pouco, evita bordas */
+  opacity: 1;
+  transition: opacity .28s ease;
+}
+
+
+
+.ff-hero-media:not(.is-ready) .ff-hero-video{
+  opacity: 0;
+}
+
+.ff-hero-media.is-ready .ff-hero-video{
+  opacity: 1;
 }
 
 /* UI fica em cima, mas com elementos claros */
