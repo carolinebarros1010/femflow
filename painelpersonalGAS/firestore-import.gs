@@ -485,11 +485,39 @@ function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, pers
           `/diatreino/diatreino_${diatreino}` +
           `/blocos/${docId}`;
       } else if (isEndurancePersonal) {
+        const semanaValor = String(r[idx.semana] || "").trim();
+        const diaValor = diaKeyEncoded;
+        const modalidadeValor = enfaseEncoded;
+
+        firestorePATCH_(
+          `${baseURL}/personal_trainings/${personalId}/endurance/${modalidadeValor}`,
+          token,
+          { fields: { ativo: { booleanValue: true } } }
+        );
+
+        firestorePATCH_(
+          `${baseURL}/personal_trainings/${personalId}/endurance/${modalidadeValor}/treinos/base`,
+          token,
+          { fields: { ativo: { booleanValue: true } } }
+        );
+
+        firestorePATCH_(
+          `${baseURL}/personal_trainings/${personalId}/endurance/${modalidadeValor}/treinos/base/semana/${semanaValor}`,
+          token,
+          { fields: { ativo: { booleanValue: true } } }
+        );
+
+        firestorePATCH_(
+          `${baseURL}/personal_trainings/${personalId}/endurance/${modalidadeValor}/treinos/base/semana/${semanaValor}/dias/${diaValor}`,
+          token,
+          { fields: { ativo: { booleanValue: true } } }
+        );
+
         url =
          `${baseURL}/personal_trainings/${personalId}` +
 `/endurance/${enfaseEncoded}` +
 `/treinos/base` +
-`/semana/${String(r[idx.semana] || "").trim()}` +
+`/semana/${semanaValor}` +
 `/dias/${diaKeyEncoded}/blocos/${docId}`;
       } else {
         url = `${baseURL}/personal_trainings/${personalId}/${enfaseEncoded}/${fase}/dias/${diaKeyEncoded}/blocos/${docId}`;
@@ -554,6 +582,10 @@ function importarAbaParaFirestore_(sh, token, baseURL, nomeAba, isPersonal, pers
         importTarget: { stringValue: String(target || "femflow") },
       },
     };
+
+    if (isPersonal) {
+      payload.fields.ativo = { booleanValue: true };
+    }
 
     // FemFlow fields
     if (!usaCicloDiaTreino) {
@@ -919,18 +951,24 @@ function buildDocPayloadMaleFlow_(ctx, items) {
     return { mapValue: { fields: buildMaleFlowItemFields_(item) } };
   });
 
+  const fields = {
+    updatedAt: { timestampValue: new Date().toISOString() }, // ✅ padronizado
+    importTarget: { stringValue: "maleflow" },
+
+    nivel: { stringValue: String(ctx.nivel || "").toLowerCase() },
+    enfase: { stringValue: String(ctx.enfase || "").toLowerCase() },
+    ciclo: { stringValue: String(ctx.ciclo || "").toUpperCase() },
+    diatreino: { stringValue: String(ctx.diatreino || "").toUpperCase() },
+
+    itens: { arrayValue: { values } }
+  };
+
+  if (ctx.isPersonal === true) {
+    fields.ativo = { booleanValue: true };
+  }
+
   return {
-    fields: {
-      updatedAt: { timestampValue: new Date().toISOString() }, // ✅ padronizado
-      importTarget: { stringValue: "maleflow" },
-
-      nivel: { stringValue: String(ctx.nivel || "").toLowerCase() },
-      enfase: { stringValue: String(ctx.enfase || "").toLowerCase() },
-      ciclo: { stringValue: String(ctx.ciclo || "").toUpperCase() },
-      diatreino: { stringValue: String(ctx.diatreino || "").toUpperCase() },
-
-      itens: { arrayValue: { values } }
-    }
+    fields
   };
 }
 
