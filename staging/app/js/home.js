@@ -43,13 +43,15 @@ function ffHeroInit() {
 
   const video = document.getElementById("ffHeroVideo");
   const source = document.getElementById("ffHeroSource");
+
   if (video && source) {
     const next = base + (videos[lang] || videos.pt);
-    if (source.src !== next) {
+    if (video.dataset.heroSrc !== next) {
       source.src = next;
+      video.dataset.heroSrc = next;
       video.load();
-      video.play().catch(() => {});
     }
+    video.play().catch(() => {});
   }
 
   // CTA
@@ -68,7 +70,7 @@ function ffHeroInit() {
         if (e.isIntersecting) video.play().catch(() => {});
         else video.pause();
       });
-    }, { threshold: 0.35 });
+    }, { threshold: 0.2 });
     obs.observe(hero);
   }
 }
@@ -1073,24 +1075,6 @@ function aplicarIdiomaHome() {
   const lang = FEMFLOW.lang || "pt";
   const L = FEMFLOW.langs?.[lang]?.home;
   if (!L) return;
-
-  const nomeRaw = localStorage.getItem("femflow_nome") || "Aluna";
-  const primeiroNome = nomeRaw.split(" ")[0];
-
-  // Saudação
-  const bv = document.getElementById("bvTexto");
-  if (bv) {
-    bv.textContent = "";
-    const saudacao = document.createElement("span");
-    saudacao.className = "bemvinda-texto";
-    saudacao.textContent = `${L.bemvinda}, `;
-
-    const nome = document.createElement("span");
-    nome.className = "bemvinda-nome";
-    nome.textContent = `${primeiroNome}!`;
-
-    bv.append(saudacao, nome);
-  }
 
   // Títulos das seções
   const tPersonal = document.getElementById("tituloPersonalTopo");
