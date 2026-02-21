@@ -87,27 +87,24 @@ FEMFLOW.engineTreino.resolverModalidadesEndurancePublic = raw => {
   const modalidadeNorm = FEMFLOW.engineTreino.normalizarEnfaseEndurance(raw);
   if (!modalidadeNorm) return [];
 
+  const canonicalIds = [
+    "bike_20000m",
+    "bike_40000m",
+    "corrida_5k",
+    "corrida_10k",
+    "corrida_15k",
+    "corrida_21k",
+    "corrida_42k",
+    "natacao_750m",
+    "natacao_1500m",
+    "natacao_2000m"
+  ];
+
   const base = modalidadeNorm.startsWith("planilha_")
     ? modalidadeNorm.replace(/^planilha_/, "")
     : modalidadeNorm;
 
-  const aliasMap = {
-    corrida: ["corrida_5k"],
-    running: ["corrida_5k"],
-    bike: ["ciclismo"],
-    bicicleta: ["ciclismo"],
-    ciclismo: ["bike"],
-    cycling: ["ciclismo"],
-    natacao: ["nado"],
-    nado: ["natacao"],
-    swimming: ["natacao"],
-    remo: ["rowing"],
-    rowing: ["remo"]
-  };
-
-  return [base, ...(aliasMap[base] || [])].filter((value, idx, arr) => {
-    return Boolean(value) && arr.indexOf(value) === idx;
-  });
+  return canonicalIds.includes(base) ? [base] : [];
 };
 
 FEMFLOW.engineTreino.selecionarTitulo = bloco => {
