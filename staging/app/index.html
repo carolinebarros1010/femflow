@@ -255,6 +255,19 @@ document.addEventListener("DOMContentLoaded", () => {
     }
   }
 
+  async function validarPerfilAposLogin() {
+    try {
+      const perfil = await FEMFLOW.carregarPerfil?.();
+      if (perfil?.fase && perfil?.diaCiclo) {
+        localStorage.setItem("femflow_cycle_configured", "yes");
+      }
+      return perfil;
+    } catch (err) {
+      console.warn("Falha ao validar perfil:", err);
+      return null;
+    }
+  }
+
   async function entrar(){
     if (loginInProgress) return;
     loginInProgress = true;
