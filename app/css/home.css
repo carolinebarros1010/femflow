@@ -105,13 +105,43 @@ body {
   padding-top: 56.25%; /* 16:9 padrão */
 }
 
-.video-wrapper iframe {
+.home-video-player {
   position: absolute;
   inset: 0;
   width: 100%;
   height: 100%;
   border: 0;
   border-radius: 20px;
+  object-fit: cover;
+  background: #000;
+}
+
+.home-video-toggle {
+  position: absolute;
+  right: 10px;
+  bottom: 10px;
+  width: 32px;
+  height: 32px;
+  border: 1px solid rgba(255, 255, 255, 0.35);
+  border-radius: 50%;
+  background: rgba(0, 0, 0, 0.28);
+  color: #fff;
+  backdrop-filter: blur(2px);
+  display: grid;
+  place-items: center;
+  cursor: pointer;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.home-video-toggle:hover,
+.home-video-toggle:focus-visible {
+  background: rgba(0, 0, 0, 0.42);
+  transform: scale(1.04);
+}
+
+.home-video-toggle span {
+  font-size: 0.78rem;
+  line-height: 1;
 }
 
 /* ============================================================
@@ -136,9 +166,14 @@ body {
   }
 
   /* iframe fixo no tamanho desejado */
-  .video-wrapper iframe {
+  .home-video-player {
     width: 345px !important;
     height: 194px !important;
+  }
+
+  .home-video-toggle {
+    right: 8px;
+    bottom: 8px;
   }
 }
 
