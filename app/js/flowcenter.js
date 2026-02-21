@@ -7,6 +7,31 @@
 =========================================================== */
 
 const LINK_ACESSO_APP = "https://pay.hotmart.com/T103984580L?off=ifcs6h6n";
+const ENDURANCE_PUBLIC_IDS = [
+  "bike_20000m",
+  "bike_40000m",
+  "corrida_5k",
+  "corrida_10k",
+  "corrida_15k",
+  "corrida_21k",
+  "corrida_42k",
+  "natacao_750m",
+  "natacao_1500m",
+  "natacao_2000m"
+];
+
+const ENDURANCE_PUBLIC_LABELS = {
+  bike_20000m: "Bike 20 km",
+  bike_40000m: "Bike 40 km",
+  corrida_5k: "Corrida 5 km",
+  corrida_10k: "Corrida 10 km",
+  corrida_15k: "Corrida 15 km",
+  corrida_21k: "Corrida 21 km",
+  corrida_42k: "Corrida 42 km",
+  natacao_750m: "Natação 750 m",
+  natacao_1500m: "Natação 1500 m",
+  natacao_2000m: "Natação 2000 m"
+};
 
 function parseBooleanish(value) {
   if (typeof value === "boolean") return value;
@@ -849,7 +874,98 @@ function initFlowCenter() {
     });
   }
 
+  const renderEndurancePublicModalidades = (idsDisponiveis = ENDURANCE_PUBLIC_IDS) => {
+    if (!modalEnduranceModalidade) return;
+    const placeholder = modalEnduranceModalidade.querySelector('option[value=""]');
+    modalEnduranceModalidade.innerHTML = "";
+    if (placeholder) {
+      modalEnduranceModalidade.appendChild(placeholder);
+    } else {
+      const option = document.createElement("option");
+      option.value = "";
+      option.selected = true;
+      option.textContent = "Selecione a modalidade";
+      modalEnduranceModalidade.appendChild(option);
+    }
+
+    const grupos = {
+      corrida: { label: "Corrida", ids: [] },
+      outras: { label: "Outras modalidades", ids: [] }
+    };
+
+    idsDisponiveis.forEach((id) => {
+      if (String(id).startsWith("corrida_")) {
+        grupos.corrida.ids.push(id);
+      } else {
+        grupos.outras.ids.push(id);
+      }
+    });
+
+    Object.values(grupos).forEach((grupo) => {
+      if (!grupo.ids.length) return;
+      const optgroup = document.createElement("optgroup");
+      optgroup.label = grupo.label;
+      grupo.ids.forEach((id) => {
+        const option = document.createElement("option");
+        option.value = id;
+        option.dataset.id = id;
+        option.textContent = ENDURANCE_PUBLIC_LABELS[id] || id;
+        optgroup.appendChild(option);
+      });
+      modalEnduranceModalidade.appendChild(optgroup);
+    });
+  };
+
+  const listarIdsEndurancePublicDisponiveis = async () => {
+    if (!firebase?.firestore) return ENDURANCE_PUBLIC_IDS;
+
+    const checks = await Promise.all(
+      ENDURANCE_PUBLIC_IDS.map(async (id) => {
+        try {
+          const snap = await firebase.firestore().collection("endurance_public").doc(id).get();
+          return snap.exists ? id : null;
+        } catch (err) {
+          console.warn("[ENDURANCE_PUBLIC] Falha ao validar modalidade:", id, err);
+          return null;
+        }
+      })
+    );
+
+    const disponiveis = checks.filter(Boolean);
+    return disponiveis.length ? disponiveis : ENDURANCE_PUBLIC_IDS;
+  };
+
+  const prepararModalidadeEndurance = () => {
+    if (!modalEnduranceModalidade) return;
+    const modalidadeCard = String(localStorage.getItem("femflow_endurance_modalidade") || "").trim();
+    let modalidadeSalva = "";
+    try {
+      modalidadeSalva = String(
+        JSON.parse(localStorage.getItem("femflow_endurance_config") || "{}")?.modalidade || ""
+      ).trim();
+    } catch (err) {
+      console.warn("Falha ao ler configuração endurance salva:", err);
+    }
+    const modalidadePadrao = modalidadeCard || modalidadeSalva;
+
+    if (modalidadePadrao && modalEnduranceModalidade.querySelector(`option[value="${modalidadePadrao}"]`)) {
+      modalEnduranceModalidade.value = modalidadePadrao;
+    }
+
+    const travarModalidadePorCard = endurancePublicIntent && !!modalidadeCard;
+    modalEnduranceModalidade.disabled = travarModalidadePorCard;
+    modalEnduranceModalidade.setAttribute("aria-disabled", travarModalidadePorCard ? "true" : "false");
+  };
+
+  renderEndurancePublicModalidades();
+  void (async () => {
+    const idsDisponiveis = await listarIdsEndurancePublicDisponiveis();
+    renderEndurancePublicModalidades(idsDisponiveis);
+    prepararModalidadeEndurance();
+  })();
+
   const abrirModalEndurance = () => {
+    prepararModalidadeEndurance();
     abrirModalComLock(modalEndurance);
   };
 
