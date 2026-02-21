@@ -1,87 +1,127 @@
-.ff-hero {
+.ff-hero{
   position: relative;
   width: 100%;
-  height: 420px;
+  max-width: 520px;
+  margin: 6px auto 28px auto;
+}
+
+/* ✅ nada de moldura preta: o container é claro e o video “sangra” */
+.ff-hero-media{
+  position: relative;
+  border-radius: 26px;
   overflow: hidden;
-  border-radius: 28px;
-  margin-bottom: 40px;
+  background: #f6f1ec; /* fundo claro (evita borda preta se video demora) */
+
+  /* sombra clara premium */
+  box-shadow:
+    0 18px 40px rgba(51, 89, 83, 0.10),
+    0 8px 16px rgba(204, 106, 90, 0.10);
 }
 
-.ff-hero-video {
-  position: absolute;
-  width: 110%;
-  height: 110%;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  object-fit: cover;
-  filter: brightness(0.65);
-  z-index: 1;
-}
-
-.ff-hero-overlay {
+/* véu claro estilo premium (inspirado no look valorant) */
+.ff-hero-media::after{
+  content: "";
   position: absolute;
   inset: 0;
+  pointer-events: none;
   background:
-    linear-gradient(to right, rgba(0, 0, 0, 0.7), rgba(0, 0, 0, 0.2)),
-    linear-gradient(to bottom, rgba(0, 0, 0, 0.1), rgba(0, 0, 0, 0.7));
-  z-index: 2;
+    radial-gradient(120% 90% at 50% 8%, rgba(255,255,255,0.30) 0%, rgba(255,255,255,0) 55%),
+    linear-gradient(90deg, rgba(246,241,236,0.28) 0%, rgba(246,241,236,0.06) 40%, rgba(246,241,236,0.24) 100%);
 }
 
-.ff-hero-content {
-  position: relative;
-  z-index: 3;
-  height: 100%;
+/* ✅ video ocupa tudo, sem barras */
+.ff-hero-video{
+  width: 100%;
+  height: 310px;
+  display: block;
+  object-fit: cover;   /* remove barras / margens */
+  object-position: center;
+  transform: scale(1.03); /* “sangra” um pouco, evita bordas */
+  opacity: 1;
+}
+
+/* UI fica em cima, mas com elementos claros */
+.ff-hero-ui{
+  position: absolute;
+  inset: 0;
   display: flex;
   flex-direction: column;
-  justify-content: center;
-  align-items: flex-start;
-  padding: 48px 60px;
-  color: white;
+  justify-content: space-between;
+  gap: 14px;
+  padding: 12px 18px 24px;
 }
 
-.ff-hero-content h1 {
-  font-size: 38px;
-  font-family: 'Playfair Display', serif;
-  margin-bottom: 20px;
+/* ✅ Nome realmente destacado */
+.ff-hero-welcome{
+  align-self: flex-start;
+  display: inline-flex;
+  align-items: baseline;
+  gap: 8px;
+
+  /* “glass” claro, sem escurecer vídeo */
+  background: rgba(246, 241, 236, 0.78);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(51, 89, 83, 0.14);
+
+  border-radius: 18px;
+  padding: 10px 14px;
+
+  box-shadow: 0 10px 24px rgba(0,0,0,0.10);
+  margin-top: -4px;
 }
 
-.ff-hero-btn {
-  background: linear-gradient(135deg, #335953, #CC6A5A);
-  color: white;
-  border: none;
-  padding: 16px 36px;
-  border-radius: 40px;
+.ff-hero-hello{
+  display: inline;
   font-size: 16px;
-  font-weight: 600;
-  cursor: pointer;
-  box-shadow: 0 12px 30px rgba(0, 0, 0, 0.4);
-  transition: all 0.3s ease;
+  letter-spacing: 0.3px;
+  color: #335953;
+  opacity: 0.95;
+}
+
+.ff-hero-name{
+  display: inline;
+  font-family: "Playfair Display", serif;
+  font-size: 28px;
+  line-height: 1.05;
+  color: #CC6A5A; /* terracota */
+}
+
+/* ✅ Botão estilo “Valorant”, porém claro */
+.ff-hero-btn{
+  align-self: flex-start;
   margin-top: auto;
+  margin-bottom: 8px;
+
+  border: none;
+  border-radius: 999px;
+  padding: 14px 18px;
+  min-width: 240px;
+
+  color: #ffffff;
+  font-weight: 700;
+  letter-spacing: 0.2px;
+
+  background: linear-gradient(135deg, #4F7A73 0%, #E18A79 100%);
+  box-shadow:
+    0 14px 30px rgba(79, 122, 115, 0.24),
+    0 10px 18px rgba(225, 138, 121, 0.20);
+
+  cursor: pointer;
+  transform: translateZ(0);
+  transition: transform .18s ease, box-shadow .18s ease;
 }
 
-.ff-hero-btn:hover {
-  transform: translateY(-3px);
+.ff-hero-btn:active{
+  transform: translateY(1px);
+  box-shadow:
+    0 10px 20px rgba(79, 122, 115, 0.20),
+    0 8px 14px rgba(225, 138, 121, 0.16);
 }
 
-@media (max-width: 768px) {
-  .ff-hero {
-    height: 340px;
-    border-radius: 20px;
-  }
-
-  .ff-hero-content {
-    padding: 32px 24px;
-  }
-
-  .ff-hero-content h1 {
-    font-size: 30px;
-    margin-bottom: 16px;
-  }
-
-  .ff-hero-btn {
-    width: 100%;
-    max-width: 280px;
-    padding: 14px 28px;
-  }
+/* Mobile fine-tune */
+@media (max-width: 420px){
+  .ff-hero-video{ height: 280px; }
+  .ff-hero-name{ font-size: 24px; }
+  .ff-hero-hello{ font-size: 15px; }
+  .ff-hero-btn{ min-width: 220px; }
 }

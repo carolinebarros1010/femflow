@@ -34,49 +34,31 @@
 <script src="services/firebase-init.js?v=20250127"></script>
 
   
-  <!-- BEM-VINDA -->
-  <h1 id="bvTexto" class="bemvinda">Bem-vinda!</h1>
-
   <section class="ff-hero">
+  <div class="ff-hero-media">
     <video
       id="ffHeroVideo"
       class="ff-hero-video"
       autoplay
       muted
       playsinline
-      loop>
+      loop
+      preload="metadata">
       <source id="ffHeroSource" type="video/mp4">
     </video>
+  </div>
 
-    <div class="ff-hero-overlay"></div>
-
-    <div class="ff-hero-content">
-      <h1 id="ffHeroWelcome"></h1>
-
-      <button id="ffHeroCTA" class="ff-hero-btn">
-        Continuar seu treino
-      </button>
+  <div class="ff-hero-ui">
+    <div class="ff-hero-welcome">
+      <span class="ff-hero-hello" id="ffHeroHello">Bem-vinda,</span>
+      <span class="ff-hero-name" id="ffHeroName">Aluna</span>
     </div>
-  </section>
-  
-<div class="video">
-  <div class="video-wrapper">
-    <h2 id="homeVideoTitle"></h2>
-    <p id="homeVideoSub"></p>
-    <iframe
-      id="homeVideoFrame"
-      src="https://www.youtube-nocookie.com/embed/pAifTtNF9sQ?controls=0&modestbranding=1&rel=0&playsinline=1"
-      title="Vídeo de boas-vindas do FemFlow"
-      allowfullscreen
-      loading="lazy">
-    </iframe>
-  </div>
-</div>
 
-  <!-- BOTÃO FLOW CENTER -->
-  <div class="home-top-buttons">
-    <button id="btnFlow" class="home-btn">Continue seu treino</button>
+    <button id="ffHeroCTA" class="ff-hero-btn">
+      Continuar seu treino
+    </button>
   </div>
+</section>
 
   <!-- PERSONAL -->
   <h2 class="home-section-title" id="tituloPersonalTopo">Personal</h2>
@@ -140,11 +122,6 @@
 
 <!-- Só agora o home -->
 <script src="js/home.js"></script>
-
-
-  <script>
-    document.getElementById("btnFlow").onclick = () => FEMFLOW.router("flowcenter");
-  </script>
 
   <script src="/staging/app/js/env-staging.js"></script>
 </body>
