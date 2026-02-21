@@ -19,6 +19,8 @@ document.addEventListener("DOMContentLoaded", () => {
   const modePersonalStorage =
     localStorage.getItem("femflow_mode_personal") === "true";
   let isPersonal = hasPersonalStorage && modePersonalStorage;
+  let isPersonalReal = false;
+  let isEndurancePublic = false;
 
   if (isPersonal) {
     document.body.classList.add("personal-mode");
@@ -762,17 +764,29 @@ document.addEventListener("DOMContentLoaded", () => {
 // localStorage.setItem("femflow_has_personal", ...);
 
 // ✅ apenas lê
-const hasPersonal =
-  localStorage.getItem("femflow_has_personal") === "true";
+    const hasPersonal =
+      localStorage.getItem("femflow_has_personal") === "true";
+
+    const produto = String(perfil.produto || "").toLowerCase().trim();
+    isPersonalReal = produto === "treino_personal";
+    isEndurancePublic = produto === "endurance_public";
 
     const modePersonal =
       localStorage.getItem("femflow_mode_personal") === "true";
-    personalFinal = hasPersonal && modePersonal;
+    const isPersonalStorage = hasPersonal && modePersonal;
+    isPersonal = isPersonalStorage || isPersonalReal;
+    personalFinal = isPersonal;
 
-    if (personalFinal) {
+    if (isPersonalReal) {
       document.body.classList.add("personal-mode");
     } else {
       document.body.classList.remove("personal-mode");
+    }
+
+    if (isEndurancePublic) {
+      document.body.classList.add("no-whatsapp");
+    } else {
+      document.body.classList.remove("no-whatsapp");
     }
 
     if (isCustomTreino) {
@@ -1005,6 +1019,28 @@ const hasPersonal =
         diaCiclo: diaUsadoFinal,
         personal: personalFinal && !isExtraTreino
       });
+
+      if (!lista || lista.length === 0) {
+        if (isEndurancePublic) {
+          lista = await FEMFLOW.engineTreino.montarTreinoFinal({
+            id,
+            nivel,
+            enfase: "endurance_public",
+            fase: faseFirestoreFinal,
+            diaCiclo: diaUsadoFinal,
+            personal: false
+          });
+        } else {
+          lista = await FEMFLOW.engineTreino.montarTreinoFinal({
+            id,
+            nivel,
+            enfase: enfaseFinal,
+            fase: faseFirestoreFinal,
+            diaCiclo: diaUsadoFinal,
+            personal: false
+          });
+        }
+      }
     }
 
     renderTreino(lista);
@@ -1140,7 +1176,7 @@ lista.forEach(item => {
         <p>Seu personal ainda não ajustou seu treino.</p>
         <p>
           Entre em contato no
-          <a href="https://wa.me/551151942268" target="_blank" rel="noopener">WhatsApp +55 11 5194-2268</a>.
+          <a class="btn-whatsapp" href="https://wa.me/551151942268" target="_blank" rel="noopener">WhatsApp +55 11 5194-2268</a>.
         </p>
       `
       : "<p>Nenhum treino disponível para hoje.</p>";

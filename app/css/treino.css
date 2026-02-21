@@ -1294,3 +1294,7 @@ body.debug * {
   outline: 1px dashed red;
 }
 .hidden { display: none !important; }
+
+.no-whatsapp .btn-whatsapp {
+  display: none !important;
+}
