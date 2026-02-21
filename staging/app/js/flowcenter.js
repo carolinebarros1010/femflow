@@ -148,9 +148,16 @@ function flowcenterPersistPerfil(perfil) {
   const acessos = perfil.acessos || {};
   const produto = String(perfil.produto || "").toLowerCase();
   const isVip = produto === "vip";
+  const personalRaw =
+    acessos.personal ??
+    perfil.personal ??
+    perfil.Personal ??
+    perfil.has_personal ??
+    perfil.hasPersonal;
+  const hasPersonal = parseBooleanish(personalRaw) || isVip;
   localStorage.setItem(
     "femflow_has_personal",
-    acessos.personal === true || isVip ? "true" : "false"
+    hasPersonal ? "true" : "false"
   );
 }
 
