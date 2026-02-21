@@ -21,6 +21,11 @@ let treinosSemanaResolve = null;
 let treinosSemanaSelecionado = null;
 let heroObserver = null;
 
+function isStagingRuntime() {
+  const env = String(window.FEMFLOW_ENV || "").toLowerCase();
+  return env === "staging" || location.pathname.includes("/staging/");
+}
+
 function ffHeroInit() {
 
   const nome = localStorage.getItem("femflow_nome") || "Aluna";
@@ -615,6 +620,17 @@ async function carregarCatalogoFirebase() {
     casa: []
   };
 
+  const hasFirebaseFirestore =
+    typeof firebase !== "undefined" &&
+    typeof firebase.firestore === "function" &&
+    Array.isArray(firebase.apps) &&
+    firebase.apps.length > 0;
+
+  if (!hasFirebaseFirestore) {
+    console.warn("[HOME] Firebase indisponível, carregando home sem catálogo remoto.");
+    return catalogo;
+  }
+
   const snap = await firebase.firestore().collection("exercicios").get();
   snap.forEach(doc => {
     const data = doc.data();
@@ -1177,7 +1193,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const perfil = await carregarPerfilEAtualizarStorage();
 
-    if (perfil.status !== "ok") {
+    const acessoLivreStaging = perfil.status === "no_auth" && isStagingRuntime();
+
+    if (perfil.status !== "ok" && !acessoLivreStaging) {
       FEMFLOW.toast("Erro ao atualizar dados. Tente novamente.");
       FEMFLOW.loading.hide();
       return;
@@ -1190,7 +1208,9 @@ document.addEventListener("DOMContentLoaded", async () => {
       return FEMFLOW.router("index.html");
     }
 
-    persistPerfil(perfil);
+    if (!acessoLivreStaging) {
+      persistPerfil(perfil);
+    }
 
     if (localStorage.getItem("femflow_auth") === "yes") {
       setTimeout(() => FEMFLOW.push?.requestPermissionAfterLogin?.(), 800);
@@ -1201,7 +1221,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       localStorage.setItem("femflow_cycle_configured", "yes");
     }
 
-    if (!localStorage.getItem("femflow_cycle_configured")) {
+    if (!localStorage.getItem("femflow_cycle_configured") && !acessoLivreStaging) {
       FEMFLOW.loading.hide?.();
       FEMFLOW.toast("Configure seu ciclo antes de escolher o treino 🌸");
       FEMFLOW.router("ciclo");
