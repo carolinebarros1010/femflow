@@ -32,6 +32,7 @@
 <script defer src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/9.22.2/firebase-messaging-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
 
 <!-- INIT DO FIREBASE -->
 <script defer src="services/firebase-init.js?v=20250127"></script>
@@ -163,6 +164,31 @@
       <div class="ff-modal-actions">
         <button class="ff-modal-btn ghost" id="customTreinoCancelar">Cancelar</button>
         <button class="ff-modal-btn" id="customTreinoSalvar">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL LOGIN RÁPIDO BODY INSIGHT -->
+  <div id="bodyInsightAuthModal" class="ff-modal-overlay hidden" aria-hidden="true">
+    <div class="ff-modal-card" role="dialog" aria-modal="true" aria-labelledby="bodyInsightAuthTitle">
+      <h3 class="ff-modal-title" id="bodyInsightAuthTitle">Confirme seu login</h3>
+      <p class="ff-modal-subtitle" id="bodyInsightAuthSubtitle">
+        Para acessar o Body Insight com segurança, confirme seu e-mail e senha.
+      </p>
+      <div class="ff-modal-form">
+        <div class="ff-modal-field">
+          <label for="bodyInsightAuthEmail" id="bodyInsightAuthEmailLabel">E-mail</label>
+          <input id="bodyInsightAuthEmail" class="ff-modal-input" type="email" autocomplete="email" inputmode="email" />
+        </div>
+        <div class="ff-modal-field">
+          <label for="bodyInsightAuthSenha" id="bodyInsightAuthPasswordLabel">Senha</label>
+          <input id="bodyInsightAuthSenha" class="ff-modal-input" type="password" autocomplete="current-password" />
+        </div>
+      </div>
+      <p class="ff-modal-error" id="bodyInsightAuthError" role="alert" aria-live="polite"></p>
+      <div class="ff-modal-actions">
+        <button class="ff-modal-btn ghost" id="bodyInsightAuthCancelar">Cancelar</button>
+        <button class="ff-modal-btn" id="bodyInsightAuthEntrar">Entrar</button>
       </div>
     </div>
   </div>
