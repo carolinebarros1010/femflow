@@ -386,6 +386,29 @@ h1 {
   font-weight: 600;
 }
 
+.ff-modal-input {
+  width: 100%;
+  padding: 10px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(51, 89, 83, 0.18);
+  background: #fdf7f4;
+  color: #4a3f3a;
+  font-weight: 600;
+}
+
+.ff-modal-input:focus {
+  outline: 2px solid rgba(51, 89, 83, 0.2);
+  border-color: rgba(51, 89, 83, 0.35);
+}
+
+.ff-modal-error {
+  min-height: 20px;
+  margin: 0 0 14px;
+  color: #b74333;
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
 .ff-modal-btn {
   border: none;
   border-radius: 12px;
