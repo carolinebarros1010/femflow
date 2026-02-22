@@ -506,6 +506,7 @@ home: {
     seriesLabel: "Séries: {series}",
     tempoOnlyLabel: "Tempo: {tempo}",
     distanciaLabel: "Distância: {distancia}",
+    ritmoLabel: "Ritmo: {ritmo}",
     intervaloLabel: "Intervalo: {intervalo}",
     iniciar: "▶️ Iniciar cardio"
   },
@@ -826,6 +827,7 @@ home: {
   seriesLabel: "Sets: {series}",
   tempoOnlyLabel: "Time: {tempo}",
   distanciaLabel: "Distance: {distancia}",
+  ritmoLabel: "Pace: {ritmo}",
   intervaloLabel: "Rest: {intervalo}",
   iniciar: "▶️ Start cardio"
 },
@@ -1148,6 +1150,7 @@ fr: {
   seriesLabel: "Séries : {series}",
   tempoOnlyLabel: "Temps : {tempo}",
   distanciaLabel: "Distance : {distancia}",
+  ritmoLabel: "Rythme : {ritmo}",
   intervaloLabel: "Repos : {intervalo}",
   iniciar: "▶️ Démarrer le cardio"
 },
