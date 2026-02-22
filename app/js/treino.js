@@ -1112,9 +1112,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     const hasRitmo = Boolean(ritmoTexto);
     const hasZona = Boolean(zonaTreino);
     const hasDistanciaMilhas = Boolean(distanciaMilhas && distanciaMilhas !== "0");
-    const usarFallback = !(hasSeries && hasTempo && hasIntervalo);
+    const hasTempoOuDistancia = hasTempo || hasDistancia;
+    const usarFallback = !(hasSeries && hasTempoOuDistancia && hasIntervalo);
     const fallbackTempo = t("treino.cardio.fallbackTempo");
     const fallbackTempoDinamico = hasTempo ? tempoTexto : fallbackTempo;
+    const volumeCardioTexto = hasTempo ? tempoTexto : hasDistancia ? distanciaTexto : "-";
 
     const descricao = hasZona
       ? t("treino.cardio.descricaoZona", { zona: zonaTreino })
@@ -1123,13 +1125,13 @@ document.addEventListener("DOMContentLoaded", async () => {
       : hasRitmo
         ? t("treino.cardio.descricaoRitmo", {
             series: series || "-",
-            tempo: tempoTexto || "-",
+            tempo: volumeCardioTexto,
             intervalo: intervaloTexto || "-",
             ritmo: ritmoTexto
           })
         : t("treino.cardio.descricao", {
             series: series || "-",
-            tempo: tempoTexto || "-",
+            tempo: volumeCardioTexto,
             intervalo: intervaloTexto || "-"
           });
 

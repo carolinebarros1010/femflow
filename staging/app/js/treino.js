@@ -864,21 +864,22 @@ const hasPersonal =
     const hasDistancia = Boolean(distanciaTexto && distanciaTexto !== "0");
     const hasIntervalo = intervaloTexto && intervaloTexto !== "0";
     const hasRitmo = Boolean(ritmoTexto);
-    const usarFallback = !(hasSeries && hasTempo && hasIntervalo);
-    const fallbackTempo = t("treino.cardio.fallbackTempo");
+    const hasTempoOuDistancia = hasTempo || hasDistancia;
+    const usarFallback = !(hasSeries && hasTempoOuDistancia && hasIntervalo);
+    const volumeCardioTexto = hasTempo ? tempoTexto : hasDistancia ? distanciaTexto : "-";
 
     const descricao = usarFallback
       ? t("treino.cardio.fallback")
       : hasRitmo
         ? t("treino.cardio.descricaoRitmo", {
             series: series || "-",
-            tempo: tempoTexto || "-",
+            tempo: volumeCardioTexto,
             intervalo: intervaloTexto || "-",
             ritmo: ritmoTexto
           })
         : t("treino.cardio.descricao", {
             series: series || "-",
-            tempo: tempoTexto || "-",
+            tempo: volumeCardioTexto,
             intervalo: intervaloTexto || "-"
           });
 
