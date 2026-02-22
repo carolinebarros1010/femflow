@@ -566,9 +566,27 @@ document.addEventListener("DOMContentLoaded", async () => {
   });
 
   /* ============================================================
-     LOGIN GOOGLE — FINAL
+     LOGIN GOOGLE / APPLE — FINAL
   ============================================================ */
   $("#googleSignIn").onclick = () => google.accounts.id.prompt();
+
+  $("#appleSignIn").onclick = async () => {
+    const appleAuth = window.AppleID?.auth;
+
+    if (!appleAuth?.signIn) {
+      setErr("Login com Apple indisponível no momento.");
+      return;
+    }
+
+    setMsg("Iniciando login com Apple...");
+
+    try {
+      await appleAuth.signIn();
+    } catch (e) {
+      console.warn("Erro Apple:", e);
+      setErr("Falha ao iniciar login com Apple.");
+    }
+  };
 
   async function preencherComGoogle(response){
     try {
