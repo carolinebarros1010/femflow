@@ -897,6 +897,11 @@ const hasPersonal =
         distancia: hasDistancia ? distanciaTexto : ""
       })
     );
+    detalhes.push(
+      t("treino.cardio.ritmoLabel", {
+        ritmo: hasRitmo ? ritmoTexto : " "
+      })
+    );
     if (hasIntervalo) {
       detalhes.push(t("treino.cardio.intervaloLabel", { intervalo: intervaloTexto }));
     }
