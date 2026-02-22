@@ -1803,6 +1803,8 @@ document.addEventListener("DOMContentLoaded", async () => {
   FEMFLOW.loading.show("Carregando…");
   configurarVideoHome();
 
+  await FEMFLOW.autoLoginSilencioso?.();
+
   try {
     const treinosStorage = Number(localStorage.getItem(TREINOS_SEMANA_KEY));
     if (Number.isFinite(treinosStorage)) {
@@ -1942,17 +1944,17 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const perfil = await carregarPerfilEAtualizarStorage();
 
-    if (perfil.status !== "ok") {
-      FEMFLOW.toast("Erro ao atualizar dados. Tente novamente.");
-      FEMFLOW.loading.hide();
-      return;
-    }
-
     if (perfil.status === "blocked" || perfil.status === "denied") {
       FEMFLOW.toast("Sessão inválida. Faça login novamente.");
       FEMFLOW.clearSession?.();
       FEMFLOW.loading.hide();
       return FEMFLOW.router("index.html");
+    }
+
+    if (perfil.status !== "ok") {
+      FEMFLOW.toast("Erro ao atualizar dados. Tente novamente.");
+      FEMFLOW.loading.hide();
+      return;
     }
 
     persistPerfil(perfil);

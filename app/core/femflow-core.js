@@ -110,6 +110,66 @@ FEMFLOW.setSessionExpira = function (iso) {
 FEMFLOW.clearSession = function () {
   localStorage.removeItem("femflow_session_token");
   localStorage.removeItem("femflow_session_expira");
+  // compat legado (chaves camelCase)
+  localStorage.removeItem("femflow_sessionToken");
+  localStorage.removeItem("femflow_sessionExpira");
+};
+
+FEMFLOW.autoLoginSilencioso = async function () {
+  const email =
+    localStorage.getItem("femflow_email") ||
+    localStorage.getItem("femflowEmail") ||
+    "";
+  const deviceId =
+    localStorage.getItem("femflow_device_id") ||
+    localStorage.getItem("femflow_deviceId") ||
+    "";
+
+  const expiraRaw =
+    localStorage.getItem("femflow_session_expira") ||
+    localStorage.getItem("femflow_sessionExpira") ||
+    "";
+
+  if (!email || !deviceId) return false;
+
+  const expiraMs = Date.parse(String(expiraRaw || ""));
+  const agora = Date.now();
+  if (Number.isFinite(expiraMs) && expiraMs > agora) {
+    return true;
+  }
+
+  try {
+    const resp = await FEMFLOW.post({
+      action: "login",
+      email,
+      deviceId
+    });
+
+    if (resp?.status === "ok") {
+      if (resp.sessionToken) {
+        FEMFLOW.setSessionToken(resp.sessionToken);
+        localStorage.setItem("femflow_sessionToken", String(resp.sessionToken));
+      }
+      if (resp.sessionExpira) {
+        FEMFLOW.setSessionExpira(resp.sessionExpira);
+        localStorage.setItem("femflow_sessionExpira", String(resp.sessionExpira));
+      }
+      if (resp.deviceId) {
+        FEMFLOW.setDeviceId(resp.deviceId);
+      }
+      return true;
+    }
+
+    if (resp?.status === "blocked") {
+      FEMFLOW.clearSession();
+      return false;
+    }
+
+    return true;
+  } catch (e) {
+    console.warn("Erro login silencioso — mantendo sessão.");
+    return true;
+  }
 };
 
 FEMFLOW.sessionTransport = {

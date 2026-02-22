@@ -7,8 +7,10 @@ if (!window.FEMFLOW_TOUR_KEY) {
   window.FEMFLOW_TOUR_KEY = "femflow_treino_tour_v1";
 }
 
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   console.log("🧱 DOMContentLoaded no treino");
+
+  await FEMFLOW.autoLoginSilencioso?.();
 
   /* ============================================================
      0. VARIÁVEIS DA TELA (NÃO dependem do perfil)

@@ -163,7 +163,7 @@ function flowcenterSyncPerfil() {
   else qs.set("email", email);
 
   const url = `${FEMFLOW.SCRIPT_URL}?${qs.toString()}`;
-  return fetch(url).then(r => r.json()).catch(() => ({ status: "error" }));
+  return fetch(url).then(r => r.json()).catch(() => null);
 }
 
 function flowcenterPersistPerfil(perfil) {
@@ -208,7 +208,12 @@ function flowcenterPersistPerfil(perfil) {
 =========================================================== */
 document.addEventListener("DOMContentLoaded", initFlowCenter);
 
-function initFlowCenter() {
+async function initFlowCenter() {
+  try {
+    await FEMFLOW.autoLoginSilencioso?.();
+  } catch (e) {
+    console.warn("Erro silencioso ignorado", e);
+  }
 
   FEMFLOW.loading.show("Preparando seu painel…");
 
@@ -241,14 +246,21 @@ function initFlowCenter() {
       }
 
       return flowcenterSyncPerfil().then((perfilFresh) => {
-        if (!perfilFresh || perfilFresh.status !== "ok") {
-          if (perfilFresh?.status === "blocked" || perfilFresh?.status === "denied") {
-            FEMFLOW.toast("Sessão inválida.");
-            FEMFLOW.clearSession();
-            FEMFLOW.dispatch("stateChanged", { type: "auth", impact: "estrutural" });
-            return null;
-          }
+        if (!perfilFresh) {
+          console.warn("Erro de rede — mantendo sessão.");
+          FEMFLOW.toast("Sem conexão agora. Usando dados salvos.");
+          return perfilBase;
+        }
 
+        if (perfilFresh.status === "blocked") {
+          FEMFLOW.toast("Sessão inválida.");
+          FEMFLOW.clearSession();
+          FEMFLOW.dispatch("stateChanged", { type: "auth", impact: "estrutural" });
+          return null;
+        }
+
+        if (perfilFresh.status !== "ok") {
+          console.warn("Resposta inesperada — mantendo sessão.");
           FEMFLOW.toast("Sem conexão agora. Usando dados salvos.");
           return perfilBase;
         }

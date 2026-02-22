@@ -87,7 +87,7 @@
   </div>
 
 <script>
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
 
   window.FEMFLOW = window.FEMFLOW || {};
 
@@ -165,6 +165,27 @@ document.addEventListener("DOMContentLoaded", () => {
 
     const cameFromHotmart = origem.includes("hotmart") || params.has("hotmart") || params.has("hotmart_id");
     return { cameFromHotmart, email, id, nome, telefone };
+  }
+
+  const hotmartCtx = getHotmartContext();
+  if (!hotmartCtx.cameFromHotmart) {
+    const loginSilenciosoOk = await FEMFLOW.autoLoginSilencioso?.();
+    if (loginSilenciosoOk) {
+      const idSalvo = String(localStorage.getItem("femflow_id") || "").trim();
+      const emailSalvo = String(localStorage.getItem("femflow_email") || "").trim();
+      const tokenSalvo = String(localStorage.getItem("femflow_session_token") || "").trim();
+      const expiraRaw = String(localStorage.getItem("femflow_session_expira") || "").trim();
+
+      const possuiIdentidade = Boolean(idSalvo || emailSalvo);
+      const possuiToken = Boolean(tokenSalvo);
+      const expiraMs = Date.parse(expiraRaw);
+      const tokenValido = !expiraRaw || !Number.isFinite(expiraMs) || expiraMs > Date.now();
+
+      if (possuiIdentidade && possuiToken && tokenValido) {
+        location.href = "home.html";
+        return;
+      }
+    }
   }
 
   function encaminharHotmartParaAnamnese() {
