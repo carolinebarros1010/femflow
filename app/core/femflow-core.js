@@ -115,61 +115,104 @@ FEMFLOW.clearSession = function () {
   localStorage.removeItem("femflow_sessionExpira");
 };
 
+FEMFLOW._autoLoginRunning = false;
+
 FEMFLOW.autoLoginSilencioso = async function () {
-  const email =
-    localStorage.getItem("femflow_email") ||
-    localStorage.getItem("femflowEmail") ||
-    "";
-  const deviceId =
-    localStorage.getItem("femflow_device_id") ||
-    localStorage.getItem("femflow_deviceId") ||
-    "";
-
-  const expiraRaw =
-    localStorage.getItem("femflow_session_expira") ||
-    localStorage.getItem("femflow_sessionExpira") ||
-    "";
-
-  if (!email || !deviceId) return false;
-
-  const expiraMs = Date.parse(String(expiraRaw || ""));
-  const agora = Date.now();
-  if (Number.isFinite(expiraMs) && expiraMs > agora) {
-    return true;
-  }
+  if (FEMFLOW._autoLoginRunning) return true;
+  FEMFLOW._autoLoginRunning = true;
 
   try {
-    const resp = await FEMFLOW.post({
-      action: "login",
-      email,
-      deviceId
-    });
+    const email =
+      localStorage.getItem("femflow_email") ||
+      localStorage.getItem("femflowEmail") ||
+      "";
+    const deviceId =
+      localStorage.getItem("femflow_device_id") ||
+      localStorage.getItem("femflow_deviceId") ||
+      "";
 
-    if (resp?.status === "ok") {
-      if (resp.sessionToken) {
-        FEMFLOW.setSessionToken(resp.sessionToken);
-        localStorage.setItem("femflow_sessionToken", String(resp.sessionToken));
+    const expiraRaw =
+      localStorage.getItem("femflow_session_expira") ||
+      localStorage.getItem("femflow_sessionExpira") ||
+      "";
+
+    if (!email || !deviceId) return false;
+
+    const expiraMs = Date.parse(String(expiraRaw || ""));
+    const agora = Date.now();
+    const UM_DIA = 24 * 60 * 60 * 1000;
+
+    if (Number.isFinite(expiraMs)) {
+      if (expiraMs - agora > UM_DIA) {
+        return true; // ainda longe de expirar
       }
-      if (resp.sessionExpira) {
-        FEMFLOW.setSessionExpira(resp.sessionExpira);
-        localStorage.setItem("femflow_sessionExpira", String(resp.sessionExpira));
+      // Se estiver perto de expirar, força refresh
+    }
+
+    try {
+      const resp = await FEMFLOW.post({
+        action: "login",
+        email,
+        deviceId
+      });
+
+      if (resp?.status === "ok") {
+        if (resp.sessionToken) {
+          FEMFLOW.setSessionToken(resp.sessionToken);
+          localStorage.setItem("femflow_sessionToken", String(resp.sessionToken));
+        }
+        if (resp.sessionExpira) {
+          FEMFLOW.setSessionExpira(resp.sessionExpira);
+          localStorage.setItem("femflow_sessionExpira", String(resp.sessionExpira));
+        }
+        if (resp.deviceId) {
+          FEMFLOW.setDeviceId(resp.deviceId);
+        }
+        return true;
       }
-      if (resp.deviceId) {
-        FEMFLOW.setDeviceId(resp.deviceId);
+
+      if (resp?.status === "blocked") {
+        FEMFLOW.clearSession();
+        return false;
       }
+
+      return true;
+    } catch (e) {
+      console.warn("Erro login silencioso — mantendo sessão.");
       return true;
     }
-
-    if (resp?.status === "blocked") {
-      FEMFLOW.clearSession();
-      return false;
-    }
-
-    return true;
-  } catch (e) {
-    console.warn("Erro login silencioso — mantendo sessão.");
-    return true;
+  } finally {
+    FEMFLOW._autoLoginRunning = false;
   }
+};
+
+FEMFLOW.validarComRetry = async function (fnValidar, tentativas = 2) {
+  for (let i = 0; i <= tentativas; i++) {
+    try {
+      const resp = await fnValidar();
+
+      if (!resp || resp.status === "error") throw new Error("Erro backend");
+
+      if (resp.status === "blocked") {
+        FEMFLOW.clearSession();
+        return resp;
+      }
+
+      if (resp.status === "ok") {
+        return resp;
+      }
+
+      return resp;
+    } catch (e) {
+      if (i === tentativas) {
+        console.warn("Validar falhou após retries.");
+        return null;
+      }
+      await new Promise(r => setTimeout(r, 1000));
+    }
+  }
+
+  return null;
 };
 
 FEMFLOW.sessionTransport = {

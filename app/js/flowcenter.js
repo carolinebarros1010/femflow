@@ -245,10 +245,17 @@ async function initFlowCenter() {
         return null;
       }
 
-      return flowcenterSyncPerfil().then((perfilFresh) => {
+      return FEMFLOW.validarComRetry(flowcenterSyncPerfil).then((perfilFresh) => {
         if (!perfilFresh) {
           console.warn("Erro de rede — mantendo sessão.");
           FEMFLOW.toast("Sem conexão agora. Usando dados salvos.");
+          setTimeout(async () => {
+            const retryResp = await FEMFLOW.validarComRetry(flowcenterSyncPerfil);
+            if (retryResp?.status === "blocked") {
+              FEMFLOW.clearSession();
+              FEMFLOW.dispatch("stateChanged", { type: "auth", impact: "estrutural" });
+            }
+          }, 10000);
           return perfilBase;
         }
 
