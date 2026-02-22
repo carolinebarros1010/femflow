@@ -504,7 +504,8 @@ home: {
     fallback:
       "Realize um cardio de 30 min seguidos em um ritmo leve/moderado. Utilize o aparelho que mais gostas. Se academia: esteira, bicicleta, remo, escada. Se em casa: corrida, caminhada, corda, dança.",
     seriesLabel: "Séries: {series}",
-    tempoLabel: "Tempo/Distância: {tempo}",
+    tempoOnlyLabel: "Tempo: {tempo}",
+    distanciaLabel: "Distância: {distancia}",
     intervaloLabel: "Intervalo: {intervalo}",
     iniciar: "▶️ Iniciar cardio"
   },
@@ -823,7 +824,8 @@ home: {
   fallback:
     "Do 30 minutes of steady cardio at a light/moderate pace. Use the equipment you like most. At the gym: treadmill, bike, rower, stairs. At home: running, walking, jump rope, dance.",
   seriesLabel: "Sets: {series}",
-  tempoLabel: "Time/Distance: {tempo}",
+  tempoOnlyLabel: "Time: {tempo}",
+  distanciaLabel: "Distance: {distancia}",
   intervaloLabel: "Rest: {intervalo}",
   iniciar: "▶️ Start cardio"
 },
@@ -1144,7 +1146,8 @@ fr: {
   fallback:
     "Réalise 30 min de cardio continu à un rythme léger/modéré. Utilise l’appareil que tu préfères. En salle : tapis, vélo, rameur, escaliers. À la maison : course, marche, corde à sauter, danse.",
   seriesLabel: "Séries : {series}",
-  tempoLabel: "Temps/Distance : {tempo}",
+  tempoOnlyLabel: "Temps : {tempo}",
+  distanciaLabel: "Distance : {distancia}",
   intervaloLabel: "Repos : {intervalo}",
   iniciar: "▶️ Démarrer le cardio"
 },

@@ -1093,9 +1093,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     const zonaTreino = String(c.zona_treino || c.zonaTreino || "").trim().toUpperCase();
 
     const series = serieValor !== undefined && serieValor !== null ? String(serieValor) : "";
-    const tempoOuDistancia = distanciaValor
-      ? String(distanciaValor)
-      : formatCardioTempo(tempoValor);
+    const tempoTexto = formatCardioTempo(tempoValor);
+    const distanciaTexto =
+      distanciaValor !== undefined && distanciaValor !== null
+        ? String(distanciaValor).trim()
+        : "";
     const distanciaMilhas =
       distanciaMilhasValor !== undefined && distanciaMilhasValor !== null
         ? String(distanciaMilhasValor).trim()
@@ -1104,14 +1106,15 @@ document.addEventListener("DOMContentLoaded", async () => {
     const ritmoTexto = ritmoValor !== undefined && ritmoValor !== null ? String(ritmoValor).trim() : "";
 
     const hasSeries = series && series !== "0";
-    const hasTempo = tempoOuDistancia && tempoOuDistancia !== "0";
+    const hasTempo = Boolean(tempoTexto && tempoTexto !== "0");
+    const hasDistancia = Boolean(distanciaTexto && distanciaTexto !== "0");
     const hasIntervalo = intervaloTexto && intervaloTexto !== "0";
     const hasRitmo = Boolean(ritmoTexto);
     const hasZona = Boolean(zonaTreino);
     const hasDistanciaMilhas = Boolean(distanciaMilhas && distanciaMilhas !== "0");
     const usarFallback = !(hasSeries && hasTempo && hasIntervalo);
     const fallbackTempo = t("treino.cardio.fallbackTempo");
-    const fallbackTempoDinamico = hasTempo ? tempoOuDistancia : fallbackTempo;
+    const fallbackTempoDinamico = hasTempo ? tempoTexto : fallbackTempo;
 
     const descricao = hasZona
       ? t("treino.cardio.descricaoZona", { zona: zonaTreino })
@@ -1120,13 +1123,13 @@ document.addEventListener("DOMContentLoaded", async () => {
       : hasRitmo
         ? t("treino.cardio.descricaoRitmo", {
             series: series || "-",
-            tempo: tempoOuDistancia || "-",
+            tempo: tempoTexto || "-",
             intervalo: intervaloTexto || "-",
             ritmo: ritmoTexto
           })
         : t("treino.cardio.descricao", {
             series: series || "-",
-            tempo: tempoOuDistancia || "-",
+            tempo: tempoTexto || "-",
             intervalo: intervaloTexto || "-"
           });
 
@@ -1134,11 +1137,16 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (hasSeries) {
       detalhes.push(t("treino.cardio.seriesLabel", { series }));
     }
-    if (hasTempo) {
-      detalhes.push(t("treino.cardio.tempoLabel", { tempo: tempoOuDistancia }));
-    } else if (usarFallback) {
-      detalhes.push(t("treino.cardio.tempoLabel", { tempo: fallbackTempoDinamico }));
-    }
+    detalhes.push(
+      t("treino.cardio.tempoOnlyLabel", {
+        tempo: hasTempo ? tempoTexto : ""
+      })
+    );
+    detalhes.push(
+      t("treino.cardio.distanciaLabel", {
+        distancia: hasDistancia ? distanciaTexto : ""
+      })
+    );
     if (hasIntervalo) {
       detalhes.push(t("treino.cardio.intervaloLabel", { intervalo: intervaloTexto }));
     }

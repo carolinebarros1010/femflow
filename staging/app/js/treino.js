@@ -849,14 +849,17 @@ const hasPersonal =
     const ritmoValor = c.ritmo;
 
     const series = serieValor !== undefined && serieValor !== null ? String(serieValor) : "";
-    const tempoOuDistancia = distanciaValor
-      ? String(distanciaValor)
-      : formatCardioTempo(tempoValor);
+    const tempoTexto = formatCardioTempo(tempoValor);
+    const distanciaTexto =
+      distanciaValor !== undefined && distanciaValor !== null
+        ? String(distanciaValor).trim()
+        : "";
     const intervaloTexto = formatCardioTempo(intervaloValor);
     const ritmoTexto = ritmoValor !== undefined && ritmoValor !== null ? String(ritmoValor).trim() : "";
 
     const hasSeries = series && series !== "0";
-    const hasTempo = tempoOuDistancia && tempoOuDistancia !== "0";
+    const hasTempo = Boolean(tempoTexto && tempoTexto !== "0");
+    const hasDistancia = Boolean(distanciaTexto && distanciaTexto !== "0");
     const hasIntervalo = intervaloTexto && intervaloTexto !== "0";
     const hasRitmo = Boolean(ritmoTexto);
     const usarFallback = !(hasSeries && hasTempo && hasIntervalo);
@@ -867,13 +870,13 @@ const hasPersonal =
       : hasRitmo
         ? t("treino.cardio.descricaoRitmo", {
             series: series || "-",
-            tempo: tempoOuDistancia || "-",
+            tempo: tempoTexto || "-",
             intervalo: intervaloTexto || "-",
             ritmo: ritmoTexto
           })
         : t("treino.cardio.descricao", {
             series: series || "-",
-            tempo: tempoOuDistancia || "-",
+            tempo: tempoTexto || "-",
             intervalo: intervaloTexto || "-"
           });
 
@@ -881,11 +884,16 @@ const hasPersonal =
     if (hasSeries) {
       detalhes.push(t("treino.cardio.seriesLabel", { series }));
     }
-    if (hasTempo) {
-      detalhes.push(t("treino.cardio.tempoLabel", { tempo: tempoOuDistancia }));
-    } else if (usarFallback) {
-      detalhes.push(t("treino.cardio.tempoLabel", { tempo: fallbackTempo }));
-    }
+    detalhes.push(
+      t("treino.cardio.tempoOnlyLabel", {
+        tempo: hasTempo ? tempoTexto : ""
+      })
+    );
+    detalhes.push(
+      t("treino.cardio.distanciaLabel", {
+        distancia: hasDistancia ? distanciaTexto : ""
+      })
+    );
     if (hasIntervalo) {
       detalhes.push(t("treino.cardio.intervaloLabel", { intervalo: intervaloTexto }));
     }
