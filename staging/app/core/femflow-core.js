@@ -91,6 +91,36 @@ FEMFLOW.clearSession = function () {
   localStorage.removeItem("femflow_session_token");
 };
 
+
+FEMFLOW.validarComRetry = async function (fnValidar, tentativas = 2) {
+  for (let i = 0; i <= tentativas; i++) {
+    try {
+      const resp = await fnValidar();
+
+      if (!resp || resp.status === "error") throw new Error("Erro backend");
+
+      if (resp.status === "blocked") {
+        FEMFLOW.clearSession();
+        return resp;
+      }
+
+      if (resp.status === "ok") {
+        return resp;
+      }
+
+      return resp;
+    } catch (e) {
+      if (i === tentativas) {
+        console.warn("Validar falhou após retries.");
+        return null;
+      }
+      await new Promise(r => setTimeout(r, 1000));
+    }
+  }
+
+  return null;
+};
+
 FEMFLOW.sessionTransport = {
   type: "localStorage",
   postMessageFallback: null,

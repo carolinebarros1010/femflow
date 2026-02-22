@@ -187,12 +187,31 @@ function initFlowCenter() {
         return null;
       }
 
-      return flowcenterSyncPerfil().then((perfilFresh) => {
-        if (!perfilFresh || perfilFresh.status !== "ok") {
-          FEMFLOW.toast("Erro ao atualizar dados.");
+      return FEMFLOW.validarComRetry(flowcenterSyncPerfil).then((perfilFresh) => {
+        if (!perfilFresh) {
+          console.warn("Erro de rede — mantendo sessão.");
+          FEMFLOW.toast("Sem conexão agora. Usando dados salvos.");
+          setTimeout(async () => {
+            const retryResp = await FEMFLOW.validarComRetry(flowcenterSyncPerfil);
+            if (retryResp?.status === "blocked") {
+              FEMFLOW.clearSession();
+              FEMFLOW.dispatch("stateChanged", { type: "auth", impact: "estrutural" });
+            }
+          }, 10000);
+          return perfilBase;
+        }
+
+        if (perfilFresh.status === "blocked") {
+          FEMFLOW.toast("Sessão inválida.");
           FEMFLOW.clearSession();
           FEMFLOW.dispatch("stateChanged", { type: "auth", impact: "estrutural" });
           return null;
+        }
+
+        if (perfilFresh.status !== "ok") {
+          console.warn("Resposta inesperada — mantendo sessão.");
+          FEMFLOW.toast("Sem conexão agora. Usando dados salvos.");
+          return perfilBase;
         }
 
         flowcenterPersistPerfil(perfilFresh);
