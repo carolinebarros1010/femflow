@@ -1394,7 +1394,8 @@ function renderBox(bloco) {
     const zonaBadgeHTML = mostrarInfoZona
       ? `<button class="ff-zona-info-btn" type="button" data-zona-info="true" aria-label="${t("treino.cardio.zonas.aria")}">i</button>`
       : "";
-    const descricaoHTML = endurancePublicAtivo
+    const ocultarDescricaoCardio = endurancePublicAtivo || isPersonalEndurance;
+    const descricaoHTML = ocultarDescricaoCardio
       ? ""
       : `<p class="ff-cardio-descricao">${descricao}</p>`;
 

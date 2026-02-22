@@ -82,6 +82,8 @@ document.addEventListener("DOMContentLoaded", () => {
   let treinoSnapshotToScroll = null;
   let enduranceAtivo = enduranceParamActive;
   let enduranceConfig = null;
+  const enduranceMode = String(localStorage.getItem("femflow_endurance_mode") || "normal").toLowerCase();
+  const isPersonalEndurance = enduranceMode === "personal";
   let personalFinal = isPersonal;
 
   const getEnduranceDiaLabel = (lang) => {
@@ -1129,11 +1131,15 @@ function renderBox(bloco) {
       `
       : "";
 
+    const descricaoHTML = isPersonalEndurance
+      ? ""
+      : `<p class="ff-cardio-descricao">${descricao}</p>`;
+
     return `
       <div class="carousel-item ff-box ff-cardio-box ${cardioClass}">
         <h2 class="ff-ex-titulo">${tituloHTML}</h2>
 
-        <p class="ff-cardio-descricao">${descricao}</p>
+        ${descricaoHTML}
         ${detalhesHTML}
         ${timerHTML}
       </div>
