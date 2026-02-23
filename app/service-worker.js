@@ -305,6 +305,7 @@ self.addEventListener("fetch", (event) => {
       } catch (err) {
         console.warn("[SW] Erro de rede:", err);
         if (isNavigation) return caches.match("./offline.html");
+        if (req.destination === "image") throw err;
         return new Response("", { status: 503, statusText: "Offline" });
       }
     })()

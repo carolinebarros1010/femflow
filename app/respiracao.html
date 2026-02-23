@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+  <base href="./" />
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -115,7 +116,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   if (!produto || !ativa) {
     FEMFLOW.toast("Acesse a Home para continuar 🌸");
-    return FEMFLOW.router("home");
+    return FEMFLOW.router("home.html");
   }
 
   /* ============================================================
@@ -315,7 +316,7 @@ document.addEventListener("DOMContentLoaded", async () => {
      🔙 VOLTAR AO FLOWCENTER
   ============================================================ */
   document.getElementById("btnVoltarTreino").onclick =
-    () => FEMFLOW.router("flowcenter");
+    () => FEMFLOW.router("flowcenter.html");
 
   /* ============================================================
      CONTAGEM E CICLOS

@@ -7,7 +7,7 @@
 /* LINKS */
 const LINK_ACESSO_APP = "https://pay.hotmart.com/T103984580L?off=ifcs6h6n";
 const LINK_PERSONAL   = "https://pay.hotmart.com/T103984580L?off=sybtfokt";
-const EBOOKS_DATA_URL = "ebooks/ebooks.json";
+const EBOOKS_DATA_URL = FEMFLOW_assetUrl("ebooks/ebooks.json");
 const EBOOKS_CACHE_KEY = "femflow_ebooks_cache_v1";
 const EBOOKS_CACHE_TTL_MS = 1000 * 60 * 30;
 
@@ -1044,7 +1044,7 @@ const CARD_THUMBS = {
 function getThumbUrl(enfase) {
   const file = CARD_THUMBS[enfase];
   if (!file) return "";
-  return `css/cards/${file}`;
+  return FEMFLOW_assetUrl(`css/cards/${file}`);
 }
 
 /* ============================================================
@@ -1055,21 +1055,13 @@ const EBOOKS_FALLBACK_COLOR = "#fceae3";
 function resolveEbookUrl(path) {
   const p = String(path || "").trim();
   if (!p) return "";
-
-  // links externos: mantém
   if (/^https?:\/\//i.test(p)) return p;
 
-  // remove barra inicial
   let clean = p.replace(/^\/+/, "");
-
-  // remove prefixo app/ se existir
   clean = clean.replace(/^app\//, "");
+  clean = clean.replace(/^ebooks\//, "");
 
-  // se já vier como ebooks/..., mantém
-  if (clean.startsWith("ebooks/")) return clean;
-
-  // se vier apenas "capa.png" etc, prefixa
-  return `ebooks/${clean}`;
+  return FEMFLOW_assetUrl(`ebooks/${clean}`);
 }
 
 function resolveEbookLink(link) {
@@ -1294,7 +1286,7 @@ function iniciarPlanilhaCorrida(enfase) {
   localStorage.setItem("femflow_endurance_public_enabled", "true");
   localStorage.setItem("femflow_endurance_modalidade", modalidade);
   FEMFLOW.toast("Configure sua planilha no Flow Center ✨");
-  FEMFLOW.router("flowcenter");
+  FEMFLOW.router("flowcenter.html");
 }
 
 /* ============================================================
@@ -1662,7 +1654,7 @@ async function selecionarEnfase(enfase) {
   }
 
   // 5) seguir fluxo normal
-  FEMFLOW.router("flowcenter");
+  FEMFLOW.router("flowcenter.html");
 }
 
 /* ============================================================
@@ -1691,7 +1683,7 @@ async function selecionarCoach(coach) {
     }
   }
 
-  FEMFLOW.router("flowcenter");
+  FEMFLOW.router("flowcenter.html");
 }
 
 /* ============================================================
@@ -2005,7 +1997,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (!localStorage.getItem("femflow_cycle_configured")) {
       FEMFLOW.loading.hide?.();
       FEMFLOW.toast("Configure seu ciclo antes de escolher o treino 🌸");
-      FEMFLOW.router("ciclo");
+      FEMFLOW.router("ciclo.html");
       return;
     }
 
