@@ -1822,12 +1822,61 @@ function aplicarIdiomaHome() {
   atualizarModalTreinosSemana();
 }
 
+
+function hideSplash() {
+  const splash = document.getElementById("ff-splash");
+  if (!splash || splash.dataset.hidden === "true") return;
+  splash.dataset.hidden = "true";
+  splash.classList.add("fade-out");
+
+  const removeSplash = () => {
+    splash.remove();
+    document.body.classList.add("ff-ready");
+    document.body.removeAttribute("aria-busy");
+  };
+
+  window.setTimeout(removeSplash, 420);
+}
+
+function waitForHomeCriticalReady() {
+  const video = document.getElementById("heroVideo") || document.getElementById("homeVideoPlayer");
+
+  if (!video) {
+    window.setTimeout(hideSplash, 900);
+    return;
+  }
+
+  let done = false;
+  const conclude = () => {
+    if (done) return;
+    done = true;
+    hideSplash();
+  };
+
+  const fallbackTimer = window.setTimeout(conclude, 2200);
+
+  const onReady = () => {
+    window.clearTimeout(fallbackTimer);
+    conclude();
+  };
+
+  if (video.readyState >= 2) {
+    onReady();
+    return;
+  }
+
+  video.addEventListener("canplay", onReady, { once: true });
+  video.addEventListener("loadeddata", onReady, { once: true });
+  video.addEventListener("error", onReady, { once: true });
+}
+
 /* ============================================================
    HOME — AGORA USANDO SOMENTE VALIDAR (SEM SYNC)
 =========================================================== */
 document.addEventListener("DOMContentLoaded", async () => {
   FEMFLOW.loading.show("Carregando…");
   configurarVideoHome();
+  waitForHomeCriticalReady();
 
   await FEMFLOW.autoLoginSilencioso?.();
 
