@@ -14,7 +14,6 @@
     "ios:open": "npx cap open ios",
     "compare:staging-prod": "node ./tools/compare-staging-prod.mjs"
   },
-
   "repository": {
     "type": "git",
     "url": "git+https://github.com/carolinebarros1010/femflow.git"
@@ -27,6 +26,7 @@
   },
   "homepage": "https://github.com/carolinebarros1010/femflow#readme",
   "dependencies": {
+    "@capacitor/android": "^8.1.0",
     "@capacitor/cli": "^8.0.2",
     "@capacitor/core": "^8.0.2",
     "@capacitor/ios": "^8.0.2"
