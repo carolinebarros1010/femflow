@@ -1728,6 +1728,12 @@ function aplicarIdiomaHome() {
   const customLabelMusculo3 = document.getElementById("customTreinoLabelMusculo3");
   const customLabelResfriamento = document.getElementById("customTreinoLabelResfriamento");
 
+  const novoProgramaTitulo = document.getElementById("novoProgramaTitulo");
+  const novoProgramaSubtitulo = document.getElementById("novoProgramaSubtitulo");
+  const novoProgramaNota = document.getElementById("novoProgramaNota");
+  const novoProgramaBtnCancelar = document.getElementById("novoProgramaCancelar");
+  const novoProgramaBtnConfirmar = document.getElementById("novoProgramaConfirmar");
+
   if (tPersonal) tPersonal.textContent = L.tituloPersonal;
   if (tFollowMe) tFollowMe.textContent = L.tituloFollowMe;
   if (tMuscular) tMuscular.textContent = L.tituloMuscular;
@@ -1736,6 +1742,20 @@ function aplicarIdiomaHome() {
   if (tEbooks) tEbooks.textContent = L.tituloEbooks;
   if (tPlanilhas30Dias) tPlanilhas30Dias.textContent = L.tituloPlanilhas30Dias || "Planilhas 30 Dias";
   if (btnFlow && L.botaoFlowcenter) btnFlow.textContent = L.botaoFlowcenter;
+
+  if (L.novoProgramaModal) {
+    if (novoProgramaTitulo) novoProgramaTitulo.textContent = L.novoProgramaModal.titulo;
+    if (novoProgramaSubtitulo) novoProgramaSubtitulo.textContent = L.novoProgramaModal.subtitulo;
+    if (novoProgramaNota) {
+      novoProgramaNota.textContent = "";
+      novoProgramaNota.append(document.createTextNode(L.novoProgramaModal.notaPrefixo || ""));
+      const destaque = document.createElement("strong");
+      destaque.textContent = L.novoProgramaModal.notaDestaque || "";
+      novoProgramaNota.append(destaque, document.createTextNode(L.novoProgramaModal.notaSufixo || ""));
+    }
+    if (novoProgramaBtnCancelar) novoProgramaBtnCancelar.textContent = L.novoProgramaModal.cancelar;
+    if (novoProgramaBtnConfirmar) novoProgramaBtnConfirmar.textContent = L.novoProgramaModal.confirmar;
+  }
 
   if (L.customTreino) {
     if (customTitle) customTitle.textContent = L.customTreino.titulo;

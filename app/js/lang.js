@@ -375,6 +375,15 @@ home: {
       tituloCasa:      "Treinar em casa",
       tituloPlanilhas30Dias: "Planilhas 30 dias",
       tituloEbooks:    "Ebooks",
+      novoProgramaModal: {
+        titulo: "Quer realmente iniciar um novo programa?",
+        subtitulo: "Ao confirmar, o programa atual será reiniciado.",
+        notaPrefixo: "Para retomar seu treino clique em \"",
+        notaDestaque: "Continue seu treino",
+        notaSufixo: "\".",
+        cancelar: "Não",
+        confirmar: "Sim, iniciar"
+      },
       customTreino: {
         titulo: "Monte seu treino",
         subtitulo: "Crie um treino sob medida hoje",
@@ -822,6 +831,15 @@ home: {
       tituloCasa:      "Home training",
       tituloPlanilhas30Dias: "30-day plans",
       tituloEbooks:    "Ebooks",
+      novoProgramaModal: {
+        titulo: "Do you really want to start a new program?",
+        subtitulo: "When you confirm, your current program will be restarted.",
+        notaPrefixo: "To resume your workout, tap \"",
+        notaDestaque: "Continue your workout",
+        notaSufixo: "\".",
+        cancelar: "No",
+        confirmar: "Yes, start"
+      },
       customTreino: {
         titulo: "Build your workout",
         subtitulo: "Create a workout tailored for today",
@@ -1266,6 +1284,15 @@ fr: {
       tituloCasa:      "S'entraîner à la maison",
       tituloPlanilhas30Dias: "Plans 30 jours",
       tituloEbooks:    "Ebooks",
+      novoProgramaModal: {
+        titulo: "Voulez-vous vraiment démarrer un nouveau programme ?",
+        subtitulo: "En confirmant, votre programme actuel sera réinitialisé.",
+        notaPrefixo: "Pour reprendre votre entraînement, cliquez sur \"",
+        notaDestaque: "Continuez votre entraînement",
+        notaSufixo: "\".",
+        cancelar: "Non",
+        confirmar: "Oui, démarrer"
+      },
       customTreino: {
         titulo: "Créez votre entraînement",
         subtitulo: "Créez un entraînement sur mesure aujourd’hui",
