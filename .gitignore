@@ -18,8 +18,24 @@ app/GAS/.clasp.json
 cap/
 
 # Native projects (generated)
-ios/
-android/
+
+
+# --- Capacitor native projects ---
+# versionar o baseline nativo
+!android/
+!ios/
+
+# arquivos locais / gerados do Android (não versionar)
+android/local.properties
+android/**/build/
+android/.gradle/
+android/.idea/
+android/**/.cxx/
+android/captures/
+android/app/src/main/assets/public/
+android/app/src/main/assets/capacitor.config.json
+android/app/src/main/assets/capacitor.plugins.json
+android/app/src/main/res/xml/config.xml
 
 
 *.bak
