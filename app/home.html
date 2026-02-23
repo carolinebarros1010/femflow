@@ -30,11 +30,11 @@
 </head>
 
 <body aria-busy="true">
-  <div id="ff-splash" role="status" aria-live="polite" aria-label="Carregando FemFlow">
-    <img src="./assets/logofemflowterracota.png" alt="Logo FemFlow" width="96" height="96" decoding="async" />
-    <h2>Train With Your</h2>
-    <div class="ff-splash-loader" aria-hidden="true">
-      <span></span><span></span><span></span>
+  <!-- Splash -->
+  <div id="splash" aria-label="Carregando FemFlow" role="status" aria-live="polite">
+    <div class="splash-inner">
+      <h1>FemFlow</h1>
+      <h2>Train With Your Flow</h2>
     </div>
   </div>
 
@@ -59,7 +59,10 @@
       id="homeVideoPlayer"
       class="home-video-player"
       playsinline
+      muted
+      autoplay
       preload="metadata"
+      poster="assets/screenshots/femflow-home.avif"
       aria-label="Vídeo de boas-vindas do FemFlow">
     </video>
     <button id="homeVideoToggle" class="home-video-toggle" type="button" aria-label="Reproduzir vídeo">
