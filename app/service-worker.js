@@ -1,5 +1,6 @@
 // 🌸 FemFlow Service Worker v5.0 (PWA + CORS safe)
-const CACHE_NAME = "femflow-cache-v11";
+const CACHE_VERSION = "v12";
+const CACHE_NAME = `femflow-static-${CACHE_VERSION}`;
 
 // --------------------------------------------------
 // 🔔 Firebase Cloud Messaging (background)
@@ -175,7 +176,6 @@ const ASSETS = [
   "./config/config.js",
   "./core/femflow-core.js",
   "./services/firebase-init.js",
-  "./js/ciclo.js",
   "./js/treino.js",
   "./js/anamnese.js",
   "./js/painel-admin.js",
