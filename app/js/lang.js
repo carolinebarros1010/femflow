@@ -370,6 +370,13 @@ home: {
         indisponivel: "Não foi possível validar o login agora.",
         avisoSeguranca: "Desculpe, precisamos confirmar seu login pois temos dados e informações pessoais"
       },
+      treinosSemana: {
+        titulo: "Quantos dias por semana você pretende treinar?",
+        subtitulo: "Isso ajuda a identificar descanso e ausência corretamente.",
+        opcao: "{n}x/semana",
+        cancelar: "Agora não",
+        salvar: "Salvar"
+      },
       tituloMuscular:  "Treinos por ênfase",
       tituloEsportes:  "Fortalecimento Por Esportes",
       tituloCasa:      "Treinar em casa",
@@ -826,6 +833,13 @@ home: {
         indisponivel: "We couldn't validate your login right now.",
         avisoSeguranca: "Sorry, we need to confirm your login because we handle personal data and information."
       },
+      treinosSemana: {
+        titulo: "How many days per week do you plan to train?",
+        subtitulo: "This helps us correctly identify rest days and absences.",
+        opcao: "{n}x/week",
+        cancelar: "Not now",
+        salvar: "Save"
+      },
       tituloMuscular:  "Muscle focus training",
       tituloEsportes:  "Strengthening Through Sports",
       tituloCasa:      "Home training",
@@ -1278,6 +1292,13 @@ fr: {
         loginInvalido: "E-mail ou mot de passe invalide. Réessayez.",
         indisponivel: "Impossible de valider la connexion pour le moment.",
         avisoSeguranca: "Désolée, nous devons confirmer votre connexion car nous traitons des données personnelles."
+      },
+      treinosSemana: {
+        titulo: "Combien de jours par semaine prévoyez-vous de vous entraîner ?",
+        subtitulo: "Cela nous aide à identifier correctement les jours de repos et les absences.",
+        opcao: "{n}x/semaine",
+        cancelar: "Pas maintenant",
+        salvar: "Enregistrer"
       },
       tituloMuscular:  "Entraînements par groupe musculaire",
       tituloEsportes:  "Renforcement par le sport",
