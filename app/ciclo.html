@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+  <base href="./" />
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -250,7 +251,7 @@ const perfilFresh = await fetch(`${FEMFLOW.SCRIPT_URL}?${qs.toString()}`)
   FEMFLOW.toast("✨ Ciclo configurado!");
 
   const ret = (new URLSearchParams(location.search).get("ret") || "").toLowerCase();
-  FEMFLOW.router(ret.includes("flowcenter") ? "flowcenter" : "home");
+  FEMFLOW.router(ret.includes("flowcenter") ? "flowcenter.html" : "home.html");
 }
 /* ============================================================
    PERFIS E QUIZ

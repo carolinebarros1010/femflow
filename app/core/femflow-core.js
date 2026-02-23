@@ -44,6 +44,19 @@ FEMFLOW.dispatch = function(type, detail = {}) {
   );
 };
 
+FEMFLOW.assetUrl = function (relPath) {
+  const raw = String(relPath || "").trim();
+  if (!raw) return "";
+  if (/^https?:\/\//i.test(raw)) return raw;
+
+  const clean = raw.replace(/^\/+/, "");
+  return new URL(clean, document.baseURI).href;
+};
+
+window.FEMFLOW_assetUrl = function (relPath) {
+  return FEMFLOW.assetUrl(relPath);
+};
+
 /* ============================================================
    🔐 FEMFLOW — Device + Session helpers
 ============================================================ */
@@ -1809,24 +1822,24 @@ FEMFLOW._acaoMenu = async function (op) {
 FEMFLOW.dispatch("stateChanged", {
   type: "ciclo",
   impact: "fisiologico",
-  source: location.pathname.includes("home") ? "home" : "flowcenter"
+  source: location.pathname.includes("home") ? "home.html" : "flowcenter.html"
 });
 ;
 
  
-      FEMFLOW.router(`ciclo?ret=${location.pathname.split("/").pop()}`);
+      FEMFLOW.router(`ciclo.html?ret=${location.pathname.split("/").pop()}`);
       break;
 
     case "respiracao":
-      FEMFLOW.router("respiracao");
+      FEMFLOW.router("respiracao.html");
       break;
 
     case "treinos":
-      FEMFLOW.router("evolucao");
+      FEMFLOW.router("evolucao.html");
       break;
 
     case "trocarTreino":
-      FEMFLOW.router("home");
+      FEMFLOW.router("home.html");
       break;
 
     case "nivel":
@@ -1938,7 +1951,7 @@ FEMFLOW.initNivelHandler = function () {
     FEMFLOW.dispatch("stateChanged", {
       type: "nivel",
       impact: "estrutural",
-      source: location.pathname.includes("home") ? "home" : "flowcenter"
+      source: location.pathname.includes("home") ? "home.html" : "flowcenter.html"
     });
 
     modal.classList.add("oculto");
@@ -2031,7 +2044,7 @@ FEMFLOW.sincronizarECdisparar = async function () {
 document.addEventListener("femflow:stateChanged", e => {
   const {
     impact = "none",
-    source = "flowcenter"
+    source = "flowcenter.html"
   } = e.detail || {};
 
   if (impact === "none") return;
