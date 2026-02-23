@@ -20,7 +20,7 @@ body {
   font-family: "Lato", sans-serif;
   text-align: center;
   margin: 0;
-  padding-top: calc(85px + env(safe-area-inset-top, 0px));
+  padding-top: calc(var(--header-total-h) + 18px);
   box-sizing: border-box;
 }
 
@@ -122,7 +122,7 @@ p.sub {
   min-height: calc(100vh - 100px);
   background: var(--bege);
   transition: background 0.6s ease;
-  padding-top: 60px;
+  padding-top: var(--header-total-h);
 }
 
 #breathCircle {
@@ -193,7 +193,7 @@ footer {
   font-family: "Lato", sans-serif;
   text-align: center;
   margin: 0;
-  padding-top: calc(85px + env(safe-area-inset-top, 0px));
+  padding-top: calc(var(--header-total-h) + 18px);
   box-sizing: border-box;
 }
 
@@ -280,7 +280,7 @@ footer {
   min-height: calc(100vh - 100px);
   background: var(--bege);
   transition: background 0.6s ease;
-  padding-top: 60px;
+  padding-top: var(--header-total-h);
 }
 
 .pagina-respiracao #breathCircle {

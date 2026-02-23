@@ -1824,7 +1824,7 @@ function aplicarIdiomaHome() {
 
 
 function hideSplash() {
-  const splash = document.getElementById("ff-splash");
+  const splash = document.getElementById("splash");
   if (!splash || splash.dataset.hidden === "true") return;
   splash.dataset.hidden = "true";
   splash.classList.add("fade-out");
@@ -1835,14 +1835,27 @@ function hideSplash() {
     document.body.removeAttribute("aria-busy");
   };
 
-  window.setTimeout(removeSplash, 420);
+  window.setTimeout(removeSplash, 1500);
+}
+
+function isHomeLoadingVisible() {
+  const loading = document.getElementById("ff-loading");
+  return Boolean(loading && !loading.classList.contains("hidden"));
+}
+
+function requestHideSplash() {
+  if (isHomeLoadingVisible()) {
+    window.setTimeout(requestHideSplash, 120);
+    return;
+  }
+  hideSplash();
 }
 
 function waitForHomeCriticalReady() {
   const video = document.getElementById("heroVideo") || document.getElementById("homeVideoPlayer");
 
   if (!video) {
-    window.setTimeout(hideSplash, 900);
+    window.setTimeout(requestHideSplash, 900);
     return;
   }
 
@@ -1850,14 +1863,17 @@ function waitForHomeCriticalReady() {
   const conclude = () => {
     if (done) return;
     done = true;
-    hideSplash();
+    requestHideSplash();
   };
 
-  const fallbackTimer = window.setTimeout(conclude, 2200);
+  const startedAt = Date.now();
+  const fallbackTimer = window.setTimeout(conclude, 1800);
 
   const onReady = () => {
+    const elapsed = Date.now() - startedAt;
+    const waitMore = Math.max(0, 700 - elapsed);
     window.clearTimeout(fallbackTimer);
-    conclude();
+    window.setTimeout(conclude, waitMore);
   };
 
   if (video.readyState >= 2) {

@@ -16,6 +16,10 @@
 
   --shadow-soft: 0 4px 12px rgba(0,0,0,0.08);
   --shadow-medium: 0 6px 18px rgba(0,0,0,0.10);
+
+  --safe-top: env(safe-area-inset-top, 0px);
+  --header-h: 64px;
+  --header-total-h: calc(var(--header-h) + var(--safe-top));
 }
 
 /* ---------- RESET ---------- */
@@ -31,7 +35,10 @@ html, body {
 body {
   min-height: 100vh;
   overflow-x: hidden;
-  padding-top: 60px; /* espaço para header fixo */
+}
+
+body.ff-has-header {
+  padding-top: var(--header-total-h);
 }
 
 /* ---------- UTILITÁRIOS ---------- */
@@ -352,4 +359,3 @@ input, select {
 }
 /* utilitário global */
 .oculto { display: none !important; }
-

@@ -1333,8 +1333,8 @@ video {
 }
 
 /* EVITA CONTEÚDO FICAR ATRÁS DO HEADER */
-body {
-  padding-top: 60px !important;
+body.ff-has-header {
+  padding-top: var(--header-total-h) !important;
 }
 
 body.ff-menu-open {
