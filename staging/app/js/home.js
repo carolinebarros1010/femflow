@@ -1016,7 +1016,7 @@ async function selecionarEnfase(enfase) {
     return;
   }
 
-  FEMFLOW.loading.show("Preparando novo programa…");
+  FEMFLOW.loading.show(FEMFLOW.t("geral.preparingProgram"));
 
   // 1) salvar nova ênfase
   localStorage.setItem("femflow_enfase", enfase);
@@ -1103,7 +1103,7 @@ function aplicarIdiomaHome() {
    HOME — AGORA USANDO SOMENTE VALIDAR (SEM SYNC)
 =========================================================== */
 document.addEventListener("DOMContentLoaded", async () => {
-  FEMFLOW.loading.show("Carregando…");
+  FEMFLOW.loading.show(FEMFLOW.t("geral.loading"));
 
   try {
     const treinosStorage = Number(localStorage.getItem(TREINOS_SEMANA_KEY));

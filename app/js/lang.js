@@ -326,6 +326,9 @@ pt: {
 
   geral: {
     loading: "Carregando…",
+    preparing: "Preparando…",
+    preparingPanel: "Preparando seu painel…",
+    preparingProgram: "Preparando novo programa…",
     salvar: "Salvar",
     cancelar: "Cancelar",
     voltar: "Voltar",
@@ -789,6 +792,9 @@ en: {
 
   geral: {
     loading: "Loading…",
+    preparing: "Preparing…",
+    preparingPanel: "Preparing your dashboard…",
+    preparingProgram: "Preparing new program…",
     salvar: "Save",
     cancelar: "Cancel",
     voltar: "Back",
@@ -1249,6 +1255,9 @@ fr: {
 
   geral: {
     loading: "Chargement…",
+    preparing: "Préparation…",
+    preparingPanel: "Préparation de votre tableau de bord…",
+    preparingProgram: "Préparation d’un nouveau programme…",
     salvar: "Enregistrer",
     cancelar: "Annuler",
     voltar: "Retour",

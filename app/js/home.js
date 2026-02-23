@@ -1628,7 +1628,7 @@ async function selecionarEnfase(enfase) {
     return;
   }
 
-  FEMFLOW.loading.show("Preparando novo programa…");
+  FEMFLOW.loading.show(FEMFLOW.t("geral.preparingProgram"));
 
   // 1) salvar nova ênfase
   localStorage.setItem("femflow_enfase", enfase);
@@ -1890,7 +1890,7 @@ function waitForHomeCriticalReady() {
    HOME — AGORA USANDO SOMENTE VALIDAR (SEM SYNC)
 =========================================================== */
 document.addEventListener("DOMContentLoaded", async () => {
-  FEMFLOW.loading.show("Carregando…");
+  FEMFLOW.loading.show(FEMFLOW.t("geral.loading"));
   configurarVideoHome();
   waitForHomeCriticalReady();
 

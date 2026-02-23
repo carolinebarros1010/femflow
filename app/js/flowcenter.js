@@ -215,7 +215,7 @@ async function initFlowCenter() {
     console.warn("Erro silencioso ignorado", e);
   }
 
-  FEMFLOW.loading.show("Preparando seu painel…");
+  FEMFLOW.loading.show(FEMFLOW.t("geral.preparingPanel"));
 
   FEMFLOW.inserirHeaderApp?.();
   FEMFLOW.inserirMenuLateral?.();
