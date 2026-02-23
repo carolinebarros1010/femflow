@@ -1318,6 +1318,7 @@ FEMFLOW.inserirHeaderApp = function () {
   `;
 
   document.body.prepend(h);
+  document.body.classList.add("ff-has-header");
   FEMFLOW.renderVipBadge?.();
 
   h.querySelector("#ffMenuBtn").onclick = () =>
