@@ -12,7 +12,8 @@
     "build:cap": "node ./tools/build-capacitor.mjs",
     "ios:copy": "npx cap copy ios",
     "ios:open": "npx cap open ios",
-    "compare:staging-prod": "node ./tools/compare-staging-prod.mjs"
+    "compare:staging-prod": "node ./tools/compare-staging-prod.mjs",
+    "release:mobile": "node tools/release-mobile.mjs"
   },
   "repository": {
     "type": "git",
