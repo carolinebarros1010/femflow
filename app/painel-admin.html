@@ -1,7 +1,7 @@
 <!doctype html>
 <html lang="pt-BR">
 <head>
-  <base href="/app/" />
+  <base href="./" />
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -287,9 +287,9 @@
       "";
     window.FEMFLOW_ADMIN_BASE = BASE;
     if ("serviceWorker" in navigator) {
-      navigator.serviceWorker.register("/app/service-worker.js");
+      navigator.serviceWorker.register("service-worker.js");
     }
   </script>
-  <script src="/app/js/painel-admin.js"></script>
+  <script src="js/painel-admin.js"></script>
 </body>
 </html>

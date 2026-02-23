@@ -1044,7 +1044,7 @@ const CARD_THUMBS = {
 function getThumbUrl(enfase) {
   const file = CARD_THUMBS[enfase];
   if (!file) return "";
-  return new URL(`/app/css/cards/${file}`, window.location.origin).toString();
+  return `css/cards/${file}`;
 }
 
 /* ============================================================
@@ -1053,9 +1053,23 @@ function getThumbUrl(enfase) {
 const EBOOKS_FALLBACK_COLOR = "#fceae3";
 
 function resolveEbookUrl(path) {
-  const cleanPath = String(path || "").replace(/^\/+/, "");
-  if (!cleanPath) return "";
-  return new URL(`/app/ebooks/${cleanPath}`, window.location.origin).toString();
+  const p = String(path || "").trim();
+  if (!p) return "";
+
+  // links externos: mantém
+  if (/^https?:\/\//i.test(p)) return p;
+
+  // remove barra inicial
+  let clean = p.replace(/^\/+/, "");
+
+  // remove prefixo app/ se existir
+  clean = clean.replace(/^app\//, "");
+
+  // se já vier como ebooks/..., mantém
+  if (clean.startsWith("ebooks/")) return clean;
+
+  // se vier apenas "capa.png" etc, prefixa
+  return `ebooks/${clean}`;
 }
 
 function resolveEbookLink(link) {
