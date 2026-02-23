@@ -169,7 +169,7 @@ document.addEventListener("DOMContentLoaded", initFlowCenter);
 
 function initFlowCenter() {
 
-  FEMFLOW.loading.show("Preparando seu painel…");
+  FEMFLOW.loading.show(FEMFLOW.t("geral.preparingPanel"));
 
   FEMFLOW.inserirHeaderApp?.();
   FEMFLOW.inserirMenuLateral?.();
