@@ -1838,11 +1838,24 @@ function hideSplash() {
   window.setTimeout(removeSplash, 1500);
 }
 
+function isHomeLoadingVisible() {
+  const loading = document.getElementById("ff-loading");
+  return Boolean(loading && !loading.classList.contains("hidden"));
+}
+
+function requestHideSplash() {
+  if (isHomeLoadingVisible()) {
+    window.setTimeout(requestHideSplash, 120);
+    return;
+  }
+  hideSplash();
+}
+
 function waitForHomeCriticalReady() {
   const video = document.getElementById("heroVideo") || document.getElementById("homeVideoPlayer");
 
   if (!video) {
-    window.setTimeout(hideSplash, 900);
+    window.setTimeout(requestHideSplash, 900);
     return;
   }
 
@@ -1850,7 +1863,7 @@ function waitForHomeCriticalReady() {
   const conclude = () => {
     if (done) return;
     done = true;
-    hideSplash();
+    requestHideSplash();
   };
 
   const startedAt = Date.now();
