@@ -7,6 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="format-detection" content="telephone=no" />
+  <meta name="theme-color" content="#fbf2ee" />
   <script src="./config/config.js"></script>
 
   <title>FemFlow • Home</title>
@@ -28,7 +29,15 @@
   <link rel="stylesheet" href="css/home.css">
 </head>
 
-<body>
+<body aria-busy="true">
+  <div id="ff-splash" role="status" aria-live="polite" aria-label="Carregando FemFlow">
+    <img src="./assets/logofemflowterracota.png" alt="Logo FemFlow" width="96" height="96" decoding="async" />
+    <h2>Train With Your</h2>
+    <div class="ff-splash-loader" aria-hidden="true">
+      <span></span><span></span><span></span>
+    </div>
+  </div>
+
   <!-- FIREBASE (compat) -->
 <script defer src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
 <script defer src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
