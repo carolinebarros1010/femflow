@@ -1,0 +1,11 @@
+--- a/flowcenterx.html
++++ b/flowcenterx.html
+@@ -304,7 +304,7 @@
+   });
+ });
+ </script>
+-  <script src="/staging/app/js/env-staging.js"></script>
++  <script src="/app/js/env.js"></script>
+ </body>
+ </html>
+ 

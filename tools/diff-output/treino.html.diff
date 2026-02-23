@@ -1,0 +1,11 @@
+--- a/treino.html
++++ b/treino.html
+@@ -272,7 +272,7 @@
+ </div>
+ 
+ 
+-  <script src="/staging/app/js/env-staging.js"></script>
++  <script src="/app/js/env.js"></script>
+ </body>
+ </html>
+ 

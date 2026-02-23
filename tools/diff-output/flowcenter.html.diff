@@ -1,0 +1,11 @@
+--- a/flowcenter.html
++++ b/flowcenter.html
+@@ -235,7 +235,7 @@
+ <script src="js/treino-engine.js"></script>
+ <script src="js/flowcenter.js"></script>
+ 
+-  <script src="/staging/app/js/env-staging.js"></script>
++  <script src="/app/js/env.js"></script>
+ </body>
+ </html>
+ 

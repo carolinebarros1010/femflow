@@ -1,0 +1,11 @@
+--- a/treino_base.html
++++ b/treino_base.html
+@@ -94,7 +94,7 @@
+       }));
+     }
+   </script>
+-  <script src="/staging/app/js/env-staging.js"></script>
++  <script src="/app/js/env.js"></script>
+ </body>
+ </html>
+ 
