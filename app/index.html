@@ -9,7 +9,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="format-detection" content="telephone=no" />
-  <script src="./config/config.js"></script>
+  <script src="./config/config.js" defer></script>
   <title>Entrar no FemFlow</title>
 
   <link rel="icon" type="image/x-icon" href="favicon.ico">
@@ -26,14 +26,13 @@
 
 
   <script>window.FEMFLOW_DISABLE_UI = true;</script>
-  <script defer src="./core/femflow-core.js"></script>
-
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="https://accounts.google.com/gsi/client" defer></script>
   <script defer src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
   <script defer src="services/firebase-init.js?v=20250127"></script>
+  <script defer src="./core/femflow-core.js"></script>
 
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/core.css">
@@ -826,6 +825,6 @@ document.addEventListener("DOMContentLoaded", async () => {
   </div>
 </div>
 
-  <script src="js/env.js"></script>
+  <script src="js/env.js" defer></script>
 </body>
 </html>

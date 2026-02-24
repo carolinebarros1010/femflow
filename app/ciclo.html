@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="format-detection" content="telephone=no" />
-  <script src="./config/config.js"></script>
+  <script src="./config/config.js" defer></script>
   <title>Seu Momento • FemFlow</title>
 
   <!-- Favicon -->
@@ -78,8 +78,8 @@
 
 
   
-<script src="js/lang.js"></script>
-<script src="core/femflow-core.js"></script>
+<script src="core/femflow-core.js" defer></script>
+<script src="js/lang.js" defer></script>
 
  
 <script>
@@ -87,8 +87,8 @@
 
 // 🔐 guarda mínima — ciclo é parte do onboarding
 if (!id) {
-  FEMFLOW.toast?.("Faça login para continuar 🌸");
-  FEMFLOW.router("index");
+  window.FEMFLOW?.toast?.("Faça login para continuar 🌸");
+  window.FEMFLOW?.router?.("index");
 }
 
  
@@ -611,6 +611,6 @@ document.addEventListener("femflow:langChange", () => {
 
 
 
-  <script src="js/env.js"></script>
+  <script src="js/env.js" defer></script>
 </body>
 </html>
