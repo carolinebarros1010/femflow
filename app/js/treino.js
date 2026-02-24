@@ -497,6 +497,37 @@ document.addEventListener("DOMContentLoaded", async () => {
   ];
   let tourIndex = 0;
 
+  function ffMeasureAfterLayout(fn) {
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(fn);
+    });
+  }
+
+  function ffGetSpotFromElement(targetEl, padding = 10) {
+    if (!targetEl) return null;
+    const rect = targetEl.getBoundingClientRect();
+
+    const cx = rect.left + rect.width / 2;
+    const cy = rect.top + rect.height / 2;
+    const r = Math.ceil(Math.max(rect.width, rect.height) / 2 + padding);
+
+    return { cx, cy, r, rect };
+  }
+
+  function applySpot({ cx, cy, r }) {
+    if (!tourOverlay) return;
+    tourOverlay.style.setProperty("--spot-x", `${cx}px`);
+    tourOverlay.style.setProperty("--spot-y", `${cy}px`);
+    tourOverlay.style.setProperty("--spot-r", `${r}px`);
+  }
+
+  function recomputeSpotlightAtCurrentStep() {
+    const step = tourSteps[tourIndex];
+    if (!step?.target) return;
+    const spot = ffGetSpotFromElement(step.target, 10);
+    if (spot) applySpot(spot);
+  }
+
   function limparDestaquesTour() {
     tourTargets.forEach((element) => element?.classList.remove("tour-highlight"));
   }
@@ -508,16 +539,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     limparDestaquesTour();
     if (step.target) {
       step.target.classList.add("tour-highlight");
-      const setSpotlight = () => {
-        const rect = step.target.getBoundingClientRect();
-        const centerX = rect.left + rect.width / 2;
-        const centerY = rect.top + rect.height / 2;
-        const radius = Math.max(rect.width, rect.height) / 2 + 20;
-
-        tourOverlay.style.setProperty("--spot-x", `${centerX}px`);
-        tourOverlay.style.setProperty("--spot-y", `${centerY}px`);
-        tourOverlay.style.setProperty("--spot-r", `${radius}px`);
-      };
 
       if (!step.target.closest(".fix-footer")) {
         step.target.scrollIntoView({
@@ -527,9 +548,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
       }
 
-      window.requestAnimationFrame(() => {
-        window.requestAnimationFrame(setSpotlight);
-      });
+      ffMeasureAfterLayout(recomputeSpotlightAtCurrentStep);
     }
 
     if (tourTitle) tourTitle.textContent = step.title;
@@ -569,19 +588,14 @@ document.addEventListener("DOMContentLoaded", async () => {
     atualizarTourUI();
   }
 
-
-  window.addEventListener("resize", () => {
+  function onViewportChange() {
     if (!tourOverlay || tourOverlay.classList.contains("is-hidden")) return;
-    window.requestAnimationFrame(() => {
-      window.requestAnimationFrame(atualizarTourUI);
-    });
-  });
+    ffMeasureAfterLayout(recomputeSpotlightAtCurrentStep);
+  }
 
-  window.addEventListener("orientationchange", () => {
-    if (!tourOverlay || tourOverlay.classList.contains("is-hidden")) return;
-    window.requestAnimationFrame(() => {
-      window.requestAnimationFrame(atualizarTourUI);
-    });
+  window.addEventListener("resize", onViewportChange, { passive: true });
+  window.addEventListener("orientationchange", onViewportChange, {
+    passive: true
   });
 
   function resolveTipoTreino() {
@@ -2263,7 +2277,10 @@ async function initPesoPrefill() {
    7. SALVAR TREINO — VERSÃO FINAL CORRETA
 ============================================================ */
 if (btnSalvar) {
-  btnSalvar.onclick = () => modalPSE.classList.remove("hidden");
+  btnSalvar.onclick = () => {
+    modalPSE.classList.remove("hidden");
+    ffMeasureAfterLayout(recomputeSpotlightAtCurrentStep);
+  };
 }
 
 if (btnCancelarPSE) {
