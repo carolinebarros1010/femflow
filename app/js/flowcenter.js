@@ -33,6 +33,21 @@ const ENDURANCE_PUBLIC_LABELS = {
   natacao_2000m: "Natação 2000 m"
 };
 
+
+function renderFlowcenterSkeleton() {
+  const mount = document.body;
+  if (!mount || document.getElementById('ff-flowcenter-skeleton')) return;
+  const holder = document.createElement('div');
+  holder.id = 'ff-flowcenter-skeleton';
+  holder.style.padding = '16px';
+  holder.innerHTML = '<div class="ff-skeleton ff-skeleton-block"></div><div class="ff-skeleton ff-skeleton-block"></div><div class="ff-skeleton ff-skeleton-block"></div>';
+  mount.appendChild(holder);
+}
+
+function clearFlowcenterSkeleton() {
+  document.getElementById('ff-flowcenter-skeleton')?.remove();
+}
+
 function parseBooleanish(value) {
   if (typeof value === "boolean") return value;
   if (value == null) return false;
@@ -175,7 +190,7 @@ function flowcenterSyncPerfil() {
   else qs.set("email", email);
 
   const url = `${FEMFLOW.SCRIPT_URL}?${qs.toString()}`;
-  return fetch(url)
+  return FEMFLOW.fetchWithRetry(url, {}, { critical: true, fallbackMessage: "Sem conexão para atualizar o painel." })
     .then(r => r.json())
     .then((data) => {
       if (data?.status === "ok") {
@@ -232,6 +247,7 @@ document.addEventListener("DOMContentLoaded", initFlowCenter);
 
 async function initFlowCenter() {
   FEMFLOW.loading.show();
+  renderFlowcenterSkeleton();
 
   const autoLoginPromise = Promise.resolve()
     .then(() => FEMFLOW.autoLoginSilencioso?.())
@@ -2076,6 +2092,7 @@ async function initFlowCenter() {
       FEMFLOW.toast("Erro ao carregar seu painel. Tente novamente.");
     })
     .finally(() => {
+      clearFlowcenterSkeleton();
       FEMFLOW.loading.hide();
     });
 }

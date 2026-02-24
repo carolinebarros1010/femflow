@@ -30,6 +30,24 @@ const HOME_VIDEO_SOURCES = {
   fr: "assets/herofr.mp4"
 };
 
+
+function renderHomeSkeleton() {
+  const railIds = ["railFollowMe", "railMuscular", "railEsportes", "railCasa", "railPersonal", "railPlanilhas30Dias", "railEbooks"];
+  railIds.forEach((id) => {
+    const rail = document.getElementById(id);
+    if (!rail) return;
+    rail.dataset.ffSkeleton = "true";
+    rail.innerHTML = Array.from({ length: 3 }).map(() => '<div class="ff-skeleton ff-skeleton-card"></div>').join('');
+  });
+}
+
+function clearHomeSkeleton() {
+  document.querySelectorAll('.rail[data-ff-skeleton="true"]').forEach((el) => {
+    el.removeAttribute('data-ff-skeleton');
+    el.innerHTML = '';
+  });
+}
+
 function getHomeVideoSource(lang) {
   return HOME_VIDEO_SOURCES[lang] || HOME_VIDEO_SOURCES.pt;
 }
@@ -192,7 +210,7 @@ async function salvarTreinosSemana(valor) {
   const id = localStorage.getItem("femflow_id");
   if (!id) return;
 
-  await fetch(FEMFLOW.SCRIPT_URL, {
+  await FEMFLOW.fetchWithRetry(FEMFLOW.SCRIPT_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -232,7 +250,9 @@ async function carregarPerfilEAtualizarStorage() {
   else qs.set("email", email);
 
   const url = `${FEMFLOW.SCRIPT_URL}?${qs.toString()}`;
-  const perfil = await fetch(url).then(r => r.json()).catch(() => ({ status: "error" }));
+  const perfil = await FEMFLOW.fetchWithRetry(url, {}, { critical: true, fallbackMessage: "Sem conexão para validar sessão." })
+    .then(r => r.json())
+    .catch(() => ({ status: "error" }));
 
   return perfil;
 }
@@ -1142,7 +1162,7 @@ async function carregarEbooks() {
   if (cached.length) return cached;
 
   try {
-    const resp = await fetch(EBOOKS_DATA_URL, { cache: "force-cache" });
+    const resp = await FEMFLOW.fetchWithRetry(EBOOKS_DATA_URL, { cache: "force-cache" });
     if (!resp.ok) return [];
     const data = await resp.json();
     const lista = Array.isArray(data) ? data : [];
@@ -1828,6 +1848,7 @@ function aplicarIdiomaHome() {
 =========================================================== */
 document.addEventListener("DOMContentLoaded", async () => {
   FEMFLOW.loading.show();
+  renderHomeSkeleton();
   configurarVideoHome();
 
   await FEMFLOW.autoLoginSilencioso?.();
@@ -2059,6 +2080,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       catalogo.followme.push(...cards);
     }
 
+    clearHomeSkeleton();
     renderRail(document.getElementById("railFollowMe"), catalogo.followme);
     renderRail(document.getElementById("railMuscular"), catalogo.muscular);
     renderRail(document.getElementById("railEsportes"), catalogo.esportes);

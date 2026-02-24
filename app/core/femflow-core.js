@@ -276,7 +276,43 @@ FEMFLOW.openExternal = function (url) {
 
 FEMFLOW.openInternal = function (path) {
   if (!path) return;
-  window.location.href = path;
+  FEMFLOW.router?.(path);
+};
+
+FEMFLOW.fetchWithRetry = async function (input, init = {}, options = {}) {
+  const {
+    retries = 2,
+    baseDelay = 550,
+    timeoutMs = 12000,
+    critical = false,
+    fallbackMessage = "Falha de conexão. Tente novamente em instantes."
+  } = options;
+
+  for (let attempt = 0; attempt <= retries; attempt++) {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), timeoutMs);
+    try {
+      const response = await fetch(input, {
+        ...init,
+        signal: controller.signal
+      });
+      clearTimeout(timeoutId);
+
+      if (!response.ok && response.status >= 500 && attempt < retries) {
+        throw new Error(`http_${response.status}`);
+      }
+
+      return response;
+    } catch (error) {
+      clearTimeout(timeoutId);
+      if (attempt >= retries) {
+        if (critical) FEMFLOW.toast?.(fallbackMessage, true);
+        throw error;
+      }
+      const waitMs = baseDelay * Math.pow(2, attempt);
+      await new Promise((resolve) => setTimeout(resolve, waitMs));
+    }
+  }
 };
 
 FEMFLOW.requireFirebaseAuthIfNeeded = function () {
@@ -331,17 +367,151 @@ FEMFLOW.log   = (...a) => FEMFLOW.dev() && console.log("%c[FEMFLOW]", "color:#cc
 FEMFLOW.warn  = (...a) => FEMFLOW.dev() && console.warn("%c[FEMFLOW ⚠]", "color:#e07f67", ...a);
 FEMFLOW.error = (...a) => FEMFLOW.dev() && console.error("%c[FEMFLOW ❌]", "color:#b74333", ...a);
 
-FEMFLOW.toast = (msg, error = false) => {
+FEMFLOW.toast = (msg, error = false, options = {}) => {
+  const variant = options.variant || (error ? "error" : "success");
+  const duration = Number(options.duration || 2600);
   let box = document.querySelector(".toast-box");
   if (!box) {
     box = document.createElement("div");
     box.className = "toast-box";
+    box.setAttribute("role", "status");
+    box.setAttribute("aria-live", "polite");
     document.body.appendChild(box);
   }
+
+  clearTimeout(box._ffTimer);
   box.textContent = msg;
-  box.classList.toggle("error", error);
+  box.classList.remove("success", "error");
+  box.classList.add(variant);
   box.classList.add("visible");
-  setTimeout(() => box.classList.remove("visible"), 2400);
+  box._ffTimer = setTimeout(() => box.classList.remove("visible"), duration);
+};
+
+FEMFLOW.haptics = {
+  async impact(style = "LIGHT") {
+    try {
+      const plugin = window.Capacitor?.Plugins?.Haptics;
+      if (!plugin?.impact) return;
+      await plugin.impact({ style });
+    } catch (_) {}
+  },
+  light() {
+    return this.impact("LIGHT");
+  }
+};
+
+FEMFLOW.pageTransition = {
+  active: false,
+  start() {
+    if (this.active || document.documentElement.classList.contains("ff-reduce-motion")) return;
+    this.active = true;
+    document.body.classList.add("ff-page-leave");
+  },
+  finish() {
+    document.body.classList.add("ff-page-enter");
+    requestAnimationFrame(() => {
+      document.body.classList.remove("ff-page-leave");
+      setTimeout(() => document.body.classList.remove("ff-page-enter"), 220);
+      this.active = false;
+    });
+  }
+};
+
+FEMFLOW.modalManager = {
+  getOpenModal() {
+    const selectors = [
+      ".ff-modal-overlay:not(.hidden)",
+      ".ff-menu-modal.active",
+      ".ff-notifications-modal.active",
+      ".ff-lang-modal:not(.hidden)",
+      ".ff-sac-modal:not(.hidden)",
+      ".modal-nivel:not(.oculto)",
+      ".modal-extra:not(.oculto)",
+      ".modal-endurance:not(.oculto)",
+      ".modal-caminhos:not(.oculto)",
+      ".ff-zona-modal.is-open"
+    ];
+    for (const selector of selectors) {
+      const modal = document.querySelector(selector);
+      if (modal) return modal;
+    }
+    return null;
+  },
+  closeTopMost() {
+    const modal = this.getOpenModal();
+    if (!modal) return false;
+    if (modal.id === "ff-notifications-modal") return !!FEMFLOW.closeNotifications?.();
+    modal.classList.add("hidden");
+    modal.classList.add("oculto");
+    modal.classList.remove("active", "is-open");
+    modal.setAttribute("aria-hidden", "true");
+    document.body.classList.remove("ff-zona-modal-open");
+    document.body.classList.remove("ff-modal-open");
+    return true;
+  }
+};
+
+FEMFLOW.installBackHandler = function () {
+  if (this._backHandlerInstalled) return;
+  this._backHandlerInstalled = true;
+
+  const onBack = (ev) => {
+    const tutorialOpen = document.querySelector("#treinoTour:not(.hidden)");
+    if (tutorialOpen) {
+      tutorialOpen.classList.add("hidden");
+      ev?.preventDefault?.();
+      return;
+    }
+
+    if (FEMFLOW.modalManager.closeTopMost()) {
+      ev?.preventDefault?.();
+      return;
+    }
+  };
+
+  document.addEventListener("keydown", (ev) => {
+    if (ev.key === "Escape") onBack(ev);
+  });
+
+  if (window.Capacitor?.Plugins?.App?.addListener) {
+    window.Capacitor.Plugins.App.addListener("backButton", onBack);
+  }
+};
+
+
+
+FEMFLOW.trapModalFocus = function (event) {
+  if (event.key !== "Tab") return;
+  const modal = FEMFLOW.modalManager.getOpenModal();
+  if (!modal) return;
+  const focusables = Array.from(modal.querySelectorAll('button,[href],input,select,textarea,[tabindex]:not([tabindex="-1"])'))
+    .filter((el) => !el.hasAttribute('disabled'));
+  if (!focusables.length) return;
+  const first = focusables[0];
+  const last = focusables[focusables.length - 1];
+  if (event.shiftKey && document.activeElement === first) {
+    event.preventDefault();
+    last.focus();
+  } else if (!event.shiftKey && document.activeElement === last) {
+    event.preventDefault();
+    first.focus();
+  }
+};
+
+FEMFLOW.setupOfflineBanner = function () {
+  if (document.getElementById("ff-offline-banner")) return;
+  const banner = document.createElement("div");
+  banner.id = "ff-offline-banner";
+  banner.className = "ff-offline-banner";
+  banner.setAttribute("role", "status");
+  banner.setAttribute("aria-live", "polite");
+  banner.textContent = "Sem internet. Algumas ações podem atrasar.";
+  document.body.appendChild(banner);
+
+  const sync = () => banner.classList.toggle("is-visible", navigator.onLine === false);
+  window.addEventListener("offline", sync);
+  window.addEventListener("online", sync);
+  sync();
 };
 
 FEMFLOW.listenForUpdates = function () {
@@ -1375,8 +1545,33 @@ FEMFLOW.router = pag => {
 
   const queryString = params.toString();
   const destino = queryString ? `${destinoBase}?${queryString}` : destinoBase;
+  const current = (location.pathname.split("/").pop() || "").toLowerCase();
+  if (current === "index.html" && destinoBase === "index.html") return;
+  FEMFLOW.pageTransition?.start();
   location.href = hashPart ? `${destino}#${hashPart}` : destino;
 };
+
+document.addEventListener("DOMContentLoaded", () => {
+  if (window.matchMedia?.("(prefers-reduced-motion: reduce)")?.matches) {
+    document.documentElement.classList.add("ff-reduce-motion");
+  }
+  FEMFLOW.pageTransition?.finish();
+  FEMFLOW.installBackHandler?.();
+  FEMFLOW.setupOfflineBanner?.();
+
+  document.addEventListener("keydown", (event) => FEMFLOW.trapModalFocus?.(event));
+
+  document.addEventListener("click", (event) => {
+    const target = event.target.closest("button, .card, .home-card, .tool");
+    if (!target) return;
+    target.classList.add("pressed");
+    setTimeout(() => target.classList.remove("pressed"), 150);
+
+    const tag = String(target.id || target.className || "").toLowerCase();
+    const shouldHaptic = ["salvar", "confirm", "concluir"].some((token) => tag.includes(token));
+    if (shouldHaptic) FEMFLOW.haptics.light();
+  });
+});
 
 
 /* ===========================================================
