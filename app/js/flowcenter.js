@@ -801,12 +801,12 @@ async function initFlowCenter() {
       });
     }
     if (modalCaminhosSugerido) {
-      modalCaminhosSugerido.textContent = `Comparativo → ${t("flowcenter.caminhosSugerido", { caminho: sugerido })}`;
+      modalCaminhosSugerido.textContent = t("flowcenter.caminhosComparativo", { caminho: sugerido });
     }
     if (modalCaminhosFase) {
       modalCaminhosFase.textContent = personal
-        ? `Plano Personal ativo • Fase ${getFaseLabelAtual()}`
-        : `Fase ${getFaseLabelAtual()}`;
+        ? t("flowcenter.caminhosFasePersonalAtiva", { fase: getFaseLabelAtual() })
+        : t("flowcenter.caminhosFase", { fase: getFaseLabelAtual() });
     }
 
     modalCaminhosBotoes.innerHTML = "";
@@ -814,7 +814,7 @@ async function initFlowCenter() {
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = `caminho-btn${caminho === sugerido ? " is-sugerido" : ""}`;
-      btn.textContent = `Treino ${caminho}`;
+      btn.textContent = t("flowcenter.caminhosLabel", { caminho });
       btn.addEventListener("click", () => {
         void abrirModalPreviewCaminho(caminho);
       });
@@ -837,12 +837,15 @@ async function initFlowCenter() {
     );
 
     if (!contexto?.diaUsado || !contexto?.faseFirestore) {
-      FEMFLOW.toast("Não foi possível carregar esse treino agora.");
+      FEMFLOW.toast(t("flowcenter.caminhosErroCarregar"));
       return;
     }
 
     if (modalCaminhosPreviewTitulo) {
-      modalCaminhosPreviewTitulo.textContent = `Treino ${caminhoSelecionadoState.caminho} — Fase ${getFaseLabelAtual()}`;
+      modalCaminhosPreviewTitulo.textContent = t("flowcenter.caminhosPreviewTitulo", {
+        caminho: caminhoSelecionadoState.caminho,
+        fase: getFaseLabelAtual()
+      });
     }
 
     modalCaminhosPreviewLista.innerHTML = "";
@@ -854,7 +857,7 @@ async function initFlowCenter() {
     if (typeof previewFn !== "function") {
       console.warn("[flowcenter] engineTreino.listarExerciciosDia indisponível; prévia ficará vazia.");
       const li = document.createElement("li");
-      li.textContent = "Prévia indisponível agora.";
+      li.textContent = t("flowcenter.caminhosPreviewIndisponivel");
       modalCaminhosPreviewLista.appendChild(li);
       fecharModalComUnlock(modalCaminhosEscolha);
       abrirModalComLock(modalCaminhosPreview);
@@ -1697,7 +1700,7 @@ async function initFlowCenter() {
     modalCaminhosIniciar.addEventListener("click", () => {
       const caminho = Number(caminhoSelecionadoState.caminho || 0);
       if (!caminho) {
-        FEMFLOW.toast("Escolha um caminho para iniciar.");
+        FEMFLOW.toast(t("flowcenter.caminhosEscolhaObrigatoria"));
         return;
       }
       caminhosApi?.salvarUltimoCaminho?.({
