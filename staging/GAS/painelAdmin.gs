@@ -218,6 +218,13 @@ function adminCreateAluna_(data) {
   row[14] = 1;
   row[COL_ACESSO_PERSONAL] = _parseBoolean_(data.acessoPersonal);
 
+  const statusContaInput = String(data.statusConta || "").toLowerCase().trim();
+  if (statusContaInput === "pendente_exclusao" || statusContaInput === "bloqueada" || statusContaInput === "excluida") {
+    row[COL_STATUS_CONTA] = statusContaInput;
+  } else {
+    row[COL_STATUS_CONTA] = "ativa";
+  }
+
   sh.appendRow(row);
 
   return { status: "ok", id };

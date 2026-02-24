@@ -124,6 +124,11 @@ function _validarPerfil_(params) {
     const rowEmail = String(row[2] || "").toLowerCase().trim();
 
     if ((id && rowId === id) || (email && rowEmail === email)) {
+      const statusConta = String(row[COL_STATUS_CONTA] || "ativa").toLowerCase().trim() || "ativa";
+      if (statusConta !== "ativa") {
+        return { status: "blocked" };
+      }
+
       const syncResult = id ? sync(rowId) : null;
       const faseSync = syncResult && syncResult.status === "ok" ? syncResult.fase : row[13];
       const diaCicloSync = syncResult && syncResult.status === "ok" ? syncResult.diaCiclo : row[14];
