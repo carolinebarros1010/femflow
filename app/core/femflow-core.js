@@ -1035,40 +1035,143 @@ document.addEventListener("DOMContentLoaded", () => {
 FEMFLOW.toggleBodyScroll = function (locked) {
   document.body.classList.toggle("ff-modal-open", locked);
 };
-/* ============================================================
-   ⏳ LOADING GLOBAL — FEMFLOW (PADRÃO OFICIAL)
-============================================================ */
+/* ==========================================================
+   FEMFLOW OFFICIAL GLOBAL SPLASH (PREMIUM)
+   - Fade in/out
+   - Scroll lock
+   - Click block
+   - Concurrency lock count
+========================================================== */
 
-FEMFLOW.loading = {
-  show() {
-    let box = document.getElementById("ff-loading");
+(function () {
+  let lockCount = 0;
+  let lastScrollY = 0;
 
-    if (!box) {
-      box = document.createElement("div");
-      box.id = "ff-loading";
-      box.className = "ff-loading";
-
-      box.innerHTML = `
-        <div class="ff-loading-box ff-pulse">
-          <img class="ff-loading-logo" 
-               src="assets/logofemflowterracotasf.png" 
-               alt="FemFlow"/>
-          <div class="ff-loading-brand">FemFlow</div>
-          <div class="ff-loading-tagline">Train with Flow</div>
-        </div>
-      `;
-
-      document.body.appendChild(box);
-    } else {
-      box.classList.remove("hidden");
-    }
-  },
-
-  hide() {
-    const box = document.getElementById("ff-loading");
-    if (box) box.classList.add("hidden");
+  function lockScroll() {
+    // Guarda posição e trava o body sem “pular”
+    lastScrollY = window.scrollY || window.pageYOffset || 0;
+    document.documentElement.classList.add("ff-scroll-lock");
+    document.body.classList.add("ff-scroll-lock");
+    document.body.style.top = `-${lastScrollY}px`;
   }
-};
+
+  function unlockScroll() {
+    document.documentElement.classList.remove("ff-scroll-lock");
+    document.body.classList.remove("ff-scroll-lock");
+    const top = document.body.style.top;
+    document.body.style.top = "";
+    // restaura posição
+    const y = top ? Math.abs(parseInt(top, 10) || 0) : lastScrollY;
+    window.scrollTo(0, y);
+  }
+
+  function ensureBox() {
+    let box = document.getElementById("ff-loading");
+    if (box) return box;
+
+    box = document.createElement("div");
+    box.id = "ff-loading";
+    box.className = "ff-loading ff-hidden"; // começa invisível
+    box.setAttribute("role", "status");
+    box.setAttribute("aria-live", "polite");
+
+    box.innerHTML = `
+      <div class="ff-loading-box ff-pulse" aria-label="FemFlow loading">
+        <img class="ff-loading-logo"
+             src="assets/logofemflowterracotasf.png"
+             alt="FemFlow"/>
+        <div class="ff-loading-brand">FemFlow</div>
+        <div class="ff-loading-tagline">Train with Flow</div>
+      </div>
+    `;
+
+    document.body.appendChild(box);
+    return box;
+  }
+
+  function setBusy(isBusy) {
+    // Marca estado global para leitores de tela / automações
+    document.body.setAttribute("aria-busy", isBusy ? "true" : "false");
+  }
+
+  FEMFLOW.loading = {
+    show() {
+      const box = ensureBox();
+
+      lockCount += 1;
+      if (lockCount > 1) {
+        // Já está visível, só mantém lock
+        return;
+      }
+
+      setBusy(true);
+
+      // trava scroll + bloqueia interação
+      lockScroll();
+
+      // Exibe com fade-in
+      box.classList.remove("ff-hidden", "ff-hiding");
+      box.classList.add("ff-show");
+
+      // garantir pointer events sempre
+      box.style.pointerEvents = "auto";
+    },
+
+    hide() {
+      const box = document.getElementById("ff-loading");
+      if (!box) return;
+
+      lockCount = Math.max(0, lockCount - 1);
+      if (lockCount > 0) return; // ainda há operações pendentes
+
+      // Fade-out suave
+      box.classList.remove("ff-show");
+      box.classList.add("ff-hiding");
+
+      // Após transição, esconder e liberar scroll
+      const onEnd = () => {
+        box.removeEventListener("transitionend", onEnd);
+
+        box.classList.add("ff-hidden");
+        box.classList.remove("ff-hiding");
+
+        // libera
+        unlockScroll();
+        setBusy(false);
+      };
+
+      // fallback: se não disparar transitionend (ou reduced motion)
+      box.addEventListener("transitionend", onEnd);
+      setTimeout(() => {
+        if (!box.classList.contains("ff-hidden")) {
+          try {
+            box.removeEventListener("transitionend", onEnd);
+          } catch (e) {}
+          box.classList.add("ff-hidden");
+          box.classList.remove("ff-hiding");
+          unlockScroll();
+          setBusy(false);
+        }
+      }, 450);
+    },
+
+    reset() {
+      // utilitário para emergências (ex.: crash)
+      lockCount = 0;
+      const box = document.getElementById("ff-loading");
+      if (box) {
+        box.classList.add("ff-hidden");
+        box.classList.remove("ff-show", "ff-hiding");
+      }
+      unlockScroll();
+      setBusy(false);
+    },
+
+    getLockCount() {
+      return lockCount;
+    }
+  };
+})();
 
 FEMFLOW.log = function (...args) {
   if (localStorage.getItem("femflow_dev") === "true") {
