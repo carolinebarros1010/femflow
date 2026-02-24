@@ -15,7 +15,7 @@ const HEADER_DELETE_REQUESTS = [
   "userAgent"
 ];
 
-function deleteAccountRequest_(data) {
+function deleteAccountRequest_(data, ip) {
   const userId = String(data.userId || data.id || "").trim();
   const deviceId = String(data.deviceId || "").trim();
   const sessionToken = String(data.sessionToken || "").trim();
@@ -68,7 +68,7 @@ function deleteAccountRequest_(data) {
     String(data.source || "app"),
     String(data.reason || ""),
     String(data.app || "femflow"),
-    "",
+    ip || "",
     String(data.userAgent || "")
   ]);
 

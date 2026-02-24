@@ -14,6 +14,7 @@ function doPost(e) {
   setAppContext_(data.app || data.modelo || data.produto);
 
   const pedido = data;
+  const requestIp = extractRequestIp_(e || {}, data);
 
   const action = String(data.action || "")
     .trim()
@@ -263,7 +264,7 @@ function doPost(e) {
          🔔 PUSH — REGISTRO TOKEN
       ============================ */
       case "deleteaccountrequest":
-        resposta = deleteAccountRequest_(data);
+        resposta = deleteAccountRequest_(data, requestIp);
         break;
 
       case "register_push_token":
@@ -304,4 +305,14 @@ function doPost(e) {
   }
 
   return _json(resposta);
+}
+
+
+function extractRequestIp_(e, data) {
+  const ip = (e && e.parameter && e.parameter.ip)
+    || (data && data.ip)
+    || "";
+
+  if (Array.isArray(ip)) return String(ip[0] || "").trim();
+  return String(ip || "").split(",")[0].trim();
 }
