@@ -5,7 +5,7 @@
 > Regra desta versão: somente achados comprováveis no repositório atual.
 
 ## Contato oficial de suporte
-- **femflow.consultoria@gmail.com.br**
+- **femflow.consultoria@gmail.com**
 
 ---
 
@@ -79,7 +79,7 @@
 
 ## 2.2 Data shared (Yes/No)
 - Google Firebase (Auth/Firestore/Storage/Messaging): **Yes** (app/services/firebase-init.js:initFirebaseFemFlow).
-- Hotmart: **Yes** — cenário de checkout externo e webhook inbound para atualização de entitlement/licença no backend; política pública também cita Hotmart como provedor (staging/GAS/Hotmart.gs:_processarHotmart; app/docs/privacy.html).
+- Hotmart: **Yes** — checkout ocorre na Hotmart, com dados fornecidos diretamente pelo usuário na plataforma; o FemFlow recebe atualizações via webhook/entitlement para refletir licença no backend, sem fluxo de envio direto de dados do app para a Hotmart (staging/GAS/Hotmart.gs:_processarHotmart; app/docs/privacy.html).
 - Advertising/Ad networks: **No** (sem SDK ads identificado no repositório).
 
 ## 2.3 Purposes (fechado)
@@ -113,6 +113,7 @@
 - Usage Data: **Yes** (progresso, eventos SAC, contexto de uso)
 - Diagnostics: **No** (Crashlytics/SDK diagnóstico dedicado não identificado)
 - Purchases: **Yes (limited entitlement data)**
+- No payment card/bank data stored by FemFlow; processed by Hotmart.
 
 ## 3.2 Linked to user (Yes/No)
 - Contact Info: **Yes**

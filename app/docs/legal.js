@@ -1,5 +1,5 @@
 (function () {
-  const SUPPORT_EMAIL = "support@femflow.app";
+  const SUPPORT_EMAIL = "femflow.consultoria@gmail.com";
   const LAST_UPDATED = "2026-02-24";
 
   const copy = {
