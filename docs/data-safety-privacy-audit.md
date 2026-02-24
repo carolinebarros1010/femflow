@@ -1,179 +1,266 @@
-# FemFlow — Vistoria de Dados (Play Console + Apple Privacy)
+# FemFlow — Auditoria Data Safety/Privacy (Play Console + Apple) baseada em código
 
-> Escopo desta vistoria: front-end web app (`app/`), camada mobile (`android/`, `capacitor.config.ts`) e políticas públicas (`app/docs/privacy.html`, `app/docs/delete-account.html`).
-> 
-> Objetivo: mapear **o que já existe no app** e transformar isso em respostas **prontas para colar** nos formulários de Data Safety (Google Play) e App Privacy (Apple).
+> Escopo auditado: `app/**`, `android/**`, `ios/**`, `staging/GAS/**`, `app/config/config.js`, `package.json`, `package-lock.json`, `app/docs/privacy.html`, `app/docs/terms.html`, `app/docs/delete-account.html`, `app/docs/legal.js`.
+>
+> Regra desta versão: somente achados comprováveis no repositório atual.
 
-## 1) Evidências encontradas no app (estado atual)
+## Contato oficial de suporte
+- **femflow.consultoria@gmail.com.br**
 
-### 1.1 Cadastro, login e identificadores
-- Cadastro/anamnese coleta: **nome, e-mail, telefone (opcional), data de nascimento e senha**. (`app/js/anamnese.js`)
-- Fluxo de login/cadastro envia `action: "loginOuCadastro"` com dados pessoais e anamnese para backend. (`app/js/anamnese.js`)
-- App mantém **ID do usuário**, **e-mail**, **token de sessão**, **expiração de sessão** e **deviceId** no armazenamento local. (`app/core/femflow-core.js`, `app/index.html`, `app/js/anamnese.js`)
-- `deviceId` é persistido em `localStorage` e cookie `ff_device`. (`app/core/femflow-core.js`)
+---
 
-### 1.2 Saúde e fitness (dados sensíveis)
-- App coleta dados de **anamnese** (respostas em escala + objetivo) e envia ao backend. (`app/js/anamnese.js`)
-- App coleta **perfil hormonal/ciclo menstrual** (regular, irregular, menopausa, etc.), dia de ciclo e duração do ciclo. (`app/ciclo.html`)
-- App usa dados de treino/contexto hormonal para personalizar fluxo e progressão. (`app/core/femflow-core.js`, `app/treino.html`)
-- Módulo Body Insight coleta **altura, peso, cintura, quadril, idade**, além de **foto frontal e lateral** para análise. (`app/body_insight.html`, `app/js/body_insight.js`)
+## 1) Evidências encontradas (estado atual do código)
 
-### 1.3 Armazenamento e terceiros
-- Integração com **Firebase Auth / Firestore / Storage / Messaging** está presente em múltiplas telas. (`app/home.html`, `app/index.html`, `app/treino.html`, `app/body_insight.html`, `app/services/firebase-init.js`)
-- Body Insight faz upload de imagens para `firebase.storage` e salva resultados em `users/{uid}/body_insight`. (`app/js/body_insight.js`)
-- Há fluxo de entrada por **Hotmart** (query params com `email`, `id`, `nome`, `telefone`) e persistência local desses campos para onboarding. (`app/index.html`, `app/js/anamnese.js`)
-- Configuração aponta backend principal em Cloudflare Worker + módulos via Google Apps Script. (`app/config/config.js`)
+### 1.1 Dados coletados no app (frontend)
+- Cadastro/anamnese envia: `nome`, `email`, `telefone`, `dataNascimento`, `senha`, `anamnese`, `objetivo` com `action: "loginOuCadastro"` (app/js/anamnese.js:submitForm).
+- Login/sessão envia: `email`, `senha`, `deviceId` com `action: "login"` (app/index.html:loginWithEmail; app/js/anamnese.js:fazerLoginAposCadastro).
+- SAC envia: `id`, `categoria_ui`, `mensagem`, `lang`, `contexto` (fase, diaCiclo, diaPrograma, perfilHormonal, nivel, enfase) com `action: "sac_abrir"` (app/core/femflow-core.js:FEMFLOW.enviarSAC).
+- Delete account envia: `userId`, `deviceId`, `sessionToken`, `reason`, `requestedAt`, `locale`, `app`, `source`, `userAgent` com `action: "deleteaccountrequest"` (app/core/femflow-core.js:FEMFLOW.renderModalExcluirConta).
+- Body Insight envia para GAS (`action: "body_insight_ia"`): `userId`, `photoFrontUrl`, `photoSideUrl` (app/js/body_insight.js:chamarBodyInsightIA).
+- Body Insight faz upload de fotos para Firebase Storage em `body_insight/{userId}/{timestamp}_{front|side}.{ext}` e salva análise no Firestore em `users/{uid}/body_insight/{createdAtMs}` (app/js/body_insight.js:uploadPhotoToStorage; app/js/body_insight.js:saveBodyInsightToFirestore).
 
-### 1.4 Suporte, segurança e exclusão
-- Existe fluxo de SAC com envio de contexto de uso (fase, dia ciclo, dia programa, nível etc.). (`app/core/femflow-core.js`)
-- Existe fluxo de solicitação de exclusão de conta (`deleteAccountRequest`). (`app/core/femflow-core.js`)
-- Política de privacidade já declara: retenção de logs técnicos por 90 dias e exclusão em até 30 dias. (`app/docs/privacy.html`, `app/docs/delete-account.html`)
+### 1.2 Dados armazenados no backend (staging/GAS) e Firebase
+- **Google Sheets (GAS)**
+  - `Alunas` (header formal `HEADER_ALUNAS`), atualizado por cadastro/login/hotmart/admin e leitura para sessão (staging/GAS/Header.gs:HEADER_ALUNAS; staging/GAS/Senha.gs:_loginOuCadastro; staging/GAS/Hotmart.gs:_processarHotmart; staging/GAS/Senha.gs:_assertSession_).
+  - `DeleteRequests` (`requestId,userId,email,createdAt,status,processedAt,notes,locale,source,reason,app,ip,userAgent`) via `deleteAccountRequest_` (staging/GAS/DeleteAccount.gs:deleteAccountRequest_).
+  - `Leads` (`Data,Nome,Email,Telefone,Origem`) via `leadparcial` (staging/GAS/Infraestrutura.gs:_registrarLead).
+  - `Treinos` (`ID,Data,Fase,DiaPrograma,PSE,Apelido,Box,Exercício,Séries,Reps,Peso`) via `salvarTreino_` e `salvarEvolucao_` (staging/GAS/AuxLogica.gs:salvarTreino_; staging/GAS/AuxLogica.gs:salvarEvolucao_).
+  - `Diario` (`ID,Data,Fase,Semana,Treino,Tipo,Descanso,Observação`) via `salvarDescanso_` (staging/GAS/AuxLogica.gs:salvarDescanso_).
+  - `UltimosPesos` (`ID,Exercicio,UltimoPeso`) via `salvarEvolucao_` (staging/GAS/AuxLogica.gs:salvarEvolucao_).
+  - `PushTokens` (`UserId,DeviceId,Platform,Lang,PushToken,UpdatedAt,LastSentAt`) via `register_push_token` (staging/GAS/Push.gs:registerPushToken_).
+  - `Notifications` (`Id,Title,Message,Type,Origin,Push,Target,CreatedAt,SendAt,Status,Deeplink`) via `create_notification`/`publish_notification`/`send_notification` (staging/GAS/Notifications.gs:createNotification_; staging/GAS/Notifications.gs:publishNotification_; staging/GAS/Notifications.gs:sendNotification_).
+  - `SAC_LOG`, `SAC_DASHBOARD`, `SAC_Metrics`, `SAC_Governanca` via rotas de SAC (staging/GAS/SAC.gs:registrarSACLog_; staging/GAS/SAC.gs:sacRegistrarDashboard_; staging/GAS/SAC.gs:sacRegistrarMetricas_; staging/GAS/SAC.gs:sacLogGovernanca_).
+  - `body_insight_usage` (`userId,dataHora,ambiente,tipoPlano,status`) via `registrarUsoBodyInsight_` (staging/GAS/BodyInsightIA.gs:registrarUsoBodyInsight_).
+- **Firebase**
+  - Auth/Firestore/Storage/Messaging presentes em HTMLs e inicialização (app/services/firebase-init.js:initFirebaseFemFlow; app/body_insight.html; app/treino.html; app/home.html).
+  - Analytics/Crashlytics não identificados (sem SDK/import/init de Analytics/Crashlytics/GA4 no app ou GAS) (busca estática `rg` no repositório).
 
-### 1.5 Permissões Android e tracking
-- Manifest Android atual declara apenas `INTERNET` (sem permissões sensíveis adicionais). (`android/app/src/main/AndroidManifest.xml`)
-- Não foram encontrados SDKs de ad network/IDFA nem bibliotecas nativas de ads no `package.json`. (`package.json`)
+### 1.3 Logs e retenção real
+- Há logs operacionais em execução (`console.log`/`Logger.log`) no GAS, incluindo payload bruto em `doPost` (`RAW DATA`, `ACTION`) (staging/GAS/Post.gs:doPost).
+- Persistência de logs em planilhas existe para SAC e uso do Body Insight (staging/GAS/SAC.gs:registrarSACLog_; staging/GAS/BodyInsightIA.gs:registrarUsoBodyInsight_).
+- Campo `ip` existe em `DeleteRequests`, porém é gravado como string vazia (`""`) no fluxo atual (staging/GAS/DeleteAccount.gs:HEADER_DELETE_REQUESTS; staging/GAS/DeleteAccount.gs:deleteAccountRequest_).
+- **Retenção automática de dados em Sheets: Não identificada no repositório (estado atual)** (busca de cleanup/cron/TTL em `staging/GAS`).
+- Exceção: há exclusão de linhas por evento Hotmart de cancelamento/reembolso/expiração usando `_purgeStudentDataByIdOrEmail_` (staging/GAS/Hotmart.gs:_purgeStudentDataByIdOrEmail_).
+
+### 1.4 Hotmart / compra / assinatura
+- Ação Hotmart processada por fallback do `doPost` quando `_pareceHotmart_(data)` retorna true (staging/GAS/Post.gs:doPost; staging/GAS/Hotmart.gs:_pareceHotmart_).
+- Dados tratados no webhook: `event`, buyer/subscriber (`email`, `name`, `phone`), `plan.id`, `plan.name` (staging/GAS/Hotmart.gs:_processarHotmart; staging/GAS/Hotmart.gs:getPlanId; staging/GAS/Hotmart.gs:getPlanName).
+- Persistência observada no backend:
+  - Em `Alunas`: produto, `DataCompra`, `LicencaAtiva`, telefone, `acesso_personal` (staging/GAS/Hotmart.gs:_processarHotmart).
+- **Order ID / transaction ID / valor / moeda / histórico transacional detalhado em aba dedicada: Não identificado no repositório (estado atual)** (staging/GAS/Hotmart.gs).
+
+### 1.5 Identificadores e sessão
+- `deviceId` persistido em localStorage (`femflow_device_id`) e cookie (`ff_device`) (app/core/femflow-core.js:FEMFLOW.getDeviceId; app/core/femflow-core.js:FEMFLOW.setDeviceId).
+- Sessão local: `femflow_session_token` e `femflow_session_expira` (com chaves legadas também usadas) (app/core/femflow-core.js:getSessionToken; app/core/femflow-core.js:setSessionToken).
+- `_assertSession_(id, deviceId, sessionToken)` exige `id` + `sessionToken`; valida token em `Devices` (Auth v2), validade (`expira`) e bind de `deviceId` quando informado (staging/GAS/Senha.gs:_assertSession_).
+
+### 1.6 Delete Account (fluxo completo)
+- Frontend envia `action: "deleteaccountrequest"` com `userId`, `deviceId`, `sessionToken`, `reason`, `requestedAt`, `locale`, `app`, `source`, `userAgent` (app/core/femflow-core.js:FEMFLOW.renderModalExcluirConta).
+- Backend valida sessão via `_assertSession_` (staging/GAS/DeleteAccount.gs:deleteAccountRequest_; staging/GAS/Senha.gs:_assertSession_).
+- Backend grava em `DeleteRequests` com `requestId`, `status: "requested"`, `createdAt`, `locale`, `source`, `reason`, `app`, `userAgent` (e `ip` vazio) (staging/GAS/DeleteAccount.gs:deleteAccountRequest_).
+- Rate limit implementado: bloqueia nova solicitação do mesmo usuário em janela de 24h (staging/GAS/DeleteAccount.gs:deleteAccountRequest_).
+- Mensagens localizadas (`pt/en/fr`) retornadas pelo backend (staging/GAS/DeleteAccount.gs:localizedDeleteMessage_).
 
 ---
 
 ## 2) Google Play Console — Data Safety (pronto para colar)
 
-## 2.1 "Data collected" (dados coletados)
+## 2.1 Data collected (Yes/No)
+- Name: **Yes**
+- Email address: **Yes**
+- Phone number: **Yes**
+- User IDs: **Yes**
+- Health & fitness: **Yes**
+- Photos/Videos: **Yes** (Body Insight)
+- App activity (in-app interactions/progresso/suporte): **Yes**
+- Device or other IDs: **Yes** (`deviceId`, sessão)
+- Purchase history: **Yes (limited)** — há persistência de `Produto`, `DataCompra` e `LicencaAtiva` em `Alunas`, sem histórico transacional detalhado (staging/GAS/Hotmart.gs:_processarHotmart; staging/GAS/Header.gs:HEADER_ALUNAS).
+- Financial info (card/bank): **No**
 
-### A) Personal info
-- **Name**: Sim (nome no cadastro/anamnese).
-- **Email address**: Sim.
-- **Phone number**: Sim (opcional).
-- **User IDs**: Sim (ID interno/UID Firebase).
+## 2.2 Data shared (Yes/No)
+- Google Firebase (Auth/Firestore/Storage/Messaging): **Yes** (app/services/firebase-init.js:initFirebaseFemFlow).
+- Hotmart: **Yes** — cenário de checkout externo e webhook inbound para atualização de entitlement/licença no backend; política pública também cita Hotmart como provedor (staging/GAS/Hotmart.gs:_processarHotmart; app/docs/privacy.html).
+- Advertising/Ad networks: **No** (sem SDK ads identificado no repositório).
 
-### B) Health and fitness
-- **Health info / Fitness info**: Sim.
-  - Anamnese
-  - Ciclo/fase hormonal
-  - Treinos/progressão
-  - Biometria corporal (IMC/RCQ) e fotos para Body Insight
+## 2.3 Purposes (fechado)
+- **App functionality**: Yes
+- **Account management**: Yes
+- **Personalization**: Yes
+- **Security / fraud prevention / compliance**: Yes
+- **Customer support**: Yes
+- **Analytics**: No (não identificado SDK/telemetria analytics)
+- **Advertising/Marketing**: No (não identificado SDK ads)
 
-### C) App activity
-- **In-app interactions / App info and performance (parcial)**: Sim, com base em:
-  - progresso e contexto no app
-  - eventos de suporte/SAC
-  - logs técnicos operacionais (conforme política)
+## 2.4 Security
+- Data encrypted in transit: **Yes** (requisições HTTPS no app e endpoints HTTPS configurados) (app/config/config.js).
+- Data encrypted at rest (Firebase): **Needs confirmation** (serviço gerenciado; sem configuração explícita no código auditado).
+- Data encrypted at rest (Google Sheets/GAS): **Não identificado no repositório (estado atual)**.
 
-### D) Device or other IDs
-- **Device or other IDs**: Sim (deviceId próprio + identificadores de sessão).
-
-### E) Financial info / Purchases
-- **Purchase history (limitado)**: Sim, se backend salva status/ID de pedido Hotmart.
-- **Payment card/bank**: Não (checkout via Hotmart; app não processa cartão diretamente no código vistoriado).
-
-## 2.2 "Data is shared"
-- Marcar **Yes** para compartilhamento com terceiros/processadores:
-  - **Google/Firebase** (auth, storage, firestore, messaging)
-  - **Hotmart** (fluxo comercial/checkout)
-- "Processed ephemerally" → **No** (há persistência local e em backend/Firebase).
-
-## 2.3 "Purpose of collection" (finalidades)
-Marcar:
-- **App functionality**
-- **Account management**
-- **Product personalization**
-- **Analytics** (somente se você realmente usa dados de uso para métricas)
-- **Fraud prevention, security, and compliance**
-- **Customer support**
-
-Não marcar Marketing/Ads se não houver esse uso.
-
-## 2.4 Retenção (sugestão consistente com política atual)
-- Conta e dados principais: **enquanto conta ativa**.
-- Logs técnicos: **até 90 dias**.
-- Solicitação de exclusão: **processada em até 30 dias**.
-
-## 2.5 Segurança
-- **Data encrypted in transit**: Sim (HTTPS).
-- **Data encrypted at rest**: Sim, se mantido em Firebase/Google Cloud com padrões default.
-  - Se houver qualquer dúvida operacional no backend fora Firebase, validar antes de marcar como “Sim” absoluto.
+## 2.5 Retention
+- Política pública declara: conta ativa enquanto necessário, logs técnicos até 90 dias e pedidos de exclusão em até 30 dias (app/docs/privacy.html; app/docs/delete-account.html).
+- Enforcement automático de retenção em Sheets por job/cleanup: **No** (não identificado no código de `staging/GAS`).
+- Decisão de compliance segura para store: declarar retenção conforme política pública **com gap técnico registrado** (seção 5A).
 
 ---
 
-## 3) Apple App Privacy — checklist pronto
+## 3) Apple App Privacy — pronto para colar
 
-## 3.1 Categorias prováveis para declarar
-- **Contact Info**: Email, Phone (se usado)
-- **Health & Fitness**: anamnese, ciclo/fase, treino, biometria corporal
-- **Identifiers**: User ID, Device ID
-- **Usage Data**: progresso/interações de uso
-- **Diagnostics**: logs/crash (se realmente coletados e vinculados)
+## 3.1 Data types collected
+- Contact Info: **Yes** (nome, e-mail, telefone)
+- Identifiers: **Yes** (ID usuário, `deviceId`, token de sessão)
+- Health & Fitness: **Yes** (anamnese, ciclo/fase, treino, biometria)
+- User Content: **Yes** (fotos do Body Insight)
+- Usage Data: **Yes** (progresso, eventos SAC, contexto de uso)
+- Diagnostics: **No** (Crashlytics/SDK diagnóstico dedicado não identificado)
+- Purchases: **Yes (limited entitlement data)**
 
-## 3.2 "Data Used to Track You"
-- Marcar **No**, desde que:
-  - não haja tracking cross-app/site para ads,
-  - sem SDK de ad network/IDFA,
-  - sem compartilhamento para corretagem publicitária.
+## 3.2 Linked to user (Yes/No)
+- Contact Info: **Yes**
+- Identifiers: **Yes**
+- Health & Fitness: **Yes**
+- User Content (fotos Body Insight): **Yes**
+- Usage Data (SAC/progresso): **Yes**
+- Diagnostics: **No**
 
-## 3.3 "Linked to the user"
-- **Sim (Linked)** para: Email, User ID, Health/Fitness (quando atrelados à conta).
-- Diagnostics: marcar "Not linked" só se de fato anonimizado e sem vínculo de UID/e-mail.
+## 3.3 Used to track
+- **No**.
+- Justificativa: não foram identificados SDKs de ads/IDFA/analytics cross-app no código auditado (busca estática `rg`).
 
-## 3.4 "Data used for"
-Marcar:
-- **App Functionality**
-- **Product Personalization**
-- **Account Management**
-- **Customer Support**
-- **Security**
-- **Analytics** (se efetivamente praticado)
-
----
-
-## 4) Campos específicos pedidos (Body Insight, Personal, Anamnese, Hotmart)
-
-### Body Insight
-- Dados: altura, peso, cintura, quadril, idade, foto frontal/lateral, scores e resultado final.
-- Uso: funcionalidade principal + personalização + histórico por usuária.
-- Terceiros: Firebase Storage/Firestore e endpoint IA no backend.
-
-### Personal (SAC/atendimento)
-- Dados: categoria de atendimento, mensagem livre e contexto técnico/treino.
-- Uso: suporte e resolução de problemas.
-- Compartilhamento: backend próprio (Cloudflare/GAS), eventualmente painel administrativo.
-
-### Anamnese
-- Dados: respostas estruturadas (q1...qN), objetivo, cadastro básico.
-- Uso: personalização de programa, definição de nível, onboarding.
-
-### Cadastro Hotmart
-- Dados de entrada: `email`, `id`, `nome`, `telefone` via query params e storage local.
-- Uso: vincular compra/origem ao onboarding/anamnese.
-- Observação: app não mostra processamento direto de cartão.
+## 3.4 Purposes
+- App Functionality: **Yes**
+- Personalization: **Yes**
+- Account Management: **Yes**
+- Customer Support: **Yes**
+- Security: **Yes**
+- Third-party Advertising: **No**
+- Developer’s Advertising/Marketing: **No**
+- Analytics: **No**
 
 ---
 
-## 5) Lacunas obrigatórias antes de submissão final (importante)
-
-Mesmo com a vistoria completa do front, faltam confirmações de backend para evitar resposta inconsistente no store form:
-
-1. **Inventário exato de logs de backend**
-   - Quais campos de log são persistidos (IP, user-agent, erros, payload parcial)?
-   - Onde e por quanto tempo (Cloudflare/GAS/Firebase)?
-
-2. **Compra/assinatura**
-   - Confirmar se existe persistência de `orderId`, status, produto, data de pagamento e retenção.
-
-3. **Analytics real**
-   - Se há/ não há GA4, eventos customizados ou relatórios por usuário.
-   - Se não houver analytics formal, não marcar essa finalidade.
-
-4. **Crashes/diagnostics**
-   - Confirmar se existe ferramenta de crash reporting e se é vinculada a UID.
-
-5. **Criptografia em repouso fora Firebase**
-   - Validar componentes fora Google Cloud default.
+## 4) Consistência com documentos públicos
+- `app/docs/privacy.html` declara compartilhamento com Google/Firebase e Hotmart, retenção (90 dias logs / 30 dias delete) e coleta de device/session/IP/user-agent quando disponível.
+- `app/docs/delete-account.html` declara prazo de processamento de até 30 dias.
+- Este audit mantém essas declarações e registra gaps quando o código backend não mostra enforcement automático de retenção.
 
 ---
 
-## 6) Versão "curta" (para resposta rápida no formulário)
+## 5A) Gaps / Risks
+- **Gap 1 — Retention enforcement em Sheets**: não há rotina automática de limpeza/TTL/cron identificada para executar a retenção declarada em política (staging/GAS).
+- **Gap 2 — IP em DeleteRequests**: o schema inclui `ip`, porém gravação atual preenche `""`; há divergência com política que cita IP “quando disponível” (staging/GAS/DeleteAccount.gs:HEADER_DELETE_REQUESTS; staging/GAS/DeleteAccount.gs:deleteAccountRequest_; app/docs/privacy.html).
+- **Gap 3 — Analytics/Crash SDK ausente**: ausência confirmada de SDK de analytics/crash dedicado no repositório auditado; manter declarações de analytics/diagnostics em No evita overclaim (busca estática `rg`).
 
-- Coletamos dados de conta (nome, e-mail, telefone opcional, IDs), dados de saúde/fitness (anamnese, ciclo hormonal, treino e biometria), dados técnicos de sessão/dispositivo (deviceId e sessão) e dados comerciais limitados de origem/compra (Hotmart, sem cartão).
-- Compartilhamos dados com processadores essenciais (Firebase/Google e Hotmart).
-- Finalidades: funcionalidade do app, gestão de conta, personalização, segurança e suporte (analytics apenas se efetivamente habilitado).
-- Retenção: conta enquanto ativa; logs até 90 dias; exclusão em até 30 dias.
-- Segurança: criptografia em trânsito (HTTPS) e controles de proteção em provedores de infraestrutura.
+---
+
+## 5) Evidence Map
+
+## 5.1 Inventário validado por busca estática (`rg`) — LocalStorage keys (amostra principal para compliance)
+- `femflow_auth`
+- `femflow_id`
+- `femflow_email`
+- `femflow_device_id`
+- `femflow_session_token`
+- `femflow_session_expira`
+- `femflow_sessionToken` (legado)
+- `femflow_sessionExpira` (legado)
+- `lead_nome`
+- `lead_email`
+- `lead_telefone`
+- `lead_data_nascimento`
+- `femflow_hotmart_id`
+- `femflow_lang`
+- `firebase_sync_failed`
+- `post_login_redirect`
+
+## 5.2 Cookies (nome identificado)
+- `ff_device`
+
+## 5.3 Firestore/Storage paths (exatos)
+- Storage: `body_insight/{userId}/{timestamp}_{front|side}.{ext}`
+- Firestore: `users/{uid}/body_insight/{createdAtMs}`
+
+## 5.4 Sheets no GAS (nome + header + action que grava)
+- `Alunas` — `HEADER_ALUNAS` — `loginOuCadastro` / `login` / Hotmart (`_processarHotmart`) / admin update/create.
+- `DeleteRequests` — `requestId,userId,email,createdAt,status,processedAt,notes,locale,source,reason,app,ip,userAgent` — `deleteaccountrequest`.
+- `Leads` — `Data,Nome,Email,Telefone,Origem` — `leadparcial`.
+- `Treinos` — `ID,Data,Fase,DiaPrograma,PSE,Apelido,Box,Exercício,Séries,Reps,Peso` — `salvartreino`, `salvarevolucao`.
+- `Diario` — `ID,Data,Fase,Semana,Treino,Tipo,Descanso,Observação` — `salvardescanso`.
+- `UltimosPesos` — `ID,Exercicio,UltimoPeso` — `salvarevolucao`.
+- `PushTokens` — `UserId,DeviceId,Platform,Lang,PushToken,UpdatedAt,LastSentAt` — `register_push_token`.
+- `Notifications` — `Id,Title,Message,Type,Origin,Push,Target,CreatedAt,SendAt,Status,Deeplink` — `create_notification/publish_notification/send_notification`.
+- `SAC_LOG` — `Timestamp,TicketId,AlunoId,Categoria,Mensagem,Severidade,Rota,Origem,Pagina` — `sac_abrir`.
+- `SAC_DASHBOARD` — `timestamp,ticketId,alunaId,categoria,severidade,rota,status,mensagem,origem,pagina,lang` — `sac_abrir`.
+- `SAC_Metrics` — `Data,TicketId,Categoria,Rota,IA_Usada,Status,Tokens,CustoUSD,Lang` — `sac_abrir`.
+- `SAC_Governanca` — `Data,TicketId,Motivo,CustoHoje,CustoMes` — `sac_abrir`.
+- `body_insight_usage` — `userId,dataHora,ambiente,tipoPlano,status` — `body_insight_ia`.
+
+## 5.5 Actions `doPost` relevantes (lista)
+- `login`
+- `register`
+- `loginoucadastro`
+- `enviarcadastro`
+- `leadparcial`
+- `sac_abrir`
+- `body_insight_ia`
+- `create_notification`
+- `publish_notification`
+- `send_notification`
+- `solicitarreset`
+- `resetsenha`
+- `resetdevice`
+- `logoutdevice`
+- `migrarauth2batch`
+- `setenfase`
+- `setfase`
+- `setperfilhormonal`
+- `setdiaciclo`
+- `resetprograma`
+- `salvartreino`
+- `salvarevolucao`
+- `getultimopeso`
+- `setmanualstart`
+- `setciclostart`
+- `setnivel`
+- `upgrade`
+- `recuperarid`
+- `sync`
+- `setciclo`
+- `salvardescanso`
+- `descanso`
+- `setdiaprograma`
+- `getdiaprograma`
+- `settreinossemana`
+- `endurance_setup`
+- `endurance_treino`
+- `endurance_check`
+- `endurance_plan_token`
+- `deleteaccountrequest`
+- `register_push_token`
+- `send_push`
+- `admin_update_aluna`
+- `admin_create_aluna`
+- fallback Hotmart (`_pareceHotmart_` → `_processarHotmart`)
+
+## 5.6 Android permissions
+- `android.permission.INTERNET` (somente)
+
+---
+
+## 6) Verification commands (para rodar local)
+
+```bash
+# Hotmart / order / purchase
+rg -n "hotmart|checkout|order|purchase|subscription|plan\.id|plan\.name" staging/GAS app
+
+# Analytics / crash / GA4
+rg -n "analytics|crashlytics|ga4|gtag|firebase\.analytics|logEvent|sentry|mixpanel|amplitude" app staging/GAS package.json package-lock.json capacitor.config.*
+
+# Firestore / Storage paths (Body Insight)
+rg -n "firebase\.storage\(|storagePath|collection\('users'\)|collection\('body_insight'\)|photoFrontUrl|photoSideUrl|body_insight_ia" app/js/body_insight.js staging/GAS/BodyInsightIA.gs
+
+# Sessão / assert
+rg -n "_assertSession_|sessionToken|deviceId|Devices|AuthVersion|deleteaccountrequest" staging/GAS app/core/femflow-core.js
+
+# Android permissions
+grep -R "uses-permission" android/app/src/main/AndroidManifest.xml android/**/AndroidManifest.xml
+```
