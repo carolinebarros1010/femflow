@@ -79,7 +79,7 @@
 
 ## 2.2 Data shared (Yes/No)
 - Google Firebase (Auth/Firestore/Storage/Messaging): **Yes** (app/services/firebase-init.js:initFirebaseFemFlow).
-- Hotmart: **Yes** — checkout ocorre na Hotmart, com dados fornecidos diretamente pelo usuário na plataforma; o FemFlow recebe atualizações via webhook/entitlement para refletir licença no backend, sem fluxo de envio direto de dados do app para a Hotmart (staging/GAS/Hotmart.gs:_processarHotmart; app/docs/privacy.html).
+- Hotmart: **Yes** — checkout ocorre na Hotmart e os dados de pagamento são fornecidos pelo usuário diretamente na Hotmart; a FemFlow recebe atualizações de status/acesso via webhook/entitlement no backend (staging/GAS/Hotmart.gs:_processarHotmart; app/docs/privacy.html).
 - Advertising/Ad networks: **No** (sem SDK ads identificado no repositório).
 
 ## 2.3 Purposes (fechado)
