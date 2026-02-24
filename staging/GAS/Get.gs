@@ -134,6 +134,13 @@ function _validarPerfil_(params) {
       const diaCicloSync = syncResult && syncResult.status === "ok" ? syncResult.diaCiclo : row[14];
 
       const produtoRaw = String(row[5] || "").toLowerCase().trim();
+      if (produtoRaw === "exclusao_solicitada") {
+        return {
+          status: "blocked",
+          produto: "exclusao_solicitada"
+        };
+      }
+
       const isVip = produtoRaw === "vip";
       const ativa = isVip || row[7] === true || String(row[7] || "").toLowerCase() === "true";
 

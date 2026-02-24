@@ -785,6 +785,9 @@ document.addEventListener("DOMContentLoaded", async () => {
   window.addEventListener("femflow:ready", async (ev) => {
 
     const perfil = ev.detail;
+
+    if (FEMFLOW.handleBlockedAccount(perfil)) return;
+
     console.log("🔥 femflow:ready recebido", perfil);
 
     if (!perfil) {

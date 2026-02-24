@@ -302,6 +302,8 @@ async function initFlowCenter() {
       return;
     }
 
+    if (FEMFLOW.handleBlockedAccount(perfilFresh)) return;
+
     if (!perfilFresh || perfilFresh.status !== "ok") {
       FEMFLOW.toast("Sessão inválida.");
       FEMFLOW.clearSession();

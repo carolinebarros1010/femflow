@@ -161,6 +161,29 @@ FEMFLOW.clearSession = function () {
   localStorage.removeItem("femflow_sessionExpira");
 };
 
+FEMFLOW.handleBlockedAccount = function (perfil) {
+  const produto = String(perfil?.produto || "").toLowerCase();
+
+  if (produto === "exclusao_solicitada") {
+    FEMFLOW.clearSession?.();
+
+    const lang = FEMFLOW.lang || "pt";
+
+    const messages = {
+      pt: "Você solicitou a exclusão da sua conta. Para reverter, entre em contato: femflow.consultoria@gmail.com",
+      en: "You requested account deletion. To revert, contact: femflow.consultoria@gmail.com",
+      fr: "Vous avez demandé la suppression du compte. Pour annuler, contactez : femflow.consultoria@gmail.com"
+    };
+
+    alert(messages[lang] || messages.pt);
+
+    window.location.href = "index.html";
+    return true;
+  }
+
+  return false;
+};
+
 FEMFLOW._autoLoginRunning = false;
 
 FEMFLOW.autoLoginSilencioso = async function () {
