@@ -158,12 +158,34 @@ function flowcenterSyncPerfil() {
   const email = localStorage.getItem("femflow_email") || "";
   if (!id && !email) return { status: "no_auth" };
 
+  const cacheKey = `femflow_flowcenter_validar_cache_${id || email}`;
+  const cacheTtlMs = 15000;
+  try {
+    const rawCache = localStorage.getItem(cacheKey);
+    if (rawCache) {
+      const parsed = JSON.parse(rawCache);
+      if (parsed?.ts && parsed?.data && Date.now() - Number(parsed.ts) < cacheTtlMs) {
+        return Promise.resolve(parsed.data);
+      }
+    }
+  } catch (_) {}
+
   const qs = new URLSearchParams({ action: "validar" });
   if (id) qs.set("id", id);
   else qs.set("email", email);
 
   const url = `${FEMFLOW.SCRIPT_URL}?${qs.toString()}`;
-  return fetch(url).then(r => r.json()).catch(() => null);
+  return fetch(url)
+    .then(r => r.json())
+    .then((data) => {
+      if (data?.status === "ok") {
+        try {
+          localStorage.setItem(cacheKey, JSON.stringify({ ts: Date.now(), data }));
+        } catch (_) {}
+      }
+      return data;
+    })
+    .catch(() => null);
 }
 
 function flowcenterPersistPerfil(perfil) {
@@ -210,11 +232,13 @@ document.addEventListener("DOMContentLoaded", initFlowCenter);
 
 async function initFlowCenter() {
   FEMFLOW.loading.show();
-  try {
-    await FEMFLOW.autoLoginSilencioso?.();
-  } catch (e) {
-    console.warn("Erro silencioso ignorado", e);
-  }
+
+  const autoLoginPromise = Promise.resolve()
+    .then(() => FEMFLOW.autoLoginSilencioso?.())
+    .catch((e) => {
+      console.warn("Erro silencioso ignorado", e);
+      return false;
+    });
 
   FEMFLOW.inserirHeaderApp?.();
   FEMFLOW.inserirMenuLateral?.();
@@ -223,8 +247,8 @@ async function initFlowCenter() {
   /* ============================================================
      1) PERFIL BASE (auth)
   ============================================================ */
-  FEMFLOW.carregarPerfil()
-    .then((perfilBase) => {
+  Promise.all([autoLoginPromise, FEMFLOW.carregarPerfil()])
+    .then(([, perfilBase]) => {
       if (!perfilBase) {
         const perfilLocal = buildPerfilFromStorage();
         if (!perfilLocal) {

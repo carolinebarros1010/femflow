@@ -114,6 +114,39 @@ FEMFLOW.getSessionExpira = function () {
   return localStorage.getItem("femflow_session_expira") || "";
 };
 
+FEMFLOW.temTreinoOuContextoAtivo = function () {
+  const enfase = String(localStorage.getItem("femflow_enfase") || "").trim().toLowerCase();
+  const hasPersonal = localStorage.getItem("femflow_has_personal") === "true";
+  const enduranceReady =
+    localStorage.getItem("femflow_endurance_setup_done") === "true" ||
+    Boolean(localStorage.getItem("femflow_endurance_config"));
+  const treinoExtra = localStorage.getItem("femflow_treino_extra") === "true";
+  const treinoEndurance = localStorage.getItem("femflow_treino_endurance") === "true";
+  const customTreino = Boolean(localStorage.getItem("femflow_custom_treino"));
+
+  return (
+    (enfase && enfase !== "nenhuma") ||
+    hasPersonal ||
+    enduranceReady ||
+    treinoExtra ||
+    treinoEndurance ||
+    customTreino
+  );
+};
+
+FEMFLOW.decidirRotaInicial = function ({ preferBodyInsight = false } = {}) {
+  if (preferBodyInsight) return "body_insight.html";
+
+  const cicloConfigurado = localStorage.getItem("femflow_cycle_configured") === "yes";
+  if (!cicloConfigurado) return "ciclo.html";
+
+  if (FEMFLOW.temTreinoOuContextoAtivo()) {
+    return "flowcenter.html";
+  }
+
+  return "home.html";
+};
+
 FEMFLOW.setSessionExpira = function (iso) {
   const value = String(iso || "").trim();
   if (!value) return;
@@ -1620,7 +1653,7 @@ FEMFLOW.inserirModalNotificacoes = function () {
     <div class="ff-notifications-box" role="dialog" aria-modal="true" aria-labelledby="ff-notifications-title">
       <div class="ff-notifications-header">
         <h2 id="ff-notifications-title">${FEMFLOW.t("notifications.title")}</h2>
-        <button class="ff-notifications-close" type="button" aria-label="${FEMFLOW.t("notifications.closeAria")}">✖️</button>
+        <button class="ff-notifications-close" type="button" aria-label="${FEMFLOW.t("notifications.closeAria")}">&times;</button>
       </div>
       <div id="ff-notifications-list" class="ff-notifications-list"></div>
     </div>
@@ -1723,9 +1756,19 @@ FEMFLOW.renderNotificationsList = async function () {
 FEMFLOW.openNotifications = async function () {
   const modal = document.getElementById("ff-notifications-modal");
   if (!modal) return;
+
+  if (!FEMFLOW._notificationsEscHandler) {
+    FEMFLOW._notificationsEscHandler = (event) => {
+      if (event.key === "Escape") {
+        FEMFLOW.closeNotifications?.();
+      }
+    };
+  }
+
   await FEMFLOW.renderNotificationsList?.();
   modal.classList.add("active");
   modal.setAttribute("aria-hidden", "false");
+  document.addEventListener("keydown", FEMFLOW._notificationsEscHandler);
 };
 
 FEMFLOW.closeNotifications = function () {
@@ -1733,6 +1776,9 @@ FEMFLOW.closeNotifications = function () {
   if (!modal) return;
   modal.classList.remove("active");
   modal.setAttribute("aria-hidden", "true");
+  if (FEMFLOW._notificationsEscHandler) {
+    document.removeEventListener("keydown", FEMFLOW._notificationsEscHandler);
+  }
 };
 
 FEMFLOW.initNotificationsUI = function () {

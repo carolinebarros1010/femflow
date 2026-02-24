@@ -494,17 +494,12 @@ document.addEventListener("DOMContentLoaded", async () => {
       step.target.classList.add("tour-highlight");
       const setSpotlight = () => {
         const rect = step.target.getBoundingClientRect();
-        const viewport = window.visualViewport;
-        const offsetX = viewport?.offsetLeft || 0;
-        const offsetY = viewport?.offsetTop || 0;
-        const baseRadius = Math.max(rect.width, rect.height) / 2 + 20;
-        const targetCenterX = rect.left + rect.width / 2 + offsetX;
-        const targetCenterY = rect.top + rect.height / 2 + offsetY;
-        const radius = baseRadius;
-        const spotlightY = targetCenterY;
+        const centerX = rect.left + rect.width / 2;
+        const centerY = rect.top + rect.height / 2;
+        const radius = Math.max(rect.width, rect.height) / 2 + 20;
 
-        tourOverlay.style.setProperty("--spot-x", `${targetCenterX}px`);
-        tourOverlay.style.setProperty("--spot-y", `${spotlightY}px`);
+        tourOverlay.style.setProperty("--spot-x", `${centerX}px`);
+        tourOverlay.style.setProperty("--spot-y", `${centerY}px`);
         tourOverlay.style.setProperty("--spot-r", `${radius}px`);
       };
 
@@ -516,8 +511,9 @@ document.addEventListener("DOMContentLoaded", async () => {
         });
       }
 
-      window.requestAnimationFrame(setSpotlight);
-      window.setTimeout(setSpotlight, 300);
+      window.requestAnimationFrame(() => {
+        window.requestAnimationFrame(setSpotlight);
+      });
     }
 
     if (tourTitle) tourTitle.textContent = step.title;
@@ -556,6 +552,21 @@ document.addEventListener("DOMContentLoaded", async () => {
     tourOverlay.setAttribute("aria-hidden", "false");
     atualizarTourUI();
   }
+
+
+  window.addEventListener("resize", () => {
+    if (!tourOverlay || tourOverlay.classList.contains("is-hidden")) return;
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(atualizarTourUI);
+    });
+  });
+
+  window.addEventListener("orientationchange", () => {
+    if (!tourOverlay || tourOverlay.classList.contains("is-hidden")) return;
+    window.requestAnimationFrame(() => {
+      window.requestAnimationFrame(atualizarTourUI);
+    });
+  });
 
   function resolveTipoTreino() {
     const enduranceFlag =

@@ -183,7 +183,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       if (possuiIdentidade && possuiToken && tokenValido) {
         FEMFLOW.loading.show();
-        location.href = "home.html";
+        location.href = FEMFLOW.decidirRotaInicial?.() || "home.html";
         return;
       }
     }
@@ -525,7 +525,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const redirectParam = new URLSearchParams(location.search).get("redirect");
       const savedRedirect = localStorage.getItem("post_login_redirect");
       const shouldRedirectBodyInsight = redirectParam === "body_insight" || savedRedirect === "body_insight.html";
-      const nextPage = shouldRedirectBodyInsight ? "body_insight.html" : "home.html";
+      const nextPage = FEMFLOW.decidirRotaInicial?.({ preferBodyInsight: shouldRedirectBodyInsight }) || (shouldRedirectBodyInsight ? "body_insight.html" : "home.html");
 
       if (shouldRedirectBodyInsight) {
         localStorage.removeItem("post_login_redirect");
@@ -640,7 +640,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       await syncCiclo(res.id);
       await validarPerfilAposLogin();
 
-      setTimeout(() => location.href = "home.html", 500);
+      setTimeout(() => location.href = (FEMFLOW.decidirRotaInicial?.() || "home.html"), 500);
 
     } catch (e) {
       console.warn("Erro Google:", e);
@@ -724,7 +724,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       await validarPerfilAposLogin();
 
       setMsg("Acesso liberado ✨", true);
-      setTimeout(() => location.href = "home.html", 600);
+      setTimeout(() => location.href = (FEMFLOW.decidirRotaInicial?.() || "home.html"), 600);
 
     } catch (e) {
       console.warn(e);
