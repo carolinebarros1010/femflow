@@ -78,13 +78,6 @@
 
 
   
-<div id="ff-loading" class="ff-loading hidden">
-  <div class="ff-loading-box">
-    <div class="ff-spinner"></div>
-    <p id="ff-loading-text">Configurando…</p>
-  </div>
-</div>
-  
 <script src="js/lang.js"></script>
 <script src="core/femflow-core.js"></script>
 
@@ -99,17 +92,6 @@ if (!id) {
 }
 
  
-function ffShowLoading(msg = "Processando…") {
-  const box = document.getElementById("ff-loading");
-  const text = document.getElementById("ff-loading-text");
-  if (text) text.textContent = msg;
-  if (box) box.classList.remove("hidden");
-}
-
-function ffHideLoading() {
-  const box = document.getElementById("ff-loading");
-  if (box) box.classList.add("hidden");
-}
 
 /* ============================================================
    0. MENSAGEM DE AJUSTE
@@ -198,11 +180,11 @@ function getPerguntas(tipo) {
    FemFlow 2025
 ============================================================ */
 async function salvarCiclo({ diaCicloInicial, cicloDuracao }) {
-
-  ffShowLoading("Configurando seu ciclo…");
+  FEMFLOW.loading.show();
   await new Promise(requestAnimationFrame);
 
-  const idUser = localStorage.getItem("femflow_id");
+  try {
+    const idUser = localStorage.getItem("femflow_id");
 
   /* ============================================================
      1) CACHE LOCAL (destrava navegação)
@@ -226,7 +208,6 @@ const resp = await FEMFLOW.post({
 if (!resp || resp.status !== "ok") {
   console.log("❌ setciclo falhou:", resp);
   FEMFLOW.toast("Erro ao salvar perfil/ciclo. Tente novamente.");
-  FEMFLOW.loading.hide?.();
   return;
 }
 
@@ -252,6 +233,9 @@ const perfilFresh = await fetch(`${FEMFLOW.SCRIPT_URL}?${qs.toString()}`)
 
   const ret = (new URLSearchParams(location.search).get("ret") || "").toLowerCase();
   FEMFLOW.router(ret.includes("flowcenter") ? "flowcenter.html" : "home.html");
+  } finally {
+    FEMFLOW.loading.hide();
+  }
 }
 /* ============================================================
    PERFIS E QUIZ
@@ -304,9 +288,6 @@ function bindConfirmarRegular() {
    BOTÕES PRINCIPAIS
 ============================================================ */
 document.addEventListener("DOMContentLoaded", () => {
-
-  // 🔥 GARANTIR LIMPEZA DE LOADING AO ENTRAR NO CICLO
-  FEMFLOW.loading.hide?.();
 
   // PERFIS PRINCIPAIS
   document.querySelectorAll(".perfil-btn[data-perfil]").forEach(btn=>{

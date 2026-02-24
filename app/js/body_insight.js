@@ -142,7 +142,7 @@
 
     const helpDescription = getHelpDescription(trigger);
     biHelpModalDescription.textContent = helpDescription || 'Sem descrição disponível.';
-    biHelpModalFigure.innerHTML = '<p>Carregando ilustração...</p>';
+    biHelpModalFigure.innerHTML = '<p>Ilustração indisponível no momento.</p>';
 
     window.requestAnimationFrame(() => {
       biHelpModalDialog.focus();

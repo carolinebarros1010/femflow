@@ -209,13 +209,12 @@ function flowcenterPersistPerfil(perfil) {
 document.addEventListener("DOMContentLoaded", initFlowCenter);
 
 async function initFlowCenter() {
+  FEMFLOW.loading.show();
   try {
     await FEMFLOW.autoLoginSilencioso?.();
   } catch (e) {
     console.warn("Erro silencioso ignorado", e);
   }
-
-  FEMFLOW.loading.show(FEMFLOW.t("geral.preparingPanel"));
 
   FEMFLOW.inserirHeaderApp?.();
   FEMFLOW.inserirMenuLateral?.();
@@ -1169,8 +1168,6 @@ async function initFlowCenter() {
 
   const setLoadingEndurancePersonal = (ativo) => {
     endurancePersonalState.carregando = Boolean(ativo);
-    modalEndurancePersonalLoading?.classList.toggle("oculto", !ativo);
-    modalEndurancePersonal?.classList.toggle("is-loading", Boolean(ativo));
     atualizarConfirmarEndurancePersonal();
   };
 
@@ -1216,7 +1213,6 @@ async function initFlowCenter() {
     modalEndurancePersonalEmpty?.classList.add("oculto");
     modalEndurancePersonalContent?.classList.remove("oculto");
     modalEndurancePersonalActions?.classList.remove("oculto");
-    modalEndurancePersonalLoading?.classList.add("oculto");
     modalEndurancePersonalModalidadeBadge.textContent = "Endurance Personal";
     endurancePersonalState.semanaSelecionada = "";
     endurancePersonalState.diaSelecionado = "";

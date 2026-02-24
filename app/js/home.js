@@ -1823,76 +1823,12 @@ function aplicarIdiomaHome() {
 }
 
 
-function hideSplash() {
-  const splash = document.getElementById("splash");
-  if (!splash || splash.dataset.hidden === "true") return;
-  splash.dataset.hidden = "true";
-  splash.classList.add("fade-out");
-
-  const removeSplash = () => {
-    splash.remove();
-    document.body.classList.add("ff-ready");
-    document.body.removeAttribute("aria-busy");
-  };
-
-  window.setTimeout(removeSplash, 1500);
-}
-
-function isHomeLoadingVisible() {
-  const loading = document.getElementById("ff-loading");
-  return Boolean(loading && !loading.classList.contains("hidden"));
-}
-
-function requestHideSplash() {
-  if (isHomeLoadingVisible()) {
-    window.setTimeout(requestHideSplash, 120);
-    return;
-  }
-  hideSplash();
-}
-
-function waitForHomeCriticalReady() {
-  const video = document.getElementById("heroVideo") || document.getElementById("homeVideoPlayer");
-
-  if (!video) {
-    window.setTimeout(requestHideSplash, 900);
-    return;
-  }
-
-  let done = false;
-  const conclude = () => {
-    if (done) return;
-    done = true;
-    requestHideSplash();
-  };
-
-  const startedAt = Date.now();
-  const fallbackTimer = window.setTimeout(conclude, 1800);
-
-  const onReady = () => {
-    const elapsed = Date.now() - startedAt;
-    const waitMore = Math.max(0, 700 - elapsed);
-    window.clearTimeout(fallbackTimer);
-    window.setTimeout(conclude, waitMore);
-  };
-
-  if (video.readyState >= 2) {
-    onReady();
-    return;
-  }
-
-  video.addEventListener("canplay", onReady, { once: true });
-  video.addEventListener("loadeddata", onReady, { once: true });
-  video.addEventListener("error", onReady, { once: true });
-}
-
 /* ============================================================
    HOME — AGORA USANDO SOMENTE VALIDAR (SEM SYNC)
 =========================================================== */
 document.addEventListener("DOMContentLoaded", async () => {
-  FEMFLOW.loading.show(FEMFLOW.t("geral.loading"));
+  FEMFLOW.loading.show();
   configurarVideoHome();
-  waitForHomeCriticalReady();
 
   await FEMFLOW.autoLoginSilencioso?.();
 
