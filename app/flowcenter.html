@@ -8,6 +8,37 @@
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="format-detection" content="telephone=no" />
+  <script>
+(function(){
+  try{
+    if(sessionStorage.getItem("ff_splash_handoff")==="1"){
+      var d=document;
+      var el=d.getElementById("ff-loading");
+      if(!el){
+        el=d.createElement("div");
+        el.id="ff-loading";
+        el.className="ff-loading ff-show";
+        el.innerHTML =
+          '<div class="ff-loading-content ff-pulse" aria-label="FemFlow loading">'
+          +'<img class="ff-loading-logo" src="assets/logofemflowterracotasf.png" alt="FemFlow"/>'
+          +'<div class="ff-loading-tagline">Train with Flow</div>'
+          +'</div>';
+        d.addEventListener("DOMContentLoaded", function(){
+          d.body.appendChild(el);
+          d.body.setAttribute("aria-busy","true");
+        }, {once:true});
+      } else {
+        el.classList.add("ff-show");
+        el.classList.remove("ff-hidden");
+      }
+      d.documentElement.classList.add("ff-page-enter");
+      d.body && d.body.setAttribute("aria-busy","true");
+    } else {
+      document.documentElement.classList.add("ff-page-enter");
+    }
+  }catch(e){}
+})();
+</script>
   <script src="./config/config.js" defer></script>
   <title>FemFlow • Flow Center</title>
 

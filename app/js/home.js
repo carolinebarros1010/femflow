@@ -1847,7 +1847,12 @@ function aplicarIdiomaHome() {
    HOME — AGORA USANDO SOMENTE VALIDAR (SEM SYNC)
 =========================================================== */
 document.addEventListener("DOMContentLoaded", async () => {
-  FEMFLOW.loading.show();
+  requestAnimationFrame(() => {
+    document.documentElement.classList.add("ff-enter-ready");
+  });
+
+  const handoff = FEMFLOW._hasSplashHandoff?.();
+  if (!handoff) FEMFLOW.loading.show();
   renderHomeSkeleton();
   configurarVideoHome();
 
@@ -1995,13 +2000,11 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (perfil.status === "blocked" || perfil.status === "denied") {
       FEMFLOW.toast("Sessão inválida. Faça login novamente.");
       FEMFLOW.clearSession?.();
-      FEMFLOW.loading.hide();
-      return FEMFLOW.router("index.html");
+      return FEMFLOW.navegarUltra("index.html");
     }
 
     if (perfil.status !== "ok") {
       FEMFLOW.toast("Erro ao atualizar dados. Tente novamente.");
-      FEMFLOW.loading.hide();
       return;
     }
 
@@ -2017,9 +2020,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     if (!localStorage.getItem("femflow_cycle_configured")) {
-      FEMFLOW.loading.hide?.();
       FEMFLOW.toast("Configure seu ciclo antes de escolher o treino 🌸");
-      FEMFLOW.router("ciclo.html");
+      await FEMFLOW.navegarUltra("ciclo.html");
       return;
     }
 
@@ -2096,7 +2098,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     console.error("HOME init erro:", err);
     FEMFLOW.toast("Falha ao carregar. Verifique internet.");
   } finally {
-    FEMFLOW.loading.hide();
+    FEMFLOW.finalizarHandoffSplash();
   }
 });
 

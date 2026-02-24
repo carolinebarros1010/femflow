@@ -448,9 +448,22 @@ body.ff-scroll-lock {
   --ff-z-splash: 999999;
 }
 
-.ff-page-leave { opacity: .72; transition: opacity .16s ease; }
-.ff-page-enter { animation: ffPageIn .22s ease; }
-@keyframes ffPageIn { from { opacity: .86; transform: translateY(4px);} to {opacity:1; transform: translateY(0);} }
+/* Page enter/leave — ultra leve */
+html.ff-page-enter body {
+  opacity: 0;
+  transform: translateY(2px);
+}
+html.ff-page-enter.ff-enter-ready body {
+  opacity: 1;
+  transform: none;
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+html.ff-page-leave body {
+  opacity: 0;
+  transform: translateY(-2px);
+  transition: opacity 140ms ease, transform 140ms ease;
+}
 
 .ff-skeleton {
   position: relative;
@@ -520,6 +533,9 @@ body.ff-zona-modal-open { overflow: hidden; }
 }
 
 @media (prefers-reduced-motion: reduce) {
+  html.ff-page-enter body,
+  html.ff-page-enter.ff-enter-ready body,
+  html.ff-page-leave body,
   .ff-page-enter,
   .ff-skeleton,
   .ff-modal-overlay,
