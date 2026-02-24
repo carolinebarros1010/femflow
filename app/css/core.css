@@ -359,3 +359,59 @@ input, select {
 }
 /* utilitário global */
 .oculto { display: none !important; }
+
+/* =========================================
+   FEMFLOW GLOBAL SPLASH
+========================================= */
+
+.ff-loading {
+  position: fixed;
+  inset: 0;
+  z-index: 999999;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 244, 239, 0.95);
+  backdrop-filter: blur(6px);
+}
+
+.ff-loading.hidden {
+  display: none;
+}
+
+.ff-loading-box {
+  text-align: center;
+}
+
+.ff-loading-logo {
+  width: 72px;
+  height: 72px;
+  object-fit: contain;
+  margin-bottom: 8px;
+}
+
+.ff-loading-brand {
+  font-family: "Playfair Display", serif;
+  font-size: 22px;
+  font-weight: 700;
+  color: #cc6a5a;
+  letter-spacing: 0.5px;
+}
+
+.ff-loading-tagline {
+  font-family: "Lato", sans-serif;
+  font-size: 14px;
+  color: #335953;
+  margin-top: 4px;
+}
+
+/* Pulsação suave */
+.ff-pulse {
+  animation: femflowPulse 1.4s ease-in-out infinite;
+}
+
+@keyframes femflowPulse {
+  0%   { transform: scale(1); opacity: 0.9; }
+  50%  { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.9; }
+}

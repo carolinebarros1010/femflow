@@ -1039,32 +1039,35 @@ FEMFLOW.toggleBodyScroll = function (locked) {
    ⏳ LOADING GLOBAL — FEMFLOW (PADRÃO OFICIAL)
 ============================================================ */
 
-FEMFLOW.loading = FEMFLOW.loading || {};
+FEMFLOW.loading = {
+  show() {
+    let box = document.getElementById("ff-loading");
 
-FEMFLOW.loading.show = function (msg = "Processando…") {
-  let box = document.getElementById("ff-loading");
+    if (!box) {
+      box = document.createElement("div");
+      box.id = "ff-loading";
+      box.className = "ff-loading";
 
-  if (!box) {
-    box = document.createElement("div");
-    box.id = "ff-loading";
-    box.className = "ff-loading";
-    box.innerHTML = `
-      <div class="ff-loading-box">
-        <div class="ff-spinner"></div>
-        <p id="ff-loading-text">${msg}</p>
-      </div>
-    `;
-    document.body.appendChild(box);
-  } else {
-    const text = document.getElementById("ff-loading-text");
-    if (text) text.textContent = msg;
-    box.classList.remove("hidden");
+      box.innerHTML = `
+        <div class="ff-loading-box ff-pulse">
+          <img class="ff-loading-logo" 
+               src="assets/logofemflowterracotasf.png" 
+               alt="FemFlow"/>
+          <div class="ff-loading-brand">FemFlow</div>
+          <div class="ff-loading-tagline">Train with Flow</div>
+        </div>
+      `;
+
+      document.body.appendChild(box);
+    } else {
+      box.classList.remove("hidden");
+    }
+  },
+
+  hide() {
+    const box = document.getElementById("ff-loading");
+    if (box) box.classList.add("hidden");
   }
-};
-
-FEMFLOW.loading.hide = function () {
-  const box = document.getElementById("ff-loading");
-  if (box) box.classList.add("hidden");
 };
 
 FEMFLOW.log = function (...args) {
