@@ -1279,7 +1279,7 @@ FEMFLOW.toggleBodyScroll = function (locked) {
     box.setAttribute("aria-live", "polite");
 
     box.innerHTML = `
-      <div class="ff-loading-box ff-pulse" aria-label="FemFlow loading">
+      <div class="ff-loading-content ff-pulse">
         <img class="ff-loading-logo"
              src="assets/logofemflowterracotasf.png"
              alt="FemFlow"/>
