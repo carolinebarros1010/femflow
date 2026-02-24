@@ -1997,6 +1997,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     const perfil = await carregarPerfilEAtualizarStorage();
 
+    if (FEMFLOW.handleBlockedAccount(perfil)) return;
+
     if (perfil.status === "blocked" || perfil.status === "denied") {
       FEMFLOW.toast("Sessão inválida. Faça login novamente.");
       FEMFLOW.clearSession?.();
