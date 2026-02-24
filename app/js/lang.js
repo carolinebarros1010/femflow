@@ -25,7 +25,22 @@ window.FEMFLOW_LANG = {
       tema: "Tema",
       voltar: "Voltar",
       sair: "Sair",
-      sac: "Preciso de ajuda"
+      sac: "Preciso de ajuda",
+      privacy: "Política de Privacidade",
+      terms: "Termos de Uso",
+      deleteAccount: "Excluir conta"
+    },
+    deleteModal: {
+      title: "Excluir conta",
+      description: "Esta ação abre uma solicitação de exclusão da sua conta e dados associados.",
+      checkbox: "Entendi que esta solicitação pode ser irreversível.",
+      checkboxRequired: "Confirme que você entendeu antes de continuar.",
+      reasonPlaceholder: "Motivo (opcional)",
+      confirm: "Confirmar exclusão",
+      cancel: "Cancelar",
+      sending: "Enviando solicitação...",
+      success: "Solicitação enviada. Você receberá confirmação.",
+      error: "Não foi possível enviar agora. Tente novamente."
     },
     nivelModal: {
       title: "Selecione seu nível",
@@ -125,7 +140,22 @@ window.FEMFLOW_LANG = {
       tema: "Theme",
       voltar: "Back",
       sair: "Logout",
-      sac: "I need help"
+      sac: "I need help",
+      privacy: "Privacy Policy",
+      terms: "Terms of Use",
+      deleteAccount: "Delete account"
+    },
+    deleteModal: {
+      title: "Delete account",
+      description: "This action sends an account deletion request for your account and related data.",
+      checkbox: "I understand this request may be irreversible.",
+      checkboxRequired: "Please confirm you understand before continuing.",
+      reasonPlaceholder: "Reason (optional)",
+      confirm: "Confirm deletion",
+      cancel: "Cancel",
+      sending: "Sending request...",
+      success: "Request sent. You will receive confirmation.",
+      error: "We could not send your request now. Please try again."
     },
     nivelModal: {
       title: "Select your level",
@@ -225,7 +255,22 @@ window.FEMFLOW_LANG = {
       tema: "Thème",
       voltar: "Retour",
       sair: "Déconnexion",
-      sac: "J’ai besoin d’aide"
+      sac: "J’ai besoin d’aide",
+      privacy: "Politique de confidentialité",
+      terms: "Conditions d’utilisation",
+      deleteAccount: "Supprimer le compte"
+    },
+    deleteModal: {
+      title: "Supprimer le compte",
+      description: "Cette action envoie une demande de suppression du compte et des données associées.",
+      checkbox: "Je comprends que cette demande peut être irréversible.",
+      checkboxRequired: "Veuillez confirmer avant de continuer.",
+      reasonPlaceholder: "Motif (optionnel)",
+      confirm: "Confirmer la suppression",
+      cancel: "Annuler",
+      sending: "Envoi de la demande...",
+      success: "Demande envoyée. Vous recevrez une confirmation.",
+      error: "Impossible d'envoyer la demande pour le moment."
     },
     nivelModal: {
       title: "Sélectionnez votre niveau",
@@ -340,6 +385,9 @@ pt: {
     fechar: "Fechar",
     idioma: "Idioma",
     sac: "Preciso de ajuda",
+    privacy: "Política de Privacidade",
+    terms: "Termos de Uso",
+    deleteAccount: "Excluir conta",
     ciclo: "Ajustar ciclo",
     respiracao: "Respiração",
     treinos: "Minha evolução",
@@ -348,6 +396,18 @@ pt: {
     tema: "Tema",
     voltar: "Voltar",
     sair: "Sair"
+  },
+  deleteModal: {
+    title: "Excluir conta",
+    description: "Esta ação abre uma solicitação de exclusão da sua conta e dados associados.",
+    checkbox: "Entendi que esta solicitação pode ser irreversível.",
+    checkboxRequired: "Confirme que você entendeu antes de continuar.",
+    reasonPlaceholder: "Motivo (opcional)",
+    confirm: "Confirmar exclusão",
+    cancel: "Cancelar",
+    sending: "Enviando solicitação...",
+    success: "Solicitação enviada. Você receberá confirmação.",
+    error: "Não foi possível enviar agora. Tente novamente."
   },
 home: {
       bemvinda: "Bem-vinda",
@@ -811,6 +871,9 @@ en: {
     fechar: "Close",
     idioma: "Language",
     sac: "I need help",
+    privacy: "Privacy Policy",
+    terms: "Terms of Use",
+    deleteAccount: "Delete account",
     ciclo: "Adjust cycle",
     respiracao: "Breathing",
     treinos: "My Progress",
@@ -1279,6 +1342,9 @@ fr: {
     fechar: "Fermer",
     idioma: "Langue",
     sac: "J’ai besoin d’aide",
+    privacy: "Politique de confidentialité",
+    terms: "Conditions d’utilisation",
+    deleteAccount: "Supprimer le compte",
     ciclo: "Ajuster le cycle",
     respiracao: "Respiration",
     treinos: "Mon évolution",

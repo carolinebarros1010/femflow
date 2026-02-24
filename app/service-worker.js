@@ -1,5 +1,5 @@
 // 🌸 FemFlow Service Worker v5.0 (PWA + CORS safe)
-const CACHE_VERSION = "v12";
+const CACHE_VERSION = "v13";
 const CACHE_NAME = `femflow-static-${CACHE_VERSION}`;
 
 // --------------------------------------------------
@@ -166,6 +166,11 @@ const ASSETS = [
   "./reset.html",
   "./offline.html",
   "./manifest.json",
+  "./docs/privacy.html",
+  "./docs/terms.html",
+  "./docs/delete-account.html",
+  "./docs/legal.css",
+  "./docs/legal.js",
 
   "./css/style.css",
   "./css/core.css",
@@ -279,6 +284,7 @@ self.addEventListener("fetch", (event) => {
 
   const isNavigation = req.mode === "navigate";
   const noStore = req.cache === "no-store";
+  const isDocs = url.pathname.includes("/docs/");
 
   // Estratégia cache-first
   event.respondWith(
@@ -286,8 +292,18 @@ self.addEventListener("fetch", (event) => {
       const cache = await caches.open(CACHE_NAME);
       const cached = noStore ? null : await cache.match(req);
 
+      if (isDocs) {
+        try {
+          const resp = await fetch(req);
+          if (resp && resp.ok && !noStore) cache.put(req, resp.clone());
+          return resp;
+        } catch (err) {
+          if (cached) return cached;
+          throw err;
+        }
+      }
+
       if (cached) {
-        // atualiza silenciosamente
         fetch(req)
           .then((resp) => {
             if (resp && resp.ok && !noStore) cache.put(req, resp.clone());
@@ -297,7 +313,6 @@ self.addEventListener("fetch", (event) => {
         return cached;
       }
 
-      // busca na rede
       try {
         const resp = await fetch(req);
         if (resp && resp.ok && !noStore) cache.put(req, resp.clone());

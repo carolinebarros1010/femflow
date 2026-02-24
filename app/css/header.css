@@ -403,3 +403,28 @@ body.dark .ff-notifications-close,
 body.dark .ff-notifications-header h2 {
   color: #fff;
 }
+
+/* Delete account modal */
+.ff-delete-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 160000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.ff-delete-modal.hidden { display: none; }
+.ff-delete-box {
+  width: min(480px, 100%);
+  background: #fff;
+  border-radius: 14px;
+  padding: 18px;
+}
+.ff-delete-check { display: block; margin: 12px 0; }
+#ffDeleteReason { width: 100%; min-height: 90px; border-radius: 10px; border: 1px solid #d9ccc6; padding: 10px; }
+.ff-delete-actions { display: flex; gap: 10px; margin-top: 12px; }
+.ff-delete-actions button { flex: 1; border-radius: 10px; border: none; padding: 12px; cursor: pointer; }
+.ff-delete-actions .ghost { background: #eee; }
+#ffDeleteSend { background: #cc6a5a; color: #fff; }
