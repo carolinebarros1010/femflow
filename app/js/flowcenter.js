@@ -260,63 +260,51 @@ async function initFlowCenter() {
   FEMFLOW.inserirMenuLateral?.();
   FEMFLOW.inserirModalIdioma?.();
 
+  const el = {
+    tituloFlow: document.getElementById("tituloFlow"),
+    subFlow: document.getElementById("subFlow"),
+    centerPhase: document.getElementById("centerPhase"),
+    tCurrent: document.getElementById("t_current"),
+    nivelTag: document.getElementById("nivelTag"),
+    toBreath: document.getElementById("toBreath"),
+    toTrain: document.getElementById("toTrain"),
+    toExtraTrain: document.getElementById("toExtraTrain"),
+    toCustomTrain: document.getElementById("toCustomTrain"),
+    toEvolution: document.getElementById("toEvolution"),
+    toEndurance: document.getElementById("toEndurance")
+  };
+
+  // Render mínimo para percepção imediata.
+  if (el.tituloFlow) el.tituloFlow.textContent = "...";
+  if (el.subFlow) el.subFlow.textContent = "...";
+  if (el.centerPhase) el.centerPhase.textContent = "...";
+
   /* ============================================================
      1) PERFIL BASE (auth)
   ============================================================ */
-  Promise.all([autoLoginPromise, FEMFLOW.carregarPerfil()])
-    .then(([, perfilBase]) => {
-      if (!perfilBase) {
-        const perfilLocal = buildPerfilFromStorage();
-        if (!perfilLocal) {
-          FEMFLOW.toast("Sessão inválida.");
-          FEMFLOW.clearSession();
-          FEMFLOW.dispatch("stateChanged", { type: "auth", impact: "estrutural" });
-          return null;
-        }
-        FEMFLOW.toast("Sem conexão agora. Usando dados salvos.");
-        return perfilLocal;
-      }
+  try {
+    await autoLoginPromise;
+    const [perfilBase, perfilFresh] = await Promise.all([
+      FEMFLOW.carregarPerfil(),
+      flowcenterSyncPerfil()
+    ]);
 
-      if (perfilBase.status === "blocked" || perfilBase.status === "denied") {
-        FEMFLOW.toast("Sessão inválida.");
-        FEMFLOW.clearSession();
-        FEMFLOW.dispatch("stateChanged", { type: "auth", impact: "estrutural" });
-        return null;
-      }
+    if (!perfilBase || perfilBase.status === "blocked" || perfilBase.status === "denied") {
+      FEMFLOW.toast("Sessão inválida.");
+      FEMFLOW.clearSession();
+      FEMFLOW.dispatch("stateChanged", { type: "auth", impact: "estrutural" });
+      return;
+    }
 
-      return FEMFLOW.validarComRetry(flowcenterSyncPerfil).then((perfilFresh) => {
-        if (!perfilFresh) {
-          console.warn("Erro de rede — mantendo sessão.");
-          FEMFLOW.toast("Sem conexão agora. Usando dados salvos.");
-          setTimeout(async () => {
-            const retryResp = await FEMFLOW.validarComRetry(flowcenterSyncPerfil);
-            if (retryResp?.status === "blocked") {
-              FEMFLOW.clearSession();
-              FEMFLOW.dispatch("stateChanged", { type: "auth", impact: "estrutural" });
-            }
-          }, 10000);
-          return perfilBase;
-        }
+    if (!perfilFresh || perfilFresh.status !== "ok") {
+      FEMFLOW.toast("Sessão inválida.");
+      FEMFLOW.clearSession();
+      FEMFLOW.dispatch("stateChanged", { type: "auth", impact: "estrutural" });
+      return;
+    }
 
-        if (perfilFresh.status === "blocked") {
-          FEMFLOW.toast("Sessão inválida.");
-          FEMFLOW.clearSession();
-          FEMFLOW.dispatch("stateChanged", { type: "auth", impact: "estrutural" });
-          return null;
-        }
-
-        if (perfilFresh.status !== "ok") {
-          console.warn("Resposta inesperada — mantendo sessão.");
-          FEMFLOW.toast("Sem conexão agora. Usando dados salvos.");
-          return perfilBase;
-        }
-
-        flowcenterPersistPerfil(perfilFresh);
-        return { ...perfilBase, ...perfilFresh };
-      });
-    })
-    .then(async (perfil) => {
-      if (!perfil) return;
+    flowcenterPersistPerfil(perfilFresh);
+    const perfil = { ...perfilBase, ...perfilFresh };
 
   /* ============================================================
      3) CICLO
@@ -487,8 +475,9 @@ async function initFlowCenter() {
       avancada:{pt:"Avançada",en:"Advanced",fr:"Avancée"}
     };
     const lang = FEMFLOW.lang || "pt";
-    document.getElementById("nivelTag").textContent =
-      `— ${map[nivel]?.[lang] || map[nivel].pt}`;
+    if (el.nivelTag) {
+      el.nivelTag.textContent = `— ${map[nivel]?.[lang] || map[nivel].pt}`;
+    }
   }
   aplicarNivel();
   document.addEventListener("femflow:langChange", aplicarNivel);
@@ -519,36 +508,36 @@ async function initFlowCenter() {
     if (!L) return;
 
     const nome = perfil.nome?.split(" ")[0] || "";
-    document.getElementById("tituloFlow").textContent = `${nome}, ${L.titulo}`;
-    document.getElementById("subFlow").textContent = L.sub;
+    if (el.tituloFlow) el.tituloFlow.textContent = `${nome}, ${L.titulo}`;
+    if (el.subFlow) el.subFlow.textContent = L.sub;
 
     const faseLabel = L[normalizarFase(ciclo.fase)] || ciclo.fase;
-    document.getElementById("centerPhase").textContent = faseLabel;
-    document.getElementById("t_current").textContent =
-      `${L.faseAtual}: ${faseLabel}`;
+    if (el.centerPhase) el.centerPhase.textContent = faseLabel;
+    if (el.tCurrent) el.tCurrent.textContent = `${L.faseAtual}: ${faseLabel}`;
 
     ["menstrual","follicular","ovulatory","luteal"].forEach(f => {
       document.getElementById("lbl-"+f).textContent = L[f];
     });
 
-    document.getElementById("toBreath").textContent    = `💨 ${L.respiracao}`;
+    if (el.toBreath) el.toBreath.textContent = `💨 ${L.respiracao}`;
     const customLabel = isCustomTreino ? "🔓" : "🔒";
     const treinoDisponivel = !isCustomTreino && treinoAcessoOk;
     const treinoLabel = treinoDisponivel ? "🏋️‍♂️" : "🔒";
     const extraLabel = !isCustomTreino && treinoAcessoOk ? "✨" : "🔒";
-    const treinoBtn = document.getElementById("toTrain");
-    treinoBtn.textContent = `${treinoLabel} ${L.treino}`;
-    treinoBtn.classList.toggle("tool-cta", treinoDisponivel);
-    treinoBtn.classList.toggle("tool-locked", !treinoDisponivel);
-    document.getElementById("toExtraTrain").textContent = `${extraLabel} ${L.treinoExtra}`;
-  const customBtn = document.getElementById("toCustomTrain");
+    const treinoBtn = el.toTrain;
+    if (treinoBtn) {
+      treinoBtn.textContent = `${treinoLabel} ${L.treino}`;
+      treinoBtn.classList.toggle("tool-cta", treinoDisponivel);
+      treinoBtn.classList.toggle("tool-locked", !treinoDisponivel);
+    }
+    if (el.toExtraTrain) el.toExtraTrain.textContent = `${extraLabel} ${L.treinoExtra}`;
+    const customBtn = el.toCustomTrain;
     if (customBtn) {
       customBtn.textContent = `${customLabel} ${L.treinoCustom}`;
     }
-    document.getElementById("toEvolution").textContent = `📈 ${L.evolucao}`;
+    if (el.toEvolution) el.toEvolution.textContent = `📈 ${L.evolucao}`;
     const enduranceLabel = enduranceEnabled ? "🏃‍♂️" : "🔒";
-    document.getElementById("toEndurance").textContent =
-      `${enduranceLabel} ${L.endurance}`;
+    if (el.toEndurance) el.toEndurance.textContent = `${enduranceLabel} ${L.endurance}`;
     const extraTitle = document.getElementById("extraTitle");
     const extraSub = document.getElementById("extraSub");
     if (extraTitle) extraTitle.textContent = L.treinoExtraTitulo;
@@ -2086,13 +2075,11 @@ async function initFlowCenter() {
     abrirModalEnduranceSelecao();
   };
 
-    })
-    .catch((err) => {
-      console.error("Erro ao inicializar FlowCenter:", err);
-      FEMFLOW.toast("Erro ao carregar seu painel. Tente novamente.");
-    })
-    .finally(() => {
-      clearFlowcenterSkeleton();
-      FEMFLOW.loading.hide();
-    });
+  } catch (err) {
+    console.error("Erro ao inicializar FlowCenter:", err);
+    FEMFLOW.toast("Erro ao carregar seu painel. Tente novamente.");
+  } finally {
+    clearFlowcenterSkeleton();
+    FEMFLOW.loading.hide();
+  }
 }
