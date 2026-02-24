@@ -271,7 +271,8 @@ async function initFlowCenter() {
     toExtraTrain: document.getElementById("toExtraTrain"),
     toCustomTrain: document.getElementById("toCustomTrain"),
     toEvolution: document.getElementById("toEvolution"),
-    toEndurance: document.getElementById("toEndurance")
+    toEndurance: document.getElementById("toEndurance"),
+    toHomeSwitch: document.getElementById("toHomeSwitch")
   };
 
   // Render mínimo para percepção imediata.
@@ -538,6 +539,7 @@ async function initFlowCenter() {
     if (el.toEvolution) el.toEvolution.textContent = `📈 ${L.evolucao}`;
     const enduranceLabel = enduranceEnabled ? "🏃‍♂️" : "🔒";
     if (el.toEndurance) el.toEndurance.textContent = `${enduranceLabel} ${L.endurance}`;
+    if (el.toHomeSwitch) el.toHomeSwitch.textContent = `🏠 ${L.homeSwitch}`;
     const extraTitle = document.getElementById("extraTitle");
     const extraSub = document.getElementById("extraSub");
     if (extraTitle) extraTitle.textContent = L.treinoExtraTitulo;
@@ -644,6 +646,9 @@ async function initFlowCenter() {
 
   document.getElementById("toEvolution").onclick =
     () => FEMFLOW.router("evolucao.html");
+
+  document.getElementById("toHomeSwitch").onclick =
+    () => FEMFLOW.router("home.html");
 
   const modalExtra = document.getElementById("modal-extra");
   const modalEndurance = document.getElementById("modal-endurance");

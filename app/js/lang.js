@@ -469,6 +469,7 @@ home: {
   respiracao: "Respiração",
   endurance: "Endurance",
   proximoTreino: "Programa-se",
+  homeSwitch: "Home - trocar de treino",
 
   treinoExtraTitulo: "Treino Extra",
   treinoExtraSub: "Escolha a área que deseja focar hoje.",
@@ -936,6 +937,7 @@ home: {
   respiracao: "Breathing",
   endurance: "Endurance",
   proximoTreino: "See next workout",
+  homeSwitch: "Home - switch workout",
 
   treinoExtraTitulo: "Extra Training",
   treinoExtraSub: "Choose the area you want to focus on today.",
@@ -1403,6 +1405,7 @@ fr: {
   respiracao: "Respiration",
   endurance: "Endurance",
   proximoTreino: "Voir le prochain entraînement",
+  homeSwitch: "Accueil - changer d'entraînement",
 
   treinoExtraTitulo: "Entraînement extra",
   treinoExtraSub: "Choisissez la zone que vous souhaitez travailler aujourd’hui.",
