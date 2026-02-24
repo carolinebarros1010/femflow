@@ -108,6 +108,17 @@ function _buildFreeAccess_(row) {
   };
 }
 
+
+function _getDeleteRequestedCopyByLang_(langRaw) {
+  const lang = String(langRaw || "pt").slice(0, 2).toLowerCase();
+  const copy = {
+    pt: "Você solicitou a exclusão da sua conta. Para reverter, entre em contato: femflow.consultoria@gmail.com",
+    en: "You requested account deletion. To revert, contact: femflow.consultoria@gmail.com",
+    fr: "Vous avez demandé la suppression du compte. Pour annuler, contactez : femflow.consultoria@gmail.com"
+  };
+  return copy[lang] || copy.pt;
+}
+
 function _validarPerfil_(params) {
   const sh = _sheet(SHEET_ALUNAS);
   if (!sh) return { status: "error", msg: "sheet_not_found" };
@@ -125,6 +136,17 @@ function _validarPerfil_(params) {
 
     if ((id && rowId === id) || (email && rowEmail === email)) {
       const statusConta = String(row[COL_STATUS_CONTA] || "ativa").toLowerCase().trim() || "ativa";
+      if (statusConta === "delete_requested" || statusConta === "pendente_exclusao") {
+        const lang = String(params.lang || params.locale || "pt").slice(0, 2).toLowerCase();
+        return {
+          status: "blocked",
+          reason: "delete_requested",
+          accountStatus: "delete_requested",
+          deleteRequestedAt: row[COL_DELETE_REQUESTED_AT] || "",
+          messageLocalized: _getDeleteRequestedCopyByLang_(lang),
+          supportEmail: "femflow.consultoria@gmail.com"
+        };
+      }
       if (statusConta !== "ativa") {
         return { status: "blocked" };
       }

@@ -31,6 +31,7 @@ function deleteAccountRequest_(data, ip) {
   }
 
   const requestedAt = String(data.requestedAt || new Date().toISOString());
+  ensureAlunasHasColumns_();
   const now = new Date();
 
   const user = findUserById_(userId);
@@ -77,7 +78,9 @@ function deleteAccountRequest_(data, ip) {
     const rowsAlunas = shAlunas.getDataRange().getValues();
     for (let i = 1; i < rowsAlunas.length; i++) {
       if (String(rowsAlunas[i][0] || "").trim() !== userId) continue;
-      shAlunas.getRange(i + 1, COL_STATUS_CONTA + 1).setValue("pendente_exclusao");
+      const linha = i + 1;
+      shAlunas.getRange(linha, COL_STATUS_CONTA + 1).setValue("delete_requested");
+      shAlunas.getRange(linha, COL_DELETE_REQUESTED_AT + 1).setValue(requestedAt);
       break;
     }
   }

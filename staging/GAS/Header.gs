@@ -37,7 +37,7 @@ const HEADER_ALUNAS = [
   "DataInicioPrograma","UltimaAtividade", "FreeEnabled" , "FreeEnfases", "FreeUntil", "acesso_personal",
   "TreinosSemana","AusenciaAtiva","AusenciaInicio","DataNascimento","novo_treino_endurance",
   "UltimoCaminho","UltimoCaminhoData","ScoreFinal","ScoreDetalhado","Objetivo",
-  "Devices", "AuthVersion", "LastAuthMigrationAt", "StatusConta"
+  "Devices", "AuthVersion", "LastAuthMigrationAt", "StatusConta", "DeleteRequestedAt"
 ];
 
 // índices (0-based) para leitura rápida
@@ -60,3 +60,8 @@ const COL_DEVICES              = 41; // col 42
 const COL_AUTH_VERSION         = 42; // col 43
 const COL_AUTH_MIGRATION_AT    = 43; // col 44
 const COL_STATUS_CONTA         = 44; // col 45
+const COL_DELETE_REQUESTED_AT  = 45; // col 46
+
+function ensureAlunasHasColumns_() {
+  return ensureSheet(SHEET_ALUNAS, HEADER_ALUNAS);
+}
