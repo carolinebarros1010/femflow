@@ -361,7 +361,7 @@ input, select {
 .oculto { display: none !important; }
 
 /* =========================================
-   FEMFLOW GLOBAL SPLASH (PREMIUM)
+   FEMFLOW GLOBAL SPLASH (MINIMAL)
    - fades + scroll lock + reduced motion
 ========================================= */
 
@@ -369,13 +369,13 @@ input, select {
   position: fixed;
   inset: 0;
   z-index: 999999;
+
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 244, 239, 0.95);
-  backdrop-filter: blur(6px);
 
-  /* premium: transição */
+  background: #F5EDE7;
+
   opacity: 0;
   transition: opacity 240ms ease;
   will-change: opacity;
@@ -389,34 +389,34 @@ input, select {
   display: none;
 }
 
-.ff-loading-box {
-  text-align: center;
+.ff-loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
 }
 
 .ff-loading-logo {
-  width: 72px;
-  height: 72px;
+  width: 64px;
+  height: 64px;
   object-fit: contain;
-  margin-bottom: 8px;
 }
-
 
 .ff-loading-tagline {
   font-family: "Lato", sans-serif;
   font-size: 14px;
   color: #335953;
-  margin-top: 10px;
+  letter-spacing: 0.3px;
 }
 
-/* Pulsação suave */
 .ff-pulse {
   animation: femflowPulse 1.4s ease-in-out infinite;
 }
 
 @keyframes femflowPulse {
-  0%   { transform: scale(1); opacity: 0.9; }
+  0%   { transform: scale(1); opacity: 0.92; }
   50%  { transform: scale(1.05); opacity: 1; }
-  100% { transform: scale(1); opacity: 0.9; }
+  100% { transform: scale(1); opacity: 0.92; }
 }
 
 /* Scroll lock sem jump */
