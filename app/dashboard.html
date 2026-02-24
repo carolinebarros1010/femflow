@@ -154,7 +154,7 @@
   }
 
   async function loadAlertas(){
-    setPill("Carregando…");
+    setPill("Atualizando…");
     const resp = await api("dashboard_alertas");
     if (resp.status !== "ok"){ setPill("Erro", "bad"); return; }
     el("kpiAlertas").textContent = resp.total || 0;
@@ -167,7 +167,7 @@
     const id = el("id").value.trim();
     if (!id) return;
 
-    setPill("Carregando…");
+    setPill("Atualizando…");
     // usa sua action validar (fonte única)
     const url = new URL(BASE);
     url.searchParams.set("action", "validar");

@@ -2243,6 +2243,9 @@ if (btnCancelarPSE) {
 
 if (btnConfirmarPSE) {
   btnConfirmarPSE.onclick = async () => {
+    FEMFLOW.loading.show();
+    if (btnConfirmarPSE) btnConfirmarPSE.disabled = true;
+    if (btnCancelarPSE) btnCancelarPSE.disabled = true;
 
     const fase        = localStorage.getItem("femflow_fase");
     const diaCiclo    = Number(localStorage.getItem("femflow_diaCiclo") || 1);
@@ -2342,9 +2345,12 @@ tipoTreino,
     } catch (err) {
       FEMFLOW.error("Erro salvar treino:", err);
       FEMFLOW.toast("Erro de conexão.", true);
+    } finally {
+      if (btnConfirmarPSE) btnConfirmarPSE.disabled = false;
+      if (btnCancelarPSE) btnCancelarPSE.disabled = false;
+      modalPSE.classList.add("hidden");
+      FEMFLOW.loading.hide();
     }
-
-    modalPSE.classList.add("hidden");
   };
 }
 

@@ -182,6 +182,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       const tokenValido = !expiraRaw || !Number.isFinite(expiraMs) || expiraMs > Date.now();
 
       if (possuiIdentidade && possuiToken && tokenValido) {
+        FEMFLOW.loading.show();
         location.href = "home.html";
         return;
       }
@@ -218,6 +219,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (ctx.nome) anamneseParams.set("nome", ctx.nome);
     if (ctx.telefone) anamneseParams.set("telefone", ctx.telefone);
 
+    FEMFLOW.loading.show();
     setMsg("Redirecionando para completar sua anamnese...");
     setTimeout(() => {
       location.href = `anamnese_deluxe.html?${anamneseParams.toString()}`;
@@ -418,6 +420,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   async function entrar(){
     if (loginInProgress) return;
     loginInProgress = true;
+    FEMFLOW.loading.show();
 
     try {
       const email = $("#loginEmail").value.trim().toLowerCase();
@@ -425,6 +428,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       if (!email){
         setErr("Digite seu e-mail.");
+        FEMFLOW.loading.hide();
         return;
       }
 
@@ -441,6 +445,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       } catch (e) {
         console.error(e);
         setErr("Erro ao processar resposta do servidor.");
+        FEMFLOW.loading.hide();
         return;
       }
 
@@ -448,21 +453,25 @@ document.addEventListener("DOMContentLoaded", async () => {
         if (res.status === "blocked") {
           setErr(getLoginMsg().blocked);
           FEMFLOW.clearSession?.();
+          FEMFLOW.loading.hide();
           return;
         }
 
         if (res.status === "expired") {
           setErr(res.msg || "Sua assinatura expirou.");
+          FEMFLOW.loading.hide();
           return;
         }
 
         if (res.status === "inactive") {
           setErr(res.msg || "Assinatura inativa.");
+          FEMFLOW.loading.hide();
           return;
         }
 
         if (res.status === "error" && res.msg === "device_required") {
           setErr("Não foi possível identificar o dispositivo. Tente novamente.");
+          FEMFLOW.loading.hide();
           return;
         }
 
@@ -473,6 +482,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
 
         setErr(res.msg || "E-mail ou senha incorretos.");
+        FEMFLOW.loading.hide();
         return;
       }
 
@@ -522,6 +532,10 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
 
       setTimeout(() => location.href = nextPage, 500);
+    } catch (err) {
+      console.error("Erro no login:", err);
+      setErr("Falha ao entrar. Tente novamente.");
+      FEMFLOW.loading.hide();
     } finally {
       loginInProgress = false;
     }
@@ -579,16 +593,19 @@ document.addEventListener("DOMContentLoaded", async () => {
     }
 
     setMsg("Iniciando login com Apple...");
+    FEMFLOW.loading.show();
 
     try {
       await appleAuth.signIn();
     } catch (e) {
       console.warn("Erro Apple:", e);
       setErr("Falha ao iniciar login com Apple.");
+      FEMFLOW.loading.hide();
     }
   };
 
   async function preencherComGoogle(response){
+    FEMFLOW.loading.show();
     try {
       const data = jwt_decode(response.credential);
       if (!data?.email) return;
@@ -627,6 +644,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     } catch (e) {
       console.warn("Erro Google:", e);
+      setErr("Falha ao entrar com Google.");
+      FEMFLOW.loading.hide();
     }
   }
   window.preencherComGoogle = preencherComGoogle;
@@ -644,10 +663,12 @@ document.addEventListener("DOMContentLoaded", async () => {
   })();
 
   bio.onclick = async () => {
+    FEMFLOW.loading.show();
     try {
       const email = $("#loginEmail").value.trim();
       if (!email){
         setErr("Digite seu e-mail.");
+        FEMFLOW.loading.hide();
         return;
       }
 
@@ -678,7 +699,10 @@ document.addEventListener("DOMContentLoaded", async () => {
         deviceId: FEMFLOW.getDeviceId()
       });
 
-      if (res.status !== "ok") return;
+      if (res.status !== "ok") {
+        FEMFLOW.loading.hide();
+        return;
+      }
 
       localStorage.setItem("femflow_auth", "yes");
       localStorage.setItem("femflow_id", res.id);
@@ -705,6 +729,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     } catch (e) {
       console.warn(e);
       setErr("Falha ao usar biometria.");
+      FEMFLOW.loading.hide();
     }
   };
 

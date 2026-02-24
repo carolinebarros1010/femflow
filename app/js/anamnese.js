@@ -523,7 +523,7 @@ if (loginResp?.status === "ok") {
       perguntas = getPerguntasTraduzidas();
 
 if (!perguntas.length) {
-  FEMFLOW.toast?.("Carregando perguntas…");
+  FEMFLOW.toast?.("Preparando perguntas…");
   setTimeout(() => window.iniciarQuizFemFlow?.(), 250);
   return;
 }
