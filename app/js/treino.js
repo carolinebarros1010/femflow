@@ -7,6 +7,21 @@ if (!window.FEMFLOW_TOUR_KEY) {
   window.FEMFLOW_TOUR_KEY = "femflow_treino_tour_v1";
 }
 
+
+function renderTreinoSkeleton() {
+  const track = document.querySelector('#carouselTrack');
+  if (!track) return;
+  track.dataset.ffSkeleton = 'true';
+  track.innerHTML = Array.from({ length: 3 }).map(() => '<div class="ff-skeleton ff-skeleton-treino"></div>').join('');
+}
+
+function clearTreinoSkeleton() {
+  const track = document.querySelector('#carouselTrack');
+  if (!track || track.dataset.ffSkeleton !== 'true') return;
+  delete track.dataset.ffSkeleton;
+  track.innerHTML = '';
+}
+
 document.addEventListener("DOMContentLoaded", async () => {
   console.log("🧱 DOMContentLoaded no treino");
 
@@ -37,6 +52,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   const track     = document.querySelector("#carouselTrack");
+  renderTreinoSkeleton();
   const tituloDia = document.querySelector("#tituloDiaTreino");
   const tituloTopo = document.querySelector("#tituloTreinoTopo");
   const footer    = document.querySelector(".fix-footer");
@@ -935,6 +951,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     FEMFLOW.enfaseAtual = isCustomTreino ? "custom" : enfaseFinal;
 
     if (!isCustomTreino && !personalFinal && !enfaseFinal && !enduranceAtivo) {
+      clearTreinoSkeleton();
       FEMFLOW.toast("Escolha um treino na Home 🌸");
       FEMFLOW.router("home.html");
       return;
@@ -1052,6 +1069,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
     }
 
+    clearTreinoSkeleton();
     renderTreino(lista);
 
     window.requestAnimationFrame(() => {
