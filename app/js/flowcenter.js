@@ -814,7 +814,7 @@ async function initFlowCenter() {
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = `caminho-btn${caminho === sugerido ? " is-sugerido" : ""}`;
-      btn.textContent = `Treino ${caminho}`;
+      btn.textContent = t("flowcenter.caminhosLabel", { caminho });
       btn.addEventListener("click", () => {
         void abrirModalPreviewCaminho(caminho);
       });
@@ -842,7 +842,10 @@ async function initFlowCenter() {
     }
 
     if (modalCaminhosPreviewTitulo) {
-      modalCaminhosPreviewTitulo.textContent = `Treino ${caminhoSelecionadoState.caminho} — Fase ${getFaseLabelAtual()}`;
+      modalCaminhosPreviewTitulo.textContent = t("flowcenter.caminhosPreviewTitulo", {
+        caminho: caminhoSelecionadoState.caminho,
+        fase: getFaseLabelAtual()
+      });
     }
 
     modalCaminhosPreviewLista.innerHTML = "";
