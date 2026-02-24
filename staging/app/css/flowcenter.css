@@ -72,13 +72,23 @@ h1 {
 ========================================================== */
 /* SVG LIMPO — somente tamanho */
 .phase-svg {
-  width: 240px;
-  height: 240px;
-  }
+  width: 260px;
+  height: 260px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+.phase-svg svg {
+  width: 100%;
+  height: 100%;
+  display: block;
+}
+
 .phase-wrapper {
-  width: 250px;
-  height: 250px;
-  padding: 4px;   /* 👈 ANEL MUITO FINO */
+  width: 272px;
+  height: 272px;
+  padding: 6px;
 
   margin: 10px auto 12px auto;
 
