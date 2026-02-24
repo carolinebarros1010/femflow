@@ -164,8 +164,20 @@ input, select {
   color: #777;
 }
 .ff-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 36px !important;
+  height: 36px;
+  margin-top: 0 !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  border: 1px solid #e2d5cc;
   background: #eee;
   color: #555;
+  font-size: 1.4rem;
+  line-height: 1;
+  text-align: center !important;
 }
 
 .ff-close:active {

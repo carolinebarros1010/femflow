@@ -1838,14 +1838,12 @@ FEMFLOW.renderMenuLateral = function () {
     <div class="ff-menu-box">
       <h2 class="ff-menu-title">${FEMFLOW.t("menu.title")}</h2>
 
-      <button class="ff-menu-op ff-close" data-go="fechar">✖️ ${FEMFLOW.t("menu.fechar")}</button>
+      <button class="ff-menu-op ff-close" data-go="fechar" aria-label="${FEMFLOW.t("menu.fechar")}">×</button>
       <button class="ff-menu-op" data-go="idioma">🌐 ${FEMFLOW.t("menu.idioma")}</button>
       <button class="ff-menu-op" data-go="sac">🛟 ${FEMFLOW.t("menu.sac")}</button>
       <button class="ff-menu-op" data-go="ciclo">🎯 ${FEMFLOW.t("menu.ciclo")}</button>
       <button class="ff-menu-op" data-go="respiracao">💨 ${FEMFLOW.t("menu.respiracao")}</button>
       <button class="ff-menu-op" data-go="treinos">🏃 ${FEMFLOW.t("menu.treinos")}</button>
-      <button class="ff-menu-op" data-go="trocarTreino">🏠 ${FEMFLOW.t("menu.trocarTreino")}</button>
-      <button class="ff-menu-op" data-go="nivel">📊 ${FEMFLOW.t("menu.nivel")}</button>
       <button class="ff-menu-op" data-go="tema">🌓 ${FEMFLOW.t("menu.tema")}</button>
       <button class="ff-menu-op" data-go="privacy">🔐 ${FEMFLOW.t("menu.privacy")}</button>
       <button class="ff-menu-op" data-go="terms">📜 ${FEMFLOW.t("menu.terms")}</button>
