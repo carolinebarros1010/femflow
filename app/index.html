@@ -69,6 +69,7 @@
 
       <a id="linkCadastro" class="toggle" href="anamnese_deluxe.html">Ainda não tem conta? Cadastre-se</a>
       <p id="goRecuperar" class="toggle">Esqueci minha senha</p>
+      <p id="loginLegalText" class="login-legal"></p>
 
       <div class="social-row boho">
         <div class="social-icon boho google" id="googleSignIn">
@@ -772,9 +773,9 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   function aplicarIdiomaLogin(lang){
     const T = {
-      pt:{ bem:"Bem-vinda", sub:"Acesse ou crie sua conta para iniciar seu ciclo", email:"Seu e-mail", senha:"Sua senha", entrar:"Entrar", cad:"Ainda não tem conta? Cadastre-se", esq:"Esqueci minha senha" },
-      en:{ bem:"Welcome", sub:"Access or create your account to start your cycle", email:"Your email", senha:"Your password", entrar:"Login", cad:"Don’t have an account? Sign up", esq:"Forgot my password" },
-      fr:{ bem:"Bienvenue", sub:"Accédez ou créez votre compte pour commencer votre cycle", email:"Votre e-mail", senha:"Votre mot de passe", entrar:"Entrer", cad:"Pas de compte ? S'inscrire", esq:"J’ai oublié mon mot de passe" }
+      pt:{ bem:"Bem-vinda", sub:"Acesse ou crie sua conta para iniciar seu ciclo", email:"Seu e-mail", senha:"Sua senha", entrar:"Entrar", cad:"Ainda não tem conta? Cadastre-se", esq:"Esqueci minha senha", legalPrefix:"Ao continuar, você concorda com os", terms:"Termos", legalMiddle:"e a", privacy:"Política de Privacidade" },
+      en:{ bem:"Welcome", sub:"Access or create your account to start your cycle", email:"Your email", senha:"Your password", entrar:"Login", cad:"Don’t have an account? Sign up", esq:"Forgot my password", legalPrefix:"By continuing, you agree to the", terms:"Terms", legalMiddle:"and", privacy:"Privacy Policy" },
+      fr:{ bem:"Bienvenue", sub:"Accédez ou créez votre compte pour commencer votre cycle", email:"Votre e-mail", senha:"Votre mot de passe", entrar:"Entrer", cad:"Pas de compte ? S'inscrire", esq:"J’ai oublié mon mot de passe", legalPrefix:"En continuant, vous acceptez les", terms:"Conditions", legalMiddle:"et la", privacy:"Politique de confidentialité" }
     }[lang] || T.pt;
     const labels = {
       pt: "Português",
@@ -790,6 +791,8 @@ document.addEventListener("DOMContentLoaded", async () => {
     $("#linkCadastro").textContent   = T.cad;
     $("#goRecuperar").textContent    = T.esq;
     btnLang.textContent              = `🌐 ${labels[lang] || labels.pt}`;
+    const q = `?lang=${lang}`;
+    $("#loginLegalText").innerHTML = `${T.legalPrefix} <a id="loginTermsLink" href="docs/terms.html${q}">${T.terms}</a> ${T.legalMiddle} <a id="loginPrivacyLink" href="docs/privacy.html${q}">${T.privacy}</a>.`;
   }
 
   window.setLoginLang = lang => {

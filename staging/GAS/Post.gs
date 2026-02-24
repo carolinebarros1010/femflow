@@ -262,6 +262,10 @@ function doPost(e) {
       /* ===========================
          🔔 PUSH — REGISTRO TOKEN
       ============================ */
+      case "deleteaccountrequest":
+        resposta = deleteAccountRequest_(data);
+        break;
+
       case "register_push_token":
         resposta = registerPushToken_(data);
         break;

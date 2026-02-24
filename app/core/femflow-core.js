@@ -1847,6 +1847,9 @@ FEMFLOW.renderMenuLateral = function () {
       <button class="ff-menu-op" data-go="trocarTreino">🏠 ${FEMFLOW.t("menu.trocarTreino")}</button>
       <button class="ff-menu-op" data-go="nivel">📊 ${FEMFLOW.t("menu.nivel")}</button>
       <button class="ff-menu-op" data-go="tema">🌓 ${FEMFLOW.t("menu.tema")}</button>
+      <button class="ff-menu-op" data-go="privacy">🔐 ${FEMFLOW.t("menu.privacy")}</button>
+      <button class="ff-menu-op" data-go="terms">📜 ${FEMFLOW.t("menu.terms")}</button>
+      <button class="ff-menu-op" data-go="deleteAccount">🗑️ ${FEMFLOW.t("menu.deleteAccount")}</button>
       <button class="ff-menu-op" data-go="voltar">🔙 ${FEMFLOW.t("menu.voltar")}</button>
 
       <button class="ff-logout" data-go="logout">🚪 ${FEMFLOW.t("menu.sair")}</button>
@@ -2188,6 +2191,99 @@ FEMFLOW.enviarSAC = async function () {
   }
 };
 
+
+FEMFLOW.renderModalExcluirConta = function () {
+  const modal = document.getElementById("ff-delete-account-modal");
+  if (!modal) return;
+
+  modal.innerHTML = `
+    <div class="ff-delete-box" role="dialog" aria-modal="true" aria-labelledby="ffDeleteTitle" aria-describedby="ffDeleteDesc">
+      <h2 id="ffDeleteTitle">🗑️ ${FEMFLOW.t("deleteModal.title")}</h2>
+      <p id="ffDeleteDesc">${FEMFLOW.t("deleteModal.description")}</p>
+      <label class="ff-delete-check"><input type="checkbox" id="ffDeleteConfirmCheck"> ${FEMFLOW.t("deleteModal.checkbox")}</label>
+      <textarea id="ffDeleteReason" placeholder="${FEMFLOW.t("deleteModal.reasonPlaceholder")}"></textarea>
+      <div class="ff-delete-actions">
+        <button id="ffDeleteCancel" class="ghost">${FEMFLOW.t("deleteModal.cancel")}</button>
+        <button id="ffDeleteSend">${FEMFLOW.t("deleteModal.confirm")}</button>
+      </div>
+    </div>
+  `;
+
+  const close = () => {
+    modal.classList.add("hidden");
+    FEMFLOW.toggleBodyScroll(false);
+  };
+
+  const keydownHandler = (e) => {
+    if (e.key === "Escape" && !modal.classList.contains("hidden")) {
+      e.preventDefault();
+      close();
+    }
+  };
+
+  if (!modal.dataset.escBound) {
+    document.addEventListener("keydown", keydownHandler);
+    modal.dataset.escBound = "1";
+  }
+
+  modal.onclick = (e) => {
+    if (e.target.id === "ff-delete-account-modal") close();
+  };
+
+  modal.querySelector("#ffDeleteCancel")?.addEventListener("click", close);
+  modal.querySelector("#ffDeleteSend")?.addEventListener("click", async () => {
+    const checked = modal.querySelector("#ffDeleteConfirmCheck")?.checked;
+    if (!checked) {
+      FEMFLOW.toast(FEMFLOW.t("deleteModal.checkboxRequired"), true);
+      return;
+    }
+
+    try {
+      FEMFLOW.loading.show(FEMFLOW.t("deleteModal.sending"));
+      const response = await FEMFLOW.post({
+        action: "deleteaccountrequest",
+        userId: localStorage.getItem("femflow_id") || "",
+        deviceId: FEMFLOW.getDeviceId?.() || localStorage.getItem("femflow_device_id") || "",
+        sessionToken: FEMFLOW.getSessionToken?.() || localStorage.getItem("femflow_session_token") || "",
+        reason: modal.querySelector("#ffDeleteReason")?.value || "",
+        requestedAt: new Date().toISOString(),
+        locale: FEMFLOW.lang || "pt",
+        app: "femflow",
+        source: "app",
+        userAgent: navigator.userAgent || ""
+      });
+
+      if (response?.ok || response?.status === "ok") {
+        FEMFLOW.toast(response.messageLocalized || FEMFLOW.t("deleteModal.success"));
+        close();
+      } else {
+        FEMFLOW.toast(response?.messageLocalized || FEMFLOW.t("deleteModal.error"), true);
+      }
+    } catch (err) {
+      FEMFLOW.toast(FEMFLOW.t("deleteModal.error"), true);
+    } finally {
+      FEMFLOW.loading.hide();
+    }
+  });
+};
+
+FEMFLOW.inserirModalExcluirConta = function () {
+  if (document.getElementById("ff-delete-account-modal")) return;
+  const modal = document.createElement("div");
+  modal.id = "ff-delete-account-modal";
+  modal.className = "ff-delete-modal hidden";
+  document.body.appendChild(modal);
+  FEMFLOW.renderModalExcluirConta();
+};
+
+FEMFLOW.abrirModalExcluirConta = function () {
+  const modal = document.getElementById("ff-delete-account-modal");
+  if (!modal) return;
+  modal.classList.remove("hidden");
+  FEMFLOW.toggleBodyScroll(true);
+  modal.querySelector("#ffDeleteConfirmCheck")?.focus();
+};
+
 /* ===========================================================
    7. AÇÕES DO MENU
 =========================================================== */
@@ -2243,6 +2339,18 @@ FEMFLOW.dispatch("stateChanged", {
         "femflow_theme",
         document.body.classList.contains("dark") ? "dark" : "light"
       );
+      break;
+
+    case "privacy":
+      window.location.href = FEMFLOW.assetUrl(`docs/privacy.html?lang=${FEMFLOW.lang || "pt"}`);
+      break;
+
+    case "terms":
+      window.location.href = FEMFLOW.assetUrl(`docs/terms.html?lang=${FEMFLOW.lang || "pt"}`);
+      break;
+
+    case "deleteAccount":
+      FEMFLOW.abrirModalExcluirConta?.();
       break;
 
     case "logout":
@@ -2468,6 +2576,7 @@ FEMFLOW.init = async function () {
     this.inserirMenuLateral();
     this.inserirModalIdioma();
     this.inserirModalSAC();
+    this.inserirModalExcluirConta();
     this.inserirModalNotificacoes();
     this.initNotificationsUI();
      
@@ -2493,6 +2602,7 @@ FEMFLOW.init = async function () {
     this.inserirMenuLateral();
     this.inserirModalIdioma();
     this.inserirModalSAC();
+    this.inserirModalExcluirConta();
     this.inserirModalNotificacoes();
     this.initNotificationsUI();
 
