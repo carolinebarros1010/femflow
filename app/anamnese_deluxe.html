@@ -6,7 +6,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="format-detection" content="telephone=no" />
-  <script src="./config/config.js"></script>
+  <script src="./config/config.js" defer></script>
   <title>FemFlow • Anamnese Deluxe</title>
 
   <!-- Favicons -->
@@ -24,7 +24,6 @@
 
   <!-- Core disabled (somente backend/infra) -->
   <script>window.FEMFLOW_DISABLE_UI = true;</script>
-  <script defer src="core/femflow-core.js"></script>
 
   <!-- Styles internas -->
   <style>
@@ -178,6 +177,7 @@
   <script defer src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
   <script defer src="services/firebase-init.js?v=20250127"></script>
+  <script defer src="core/femflow-core.js"></script>
   <script src="js/anamnese.js" defer></script>
   <script src="js/anamnese_lang.js" defer></script>
 
@@ -205,6 +205,6 @@
     </div>
   </div>
 
-  <script src="js/env.js"></script>
+  <script src="js/env.js" defer></script>
 </body>
 </html>
