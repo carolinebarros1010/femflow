@@ -428,3 +428,24 @@ body.dark .ff-notifications-header h2 {
 .ff-delete-actions button { flex: 1; border-radius: 10px; border: none; padding: 12px; cursor: pointer; }
 .ff-delete-actions .ghost { background: #eee; }
 #ffDeleteSend { background: #cc6a5a; color: #fff; }
+
+body.dark .ff-delete-box {
+  background: #2b2b2b;
+  color: #f4e7e1;
+}
+
+body.dark #ffDeleteReason {
+  background: #1f1f1f;
+  color: #f5f5f5;
+  border-color: #555;
+}
+
+body.dark .ff-delete-actions .ghost {
+  background: #444;
+  color: #fff;
+}
+
+body.dark #ffDeleteSend {
+  background: #d48473;
+  color: #1b1b1b;
+}

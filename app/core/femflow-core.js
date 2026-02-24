@@ -2197,9 +2197,9 @@ FEMFLOW.renderModalExcluirConta = function () {
   if (!modal) return;
 
   modal.innerHTML = `
-    <div class="ff-delete-box" role="dialog" aria-modal="true">
-      <h2>🗑️ ${FEMFLOW.t("deleteModal.title")}</h2>
-      <p>${FEMFLOW.t("deleteModal.description")}</p>
+    <div class="ff-delete-box" role="dialog" aria-modal="true" aria-labelledby="ffDeleteTitle" aria-describedby="ffDeleteDesc">
+      <h2 id="ffDeleteTitle">🗑️ ${FEMFLOW.t("deleteModal.title")}</h2>
+      <p id="ffDeleteDesc">${FEMFLOW.t("deleteModal.description")}</p>
       <label class="ff-delete-check"><input type="checkbox" id="ffDeleteConfirmCheck"> ${FEMFLOW.t("deleteModal.checkbox")}</label>
       <textarea id="ffDeleteReason" placeholder="${FEMFLOW.t("deleteModal.reasonPlaceholder")}"></textarea>
       <div class="ff-delete-actions">
@@ -2213,6 +2213,18 @@ FEMFLOW.renderModalExcluirConta = function () {
     modal.classList.add("hidden");
     FEMFLOW.toggleBodyScroll(false);
   };
+
+  const keydownHandler = (e) => {
+    if (e.key === "Escape" && !modal.classList.contains("hidden")) {
+      e.preventDefault();
+      close();
+    }
+  };
+
+  if (!modal.dataset.escBound) {
+    document.addEventListener("keydown", keydownHandler);
+    modal.dataset.escBound = "1";
+  }
 
   modal.onclick = (e) => {
     if (e.target.id === "ff-delete-account-modal") close();
@@ -2229,13 +2241,16 @@ FEMFLOW.renderModalExcluirConta = function () {
     try {
       FEMFLOW.loading.show(FEMFLOW.t("deleteModal.sending"));
       const response = await FEMFLOW.post({
-        action: "deleteAccountRequest",
+        action: "deleteaccountrequest",
         userId: localStorage.getItem("femflow_id") || "",
+        deviceId: FEMFLOW.getDeviceId?.() || localStorage.getItem("femflow_device_id") || "",
+        sessionToken: FEMFLOW.getSessionToken?.() || localStorage.getItem("femflow_session_token") || "",
         reason: modal.querySelector("#ffDeleteReason")?.value || "",
         requestedAt: new Date().toISOString(),
         locale: FEMFLOW.lang || "pt",
         app: "femflow",
-        source: "app"
+        source: "app",
+        userAgent: navigator.userAgent || ""
       });
 
       if (response?.ok || response?.status === "ok") {
@@ -2266,6 +2281,7 @@ FEMFLOW.abrirModalExcluirConta = function () {
   if (!modal) return;
   modal.classList.remove("hidden");
   FEMFLOW.toggleBodyScroll(true);
+  modal.querySelector("#ffDeleteConfirmCheck")?.focus();
 };
 
 /* ===========================================================
