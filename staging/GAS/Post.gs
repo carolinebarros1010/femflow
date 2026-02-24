@@ -14,7 +14,7 @@ function doPost(e) {
   setAppContext_(data.app || data.modelo || data.produto);
 
   const pedido = data;
-  const requestIp = extractRequestIp_(e || {});
+  const requestIp = extractRequestIp_(e || {}, data);
 
   const action = String(data.action || "")
     .trim()
@@ -308,10 +308,9 @@ function doPost(e) {
 }
 
 
-function extractRequestIp_(e) {
+function extractRequestIp_(e, data) {
   const ip = (e && e.parameter && e.parameter.ip)
-    || (e && e.headers && (e.headers["X-Forwarded-For"] || e.headers["x-forwarded-for"]))
-    || (e && e.postData && e.postData.type)
+    || (data && data.ip)
     || "";
 
   if (Array.isArray(ip)) return String(ip[0] || "").trim();
