@@ -182,7 +182,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
       if (possuiIdentidade && possuiToken && tokenValido) {
         FEMFLOW.loading.show();
-        location.href = FEMFLOW.decidirRotaInicial?.() || "home.html";
+        await FEMFLOW.navegarUltra(FEMFLOW.decidirRotaInicial?.() || "home.html");
         return;
       }
     }
@@ -221,7 +221,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     FEMFLOW.loading.show();
     setMsg("Redirecionando para completar sua anamnese...");
     setTimeout(() => {
-      location.href = `anamnese_deluxe.html?${anamneseParams.toString()}`;
+      FEMFLOW.navegarUltra(`anamnese_deluxe.html?${anamneseParams.toString()}`);
     }, 300);
   }
 
@@ -476,7 +476,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
         if (res.status === "senha_incorreta" || res.status === "not_registered") {
           setMsg("Complete seu cadastro para continuar ✨");
-          setTimeout(() => location.href = "anamnese_deluxe.html", 600);
+          setTimeout(() => FEMFLOW.navegarUltra("anamnese_deluxe.html"), 600);
           return;
         }
 
@@ -530,7 +530,7 @@ document.addEventListener("DOMContentLoaded", async () => {
         localStorage.removeItem("post_login_redirect");
       }
 
-      setTimeout(() => location.href = nextPage, 500);
+      setTimeout(() => FEMFLOW.navegarUltra(nextPage), 500);
     } catch (err) {
       console.error("Erro no login:", err);
       setErr("Falha ao entrar. Tente novamente.");
@@ -617,7 +617,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
 
       if (res.status !== "ok") {
-        location.href = "anamnese_deluxe.html";
+        await FEMFLOW.navegarUltra("anamnese_deluxe.html");
         return;
       }
 
@@ -639,7 +639,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       await syncCiclo(res.id);
       await validarPerfilAposLogin();
 
-      setTimeout(() => location.href = (FEMFLOW.decidirRotaInicial?.() || "home.html"), 500);
+      setTimeout(() => FEMFLOW.navegarUltra(FEMFLOW.decidirRotaInicial?.() || "home.html"), 500);
 
     } catch (e) {
       console.warn("Erro Google:", e);
@@ -723,7 +723,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       await validarPerfilAposLogin();
 
       setMsg("Acesso liberado ✨", true);
-      setTimeout(() => location.href = (FEMFLOW.decidirRotaInicial?.() || "home.html"), 600);
+      setTimeout(() => FEMFLOW.navegarUltra(FEMFLOW.decidirRotaInicial?.() || "home.html"), 600);
 
     } catch (e) {
       console.warn(e);

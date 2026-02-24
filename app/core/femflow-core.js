@@ -279,6 +279,48 @@ FEMFLOW.openInternal = function (path) {
   FEMFLOW.router?.(path);
 };
 
+FEMFLOW._setSplashHandoff = function () {
+  try {
+    sessionStorage.setItem("ff_splash_handoff", "1");
+  } catch (e) {}
+};
+
+FEMFLOW._hasSplashHandoff = function () {
+  try {
+    return sessionStorage.getItem("ff_splash_handoff") === "1";
+  } catch (e) {
+    return false;
+  }
+};
+
+FEMFLOW._clearSplashHandoff = function () {
+  try {
+    sessionStorage.removeItem("ff_splash_handoff");
+  } catch (e) {}
+};
+
+FEMFLOW.navegarUltra = async function (url) {
+  try {
+    FEMFLOW.loading.show();
+  } catch (e) {}
+
+  FEMFLOW._setSplashHandoff();
+
+  try {
+    document.documentElement.classList.add("ff-page-leave");
+  } catch (e) {}
+
+  await new Promise((resolve) => setTimeout(resolve, 150));
+  window.location.href = url;
+};
+
+FEMFLOW.finalizarHandoffSplash = function () {
+  FEMFLOW._clearSplashHandoff();
+  try {
+    FEMFLOW.loading.hide();
+  } catch (e) {}
+};
+
 FEMFLOW.fetchWithRetry = async function (input, init = {}, options = {}) {
   const {
     retries = 2,

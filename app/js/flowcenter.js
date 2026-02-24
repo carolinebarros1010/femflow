@@ -246,7 +246,12 @@ function flowcenterPersistPerfil(perfil) {
 document.addEventListener("DOMContentLoaded", initFlowCenter);
 
 async function initFlowCenter() {
-  FEMFLOW.loading.show();
+  requestAnimationFrame(() => {
+    document.documentElement.classList.add("ff-enter-ready");
+  });
+
+  const handoff = FEMFLOW._hasSplashHandoff?.();
+  if (!handoff) FEMFLOW.loading.show();
   renderFlowcenterSkeleton();
 
   const autoLoginPromise = Promise.resolve()
@@ -2088,6 +2093,6 @@ async function initFlowCenter() {
     FEMFLOW.toast("Erro ao carregar seu painel. Tente novamente.");
   } finally {
     clearFlowcenterSkeleton();
-    FEMFLOW.loading.hide();
+    FEMFLOW.finalizarHandoffSplash();
   }
 }
