@@ -1080,7 +1080,6 @@ FEMFLOW.toggleBodyScroll = function (locked) {
         <img class="ff-loading-logo"
              src="assets/logofemflowterracotasf.png"
              alt="FemFlow"/>
-        <div class="ff-loading-brand">FemFlow</div>
         <div class="ff-loading-tagline">Train with Flow</div>
       </div>
     `;
