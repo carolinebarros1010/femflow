@@ -72,6 +72,16 @@ function deleteAccountRequest_(data, ip) {
     String(data.userAgent || "")
   ]);
 
+  const shAlunas = ensureSheet(SHEET_ALUNAS, HEADER_ALUNAS);
+  if (shAlunas) {
+    const rowsAlunas = shAlunas.getDataRange().getValues();
+    for (let i = 1; i < rowsAlunas.length; i++) {
+      if (String(rowsAlunas[i][0] || "").trim() !== userId) continue;
+      shAlunas.getRange(i + 1, COL_STATUS_CONTA + 1).setValue("pendente_exclusao");
+      break;
+    }
+  }
+
   return {
     ok: true,
     status: "ok",

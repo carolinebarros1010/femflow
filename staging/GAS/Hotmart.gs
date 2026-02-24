@@ -228,6 +228,11 @@ function _processarHotmart(data) {
 
       if (telefone) sh.getRange(row, 4).setValue(telefone);
 
+      const statusContaAtual = String(values[row - 1][COL_STATUS_CONTA] || "").toLowerCase().trim();
+      if (!statusContaAtual || (statusContaAtual !== "pendente_exclusao" && statusContaAtual !== "bloqueada" && statusContaAtual !== "excluida")) {
+        sh.getRange(row, COL_STATUS_CONTA + 1).setValue("ativa");
+      }
+
     } else {
       idAluno = gerarID();
 
@@ -239,6 +244,7 @@ function _processarHotmart(data) {
       rowData[5] = plano.produto;
       rowData[6] = new Date();
       rowData[7] = true;
+      rowData[COL_STATUS_CONTA] = "ativa";
       sh.appendRow(rowData);
 
       if (typeof COL_ACESSO_PERSONAL === "number") {

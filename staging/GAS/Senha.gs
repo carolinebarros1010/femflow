@@ -32,6 +32,26 @@ function _senhaConfereSegura_(senhaDigitada, senhaSalva) {
   return { ok: false, needsUpgrade: false };
 }
 
+function _normalizarStatusConta_(status) {
+  const normalized = String(status || "").toLowerCase().trim();
+  return normalized || "ativa";
+}
+
+function _statusContaBloqueiaLogin_(statusConta) {
+  const status = _normalizarStatusConta_(statusConta);
+  if (status === "pendente_exclusao") {
+    return { status: "blocked", reason: "delete_requested" };
+  }
+  if (status === "bloqueada") {
+    return { status: "blocked", reason: "admin_block" };
+  }
+  if (status === "excluida") {
+    return { status: "blocked", reason: "deleted" };
+  }
+  return null;
+}
+
+
 function _loginOuCadastro(data) {
   const sh = ensureSheet(SHEET_ALUNAS, HEADER_ALUNAS);
   if (!sh) return { status: "error", msg: "Aba Alunas não encontrada." };
@@ -148,6 +168,17 @@ function _loginOuCadastro(data) {
         sh.getRange(linha, COL_DIA_PROGRAMA + 1).setValue(1);
       }
 
+      const statusContaAtual = _normalizarStatusConta_(row[COL_STATUS_CONTA]);
+      if (!String(row[COL_STATUS_CONTA] || "").trim()) {
+        sh.getRange(linha, COL_STATUS_CONTA + 1).setValue("ativa");
+      } else if (
+        statusContaAtual !== "pendente_exclusao" &&
+        statusContaAtual !== "bloqueada" &&
+        statusContaAtual !== "excluida"
+      ) {
+        sh.getRange(linha, COL_STATUS_CONTA + 1).setValue("ativa");
+      }
+
       return {
         status: "ok",
         id,
@@ -211,7 +242,8 @@ function _loginOuCadastro(data) {
     objetivoFinal,          // Objetivo
     "",                     // Devices (AP)
     "",                     // AuthVersion (AQ)
-    ""                      // LastAuthMigrationAt (AR)
+    "",                     // LastAuthMigrationAt (AR)
+    "ativa"                 // StatusConta (AS)
   ]);
 
   let emailEnviado = false;
@@ -428,8 +460,16 @@ function _fazerLogin(data) {
     const linha = i + 1;
     const conf = _senhaConfereSegura_(senha, row[4]);
     if (!conf.ok) return { status: "senha_incorreta" };
+
+    const bloqueioConta = _statusContaBloqueiaLogin_(row[COL_STATUS_CONTA]);
+    if (bloqueioConta) return bloqueioConta;
+
     if (conf.needsUpgrade) {
       sh.getRange(linha, 5).setValue(_hashSenha(senha));
+    }
+
+    if (!String(row[COL_STATUS_CONTA] || "").trim()) {
+      sh.getRange(linha, COL_STATUS_CONTA + 1).setValue("ativa");
     }
 
     const nowMs = Date.now();
