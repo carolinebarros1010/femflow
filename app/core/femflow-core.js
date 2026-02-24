@@ -163,9 +163,19 @@ FEMFLOW.clearSession = function () {
 
 FEMFLOW.handleBlockedAccount = function (perfil) {
   const produto = String(perfil?.produto || "").toLowerCase();
+  const accountStatus = String(perfil?.accountStatus || perfil?.statusConta || "").toLowerCase();
+  const deleteRequestedAt = String(perfil?.deleteRequestedAt || "").trim();
+  const isDeleteRequested =
+    accountStatus === "delete_requested" ||
+    accountStatus === "pendente_exclusao" ||
+    Boolean(deleteRequestedAt) ||
+    produto === "exclusao_solicitada";
 
-  if (produto === "exclusao_solicitada") {
+  if (isDeleteRequested) {
     FEMFLOW.clearSession?.();
+    localStorage.removeItem("femflow_auth");
+    localStorage.removeItem("femflow_id");
+    localStorage.removeItem("femflow_email");
 
     const lang = FEMFLOW.lang || "pt";
 
@@ -175,7 +185,7 @@ FEMFLOW.handleBlockedAccount = function (perfil) {
       fr: "Vous avez demandé la suppression du compte. Pour annuler, contactez : femflow.consultoria@gmail.com"
     };
 
-    alert(messages[lang] || messages.pt);
+    alert(String(perfil?.messageLocalized || "").trim() || (messages[lang] || messages.pt));
 
     window.location.href = "index.html";
     return true;

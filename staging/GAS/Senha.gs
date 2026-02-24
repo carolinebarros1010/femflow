@@ -34,13 +34,30 @@ function _senhaConfereSegura_(senhaDigitada, senhaSalva) {
 
 function _normalizarStatusConta_(status) {
   const normalized = String(status || "").toLowerCase().trim();
-  return normalized || "ativa";
+  if (!normalized) return "ativa";
+  if (normalized === "pendente_exclusao") return "delete_requested";
+  return normalized;
 }
 
-function _statusContaBloqueiaLogin_(statusConta) {
+function _deleteRequestedLoginCopy_(langRaw) {
+  const lang = String(langRaw || "pt").slice(0, 2).toLowerCase();
+  const copy = {
+    pt: "Você solicitou a exclusão da sua conta. Para reverter, entre em contato: femflow.consultoria@gmail.com",
+    en: "You requested account deletion. To revert, contact: femflow.consultoria@gmail.com",
+    fr: "Vous avez demandé la suppression du compte. Pour annuler, contactez : femflow.consultoria@gmail.com"
+  };
+  return copy[lang] || copy.pt;
+}
+
+function _statusContaBloqueiaLogin_(statusConta, lang) {
   const status = _normalizarStatusConta_(statusConta);
-  if (status === "pendente_exclusao") {
-    return { status: "blocked", reason: "delete_requested" };
+  if (status === "delete_requested") {
+    return {
+      ok: false,
+      status: "delete_requested",
+      messageLocalized: _deleteRequestedLoginCopy_(lang),
+      supportEmail: "femflow.consultoria@gmail.com"
+    };
   }
   if (status === "bloqueada") {
     return { status: "blocked", reason: "admin_block" };
@@ -172,7 +189,7 @@ function _loginOuCadastro(data) {
       if (!String(row[COL_STATUS_CONTA] || "").trim()) {
         sh.getRange(linha, COL_STATUS_CONTA + 1).setValue("ativa");
       } else if (
-        statusContaAtual !== "pendente_exclusao" &&
+        statusContaAtual !== "delete_requested" &&
         statusContaAtual !== "bloqueada" &&
         statusContaAtual !== "excluida"
       ) {
@@ -438,6 +455,7 @@ function removerDeviceAntigo() {
    LOGIN (corrigido + upgrade automático)
 ============================================================ */
 function _fazerLogin(data) {
+  ensureAlunasHasColumns_();
   const sh = ensureSheet(SHEET_ALUNAS, HEADER_ALUNAS);
   if (!sh) return { status: "error", msg: "Aba Alunas não encontrada." };
 
@@ -445,11 +463,8 @@ function _fazerLogin(data) {
   const senha = String(data.senha || "").trim();
   const deviceId = String(data.deviceId || "").trim();
   if (!email) return { status: "error", msg: "email_required" };
-  if (!deviceId) {
-    Logger.log('[Auth2] Login sem deviceId para email=' + email);
-    return { status: "error", msg: "deviceId obrigatório" };
-  }
 
+  const lang = _getResetLang_(data);
   const rows = sh.getDataRange().getValues();
 
   for (let i = 1; i < rows.length; i++) {
@@ -458,11 +473,16 @@ function _fazerLogin(data) {
     if (emailDB !== email) continue;
 
     const linha = i + 1;
+    const bloqueioConta = _statusContaBloqueiaLogin_(row[COL_STATUS_CONTA], lang);
+    if (bloqueioConta) return bloqueioConta;
+
     const conf = _senhaConfereSegura_(senha, row[4]);
     if (!conf.ok) return { status: "senha_incorreta" };
 
-    const bloqueioConta = _statusContaBloqueiaLogin_(row[COL_STATUS_CONTA]);
-    if (bloqueioConta) return bloqueioConta;
+    if (!deviceId) {
+      Logger.log('[Auth2] Login sem deviceId para email=' + email);
+      return { status: "error", msg: "device_required" };
+    }
 
     if (conf.needsUpgrade) {
       sh.getRange(linha, 5).setValue(_hashSenha(senha));
@@ -543,6 +563,7 @@ function resetDevice_(data) {
     return { status: "error", msg: "email_and_password_required" };
   }
 
+  const lang = _getResetLang_(data);
   const rows = sh.getDataRange().getValues();
 
   for (let i = 1; i < rows.length; i++) {

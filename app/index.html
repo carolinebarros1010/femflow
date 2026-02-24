@@ -107,22 +107,28 @@ document.addEventListener("DOMContentLoaded", async () => {
   const LOGIN_MSG = {
     pt: {
       blocked: "Esta conta já está conectada em outro dispositivo.",
+      deleteRequested: "Você solicitou a exclusão da sua conta. Para reverter, entre em contato: femflow.consultoria@gmail.com",
       wrongPass: "Senha incorreta.",
       emailNotFound: "E-mail não encontrado."
     },
     en: {
       blocked: "This account is already connected on another device.",
+      deleteRequested: "You requested account deletion. To revert, contact: femflow.consultoria@gmail.com",
       wrongPass: "Incorrect password.",
       emailNotFound: "Email not found."
     },
     fr: {
       blocked: "Ce compte est déjà connecté sur un autre appareil.",
+      deleteRequested: "Vous avez demandé la suppression du compte. Pour annuler, contactez : femflow.consultoria@gmail.com",
       wrongPass: "Mot de passe incorrect.",
       emailNotFound: "E-mail introuvable."
     }
   };
 
   const getLoginMsg = () => LOGIN_MSG[currentLoginLang()] || LOGIN_MSG.pt;
+
+  const getDeleteRequestedMessage = (res) =>
+    String(res?.messageLocalized || "").trim() || getLoginMsg().deleteRequested;
 
   function getHotmartContext() {
     const params = new URLSearchParams(window.location.search);
@@ -450,6 +456,16 @@ document.addEventListener("DOMContentLoaded", async () => {
       }
 
       if (res.status !== "ok") {
+        if (res.status === "delete_requested" || (res.status === "blocked" && res.reason === "delete_requested")) {
+          setErr(getDeleteRequestedMessage(res));
+          FEMFLOW.clearSession?.();
+          localStorage.removeItem("femflow_auth");
+          localStorage.removeItem("femflow_id");
+          localStorage.removeItem("femflow_email");
+          FEMFLOW.loading.hide();
+          return;
+        }
+
         if (res.status === "blocked") {
           setErr(getLoginMsg().blocked);
           FEMFLOW.clearSession?.();
