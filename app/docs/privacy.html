@@ -10,6 +10,9 @@
 <body>
   <main class="container">
     <header>
+      <div class="header-actions">
+        <button id="backBtn" class="btn-back" type="button">← Voltar</button>
+      </div>
       <h1 id="brand">FemFlow</h1>
       <h2 id="title">Política de Privacidade</h2>
       <div class="meta" id="updated"></div>
@@ -33,10 +36,10 @@ function render(lang){
   const t=TEXT[lang]||TEXT.pt;const c=FEMFLOW_LEGAL.copy[lang];
   document.documentElement.lang=lang;title.textContent=t.title;brand.textContent=c.femflow;
   updated.textContent=`${c.lastUpdated}: ${FEMFLOW_LEGAL.LAST_UPDATED}`;content.innerHTML=t.body;
-  linkTerms.textContent=c.links.terms;linkDelete.textContent=c.links.del;
+  linkTerms.textContent=c.links.terms;linkDelete.textContent=c.links.del;backBtn.textContent=c.back;
   document.querySelectorAll('[data-lang]').forEach(b=>b.classList.toggle('active',b.dataset.lang===lang));
 }
-let current=resolveLegalLang();render(current);document.querySelectorAll('[data-lang]').forEach(btn=>btn.onclick=()=>{current=btn.dataset.lang;localStorage.setItem('femflow_lang',current);render(current);});
+let current=resolveLegalLang();render(current);backBtn.onclick=()=>backFromLegal(current);document.querySelectorAll('[data-lang]').forEach(btn=>btn.onclick=()=>{current=btn.dataset.lang;localStorage.setItem('femflow_lang',current);render(current);});
 </script>
 </body>
 </html>
