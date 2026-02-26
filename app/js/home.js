@@ -318,9 +318,14 @@ function parseFreeUntil(raw) {
 function normKey(str) {
   const value = String(str || "").trim().toLowerCase();
   if (!value) return "";
+
   return value
+    .replace(/^planilha_/, "")
+    .replace(/_+/g, "_")
+    .replace(/corrida_(\d+)_k(m)?\b/g, "corrida_$1k")
     .replace(/(\d+)\s*_?\s*km\b/g, "$1k")
-    .replace(/_+/g, "_");
+    .replace(/_+/g, "_")
+    .replace(/^_+|_+$/g, "");
 }
 
 function isFreeValid(perfil, enfase) {
@@ -330,7 +335,7 @@ function isFreeValid(perfil, enfase) {
   const until = parseFreeUntil(freeAccess?.until);
   if (!until || until.getTime() < Date.now()) return false;
 
-  const enfases = Array.isArray(freeAccess?.enfases) ? freeAccess.enfases : [];
+  const enfases = parseFreeEnfases(freeAccess?.enfases);
   const freeEnfases = enfases.map(item => normKey(item)).filter(Boolean);
   return freeEnfases.includes(normKey(enfase));
 }
@@ -374,7 +379,7 @@ function normalizarFreeAccess(perfil) {
   return {
     enabled: parseBooleanish(enabledRaw),
     enfases: parseFreeEnfases(enfasesRaw),
-    until: untilRaw ? String(untilRaw).trim() : null
+    until: String(untilRaw || "").trim() || null
   };
 }
 
@@ -582,6 +587,7 @@ function inferirCategoria(enfase) {
   if (enfase.startsWith("followme_")) return "followme";
  if (enfase === "personal") return "personal";
   if (enfase === "monte_seu_treino") return "custom";
+  if (enfase.startsWith("planilha_")) return "esportes";
   if (enfase.startsWith("casa") || enfase === "20minemcasa") return "casa";
   if (MUSCULAR_ENFASES.has(enfase)) return "muscular";
   return "esportes";
@@ -596,10 +602,10 @@ function podeAcessar(enfase, perfil) {
 
   const categoria = inferirCategoria(enfase);
   const produto = (perfil.produto || "").toLowerCase();
-  const personal = localStorage.getItem("femflow_has_personal") === "true";
+  const hasPersonal = localStorage.getItem("femflow_has_personal") === "true";
   const ativa = !!perfil.ativa;
 
-  if (personal) {
+  if (hasPersonal) {
     if (categoria === "followme") return false;
     return true;
   }
