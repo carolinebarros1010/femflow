@@ -292,20 +292,47 @@ function parseFreeEnfases(raw) {
 
 function parseFreeUntil(raw) {
   if (!raw) return null;
-  if (raw instanceof Date && !isNaN(raw.getTime())) {
-    return raw.toISOString().split("T")[0];
-  }
+  if (raw instanceof Date && !isNaN(raw.getTime())) return raw;
 
   const text = String(raw).trim();
   if (!text) return null;
 
-  const match = text.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-  if (match) {
-    const [, dd, mm, yyyy] = match;
-    return `${yyyy}-${mm.padStart(2, "0")}-${dd.padStart(2, "0")}`;
+  const isoMatch = text.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (isoMatch) {
+    const [, yyyy, mm, dd] = isoMatch;
+    const parsed = new Date(Number(yyyy), Number(mm) - 1, Number(dd), 23, 59, 59, 999);
+    return isNaN(parsed.getTime()) ? null : parsed;
   }
 
-  return text;
+  const brMatch = text.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (brMatch) {
+    const [, dd, mm, yyyy] = brMatch;
+    const parsed = new Date(Number(yyyy), Number(mm) - 1, Number(dd), 23, 59, 59, 999);
+    return isNaN(parsed.getTime()) ? null : parsed;
+  }
+
+  const parsed = new Date(text);
+  return isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function normKey(str) {
+  const value = String(str || "").trim().toLowerCase();
+  if (!value) return "";
+  return value
+    .replace(/(\d+)\s*_?\s*km\b/g, "$1k")
+    .replace(/_+/g, "_");
+}
+
+function isFreeValid(perfil, enfase) {
+  const freeAccess = perfil?.free_access;
+  if (freeAccess?.enabled !== true) return false;
+
+  const until = parseFreeUntil(freeAccess?.until);
+  if (!until || until.getTime() < Date.now()) return false;
+
+  const enfases = Array.isArray(freeAccess?.enfases) ? freeAccess.enfases : [];
+  const freeEnfases = enfases.map(item => normKey(item)).filter(Boolean);
+  return freeEnfases.includes(normKey(enfase));
 }
 
 function normalizarFreeAccess(perfil) {
@@ -347,7 +374,7 @@ function normalizarFreeAccess(perfil) {
   return {
     enabled: parseBooleanish(enabledRaw),
     enfases: parseFreeEnfases(enfasesRaw),
-    until: parseFreeUntil(untilRaw)
+    until: untilRaw ? String(untilRaw).trim() : null
   };
 }
 
@@ -569,34 +596,26 @@ function podeAcessar(enfase, perfil) {
 
   const categoria = inferirCategoria(enfase);
   const produto = (perfil.produto || "").toLowerCase();
-  const isTrial = produto === "trial_app";
-  const isVip = produto === "vip";
+  const personal = localStorage.getItem("femflow_has_personal") === "true";
   const ativa = !!perfil.ativa;
- const personal = localStorage.getItem("femflow_has_personal") === "true";
 
-
-  if (!ativa && !isVip) return false;
-
-  if (isVip) return true;
-
-  // 🔥 PERSONAL (direito) = acesso_app + personal
   if (personal) {
     if (categoria === "followme") return false;
-    return true; // muscular, esportes, casa e personal
+    return true;
   }
 
-  // 🔹 ACESSO APP
+  if (produto === "vip") return true;
+
+  if (produto.startsWith("followme_")) return enfase === produto;
+
+  if (!ativa) return false;
+
   if (produto === "acesso_app") {
     return categoriaSegueRegrasAcessoApp(categoria);
   }
 
-  if (isTrial) {
+  if (produto === "trial_app") {
     return ["muscular", "esportes", "casa"].includes(categoria);
-  }
-
-  // 🔹 FOLLOWME
-  if (produto.startsWith("followme_")) {
-    return enfase === produto;
   }
 
   return false;
@@ -636,36 +655,11 @@ function normalizarCardFirebase(enfase, data) {
 
 function avaliarAcessoCard(enfase, perfil) {
   const podeAcessarProduto = podeAcessar(enfase, perfil);
-
-  const freeAccessEnfases = (perfil.free_access?.enfases || []).map(item =>
-    String(item || "").toLowerCase()
-  );
-
-  const categoria = inferirCategoria(enfase);
-
-  const podeAcessarFreePadrao =
-    perfil.free_access?.enabled === true &&
-    freeAccessEnfases.includes(enfase);
-
-  const podeAcessarFreeMonteSeuTreino =
-    enfase === "monte_seu_treino" &&
-    perfil.free_access?.enabled === true &&
-    (
-      freeAccessEnfases.includes("monte_seu_treino") ||
-      freeAccessEnfases.some(freeEnfase => {
-        const categoriaFree = inferirCategoria(freeEnfase);
-        return ["muscular", "esportes", "casa"].includes(categoriaFree);
-      })
-    );
-
-  const podeAcessarFree =
-    categoria === "custom"
-      ? podeAcessarFreeMonteSeuTreino
-      : podeAcessarFreePadrao;
+  const podeAcessarFree = isFreeValid(perfil, enfase);
 
   return {
     locked: !(podeAcessarProduto || podeAcessarFree),
-    isFree: !podeAcessarProduto && podeAcessarFree
+    isFree: (!podeAcessarProduto && podeAcessarFree)
   };
 }
 
