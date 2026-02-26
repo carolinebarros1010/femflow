@@ -318,7 +318,9 @@ function parseFreeUntil(raw) {
 function normKey(str) {
   const value = String(str || "").trim().toLowerCase();
   if (!value) return "";
-  return value.replace(/corrida_(\d+)km\b/g, "corrida_$1k");
+  return value
+    .replace(/(\d+)\s*_?\s*km\b/g, "$1k")
+    .replace(/_+/g, "_");
 }
 
 function isFreeValid(perfil, enfase) {
@@ -372,10 +374,7 @@ function normalizarFreeAccess(perfil) {
   return {
     enabled: parseBooleanish(enabledRaw),
     enfases: parseFreeEnfases(enfasesRaw),
-    until: (() => {
-      const until = parseFreeUntil(untilRaw);
-      return until ? until.toISOString().split("T")[0] : null;
-    })()
+    until: untilRaw ? String(untilRaw).trim() : null
   };
 }
 
@@ -597,7 +596,7 @@ function podeAcessar(enfase, perfil) {
 
   const categoria = inferirCategoria(enfase);
   const produto = (perfil.produto || "").toLowerCase();
-  const personal = perfil.personal === true;
+  const personal = localStorage.getItem("femflow_has_personal") === "true";
   const ativa = !!perfil.ativa;
 
   if (personal) {
