@@ -627,6 +627,7 @@ function inferirCategoria(enfase) {
   if (enfase.startsWith("followme_")) return "followme";
  if (enfase === "personal") return "personal";
   if (enfase === "monte_seu_treino") return "custom";
+  if (enfase === "bodyinsight") return "custom";
   if (enfase.startsWith("planilha_")) return "esportes";
   if (enfase.startsWith("casa") || enfase === "20minemcasa") return "casa";
   if (MUSCULAR_ENFASES.has(enfase)) return "muscular";
@@ -719,6 +720,17 @@ function avaliarAcessoCard(enfase, perfil) {
     locked: lockedFinal,
     isFree: (!podeAcessarProduto && podeAcessarFree)
   };
+}
+
+function aplicarAcessoCards(lista, perfil) {
+  return (Array.isArray(lista) ? lista : []).map((card) => {
+    const acesso = avaliarAcessoCard(card?.enfase, perfil);
+    return {
+      ...card,
+      locked: acesso.locked,
+      isFree: acesso.isFree || undefined
+    };
+  });
 }
 
 function injetarCardsPresets(catalogo, perfil, nivelAluno) {
@@ -850,9 +862,8 @@ const CARDS_PERSONAL_SIMBOLICOS = [
       fr: "Créez un entraînement sur mesure aujourd’hui"
     },
     color: "#f6d5c8",
-    locked: false,
-    simbolico: true,
-    alwaysUnlocked: true
+    locked: true,
+    simbolico: true
   }
 ];
 
@@ -862,7 +873,7 @@ const CARDS_BODYINSIGHT_SIMBOLICOS = [
     titulo: "Body Insight",
     desc: "Análise visual da sua evolução corporal",
     color: "#335953",
-    locked: false,
+    locked: true,
     simbolico: true
   }
 ];
@@ -882,7 +893,7 @@ const CARDS_PLANILHAS_30_DIAS = [
       fr: "Plan de 30 jours pour progresser sur 5K"
     },
     color: "#f2c6b4",
-    locked: false,
+    locked: true,
     simbolico: true
   },
   {
@@ -899,7 +910,7 @@ const CARDS_PLANILHAS_30_DIAS = [
       fr: "Plan de 30 jours pour votre prochain 10K"
     },
     color: "#eab8a8",
-    locked: false,
+    locked: true,
     simbolico: true
   },
   {
@@ -916,7 +927,7 @@ const CARDS_PLANILHAS_30_DIAS = [
       fr: "Plan de 30 jours pour endurance avancée"
     },
     color: "#ddb09f",
-    locked: false,
+    locked: true,
     simbolico: true
   },
   {
@@ -933,7 +944,7 @@ const CARDS_PLANILHAS_30_DIAS = [
       fr: "Plan de 30 jours pour une course 21K"
     },
     color: "#cf9f8f",
-    locked: false,
+    locked: true,
     simbolico: true
   },
   {
@@ -950,7 +961,7 @@ const CARDS_PLANILHAS_30_DIAS = [
       fr: "Plan de 30 jours pour une course 42K"
     },
     color: "#c28f7f",
-    locked: false,
+    locked: true,
     simbolico: true
   },
   {
@@ -967,7 +978,7 @@ const CARDS_PLANILHAS_30_DIAS = [
       fr: "Plan de 30 jours pour une sortie vélo 20K"
     },
     color: "#b7ccd9",
-    locked: false,
+    locked: true,
     simbolico: true
   },
   {
@@ -984,7 +995,7 @@ const CARDS_PLANILHAS_30_DIAS = [
       fr: "Plan de 30 jours pour une sortie vélo 40K"
     },
     color: "#9bb6c8",
-    locked: false,
+    locked: true,
     simbolico: true
   },
   {
@@ -1001,7 +1012,7 @@ const CARDS_PLANILHAS_30_DIAS = [
       fr: "Plan de 30 jours pour une nage de 750m"
     },
     color: "#9fd2df",
-    locked: false,
+    locked: true,
     simbolico: true
   },
   {
@@ -1018,7 +1029,7 @@ const CARDS_PLANILHAS_30_DIAS = [
       fr: "Plan de 30 jours pour une nage de 1500m"
     },
     color: "#84c4d5",
-    locked: false,
+    locked: true,
     simbolico: true
   },
   {
@@ -1035,7 +1046,7 @@ const CARDS_PLANILHAS_30_DIAS = [
       fr: "Plan de 30 jours pour une nage de 2000m"
     },
     color: "#6fb7cc",
-    locked: false,
+    locked: true,
     simbolico: true
   }
 ];
@@ -2108,45 +2119,18 @@ document.addEventListener("DOMContentLoaded", async () => {
       };
 
       const cards = CARDS_PERSONAL_SIMBOLICOS.map(c => {
-        if (c.enfase === "monte_seu_treino") {
-          const acesso = avaliarAcessoCard(c.enfase, perfilCardsPersonal);
+        if (c.enfase === "personal") {
           return {
             ...c,
-            locked: acesso.locked,
-            isFree: acesso.isFree
+            locked: !perfilTemPersonal
           };
         }
-
-        return {
-          ...c,
-          locked: c.alwaysUnlocked ? false : !perfilTemPersonal
-        };
+        return aplicarAcessoCards([c], perfilCardsPersonal)[0];
       });
     catalogo.personal.push(...cards);
   }
 
-    const perfilAcessoHome = {
-      produto,
-      ativa: localStorage.getItem("femflow_ativa") === "true",
-      personal: perfilTemPersonal,
-      free_access: (() => {
-        const freeAccessRaw = localStorage.getItem("femflow_free_access");
-        if (!freeAccessRaw) return null;
-        try { return JSON.parse(freeAccessRaw); }
-        catch (err) { return null; }
-      })()
-    };
-
-    const bodyInsightCards = CARDS_BODYINSIGHT_SIMBOLICOS.map((c) => {
-      const acesso = avaliarAcessoCard(c.enfase, perfilAcessoHome);
-      return {
-        ...c,
-        locked: acesso.locked,
-        isFree: acesso.isFree
-      };
-    });
-
-    catalogo.personal = [...bodyInsightCards, ...catalogo.personal];
+    catalogo.personal = [...aplicarAcessoCards(CARDS_BODYINSIGHT_SIMBOLICOS, perfil), ...catalogo.personal];
 
     // FOLLOWME — sempre aparece como vitrine
     if (catalogo.followme.length === 0) {
@@ -2163,16 +2147,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     renderRail(document.getElementById("railEsportes"), catalogo.esportes);
     renderRail(document.getElementById("railCasa"), catalogo.casa);
     renderRail(document.getElementById("railPersonal"), catalogo.personal);
-    const planilhasCards = CARDS_PLANILHAS_30_DIAS.map((c) => {
-      const acesso = avaliarAcessoCard(c.enfase, perfilAcessoHome);
-      return {
-        ...c,
-        locked: acesso.locked,
-        isFree: acesso.isFree
-      };
-    });
-
-    renderRail(document.getElementById("railPlanilhas30Dias"), planilhasCards);
+    renderRail(document.getElementById("railPlanilhas30Dias"), aplicarAcessoCards(CARDS_PLANILHAS_30_DIAS, perfil));
     aplicarIdiomaHome();
 
     carregarEbooks().then((ebooks) => {
