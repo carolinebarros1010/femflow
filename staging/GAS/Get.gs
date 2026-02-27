@@ -112,7 +112,7 @@ function _buildFreeAccess_(row) {
 function _getDeleteRequestedCopyByLang_(langRaw) {
   const lang = String(langRaw || "pt").slice(0, 2).toLowerCase();
   const copy = {
-    pt: "Você solicitou a exclusão da sua conta. Para reverter, entre em contato: femflow.consultoria@gmail.com",
+    pt: "Você solicitou exclusão da sua conta. Para reverter, contate: femflow.consultoria@gmail.com",
     en: "You requested account deletion. To revert, contact: femflow.consultoria@gmail.com",
     fr: "Vous avez demandé la suppression du compte. Pour annuler, contactez : femflow.consultoria@gmail.com"
   };

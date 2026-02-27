@@ -22,6 +22,8 @@ function purgeDeleteRequests_(days) {
   for (let i = rows.length - 1; i >= 0; i--) {
     const row = rows[i] || [];
     const status = String(row[4] || "").trim().toLowerCase();
+    // Decisão de compliance: pedidos pendentes (requested) não são removidos por retenção
+    // até que passem por processamento operacional.
     if (status !== "processed") continue;
 
     const processedAt = toValidDate_(row[5]);
@@ -110,7 +112,7 @@ function setupRetentionTrigger_() {
   for (let i = 0; i < triggers.length; i++) {
     const trigger = triggers[i];
     if (trigger.getHandlerFunction && trigger.getHandlerFunction() === handler) {
-      ScriptApp.deleteTrigger(trigger);
+      return { status: "ok", created: false, msg: "trigger_exists" };
     }
   }
 
@@ -118,4 +120,6 @@ function setupRetentionTrigger_() {
     .timeBased()
     .everyDays(1)
     .create();
+
+  return { status: "ok", created: true, msg: "trigger_created" };
 }

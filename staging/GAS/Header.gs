@@ -46,22 +46,43 @@ const COL_TOKEN_EXPIRA  = 18; // col 19
 const COL_PERFIL_HORMONAL = 19; // col 20
 const COL_CICLODATE       = 20; // col 21
 const COL_DIA_PROGRAMA   = 21; // col 22
-const COL_DEVICE_ID      = 22; // col 23
-const COL_SESSION_TOKEN  = 23; // col 24
-const COL_SESSION_EXP    = 24; // col 25
-const COL_DATA_INICIO_PROGRAMA = 25; // col 26
-const COL_ULTIMA_ATIVIDADE     = 26; // col 27
-const COL_ULTIMO_CAMINHO       = 36; // col 37
-const COL_ULTIMO_CAMINHO_DATA  = 37; // col 38
-const COL_SCORE_FINAL          = 38; // col 39
-const COL_SCORE_DETALHADO      = 39; // col 40
-const COL_OBJETIVO             = 40; // col 41
-const COL_DEVICES              = 41; // col 42
-const COL_AUTH_VERSION         = 42; // col 43
-const COL_AUTH_MIGRATION_AT    = 43; // col 44
-const COL_STATUS_CONTA         = 44; // col 45
-const COL_DELETE_REQUESTED_AT  = 45; // col 46
+const COL_DEVICE_ID      = HEADER_ALUNAS.indexOf("DeviceId");
+const COL_SESSION_TOKEN  = HEADER_ALUNAS.indexOf("SessionToken");
+const COL_SESSION_EXP    = HEADER_ALUNAS.indexOf("SessionExpira");
+const COL_DATA_INICIO_PROGRAMA = HEADER_ALUNAS.indexOf("DataInicioPrograma");
+const COL_ULTIMA_ATIVIDADE     = HEADER_ALUNAS.indexOf("UltimaAtividade");
+const COL_ULTIMO_CAMINHO       = HEADER_ALUNAS.indexOf("UltimoCaminho");
+const COL_ULTIMO_CAMINHO_DATA  = HEADER_ALUNAS.indexOf("UltimoCaminhoData");
+const COL_SCORE_FINAL          = HEADER_ALUNAS.indexOf("ScoreFinal");
+const COL_SCORE_DETALHADO      = HEADER_ALUNAS.indexOf("ScoreDetalhado");
+const COL_OBJETIVO             = HEADER_ALUNAS.indexOf("Objetivo");
+const COL_DEVICES              = HEADER_ALUNAS.indexOf("Devices");
+const COL_AUTH_VERSION         = HEADER_ALUNAS.indexOf("AuthVersion");
+const COL_AUTH_MIGRATION_AT    = HEADER_ALUNAS.indexOf("LastAuthMigrationAt");
+const COL_STATUS_CONTA         = HEADER_ALUNAS.indexOf("StatusConta");
+const COL_DELETE_REQUESTED_AT  = HEADER_ALUNAS.indexOf("DeleteRequestedAt");
+
+function _assertAlunasSchemaIndices_() {
+  const required = {
+    DeviceId: COL_DEVICE_ID,
+    SessionToken: COL_SESSION_TOKEN,
+    SessionExpira: COL_SESSION_EXP,
+    Devices: COL_DEVICES,
+    AuthVersion: COL_AUTH_VERSION,
+    LastAuthMigrationAt: COL_AUTH_MIGRATION_AT,
+    StatusConta: COL_STATUS_CONTA,
+    DeleteRequestedAt: COL_DELETE_REQUESTED_AT
+  };
+
+  for (const name in required) {
+    if (required[name] < 0) {
+      throw new Error('HEADER_ALUNAS inválido: coluna ausente -> ' + name);
+    }
+  }
+}
 
 function ensureAlunasHasColumns_() {
-  return ensureSheet(SHEET_ALUNAS, HEADER_ALUNAS);
+  const sh = ensureSheet(SHEET_ALUNAS, HEADER_ALUNAS);
+  _assertAlunasSchemaIndices_();
+  return sh;
 }
