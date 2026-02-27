@@ -1303,6 +1303,40 @@ function getComingSoonLabel() {
   return labels[lang] || labels.pt;
 }
 
+function msgCheckout(tipo) {
+  const lang = FEMFLOW.lang || "pt";
+  const mensagens = {
+    personal: {
+      pt: "Este recurso faz parte do Personal. Para liberar, assine o Personal.",
+      en: "This feature is part of Personal. Subscribe to Personal to unlock it.",
+      fr: "Cette fonctionnalité fait partie du Personal. Abonnez-vous au Personal pour la débloquer."
+    },
+    app: {
+      pt: "Seu acesso está bloqueado. Para liberar, adquira o Acesso ao App.",
+      en: "Your access is locked. Purchase App Access to unlock it.",
+      fr: "Votre accès est bloqué. Achetez l’Accès à l’app pour le débloquer."
+    }
+  };
+  return mensagens[tipo]?.[lang] || mensagens[tipo]?.pt || "";
+}
+
+function abrirCheckout(url) {
+  if (!url) return;
+  if (typeof FEMFLOW.openExternal === "function") {
+    FEMFLOW.openExternal(url);
+    return;
+  }
+  window.open(url, "_blank");
+}
+
+function getCheckoutLink(tipo) {
+  const fallbackPersonal = FEMFLOW.LINK_PERSONAL;
+  const fallbackAcesso = FEMFLOW.LINK_ACESSO_APP;
+  return tipo === "personal"
+    ? (typeof LINK_PERSONAL !== "undefined" ? LINK_PERSONAL : fallbackPersonal)
+    : (typeof LINK_ACESSO_APP !== "undefined" ? LINK_ACESSO_APP : fallbackAcesso);
+}
+
 /* ============================================================
    MODAL — CONFIRMAÇÃO DE NOVO PROGRAMA
 =========================================================== */
@@ -1593,6 +1627,13 @@ async function garantirAcessoBodyInsight() {
 =========================================================== */
 async function handleCardClick(enfase, locked) {
 
+  if (locked) {
+    const checkoutTipo = enfase === "personal" || enfase === "bodyinsight" ? "personal" : "app";
+    FEMFLOW.toast(msgCheckout(checkoutTipo));
+    abrirCheckout(getCheckoutLink(checkoutTipo));
+    return;
+  }
+
   if (enfase === "bodyinsight") {
     const canProceed = await garantirAcessoBodyInsight();
     if (canProceed === false) return;
@@ -1606,36 +1647,6 @@ async function handleCardClick(enfase, locked) {
   }
 
   localStorage.removeItem("femflow_endurance_public_intent");
-
-  /* =========================================
-     🔒 CARD BLOQUEADO (VITRINE COMERCIAL)
-  ========================================= */
-  if (locked) {
-    const produto = String(localStorage.getItem("femflow_produto") || "").toLowerCase();
-    const isTrial = produto === "trial_app";
-    const categoria = inferirCategoria(enfase);
-    if (isTrial && categoriaSegueRegrasAcessoApp(categoria)) {
-      FEMFLOW.openExternal(LINK_ACESSO_APP);
-      return;
-    }
-
-    // 🧠 PERSONAL — CTA dedicado (propaganda)
-    if (enfase === "personal" || enfase.startsWith("personal_")) {
-      FEMFLOW.toast("🔒 Treino Personal é um plano exclusivo.");
-      FEMFLOW.openExternal(LINK_PERSONAL);
-      return;
-    }
-
-    // ✨ FOLLOWME — programa especial
-    if (enfase.startsWith("followme_")) {
-      FEMFLOW.toast(getFollowmeEmBreveMessage());
-      return;
-    }
-
-    // 🔹 BLOQUEIO PADRÃO
-    FEMFLOW.toast("Plano necessário para acessar este treino.");
-    return;
-  }
 
   const treinosOk = await garantirTreinosSemana();
   if (!treinosOk) return;
