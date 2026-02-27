@@ -328,6 +328,46 @@ function normKey(str) {
     .replace(/^_+|_+$/g, "");
 }
 
+function isDebugAccessEnabled() {
+  if (window.__FF_DEBUG_ACCESS__ === true) return true;
+  try {
+    return new URLSearchParams(window.location.search).get("debugAccess") === "1";
+  } catch (err) {
+    return false;
+  }
+}
+
+function shouldDebugEnfase(enfase) {
+  const value = String(enfase || "").toLowerCase().trim();
+  return value.startsWith("planilha_") || value === "monte_seu_treino" || value === "bodyinsight";
+}
+
+function logAcessoDebug(enfase, perfil, contexto) {
+  if (!isDebugAccessEnabled() || !shouldDebugEnfase(enfase)) return;
+
+  const freeAccess = perfil?.free_access || null;
+  const enfaseNorm = normKey(enfase);
+  const freeEnfasesNorm = parseFreeEnfases(freeAccess?.enfases).map(item => normKey(item)).filter(Boolean);
+
+  console.log("[FF_ACCESS_DEBUG]", {
+    enfase,
+    categoria: inferirCategoria(enfase),
+    produto: String(perfil?.produto || "").toLowerCase(),
+    ativa: !!perfil?.ativa,
+    hasPersonal: localStorage.getItem("femflow_has_personal") === "true",
+    free_access_raw: freeAccess,
+    free_enabled: freeAccess?.enabled === true,
+    free_until_raw: freeAccess?.until ?? null,
+    free_until_parsed: contexto.until ? contexto.until.toISOString() : null,
+    free_valid: contexto.freeValid,
+    free_enfases_norm: freeEnfasesNorm,
+    enfase_norm: enfaseNorm,
+    podeAcessarProduto: contexto.podeAcessarProduto,
+    podeAcessarFree: contexto.podeAcessarFree,
+    lockedFinal: contexto.lockedFinal
+  });
+}
+
 function isFreeValid(perfil, enfase) {
   const freeAccess = perfil?.free_access;
   if (freeAccess?.enabled !== true) return false;
@@ -615,15 +655,15 @@ function podeAcessar(enfase, perfil) {
 
   if (produto.startsWith("followme_")) return enfase === produto;
 
+  if (produto === "trial_app") return false;
+
   if (!ativa) return false;
 
   if (produto === "acesso_app") {
     return categoriaSegueRegrasAcessoApp(categoria);
   }
 
-  if (produto === "trial_app") {
-    return ["muscular", "esportes", "casa"].includes(categoria);
-  }
+  if (produto === "trial_app") return false;
 
   return false;
 }
@@ -662,10 +702,22 @@ function normalizarCardFirebase(enfase, data) {
 
 function avaliarAcessoCard(enfase, perfil) {
   const podeAcessarProduto = podeAcessar(enfase, perfil);
-  const podeAcessarFree = isFreeValid(perfil, enfase);
+  const freeAccess = perfil?.free_access;
+  const until = parseFreeUntil(freeAccess?.until);
+  const freeValid = isFreeValid(perfil, enfase);
+  const podeAcessarFree = freeValid;
+  const lockedFinal = !(podeAcessarProduto || podeAcessarFree);
+
+  logAcessoDebug(enfase, perfil, {
+    until,
+    freeValid,
+    podeAcessarProduto,
+    podeAcessarFree,
+    lockedFinal
+  });
 
   return {
-    locked: !(podeAcessarProduto || podeAcessarFree),
+    locked: lockedFinal,
     isFree: (!podeAcessarProduto && podeAcessarFree)
   };
 }
@@ -2076,8 +2128,8 @@ document.addEventListener("DOMContentLoaded", async () => {
         }
         return aplicarAcessoCards([c], perfilCardsPersonal)[0];
       });
-      catalogo.personal.push(...cards);
-    }
+    catalogo.personal.push(...cards);
+  }
 
     catalogo.personal = [...aplicarAcessoCards(CARDS_BODYINSIGHT_SIMBOLICOS, perfilCardsPersonal), ...catalogo.personal];
 
