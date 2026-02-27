@@ -8,7 +8,8 @@
 5. Na `Alunas`, marca:
    - `StatusConta = "delete_requested"`
    - `DeleteRequestedAt = requestedAt`
-6. Em seguida invalida sessões ativas (`Devices`, `DeviceId`, `SessionToken`, `SessionExpira`) para corte imediato.
+6. A linha correspondente na aba `Alunas` recebe destaque visual vermelho claro para facilitar operação manual no backoffice.
+7. Em seguida invalida sessões ativas (`Devices`, `DeviceId`, `SessionToken`, `SessionExpira`) para corte imediato.
 
 ---
 
@@ -63,7 +64,7 @@ Resultado: evita cair em erro de “conta conectada em outro dispositivo” quan
   - `doPost` + `extractRequestIp_` em `staging/GAS/Post.gs`.
   - Prioridade `X-Forwarded-For`/`x-forwarded-for`, primeiro IP da cadeia.
 - Fluxo de exclusão:
-  - `deleteAccountRequest_` em `staging/GAS/DeleteAccount.gs`.
+  - `deleteAccountRequest_` e `paintDeleteRequestedRow_` em `staging/GAS/DeleteAccount.gs`.
   - Colunas em `DeleteRequests`: `ip`, `status`, `processedAt`.
 - Estado de conta e sessão:
   - `HEADER_ALUNAS`: `StatusConta`, `DeleteRequestedAt`, `Devices`, `AuthVersion`, `LastAuthMigrationAt`, `DeviceId`, `SessionToken`, `SessionExpira`.

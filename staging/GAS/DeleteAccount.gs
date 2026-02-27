@@ -81,6 +81,7 @@ function deleteAccountRequest_(data, ip) {
       const linha = i + 1;
       shAlunas.getRange(linha, COL_STATUS_CONTA + 1).setValue("delete_requested");
       shAlunas.getRange(linha, COL_DELETE_REQUESTED_AT + 1).setValue(requestedAt);
+      paintDeleteRequestedRow_(shAlunas, linha);
       invalidateAllSessionsByUserId_(userId);
       break;
     }
@@ -165,4 +166,18 @@ function invalidateAllSessionsByUserId_(userId) {
   }
 
   return false;
+}
+
+
+function paintDeleteRequestedRow_(sheet, rowNumber) {
+  const sh = sheet || ensureSheet(SHEET_ALUNAS, HEADER_ALUNAS);
+  const row = Number(rowNumber || 0);
+  if (!sh || !Number.isFinite(row) || row < 2) return false;
+
+  const totalCols = Math.max(sh.getLastColumn(), HEADER_ALUNAS.length);
+  if (totalCols <= 0) return false;
+
+  // Destaque visual para operações de exclusão solicitada (tom de vermelho claro).
+  sh.getRange(row, 1, 1, totalCols).setBackground("#f4cccc");
+  return true;
 }
