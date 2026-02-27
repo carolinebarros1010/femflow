@@ -402,8 +402,6 @@ async function finalizarAnamnese() {
     return;
   }
 
-  FEMFLOW.toast?.("Sincronizando…");
-
   // --------------------------------------------------------
   // 3) LOGIN OU CADASTRO (HOTMART + NOVA ALUNA)
   // --------------------------------------------------------
