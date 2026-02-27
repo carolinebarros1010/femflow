@@ -660,9 +660,7 @@ function podeAcessar(enfase, perfil) {
     return categoriaSegueRegrasAcessoApp(categoria);
   }
 
-  if (produto === "trial_app") {
-    return ["muscular", "esportes", "casa"].includes(categoria);
-  }
+  if (produto === "trial_app") return false;
 
   return false;
 }
