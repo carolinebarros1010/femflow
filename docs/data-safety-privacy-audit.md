@@ -38,8 +38,8 @@
 ### 1.3 Logs e retenção real
 - Há logs operacionais em execução (`console.log`/`Logger.log`) no GAS, incluindo payload bruto em `doPost` (`RAW DATA`, `ACTION`) (staging/GAS/Post.gs:doPost).
 - Persistência de logs em planilhas existe para SAC e uso do Body Insight (staging/GAS/SAC.gs:registrarSACLog_; staging/GAS/BodyInsightIA.gs:registrarUsoBodyInsight_).
-- Campo `ip` existe em `DeleteRequests`, porém é gravado como string vazia (`""`) no fluxo atual (staging/GAS/DeleteAccount.gs:HEADER_DELETE_REQUESTS; staging/GAS/DeleteAccount.gs:deleteAccountRequest_).
-- **Retenção automática de dados em Sheets: Não identificada no repositório (estado atual)** (busca de cleanup/cron/TTL em `staging/GAS`).
+- Campo `ip` em `DeleteRequests` é preenchido por `extractRequestIp_`, priorizando `X-Forwarded-For`/`x-forwarded-for` (primeiro IP) e fallback opcional para `e.parameter.ip` em debug/manual (staging/GAS/Post.gs:extractRequestIp_; staging/GAS/DeleteAccount.gs:deleteAccountRequest_).
+- Retenção automática em Sheets implementada em `enforceDataRetentionPolicy_` com cobertura de `DeleteRequests` (status `processed`), `SAC_LOG` (coluna `data`) e `body_insight_usage` (coluna `dataHora`), com retenção default de 90 dias e trigger diário via `setupRetentionTrigger_` (staging/GAS/Retention.gs).
 - Exceção: há exclusão de linhas por evento Hotmart de cancelamento/reembolso/expiração usando `_purgeStudentDataByIdOrEmail_` (staging/GAS/Hotmart.gs:_purgeStudentDataByIdOrEmail_).
 
 ### 1.4 Hotmart / compra / assinatura
@@ -98,7 +98,7 @@
 
 ## 2.5 Retention
 - Política pública declara: conta ativa enquanto necessário, logs técnicos até 90 dias e pedidos de exclusão em até 30 dias (app/docs/privacy.html; app/docs/delete-account.html).
-- Enforcement automático de retenção em Sheets por job/cleanup: **No** (não identificado no código de `staging/GAS`).
+- Enforcement automático de retenção em Sheets por job/cleanup: **Yes** (`enforceDataRetentionPolicy_` + trigger diário idempotente em `setupRetentionTrigger_`; executar uma vez no Apps Script para provisionar o trigger).
 - Decisão de compliance segura para store: declarar retenção conforme política pública **com gap técnico registrado** (seção 5A).
 
 ---
@@ -146,10 +146,13 @@
 
 ---
 
+## Status da fase
+- **Concluído com ressalvas**: fluxo de exclusão endurecido no backend, retenção automática diária ativa por trigger e coleta de IP em pedidos de exclusão. Ressalvas permanecem apenas para itens fora do escopo desta fase (ex.: analytics/crash e operação manual do processamento final em até 30 dias).
+
 ## 5A) Gaps / Risks
-- **Gap 1 — Retention enforcement em Sheets**: não há rotina automática de limpeza/TTL/cron identificada para executar a retenção declarada em política (staging/GAS).
-- **Gap 2 — IP em DeleteRequests**: o schema inclui `ip`, porém gravação atual preenche `""`; há divergência com política que cita IP “quando disponível” (staging/GAS/DeleteAccount.gs:HEADER_DELETE_REQUESTS; staging/GAS/DeleteAccount.gs:deleteAccountRequest_; app/docs/privacy.html).
-- **Gap 3 — Analytics/Crash SDK ausente**: ausência confirmada de SDK de analytics/crash dedicado no repositório auditado; manter declarações de analytics/diagnostics em No evita overclaim (busca estática `rg`).
+- **Gap 1 — Retention enforcement em Sheets**: **Fechado**. Rotina automática implementada (`enforceDataRetentionPolicy_`) e trigger diário idempotente (`setupRetentionTrigger_`).
+- **Gap 2 — IP em DeleteRequests**: **Fechado**. Campo `ip` agora é preenchido via `extractRequestIp_` a partir de header `X-Forwarded-For` (quando disponível), com fallback explícito para `e.parameter.ip`.
+- **Gap 3 — Analytics/Crash SDK ausente**: aberto por escopo; ausência confirmada de SDK de analytics/crash dedicado no repositório auditado; manter declarações de analytics/diagnostics em No evita overclaim (busca estática `rg`).
 
 ---
 
