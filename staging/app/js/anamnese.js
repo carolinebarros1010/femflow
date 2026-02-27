@@ -229,7 +229,6 @@ function getPerguntasTraduzidas() {
 
     leadParcial(nomeV, emailV, telV);
 
-    try { FEMFLOW.toast?.("✨ Anamnese iniciada!"); } catch {}
 
     $("#cadastro").classList.add("hidden");
     $("#quiz").classList.remove("hidden");
