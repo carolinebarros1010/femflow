@@ -34,6 +34,41 @@ const ENDURANCE_PUBLIC_LABELS = {
 };
 
 
+function msgCheckout(tipo) {
+  const lang = FEMFLOW.lang || "pt";
+  const mensagens = {
+    personal: {
+      pt: "Este recurso faz parte do Personal. Para liberar, assine o Personal.",
+      en: "This feature is part of Personal. Subscribe to Personal to unlock it.",
+      fr: "Cette fonctionnalité fait partie du Personal. Abonnez-vous au Personal pour la débloquer."
+    },
+    app: {
+      pt: "Seu acesso está bloqueado. Para liberar, adquira o Acesso ao App.",
+      en: "Your access is locked. Purchase App Access to unlock it.",
+      fr: "Votre accès est bloqué. Achetez l’Accès à l’app pour le débloquer."
+    }
+  };
+  return mensagens[tipo]?.[lang] || mensagens[tipo]?.pt || "";
+}
+
+function abrirCheckout(url) {
+  if (!url) return;
+  if (typeof FEMFLOW.openExternal === "function") {
+    FEMFLOW.openExternal(url);
+    return;
+  }
+  window.open(url, "_blank");
+}
+
+function getCheckoutLink(tipo) {
+  const fallbackPersonal = FEMFLOW.LINK_PERSONAL;
+  const fallbackAcesso = FEMFLOW.LINK_ACESSO_APP;
+  return tipo === "personal"
+    ? (typeof LINK_PERSONAL !== "undefined" ? LINK_PERSONAL : fallbackPersonal)
+    : (typeof LINK_ACESSO_APP !== "undefined" ? LINK_ACESSO_APP : fallbackAcesso);
+}
+
+
 function renderFlowcenterSkeleton() {
   const mount = document.body;
   if (!mount || document.getElementById('ff-flowcenter-skeleton')) return;
@@ -645,6 +680,21 @@ async function initFlowCenter() {
       ?.classList.toggle("label-active", f === ciclo.fase);
   });
 
+  const bloquearBotao = (btn, tipoCheckout = "app") => {
+    if (!btn) return;
+    btn.onclick = (e) => {
+      e?.preventDefault?.();
+      if (tipoCheckout === "personal") {
+        FEMFLOW.toast(msgCheckout("personal"));
+        abrirCheckout(getCheckoutLink("personal"));
+      } else {
+        FEMFLOW.toast(msgCheckout("app"));
+        abrirCheckout(getCheckoutLink("app"));
+      }
+    };
+    btn.setAttribute("aria-disabled", "true");
+  };
+
   /* ============================================================
      9) BOTÕES
   ============================================================ */
@@ -899,8 +949,9 @@ async function initFlowCenter() {
         return;
       }
       if (!treinoAcessoOk) {
-        FEMFLOW.toast("Seu acesso expirou. Assine para continuar.");
-        return FEMFLOW.openExternal(LINK_ACESSO_APP);
+        FEMFLOW.toast(msgCheckout("app"));
+        abrirCheckout(getCheckoutLink("app"));
+        return;
       }
       abrirModalComLock(modalExtra);
     };
@@ -1610,8 +1661,8 @@ async function initFlowCenter() {
   document.querySelectorAll("[data-extra-enfase]").forEach(btn => {
     btn.addEventListener("click", () => {
       if (!treinoAcessoOk) {
-        FEMFLOW.toast("Seu acesso expirou. Assine para continuar.");
-        FEMFLOW.openExternal(LINK_ACESSO_APP);
+        FEMFLOW.toast(msgCheckout("app"));
+        abrirCheckout(getCheckoutLink("app"));
         return;
       }
       const enfase = btn.dataset.extraEnfase;
@@ -1649,12 +1700,9 @@ async function initFlowCenter() {
     const freeOk = freeValido && freeEnfases.includes(enfase);
 
     if (!acessoAtivo && !freeOk) {
-      if (isTrial) {
-        FEMFLOW.toast("Seu teste grátis terminou. Assine para continuar.");
-      } else {
-        FEMFLOW.toast("Seu acesso expirou. Assine para continuar.");
-      }
-      return FEMFLOW.openExternal(LINK_ACESSO_APP);
+      FEMFLOW.toast(msgCheckout("app"));
+      abrirCheckout(getCheckoutLink("app"));
+      return;
     }
 
     /* ✨ FOLLOWME */
@@ -1732,20 +1780,23 @@ async function initFlowCenter() {
 
   const customBtn = document.getElementById("toCustomTrain");
   if (customBtn) {
-    customBtn.onclick = () => {
-      if (!isCustomTreino) {
-        FEMFLOW.toast("Monte seu treino está bloqueado.");
-        return;
-      }
-      localStorage.removeItem("femflow_treino_endurance");
-      return FEMFLOW.router("treino.html");
-    };
+    if (!isCustomTreino) {
+      bloquearBotao(customBtn, "app");
+    } else {
+      customBtn.onclick = () => {
+        localStorage.removeItem("femflow_treino_endurance");
+        return FEMFLOW.router("treino.html");
+      };
+    }
   }
 
   const enduranceBtn = document.getElementById("toEndurance");
   if (enduranceBtn) {
     enduranceBtn.disabled = false;
     enduranceBtn.classList.toggle("btn-locked", bloquearEnduranceApp);
+    if (bloquearEnduranceApp) {
+      bloquearBotao(enduranceBtn, "app");
+    }
   }
 
   const getEnduranceDiaLabel = () => {
@@ -2030,7 +2081,8 @@ async function initFlowCenter() {
 
   enduranceBtn.onclick = async () => {
     if (bloquearEnduranceApp) {
-      FEMFLOW.toast(t("flowcenter.enduranceBloqueado"));
+      FEMFLOW.toast(msgCheckout("app"));
+      abrirCheckout(getCheckoutLink("app"));
       return;
     }
 
@@ -2050,7 +2102,8 @@ async function initFlowCenter() {
     }
 
     if (!enduranceEnabled) {
-      FEMFLOW.toast(t("flowcenter.enduranceBloqueado"));
+      FEMFLOW.toast(msgCheckout("app"));
+      abrirCheckout(getCheckoutLink("app"));
       return;
     }
 
