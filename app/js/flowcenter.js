@@ -648,8 +648,8 @@ async function initFlowCenter() {
   /* ============================================================
      9) BOTÕES
   ============================================================ */
-  document.getElementById("toBreath").onclick =
-    () => FEMFLOW.router("respiracao.html");
+  const btnRespiracao = document.getElementById("toBreath");
+  if (btnRespiracao) btnRespiracao.onclick = () => { window.location.href = "respiracao.html"; };
 
   document.getElementById("toEvolution").onclick =
     () => FEMFLOW.router("evolucao.html");

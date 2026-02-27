@@ -654,14 +654,12 @@ function podeAcessar(enfase, perfil) {
 
   if (produto.startsWith("followme_")) return enfase === produto;
 
+  if (produto === "trial_app") return false;
+
   if (!ativa) return false;
 
   if (produto === "acesso_app") {
     return categoriaSegueRegrasAcessoApp(categoria);
-  }
-
-  if (produto === "trial_app") {
-    return ["muscular", "esportes", "casa"].includes(categoria);
   }
 
   return false;
