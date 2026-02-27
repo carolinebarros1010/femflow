@@ -623,13 +623,14 @@ function resetDevice_(data) {
   return { status: "not_registered" };
 }
 
-function _assertSession_(id, deviceId, sessionToken) {
+function _assertSession_(id, deviceId, sessionToken, langRaw) {
   const sh = ensureSheet(SHEET_ALUNAS, HEADER_ALUNAS);
   if (!sh) return { ok: false, msg: "Aba Alunas não encontrada." };
 
   const idNorm = String(id || "").trim();
   const token = String(sessionToken || "").trim();
   const device = String(deviceId || "").trim();
+  const lang = String(langRaw || "pt").slice(0, 2).toLowerCase();
   if (!idNorm || !token) return { ok: false, msg: "Sessão inválida" };
 
   const rows = sh.getDataRange().getValues();
@@ -643,14 +644,14 @@ function _assertSession_(id, deviceId, sessionToken) {
     const linha = i + 1;
     const accountStatus = _normalizarStatusConta_(row[COL_STATUS_CONTA]);
     if (accountStatus === "delete_requested") {
-      const blockedDelete = _deleteRequestedAuthPayload_("pt");
+      const blockedDelete = _deleteRequestedAuthPayload_(lang);
       return Object.assign({}, blockedDelete, { msg: blockedDelete.messageLocalized });
     }
     if (accountStatus === "bloqueada" || accountStatus === "excluida") {
       return { ok: false, status: "blocked", msg: "Conta bloqueada" };
     }
     if (_isDeleteRequestedProduct_(row[5])) {
-      const blockedByProduct = _deleteRequestedAuthPayload_("pt");
+      const blockedByProduct = _deleteRequestedAuthPayload_(lang);
       return Object.assign({}, blockedByProduct, { msg: blockedByProduct.messageLocalized });
     }
 
@@ -937,7 +938,7 @@ function logoutDevice_(data) {
   const deviceId = String(data.deviceId || "").trim();
   const sessionToken = String(data.sessionToken || "").trim();
 
-  const auth = _assertSession_(id, deviceId, sessionToken);
+  const auth = _assertSession_(id, deviceId, sessionToken, data.lang || data.locale);
   if (!auth.ok) return { status: "denied", msg: auth.msg || "Sessão inválida" };
 
   const rows = sh.getDataRange().getValues();

@@ -22,6 +22,8 @@ function purgeDeleteRequests_(days) {
   for (let i = rows.length - 1; i >= 0; i--) {
     const row = rows[i] || [];
     const status = String(row[4] || "").trim().toLowerCase();
+    // Decisão de compliance: pedidos pendentes (requested) não são removidos por retenção
+    // até que passem por processamento operacional.
     if (status !== "processed") continue;
 
     const processedAt = toValidDate_(row[5]);

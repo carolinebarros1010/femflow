@@ -39,7 +39,7 @@
 - Há logs operacionais em execução (`console.log`/`Logger.log`) no GAS, incluindo payload bruto em `doPost` (`RAW DATA`, `ACTION`) (staging/GAS/Post.gs:doPost).
 - Persistência de logs em planilhas existe para SAC e uso do Body Insight (staging/GAS/SAC.gs:registrarSACLog_; staging/GAS/BodyInsightIA.gs:registrarUsoBodyInsight_).
 - Campo `ip` em `DeleteRequests` é preenchido por `extractRequestIp_`, priorizando `X-Forwarded-For`/`x-forwarded-for` (primeiro IP) e fallback opcional para `e.parameter.ip` em debug/manual (staging/GAS/Post.gs:extractRequestIp_; staging/GAS/DeleteAccount.gs:deleteAccountRequest_).
-- Retenção automática em Sheets implementada em `enforceDataRetentionPolicy_` com cobertura de `DeleteRequests` (status `processed`), `SAC_LOG` (coluna `data`) e `body_insight_usage` (coluna `dataHora`), com retenção default de 90 dias e trigger diário via `setupRetentionTrigger_` (staging/GAS/Retention.gs).
+- Retenção automática em Sheets implementada em `enforceDataRetentionPolicy_` com cobertura de `DeleteRequests` (somente status `processed`; pendentes `requested` ficam retidos até processamento), `SAC_LOG` (coluna `data`) e `body_insight_usage` (coluna `dataHora`), com retenção default de 90 dias e trigger diário via `setupRetentionTrigger_` (staging/GAS/Retention.gs).
 - Exceção: há exclusão de linhas por evento Hotmart de cancelamento/reembolso/expiração usando `_purgeStudentDataByIdOrEmail_` (staging/GAS/Hotmart.gs:_purgeStudentDataByIdOrEmail_).
 
 ### 1.4 Hotmart / compra / assinatura

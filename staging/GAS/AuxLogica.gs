@@ -15,7 +15,7 @@ function salvarTreino_(data) {
   const deviceId = String(data.deviceId || "").trim();
   const sessionToken = String(data.sessionToken || "").trim();
 
-  const auth = _assertSession_(id, deviceId, sessionToken);
+  const auth = _assertSession_(id, deviceId, sessionToken, data.lang || data.locale);
   if (!auth.ok) return { status: "denied", msg: auth.msg };
 
   if (!id) return { status: "error", msg: "ID inválido" };
@@ -96,7 +96,7 @@ function salvarDescanso_(data) {
   const deviceId = String(data.deviceId || "").trim();
   const sessionToken = String(data.sessionToken || "").trim();
 
-  const auth = _assertSession_(id, deviceId, sessionToken);
+  const auth = _assertSession_(id, deviceId, sessionToken, data.lang || data.locale);
   if (!auth.ok) return { status: "denied", msg: auth.msg };
 
   if (!id) return { status: "error", msg: "ID inválido" };
@@ -172,7 +172,7 @@ function salvarEvolucao_(data) {
   const deviceId = String(data.deviceId || "").trim();
   const sessionToken = String(data.sessionToken || "").trim();
 
-  const auth = _assertSession_(id, deviceId, sessionToken);
+  const auth = _assertSession_(id, deviceId, sessionToken, data.lang || data.locale);
   if (!auth.ok) return { status: "denied", msg: auth.msg };
 
   if (!id || !exercicio) {

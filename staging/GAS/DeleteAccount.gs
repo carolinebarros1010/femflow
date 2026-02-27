@@ -21,7 +21,7 @@ function deleteAccountRequest_(data, ip) {
   const sessionToken = String(data.sessionToken || "").trim();
   const locale = normalizeDeleteLocale_(data.locale);
 
-  const auth = _assertSession_(userId, deviceId, sessionToken);
+  const auth = _assertSession_(userId, deviceId, sessionToken, locale);
   if (!auth.ok) {
     return {
       ok: false,
