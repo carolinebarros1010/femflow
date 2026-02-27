@@ -309,10 +309,12 @@ function doPost(e) {
 
 
 function extractRequestIp_(e, data) {
-  const ip = (e && e.parameter && e.parameter.ip)
-    || (data && data.ip)
-    || "";
+  const headers = (e && e.headers) || {};
+  const xff = headers["X-Forwarded-For"] || headers["x-forwarded-for"] || "";
+  const ipFromHeader = String(Array.isArray(xff) ? (xff[0] || "") : xff || "").split(",")[0].trim();
+  if (ipFromHeader) return ipFromHeader;
 
-  if (Array.isArray(ip)) return String(ip[0] || "").trim();
-  return String(ip || "").split(",")[0].trim();
+  const paramIp = (e && e.parameter && e.parameter.ip) || "";
+  if (Array.isArray(paramIp)) return String(paramIp[0] || "").trim();
+  return String(paramIp || "").split(",")[0].trim();
 }

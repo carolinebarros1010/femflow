@@ -110,7 +110,7 @@ function setupRetentionTrigger_() {
   for (let i = 0; i < triggers.length; i++) {
     const trigger = triggers[i];
     if (trigger.getHandlerFunction && trigger.getHandlerFunction() === handler) {
-      ScriptApp.deleteTrigger(trigger);
+      return { status: "ok", created: false, msg: "trigger_exists" };
     }
   }
 
@@ -118,4 +118,6 @@ function setupRetentionTrigger_() {
     .timeBased()
     .everyDays(1)
     .create();
+
+  return { status: "ok", created: true, msg: "trigger_created" };
 }

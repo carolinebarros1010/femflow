@@ -81,6 +81,7 @@ function deleteAccountRequest_(data, ip) {
       const linha = i + 1;
       shAlunas.getRange(linha, COL_STATUS_CONTA + 1).setValue("delete_requested");
       shAlunas.getRange(linha, COL_DELETE_REQUESTED_AT + 1).setValue(requestedAt);
+      invalidateAllSessionsByUserId_(userId);
       break;
     }
   }
@@ -134,4 +135,34 @@ function findUserById_(id) {
     }
   }
   return null;
+}
+
+
+function invalidateAllSessionsByUserId_(userId) {
+  const idNorm = String(userId || "").trim();
+  if (!idNorm) return false;
+
+  const shAlunas = ensureSheet(SHEET_ALUNAS, HEADER_ALUNAS);
+  if (!shAlunas) return false;
+
+  const rows = shAlunas.getDataRange().getValues();
+  for (let i = 1; i < rows.length; i++) {
+    if (String(rows[i][0] || "").trim() !== idNorm) continue;
+    const linha = i + 1;
+    const lock = LockService.getScriptLock();
+    lock.waitLock(5000);
+    try {
+      shAlunas.getRange(linha, COL_DEVICES + 1).setValue("");
+      shAlunas.getRange(linha, COL_DEVICE_ID + 1).setValue("");
+      shAlunas.getRange(linha, COL_SESSION_TOKEN + 1).setValue("");
+      shAlunas.getRange(linha, COL_SESSION_EXP + 1).setValue("");
+      shAlunas.getRange(linha, COL_AUTH_VERSION + 1).setValue(AUTH_VERSION);
+      shAlunas.getRange(linha, COL_AUTH_MIGRATION_AT + 1).setValue(new Date().toISOString());
+    } finally {
+      lock.releaseLock();
+    }
+    return true;
+  }
+
+  return false;
 }
