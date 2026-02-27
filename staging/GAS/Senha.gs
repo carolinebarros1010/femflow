@@ -42,22 +42,43 @@ function _normalizarStatusConta_(status) {
 function _deleteRequestedLoginCopy_(langRaw) {
   const lang = String(langRaw || "pt").slice(0, 2).toLowerCase();
   const copy = {
-    pt: "Você solicitou a exclusão da sua conta. Para reverter, entre em contato: femflow.consultoria@gmail.com",
+    pt: "Você solicitou exclusão da sua conta. Para reverter, contate: femflow.consultoria@gmail.com",
     en: "You requested account deletion. To revert, contact: femflow.consultoria@gmail.com",
     fr: "Vous avez demandé la suppression du compte. Pour annuler, contactez : femflow.consultoria@gmail.com"
   };
   return copy[lang] || copy.pt;
 }
 
+function _deleteRequestedMessages_() {
+  return {
+    pt: "Você solicitou exclusão da sua conta. Para reverter, contate: femflow.consultoria@gmail.com",
+    en: "You requested account deletion. To revert, contact: femflow.consultoria@gmail.com",
+    fr: "Vous avez demandé la suppression du compte. Pour annuler, contactez : femflow.consultoria@gmail.com"
+  };
+}
+
+function _deleteRequestedAuthPayload_(langRaw) {
+  const messages = _deleteRequestedMessages_();
+  const lang = String(langRaw || "pt").slice(0, 2).toLowerCase();
+  return {
+    ok: false,
+    status: "blocked_delete_requested",
+    reason: "delete_requested",
+    accountStatus: "delete_requested",
+    messageLocalized: messages[lang] || messages.pt,
+    messages,
+    supportEmail: "femflow.consultoria@gmail.com"
+  };
+}
+
+function _isDeleteRequestedProduct_(produtoRaw) {
+  return String(produtoRaw || "").toLowerCase().trim() === "exclusao_solicitada";
+}
+
 function _statusContaBloqueiaLogin_(statusConta, lang) {
   const status = _normalizarStatusConta_(statusConta);
   if (status === "delete_requested") {
-    return {
-      ok: false,
-      status: "delete_requested",
-      messageLocalized: _deleteRequestedLoginCopy_(lang),
-      supportEmail: "femflow.consultoria@gmail.com"
-    };
+    return _deleteRequestedAuthPayload_(lang);
   }
   if (status === "bloqueada") {
     return { status: "blocked", reason: "admin_block" };
@@ -66,6 +87,11 @@ function _statusContaBloqueiaLogin_(statusConta, lang) {
     return { status: "blocked", reason: "deleted" };
   }
   return null;
+}
+
+function _produtoBloqueiaLogin_(produto, lang) {
+  if (!_isDeleteRequestedProduct_(produto)) return null;
+  return _deleteRequestedAuthPayload_(lang);
 }
 
 
@@ -151,6 +177,11 @@ function _loginOuCadastro(data) {
 
     if (emailDB === email) {
       const linha = i + 1;
+      const bloqueioConta = _statusContaBloqueiaLogin_(row[COL_STATUS_CONTA], lang);
+      if (bloqueioConta) return bloqueioConta;
+
+      const bloqueioProduto = _produtoBloqueiaLogin_(row[5], lang);
+      if (bloqueioProduto) return bloqueioProduto;
 
       let id = row[0];
       if (!id) {
@@ -476,6 +507,9 @@ function _fazerLogin(data) {
     const bloqueioConta = _statusContaBloqueiaLogin_(row[COL_STATUS_CONTA], lang);
     if (bloqueioConta) return bloqueioConta;
 
+    const bloqueioProduto = _produtoBloqueiaLogin_(row[5], lang);
+    if (bloqueioProduto) return bloqueioProduto;
+
     const conf = _senhaConfereSegura_(senha, row[4]);
     if (!conf.ok) return { status: "senha_incorreta" };
 
@@ -589,13 +623,14 @@ function resetDevice_(data) {
   return { status: "not_registered" };
 }
 
-function _assertSession_(id, deviceId, sessionToken) {
+function _assertSession_(id, deviceId, sessionToken, langRaw) {
   const sh = ensureSheet(SHEET_ALUNAS, HEADER_ALUNAS);
   if (!sh) return { ok: false, msg: "Aba Alunas não encontrada." };
 
   const idNorm = String(id || "").trim();
   const token = String(sessionToken || "").trim();
   const device = String(deviceId || "").trim();
+  const lang = String(langRaw || "pt").slice(0, 2).toLowerCase();
   if (!idNorm || !token) return { ok: false, msg: "Sessão inválida" };
 
   const rows = sh.getDataRange().getValues();
@@ -607,6 +642,19 @@ function _assertSession_(id, deviceId, sessionToken) {
     if (String(row[0] || "").trim() !== idNorm) continue;
 
     const linha = i + 1;
+    const accountStatus = _normalizarStatusConta_(row[COL_STATUS_CONTA]);
+    if (accountStatus === "delete_requested") {
+      const blockedDelete = _deleteRequestedAuthPayload_(lang);
+      return Object.assign({}, blockedDelete, { msg: blockedDelete.messageLocalized });
+    }
+    if (accountStatus === "bloqueada" || accountStatus === "excluida") {
+      return { ok: false, status: "blocked", msg: "Conta bloqueada" };
+    }
+    if (_isDeleteRequestedProduct_(row[5])) {
+      const blockedByProduct = _deleteRequestedAuthPayload_(lang);
+      return Object.assign({}, blockedByProduct, { msg: blockedByProduct.messageLocalized });
+    }
+
     const migrated = migrarLegadoParaDevicesSeNecessario_(row, nowIso);
     let devices = migrated.devices;
 
@@ -890,7 +938,7 @@ function logoutDevice_(data) {
   const deviceId = String(data.deviceId || "").trim();
   const sessionToken = String(data.sessionToken || "").trim();
 
-  const auth = _assertSession_(id, deviceId, sessionToken);
+  const auth = _assertSession_(id, deviceId, sessionToken, data.lang || data.locale);
   if (!auth.ok) return { status: "denied", msg: auth.msg || "Sessão inválida" };
 
   const rows = sh.getDataRange().getValues();
