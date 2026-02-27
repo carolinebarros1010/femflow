@@ -728,7 +728,7 @@ function aplicarAcessoCards(lista, perfil) {
     return {
       ...card,
       locked: acesso.locked,
-      isFree: acesso.isFree || undefined
+      isFree: acesso.isFree ? true : undefined
     };
   });
 }
@@ -2102,21 +2102,22 @@ document.addEventListener("DOMContentLoaded", async () => {
       String(localStorage.getItem("femflow_produto") || "").toLowerCase();
     const isVip = produto === "vip";
 
+    const perfilCardsPersonal = {
+      produto,
+      ativa: localStorage.getItem("femflow_ativa") === "true",
+      personal: perfilTemPersonal,
+      free_access: (() => {
+        const freeAccessRaw = localStorage.getItem("femflow_free_access");
+        if (!freeAccessRaw) return null;
+        try { return JSON.parse(freeAccessRaw); }
+        catch (err) { return null; }
+      })()
+    };
+
     // PERSONAL — sempre aparece:
     // - se tem personal → desbloqueado (ativa modo personal)
     // - se não tem → locked e vira propaganda CTA
     if (catalogo.personal.length === 0) {
-      const perfilCardsPersonal = {
-        produto,
-        ativa: localStorage.getItem("femflow_ativa") === "true",
-        personal: perfilTemPersonal,
-        free_access: (() => {
-          const freeAccessRaw = localStorage.getItem("femflow_free_access");
-          if (!freeAccessRaw) return null;
-          try { return JSON.parse(freeAccessRaw); }
-          catch (err) { return null; }
-        })()
-      };
 
       const cards = CARDS_PERSONAL_SIMBOLICOS.map(c => {
         if (c.enfase === "personal") {
@@ -2130,7 +2131,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     catalogo.personal.push(...cards);
   }
 
-    catalogo.personal = [...aplicarAcessoCards(CARDS_BODYINSIGHT_SIMBOLICOS, perfil), ...catalogo.personal];
+    catalogo.personal = [...aplicarAcessoCards(CARDS_BODYINSIGHT_SIMBOLICOS, perfilCardsPersonal), ...catalogo.personal];
 
     // FOLLOWME — sempre aparece como vitrine
     if (catalogo.followme.length === 0) {
