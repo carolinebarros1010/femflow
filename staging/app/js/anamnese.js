@@ -229,7 +229,6 @@ function getPerguntasTraduzidas() {
 
     leadParcial(nomeV, emailV, telV);
 
-    try { FEMFLOW.toast?.("✨ Anamnese iniciada!"); } catch {}
 
     $("#cadastro").classList.add("hidden");
     $("#quiz").classList.remove("hidden");
@@ -345,7 +344,6 @@ async function finalizarAnamnese() {
     return;
   }
 
-  FEMFLOW.toast?.("Sincronizando…");
 
   // --------------------------------------------------------
   // 3) LOGIN OU CADASTRO (HOTMART + NOVA ALUNA)

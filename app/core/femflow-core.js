@@ -574,6 +574,8 @@ FEMFLOW.trapModalFocus = function (event) {
 };
 
 FEMFLOW.setupOfflineBanner = function () {
+  const page = (location.pathname.split("/").pop() || "").toLowerCase();
+  if (page === "anamnese_deluxe.html") return;
   if (document.getElementById("ff-offline-banner")) return;
   const banner = document.createElement("div");
   banner.id = "ff-offline-banner";
