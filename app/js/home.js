@@ -1628,7 +1628,18 @@ async function garantirAcessoBodyInsight() {
 async function handleCardClick(enfase, locked) {
 
   if (locked) {
-    const checkoutTipo = enfase === "personal" || enfase === "bodyinsight" ? "personal" : "app";
+
+    // FOLLOWME mantém comportamento "Em breve"
+    if (enfase && enfase.startsWith("followme_")) {
+      FEMFLOW.toast(getFollowmeEmBreveMessage());
+      return;
+    }
+
+    const checkoutTipo =
+      enfase === "personal" || enfase === "bodyinsight"
+        ? "personal"
+        : "app";
+
     FEMFLOW.toast(msgCheckout(checkoutTipo));
     abrirCheckout(getCheckoutLink(checkoutTipo));
     return;
