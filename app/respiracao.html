@@ -107,16 +107,13 @@
 document.addEventListener("DOMContentLoaded", async () => {
 
   /* ============================================================
-     🔥 PROTEÇÃO DE ACESSO → Se não tiver login ou produto, volta para HOME
+     🔥 PROTEÇÃO DE ACESSO → Respiração é livre para sessão autenticada
   ============================================================ */
-  const produto = localStorage.getItem("femflow_produto");
-  const produtoNorm = String(produto || "").toLowerCase();
-  const isVip = produtoNorm === "vip";
-  const ativa   = isVip || localStorage.getItem("femflow_ativa") === "true";
-
-  if (!produto || !ativa) {
-    FEMFLOW.toast("Acesse a Home para continuar 🌸");
-    return FEMFLOW.router("home.html");
+  const id = localStorage.getItem("femflow_id");
+  const email = localStorage.getItem("femflow_email");
+  if (!id && !email) {
+    FEMFLOW.toast("Faça login para continuar 🌸");
+    return FEMFLOW.router("index.html");
   }
 
   /* ============================================================
