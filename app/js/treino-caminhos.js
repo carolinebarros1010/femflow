@@ -125,6 +125,52 @@ window.FEMFLOW = window.FEMFLOW || {};
     return dist.split("").map((_, idx) => inicio + idx);
   }
 
+  function distribuirPorTotalDias(totalDias) {
+    const total = Number(totalDias);
+    if (!Number.isFinite(total) || total < 2) return null;
+    if (total >= 5) return "ABCDE";
+    if (total === 4) return "ABCD";
+    if (total === 3) return "ABC";
+    return "AB";
+  }
+
+  function resolverInicioFase(rawFase) {
+    const faseMetodo = normalizarFaseMetodo(rawFase);
+    const inicio = BASE_FASE[faseMetodo];
+    return Number.isFinite(inicio) ? inicio : null;
+  }
+
+  function inferirDistribuicaoPorDiasDaFase(faseNorm, docsDias = []) {
+    const inicio = resolverInicioFase(faseNorm);
+    if (!Number.isFinite(inicio) || !Array.isArray(docsDias) || docsDias.length === 0) return null;
+
+    const diasDisponiveis = new Set();
+    docsDias.forEach((doc) => {
+      const id = String(doc?.id || "").trim().toLowerCase();
+      const match = /^dia_(\d+)$/.exec(id);
+      if (!match) return;
+      const dia = Number(match[1]);
+      if (Number.isFinite(dia)) diasDisponiveis.add(dia);
+    });
+
+    if (!diasDisponiveis.size) return null;
+
+    let consecutivos = 0;
+    for (let offset = 0; offset < 5; offset += 1) {
+      if (diasDisponiveis.has(inicio + offset)) {
+        consecutivos += 1;
+        continue;
+      }
+      break;
+    }
+
+    const porSequencia = distribuirPorTotalDias(consecutivos);
+    if (porSequencia) return porSequencia;
+
+    const dentroDaJanela = [...diasDisponiveis].filter((dia) => dia >= inicio && dia <= inicio + 4).length;
+    return distribuirPorTotalDias(dentroDaJanela);
+  }
+
   async function getDistribuicaoDoTreino(nivel, enfase, contexto = {}) {
     const nivelNorm = FEMFLOW.engineTreino?.normalizarNivel?.(nivel) || String(nivel || "").trim().toLowerCase();
     const enfaseNorm = String(enfase || "").trim().toLowerCase();
@@ -171,6 +217,21 @@ window.FEMFLOW = window.FEMFLOW || {};
             salvarDistribuicaoCache(nivelNorm, enfaseNorm, distribuicaoBloco);
             return distribuicaoBloco;
           }
+        }
+      }
+
+      // Fallback baseado no próprio Firebase: inferimos a distribuição pela
+      // quantidade de dias existentes para a fase atual na janela A..E.
+      if (faseNorm) {
+        const diasSnap = await docRef
+          .collection("fases")
+          .doc(faseNorm)
+          .collection("dias")
+          .get();
+        const distribuicaoDias = inferirDistribuicaoPorDiasDaFase(faseNorm, diasSnap.docs);
+        if (distribuicaoDias) {
+          salvarDistribuicaoCache(nivelNorm, enfaseNorm, distribuicaoDias);
+          return distribuicaoDias;
         }
       }
 
