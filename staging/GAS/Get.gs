@@ -169,6 +169,7 @@ function _validarPerfil_(params) {
       const freeAccess = _buildFreeAccess_(row);
 
       return {
+        perfilHormonal: _normalizarPerfilHormonal_(row[COL_PERFIL_HORMONAL] || "") || "regular",
         status: "ok",
         id: rowId,
         nome: row[1] || "",
