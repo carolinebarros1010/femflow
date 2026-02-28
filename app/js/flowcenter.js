@@ -883,13 +883,23 @@ async function initFlowCenter() {
     return distribuicaoState;
   };
 
+  const obterTotalCaminhos = () => {
+    const total = Number(distribuicaoState?.totalCaminhos || 0);
+    return Number.isFinite(total) && total >= 1 ? total : 5;
+  };
+
   const obterSugestaoCaminho = () => {
     const ultimo = caminhosApi?.lerUltimoCaminho?.();
     const ultimoMesmoMetodo = ultimo && ultimo.faseMetodo === faseMetodoAtual ? ultimo : null;
-    const ultimoCaminho = ultimoMesmoMetodo?.caminho || 1;
-    const sugerido = ultimoMesmoMetodo
-      ? (caminhosApi?.proximoCaminho?.(ultimoCaminho, distribuicaoState.totalCaminhos) || 1)
-      : 1;
+    const totalCaminhos = obterTotalCaminhos();
+
+    // Primeiro acesso ao card/plano: sem histórico salvo, sempre inicia sugerindo Treino 1.
+    if (!ultimoMesmoMetodo) {
+      return { ultimo: null, ultimoCaminho: 1, sugerido: 1 };
+    }
+
+    const ultimoCaminho = Number(ultimoMesmoMetodo.caminho) || 1;
+    const sugerido = caminhosApi?.proximoCaminho?.(ultimoCaminho, totalCaminhos) || 1;
     return { ultimo: ultimoMesmoMetodo, ultimoCaminho, sugerido };
   };
 
@@ -900,7 +910,7 @@ async function initFlowCenter() {
 
     await carregarDistribuicaoTreino();
 
-    const { ultimo, ultimoCaminho, sugerido } = obterSugestaoCaminho();
+    const { ultimo, sugerido } = obterSugestaoCaminho();
     if (modalCaminhosUltimo) {
       modalCaminhosUltimo.textContent = t("flowcenter.caminhosUltimoTreino", {
         caminho: ultimo ? ultimo.caminho : 1
@@ -916,7 +926,8 @@ async function initFlowCenter() {
     }
 
     modalCaminhosBotoes.innerHTML = "";
-    for (let caminho = 1; caminho <= distribuicaoState.totalCaminhos; caminho += 1) {
+    const totalCaminhos = obterTotalCaminhos();
+    for (let caminho = 1; caminho <= totalCaminhos; caminho += 1) {
       const btn = document.createElement("button");
       btn.type = "button";
       btn.className = `caminho-btn${caminho === sugerido ? " is-sugerido" : ""}`;
