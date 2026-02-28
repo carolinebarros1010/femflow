@@ -888,6 +888,13 @@ async function initFlowCenter() {
 
   const carregarDistribuicaoTreino = async () => {
     const distribuicaoPerfilOuLocal = getDistribuicaoPerfilOuLocal();
+    console.log("[flowcenter] carregarDistribuicaoTreino:start", {
+      distribuicaoPerfilOuLocal,
+      faseMetodoAtual,
+      diaCiclo: ciclo.diaCiclo,
+      enfase: localStorage.getItem("femflow_enfase") || "",
+      nivel: perfil.nivel || localStorage.getItem("femflow_nivel") || ""
+    });
 
     if (!caminhosApi?.getDistribuicaoDoTreino) {
       if (distribuicaoPerfilOuLocal) {
@@ -911,9 +918,19 @@ async function initFlowCenter() {
     }
 
     const fallback = caminhosApi?.DISTRIBUICAO_FALLBACK || "ABCDE";
+    console.log("[flowcenter] getDistribuicaoDoTreino:request", {
+      nivel,
+      enfase,
+      fase: faseMetodoAtual,
+      diaCiclo: ciclo.diaCiclo
+    });
     const distribuicao = await caminhosApi.getDistribuicaoDoTreino(nivel, enfase, {
       fase: faseMetodoAtual,
       diaCiclo: ciclo.diaCiclo
+    });
+    console.log("[flowcenter] getDistribuicaoDoTreino:response", {
+      distribuicao,
+      fallback
     });
     const distribuicaoResolvida = caminhosApi.normalizarDistribuicao(distribuicao);
 
@@ -931,6 +948,10 @@ async function initFlowCenter() {
     }
 
     distribuicaoState.totalCaminhos = distribuicaoState.valor.length;
+    console.log("[flowcenter] carregarDistribuicaoTreino:resolved", {
+      distribuicao: distribuicaoState.valor,
+      totalCaminhos: distribuicaoState.totalCaminhos
+    });
     return distribuicaoState;
   };
 
@@ -955,7 +976,9 @@ async function initFlowCenter() {
   };
 
   const abrirModalEscolhaCaminho = async () => {
+    console.log("[flowcenter] abrirModalEscolhaCaminho:trigger");
     if (!caminhosApi || !modalCaminhosEscolha || !modalCaminhosBotoes) {
+      console.warn("[flowcenter] abrirModalEscolhaCaminho sem dependências, roteando para treino.html");
       return FEMFLOW.router("treino.html");
     }
 
@@ -1794,6 +1817,15 @@ async function initFlowCenter() {
   });
 
   document.getElementById("toTrain").onclick = () => {
+    console.log("[flowcenter] toTrain:click", {
+      isCustomTreino,
+      personal,
+      produtoRaw,
+      isVip,
+      isFollow,
+      isApp,
+      enfase: localStorage.getItem("femflow_enfase") || null
+    });
     if (isCustomTreino) {
       FEMFLOW.toast("Monte seu treino está ativo.");
       return;
