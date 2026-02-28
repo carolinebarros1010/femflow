@@ -475,7 +475,7 @@ async function initFlowCenter() {
   const freeValido  = freeEnabled && freeUntil && freeUntil >= new Date();
   const freeEnfases = (freeAccess?.enfases || []).map(e => e.toLowerCase());
   const freeOkUI = Boolean(enfaseAtualUI) && freeValido && freeEnfases.includes(enfaseAtualUI);
-  const treinoAcessoOk = personal || acessoAtivo || freeOkUI;
+  const treinoAcessoOk = hasPersonal || personal || acessoAtivo || freeOkUI;
   const isCustomTreino = localStorage.getItem("femflow_custom_treino") === "true";
 
   /* ============================================================
@@ -1699,7 +1699,7 @@ async function initFlowCenter() {
 
     const freeOk = freeValido && freeEnfases.includes(enfase);
 
-    if (!acessoAtivo && !freeOk) {
+    if (!hasPersonal && !acessoAtivo && !freeOk) {
       FEMFLOW.toast(msgCheckout("app"));
       abrirCheckout(getCheckoutLink("app"));
       return;
