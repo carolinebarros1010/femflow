@@ -759,6 +759,7 @@ async function initFlowCenter() {
 
 
   const DISTRIBUICOES_VALIDAS = new Set(["AB", "ABC", "ABCD", "ABCDE"]);
+  const STORAGE_DISTRIBUICAO_REF = "femflow_distribuicao_treino_ref";
 
   const extrairDistribuicaoLocal = (...candidatos) => {
     for (const candidato of candidatos) {
@@ -767,6 +768,28 @@ async function initFlowCenter() {
       if (DISTRIBUICOES_VALIDAS.has(valor)) return valor;
     }
     return null;
+  };
+
+  const getDistribuicaoRefAtual = () => {
+    const nivel = String(perfil?.nivel || localStorage.getItem("femflow_nivel") || "").trim().toLowerCase();
+    const enfaseAtual = String(localStorage.getItem("femflow_enfase") || "").trim().toLowerCase();
+    const enfaseBase = String(localStorage.getItem("femflow_enfase_base") || "").trim().toLowerCase();
+    const enfase = (FEMFLOW.engineTreino?.isExtraEnfase?.(enfaseAtual) && enfaseBase) ? enfaseBase : enfaseAtual;
+    if (!nivel || !enfase) return "";
+    return `${nivel}_${enfase}`;
+  };
+
+  const salvarDistribuicaoLocalAtual = (distribuicao) => {
+    const distribuicaoNorm = extrairDistribuicaoLocal(distribuicao);
+    const refAtual = getDistribuicaoRefAtual();
+    if (!distribuicaoNorm || !refAtual) return;
+    localStorage.setItem("femflow_distribuicao_treino", distribuicaoNorm);
+    localStorage.setItem(STORAGE_DISTRIBUICAO_REF, refAtual);
+  };
+
+  const limparDistribuicaoLocalAtual = () => {
+    localStorage.removeItem("femflow_distribuicao_treino");
+    localStorage.removeItem(STORAGE_DISTRIBUICAO_REF);
   };
 
   const getDistribuicaoCachePorNivelEnfase = () => {
@@ -791,16 +814,16 @@ async function initFlowCenter() {
       perfil?.split
     );
 
-    const localDistribuicao = extrairDistribuicaoLocal(
-      localStorage.getItem("femflow_distribuicao_treino") || "",
-      localStorage.getItem("femflow_tipo_treino") || "",
-      localStorage.getItem("femflow_caminhos") || ""
-    );
+    const refAtual = getDistribuicaoRefAtual();
+    const refSalva = String(localStorage.getItem(STORAGE_DISTRIBUICAO_REF) || "").trim().toLowerCase();
+    const localDistribuicao = refAtual && refSalva === refAtual
+      ? extrairDistribuicaoLocal(localStorage.getItem("femflow_distribuicao_treino") || "")
+      : null;
 
     const distribuicaoCacheTreino = getDistribuicaoCachePorNivelEnfase();
-    const distribuicao = perfilDistribuicao || localDistribuicao || distribuicaoCacheTreino || null;
+    const distribuicao = perfilDistribuicao || distribuicaoCacheTreino || localDistribuicao || null;
     if (distribuicao) {
-      localStorage.setItem("femflow_distribuicao_treino", distribuicao);
+      salvarDistribuicaoLocalAtual(distribuicao);
     }
     return distribuicao;
   };
@@ -878,20 +901,33 @@ async function initFlowCenter() {
     const enfaseAtual = localStorage.getItem("femflow_enfase") || "";
     const enfaseBase = localStorage.getItem("femflow_enfase_base") || "";
     const enfase = (FEMFLOW.engineTreino?.isExtraEnfase?.(enfaseAtual) && enfaseBase) ? enfaseBase : enfaseAtual;
+
+    if (!nivel || !enfase || FEMFLOW.engineTreino?.isExtraEnfase?.(enfase)) {
+      if (distribuicaoPerfilOuLocal) {
+        distribuicaoState.valor = distribuicaoPerfilOuLocal;
+        distribuicaoState.totalCaminhos = distribuicaoPerfilOuLocal.length;
+      }
+      return distribuicaoState;
+    }
+
+    const fallback = caminhosApi?.DISTRIBUICAO_FALLBACK || "ABCDE";
     const distribuicao = await caminhosApi.getDistribuicaoDoTreino(nivel, enfase, {
       fase: faseMetodoAtual,
       diaCiclo: ciclo.diaCiclo
     });
-
     const distribuicaoResolvida = caminhosApi.normalizarDistribuicao(distribuicao);
-    const fallback = caminhosApi?.DISTRIBUICAO_FALLBACK || "ABCDE";
 
-    // Se o Firestore falhar e voltar fallback puro, usa pista do perfil/local para não travar em 5.
+    // Contrato: para card normal sempre tentamos Firebase primeiro;
+    // fallback local/perfil só entra quando o retorno é fallback puro.
     if (distribuicaoResolvida === fallback && distribuicaoPerfilOuLocal) {
       distribuicaoState.valor = distribuicaoPerfilOuLocal;
+      salvarDistribuicaoLocalAtual(distribuicaoPerfilOuLocal);
+    } else if (distribuicaoResolvida === fallback) {
+      distribuicaoState.valor = fallback;
+      limparDistribuicaoLocalAtual();
     } else {
       distribuicaoState.valor = distribuicaoResolvida;
-      localStorage.setItem("femflow_distribuicao_treino", distribuicaoResolvida);
+      salvarDistribuicaoLocalAtual(distribuicaoResolvida);
     }
 
     distribuicaoState.totalCaminhos = distribuicaoState.valor.length;
