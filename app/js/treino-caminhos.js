@@ -90,6 +90,29 @@ window.FEMFLOW = window.FEMFLOW || {};
       if (valor) return valor;
     }
 
+    // Fallback resiliente: alguns ambientes aninham a distribuição
+    // em objetos internos (ex.: config.distribuicao, treino.split, etc.).
+    const visitados = new Set();
+    const fila = [raw];
+
+    while (fila.length) {
+      const atual = fila.shift();
+      if (!atual || typeof atual !== "object") continue;
+      if (visitados.has(atual)) continue;
+      visitados.add(atual);
+
+      for (const valor of Object.values(atual)) {
+        if (typeof valor === "string") {
+          const maybe = valor.trim().toUpperCase();
+          if (DISTRIBUICOES_VALIDAS.has(maybe)) return maybe;
+          continue;
+        }
+        if (valor && typeof valor === "object") {
+          fila.push(valor);
+        }
+      }
+    }
+
     return null;
   }
 
