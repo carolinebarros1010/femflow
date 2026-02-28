@@ -319,7 +319,7 @@ function persistPerfil(perfil) {
   );
 
   // ciclo + programa (CRÍTICO)
-  localStorage.setItem("femflow_perfilHormonal", String(perfil.perfilHormonal || "regular").toLowerCase());
+  localStorage.setItem("femflow_perfilHormonal", FEMFLOW.normalizePerfilHormonal(perfil.perfilHormonal));
   localStorage.setItem("femflow_cycleLength", String(perfil.ciclo_duracao || 28));
   localStorage.setItem("femflow_fase", String(perfil.fase || "follicular").toLowerCase());
   localStorage.setItem("femflow_diaCiclo", String(perfil.diaCiclo || 1));
