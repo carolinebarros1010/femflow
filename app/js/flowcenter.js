@@ -757,6 +757,41 @@ async function initFlowCenter() {
     totalCaminhos: 5
   };
 
+
+  const DISTRIBUICOES_VALIDAS = new Set(["AB", "ABC", "ABCD", "ABCDE"]);
+
+  const extrairDistribuicaoLocal = (...candidatos) => {
+    for (const candidato of candidatos) {
+      if (typeof candidato !== "string") continue;
+      const valor = candidato.trim().toUpperCase();
+      if (DISTRIBUICOES_VALIDAS.has(valor)) return valor;
+    }
+    return null;
+  };
+
+  const getDistribuicaoPerfilOuLocal = () => {
+    const perfilDistribuicao = extrairDistribuicaoLocal(
+      perfil?.distribuicao,
+      perfil?.distribuição,
+      perfil?.tipo_treino,
+      perfil?.tipoTreino,
+      perfil?.caminhos,
+      perfil?.split
+    );
+
+    const localDistribuicao = extrairDistribuicaoLocal(
+      localStorage.getItem("femflow_distribuicao_treino") || "",
+      localStorage.getItem("femflow_tipo_treino") || "",
+      localStorage.getItem("femflow_caminhos") || ""
+    );
+
+    const distribuicao = perfilDistribuicao || localDistribuicao || null;
+    if (distribuicao) {
+      localStorage.setItem("femflow_distribuicao_treino", distribuicao);
+    }
+    return distribuicao;
+  };
+
   const closeEnduranceInfoTooltip = () => {
     modalEnduranceRitmoInfo?.setAttribute("data-open", "false");
   };
@@ -816,16 +851,34 @@ async function initFlowCenter() {
   };
 
   const carregarDistribuicaoTreino = async () => {
+    const distribuicaoPerfilOuLocal = getDistribuicaoPerfilOuLocal();
+
     if (!caminhosApi?.getDistribuicaoDoTreino) {
+      if (distribuicaoPerfilOuLocal) {
+        distribuicaoState.valor = distribuicaoPerfilOuLocal;
+        distribuicaoState.totalCaminhos = distribuicaoPerfilOuLocal.length;
+      }
       return distribuicaoState;
     }
+
     const nivel = perfil.nivel || localStorage.getItem("femflow_nivel") || "";
     const enfase = localStorage.getItem("femflow_enfase") || "";
     const distribuicao = await caminhosApi.getDistribuicaoDoTreino(nivel, enfase, {
       fase: faseMetodoAtual,
       diaCiclo: ciclo.diaCiclo
     });
-    distribuicaoState.valor = caminhosApi.normalizarDistribuicao(distribuicao);
+
+    const distribuicaoResolvida = caminhosApi.normalizarDistribuicao(distribuicao);
+    const fallback = caminhosApi?.DISTRIBUICAO_FALLBACK || "ABCDE";
+
+    // Se o Firestore falhar e voltar fallback puro, usa pista do perfil/local para não travar em 5.
+    if (distribuicaoResolvida === fallback && distribuicaoPerfilOuLocal) {
+      distribuicaoState.valor = distribuicaoPerfilOuLocal;
+    } else {
+      distribuicaoState.valor = distribuicaoResolvida;
+      localStorage.setItem("femflow_distribuicao_treino", distribuicaoResolvida);
+    }
+
     distribuicaoState.totalCaminhos = distribuicaoState.valor.length;
     return distribuicaoState;
   };

@@ -25,6 +25,7 @@ window.FEMFLOW = window.FEMFLOW || {};
 
 (() => {
   const STORAGE_KEY = "femflow_last_caminho";
+  const STORAGE_DISTRIBUICAO_PREFIX = "femflow_distribuicao_cache";
   const DISTRIBUICAO_FALLBACK = "ABCDE";
   const DISTRIBUICOES_VALIDAS = new Set(["AB", "ABC", "ABCD", "ABCDE"]);
   const BASE_FASE = {
@@ -37,6 +38,59 @@ window.FEMFLOW = window.FEMFLOW || {};
   function normalizarDistribuicao(raw) {
     const valor = typeof raw === "string" ? raw.trim().toUpperCase() : "";
     return DISTRIBUICOES_VALIDAS.has(valor) ? valor : DISTRIBUICAO_FALLBACK;
+  }
+
+
+
+  function getDistribuicaoCacheKey(nivelNorm, enfaseNorm) {
+    return `${STORAGE_DISTRIBUICAO_PREFIX}_${nivelNorm}_${enfaseNorm}`;
+  }
+
+  function lerDistribuicaoCache(nivelNorm, enfaseNorm) {
+    try {
+      const key = getDistribuicaoCacheKey(nivelNorm, enfaseNorm);
+      const raw = localStorage.getItem(key) || "";
+      const valor = normalizarDistribuicao(raw);
+      return DISTRIBUICOES_VALIDAS.has(valor) ? valor : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function salvarDistribuicaoCache(nivelNorm, enfaseNorm, distribuicao) {
+    try {
+      const valor = normalizarDistribuicao(distribuicao);
+      if (!DISTRIBUICOES_VALIDAS.has(valor)) return false;
+      const key = getDistribuicaoCacheKey(nivelNorm, enfaseNorm);
+      localStorage.setItem(key, valor);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+  function extrairDistribuicaoDeFonte(raw) {
+    if (typeof raw === "string") {
+      const valor = raw.trim().toUpperCase();
+      return DISTRIBUICOES_VALIDAS.has(valor) ? valor : null;
+    }
+
+    if (!raw || typeof raw !== "object") return null;
+
+    const candidatos = [
+      raw.distribuicao,
+      raw.distribuição,
+      raw.tipo_treino,
+      raw.tipoTreino,
+      raw.caminhos,
+      raw.split
+    ];
+
+    for (const candidato of candidatos) {
+      const valor = extrairDistribuicaoDeFonte(candidato);
+      if (valor) return valor;
+    }
+
+    return null;
   }
 
   function gerarDiasPorFase(faseMetodo, distribuicao) {
@@ -55,6 +109,8 @@ window.FEMFLOW = window.FEMFLOW || {};
       return DISTRIBUICAO_FALLBACK;
     }
 
+    const distribuicaoCache = lerDistribuicaoCache(nivelNorm, enfaseNorm);
+
     const faseNorm = FEMFLOW.engineTreino?.normalizarFase?.(contexto?.fase || "") || "";
     const diaNum = Number(contexto?.diaCiclo);
     const diaKey = Number.isFinite(diaNum) && diaNum > 0 ? `dia_${diaNum}` : "";
@@ -65,10 +121,12 @@ window.FEMFLOW = window.FEMFLOW || {};
         .doc(`${nivelNorm}_${enfaseNorm}`);
 
       const treinoSnap = await docRef.get();
-      const distribuicaoTreino = normalizarDistribuicao(treinoSnap.data()?.distribuicao);
+      const treinoData = treinoSnap.data() || {};
+      const distribuicaoTreino = extrairDistribuicaoDeFonte(treinoData);
 
-      // Se o documento principal já traz distribuição válida, prioriza esse contrato.
-      if (DISTRIBUICOES_VALIDAS.has(String(treinoSnap.data()?.distribuicao || "").trim().toUpperCase())) {
+      // Contrato principal: distribuição pode chegar em `distribuicao` ou aliases legados.
+      if (distribuicaoTreino) {
+        salvarDistribuicaoCache(nivelNorm, enfaseNorm, distribuicaoTreino);
         return distribuicaoTreino;
       }
 
@@ -84,15 +142,18 @@ window.FEMFLOW = window.FEMFLOW || {};
           .get();
 
         if (!blocosSnap.empty) {
-          const distribuicaoBloco = normalizarDistribuicao(blocosSnap.docs[0]?.data()?.distribuicao);
-          return distribuicaoBloco;
+          const distribuicaoBloco = extrairDistribuicaoDeFonte(blocosSnap.docs[0]?.data());
+          if (distribuicaoBloco) {
+            salvarDistribuicaoCache(nivelNorm, enfaseNorm, distribuicaoBloco);
+            return distribuicaoBloco;
+          }
         }
       }
 
-      return distribuicaoTreino;
+      return distribuicaoCache || DISTRIBUICAO_FALLBACK;
     } catch (err) {
       console.warn("[treino-caminhos] falha ao buscar distribuicao, usando fallback", err);
-      return DISTRIBUICAO_FALLBACK;
+      return distribuicaoCache || DISTRIBUICAO_FALLBACK;
     }
   }
 
