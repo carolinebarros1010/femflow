@@ -236,7 +236,8 @@ window.FEMFLOW = window.FEMFLOW || {};
       }
 
       // Fallback baseado no próprio Firebase sem listagem de coleção (evita
-      // bloqueio por regras de segurança de `list`): checamos docs dia_A..dia_E.
+      // bloqueio por regras de segurança de `list`): checamos se cada dia da
+      // janela A..E possui ao menos 1 bloco real de treino.
       if (faseNorm) {
         const inicioFase = resolverInicioFase(faseNorm);
         if (Number.isFinite(inicioFase)) {
@@ -249,7 +250,20 @@ window.FEMFLOW = window.FEMFLOW || {};
           for (let offset = 0; offset < 5; offset += 1) {
             const dia = inicioFase + offset;
             checks.push(
-              diasRef.doc(`dia_${dia}`).get().then((snap) => ({ dia, existe: snap.exists }))
+              diasRef
+                .doc(`dia_${dia}`)
+                .collection("blocos")
+                .limit(1)
+                .get()
+                .then((snap) => ({ dia, existe: !snap.empty }))
+                .catch((err) => {
+                  console.warn("[treino-caminhos] erro ao verificar blocos do dia no fallback", {
+                    ...logCtx,
+                    dia,
+                    erro: err?.message || String(err)
+                  });
+                  return { dia, existe: false };
+                })
             );
           }
 
