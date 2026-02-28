@@ -140,20 +140,9 @@ window.FEMFLOW = window.FEMFLOW || {};
     return Number.isFinite(inicio) ? inicio : null;
   }
 
-  function inferirDistribuicaoPorDiasDaFase(faseNorm, docsDias = []) {
+  function inferirDistribuicaoPorDiasDisponiveis(faseNorm, diasDisponiveis) {
     const inicio = resolverInicioFase(faseNorm);
-    if (!Number.isFinite(inicio) || !Array.isArray(docsDias) || docsDias.length === 0) return null;
-
-    const diasDisponiveis = new Set();
-    docsDias.forEach((doc) => {
-      const id = String(doc?.id || "").trim().toLowerCase();
-      const match = /^dia_(\d+)$/.exec(id);
-      if (!match) return;
-      const dia = Number(match[1]);
-      if (Number.isFinite(dia)) diasDisponiveis.add(dia);
-    });
-
-    if (!diasDisponiveis.size) return null;
+    if (!Number.isFinite(inicio) || !(diasDisponiveis instanceof Set) || !diasDisponiveis.size) return null;
 
     let consecutivos = 0;
     for (let offset = 0; offset < 5; offset += 1) {
@@ -171,6 +160,21 @@ window.FEMFLOW = window.FEMFLOW || {};
     return distribuirPorTotalDias(dentroDaJanela);
   }
 
+  function inferirDistribuicaoPorDiasDaFase(faseNorm, docsDias = []) {
+    if (!Array.isArray(docsDias) || docsDias.length === 0) return null;
+
+    const diasDisponiveis = new Set();
+    docsDias.forEach((doc) => {
+      const id = String(doc?.id || "").trim().toLowerCase();
+      const match = /^dia_(\d+)$/.exec(id);
+      if (!match) return;
+      const dia = Number(match[1]);
+      if (Number.isFinite(dia)) diasDisponiveis.add(dia);
+    });
+
+    return inferirDistribuicaoPorDiasDisponiveis(faseNorm, diasDisponiveis);
+  }
+
   async function getDistribuicaoDoTreino(nivel, enfase, contexto = {}) {
     const nivelNorm = FEMFLOW.engineTreino?.normalizarNivel?.(nivel) || String(nivel || "").trim().toLowerCase();
     const enfaseNorm = String(enfase || "").trim().toLowerCase();
@@ -184,6 +188,7 @@ window.FEMFLOW = window.FEMFLOW || {};
     const faseNorm = FEMFLOW.engineTreino?.normalizarFase?.(contexto?.fase || "") || "";
     const diaNum = Number(contexto?.diaCiclo);
     const diaKey = Number.isFinite(diaNum) && diaNum > 0 ? `dia_${diaNum}` : "";
+    const logCtx = { nivel: nivelNorm, enfase: enfaseNorm, fase: faseNorm || null, diaKey: diaKey || null };
 
     try {
       const docRef = firebase.firestore()
@@ -196,6 +201,11 @@ window.FEMFLOW = window.FEMFLOW || {};
 
       // Contrato principal: distribuição pode chegar em `distribuicao` ou aliases legados.
       if (distribuicaoTreino) {
+        console.info("[treino-caminhos] distribuicao lida no documento principal", {
+          ...logCtx,
+          fonte: "doc_principal",
+          distribuicao: distribuicaoTreino
+        });
         salvarDistribuicaoCache(nivelNorm, enfaseNorm, distribuicaoTreino);
         return distribuicaoTreino;
       }
@@ -214,31 +224,68 @@ window.FEMFLOW = window.FEMFLOW || {};
         if (!blocosSnap.empty) {
           const distribuicaoBloco = extrairDistribuicaoDeFonte(blocosSnap.docs[0]?.data());
           if (distribuicaoBloco) {
+            console.info("[treino-caminhos] distribuicao lida no bloco legado", {
+              ...logCtx,
+              fonte: "bloco_legado",
+              distribuicao: distribuicaoBloco
+            });
             salvarDistribuicaoCache(nivelNorm, enfaseNorm, distribuicaoBloco);
             return distribuicaoBloco;
           }
         }
       }
 
-      // Fallback baseado no próprio Firebase: inferimos a distribuição pela
-      // quantidade de dias existentes para a fase atual na janela A..E.
+      // Fallback baseado no próprio Firebase sem listagem de coleção (evita
+      // bloqueio por regras de segurança de `list`): checamos docs dia_A..dia_E.
       if (faseNorm) {
-        const diasSnap = await docRef
-          .collection("fases")
-          .doc(faseNorm)
-          .collection("dias")
-          .get();
-        const distribuicaoDias = inferirDistribuicaoPorDiasDaFase(faseNorm, diasSnap.docs);
-        if (distribuicaoDias) {
-          salvarDistribuicaoCache(nivelNorm, enfaseNorm, distribuicaoDias);
-          return distribuicaoDias;
+        const inicioFase = resolverInicioFase(faseNorm);
+        if (Number.isFinite(inicioFase)) {
+          const diasRef = docRef
+            .collection("fases")
+            .doc(faseNorm)
+            .collection("dias");
+
+          const checks = [];
+          for (let offset = 0; offset < 5; offset += 1) {
+            const dia = inicioFase + offset;
+            checks.push(
+              diasRef.doc(`dia_${dia}`).get().then((snap) => ({ dia, existe: snap.exists }))
+            );
+          }
+
+          const checksDias = await Promise.all(checks);
+          const diasDisponiveis = new Set(checksDias.filter((item) => item?.existe).map((item) => item.dia));
+          const distribuicaoDias = inferirDistribuicaoPorDiasDisponiveis(faseNorm, diasDisponiveis);
+          if (distribuicaoDias) {
+            console.info("[treino-caminhos] distribuicao inferida por docs dia_X", {
+              ...logCtx,
+              fonte: "fallback_dias",
+              inicioFase,
+              diasDisponiveis: Array.from(diasDisponiveis).sort((a, b) => a - b),
+              distribuicao: distribuicaoDias
+            });
+            salvarDistribuicaoCache(nivelNorm, enfaseNorm, distribuicaoDias);
+            return distribuicaoDias;
+          }
         }
       }
 
-      return distribuicaoCache || DISTRIBUICAO_FALLBACK;
+      const distribuicaoFinal = distribuicaoCache || DISTRIBUICAO_FALLBACK;
+      console.warn("[treino-caminhos] fallback aplicado (sem leitura de distribuicao no Firebase)", {
+        ...logCtx,
+        fonte: distribuicaoCache ? "cache_local" : "fallback_constante",
+        distribuicao: distribuicaoFinal
+      });
+      return distribuicaoFinal;
     } catch (err) {
-      console.warn("[treino-caminhos] falha ao buscar distribuicao, usando fallback", err);
-      return distribuicaoCache || DISTRIBUICAO_FALLBACK;
+      const distribuicaoFinal = distribuicaoCache || DISTRIBUICAO_FALLBACK;
+      console.warn("[treino-caminhos] erro na leitura de distribuicao, usando fallback", {
+        ...logCtx,
+        fonte: distribuicaoCache ? "cache_local" : "fallback_constante",
+        distribuicao: distribuicaoFinal,
+        erro: err?.message || String(err)
+      });
+      return distribuicaoFinal;
     }
   }
 
