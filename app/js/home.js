@@ -1337,6 +1337,11 @@ function getCheckoutLink(tipo) {
     : (typeof LINK_ACESSO_APP !== "undefined" ? LINK_ACESSO_APP : fallbackAcesso);
 }
 
+function limparEstadoCustomTreino() {
+  localStorage.removeItem(CUSTOM_TREINO_KEY);
+  localStorage.removeItem(CUSTOM_BLOCOS_KEY);
+}
+
 /* ============================================================
    MODAL — CONFIRMAÇÃO DE NOVO PROGRAMA
 =========================================================== */
@@ -1667,6 +1672,10 @@ async function handleCardClick(enfase, locked) {
     abrirModalCustomConfirmacao();
     return;
   }
+
+  // Ao escolher qualquer card normal, desativa o estado do treino custom
+  // para evitar bloqueio indevido do botão principal no FlowCenter.
+  limparEstadoCustomTreino();
 
   /* =========================================
      🧭 PERSONAL DESBLOQUEADO = ativa modo e vai pro FLOWCENTER
