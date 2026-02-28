@@ -769,6 +769,18 @@ async function initFlowCenter() {
     return null;
   };
 
+  const getDistribuicaoCachePorNivelEnfase = () => {
+    const nivel = String(perfil?.nivel || localStorage.getItem("femflow_nivel") || "").trim().toLowerCase();
+    const enfaseAtual = String(localStorage.getItem("femflow_enfase") || "").trim().toLowerCase();
+    const enfaseBase = String(localStorage.getItem("femflow_enfase_base") || "").trim().toLowerCase();
+    const enfase = (FEMFLOW.engineTreino?.isExtraEnfase?.(enfaseAtual) && enfaseBase) ? enfaseBase : enfaseAtual;
+    if (!nivel || !enfase) return null;
+
+    const key = `femflow_distribuicao_cache_${nivel}_${enfase}`;
+    const valor = extrairDistribuicaoLocal(localStorage.getItem(key) || "");
+    return valor || null;
+  };
+
   const getDistribuicaoPerfilOuLocal = () => {
     const perfilDistribuicao = extrairDistribuicaoLocal(
       perfil?.distribuicao,
@@ -785,7 +797,8 @@ async function initFlowCenter() {
       localStorage.getItem("femflow_caminhos") || ""
     );
 
-    const distribuicao = perfilDistribuicao || localDistribuicao || null;
+    const distribuicaoCacheTreino = getDistribuicaoCachePorNivelEnfase();
+    const distribuicao = perfilDistribuicao || localDistribuicao || distribuicaoCacheTreino || null;
     if (distribuicao) {
       localStorage.setItem("femflow_distribuicao_treino", distribuicao);
     }
@@ -862,7 +875,9 @@ async function initFlowCenter() {
     }
 
     const nivel = perfil.nivel || localStorage.getItem("femflow_nivel") || "";
-    const enfase = localStorage.getItem("femflow_enfase") || "";
+    const enfaseAtual = localStorage.getItem("femflow_enfase") || "";
+    const enfaseBase = localStorage.getItem("femflow_enfase_base") || "";
+    const enfase = (FEMFLOW.engineTreino?.isExtraEnfase?.(enfaseAtual) && enfaseBase) ? enfaseBase : enfaseAtual;
     const distribuicao = await caminhosApi.getDistribuicaoDoTreino(nivel, enfase, {
       fase: faseMetodoAtual,
       diaCiclo: ciclo.diaCiclo
