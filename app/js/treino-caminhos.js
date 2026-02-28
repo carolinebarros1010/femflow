@@ -49,8 +49,9 @@ window.FEMFLOW = window.FEMFLOW || {};
   function lerDistribuicaoCache(nivelNorm, enfaseNorm) {
     try {
       const key = getDistribuicaoCacheKey(nivelNorm, enfaseNorm);
-      const raw = localStorage.getItem(key) || "";
-      const valor = normalizarDistribuicao(raw);
+      const raw = localStorage.getItem(key);
+      if (typeof raw !== "string") return null;
+      const valor = raw.trim().toUpperCase();
       return DISTRIBUICOES_VALIDAS.has(valor) ? valor : null;
     } catch (_) {
       return null;
