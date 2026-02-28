@@ -153,11 +153,15 @@ async function salvarTreinosSemana(valor) {
 async function garantirTreinosSemana() {
   const valorRaw = localStorage.getItem(TREINOS_SEMANA_KEY);
   const valor = Number(valorRaw);
-  if (Number.isFinite(valor) && valor >= 1 && valor <= 7) return true;
-  if (valorRaw != null) {
-    localStorage.removeItem(TREINOS_SEMANA_KEY);
+
+  if (Number.isFinite(valor) && valor >= 1 && valor <= 7) {
+    treinosSemanaSelecionado = valor;
+  } else {
+    if (valorRaw != null) {
+      localStorage.removeItem(TREINOS_SEMANA_KEY);
+    }
+    treinosSemanaSelecionado = null;
   }
-  treinosSemanaSelecionado = null;
 
   const aprovado = await abrirModalTreinosSemana();
   return aprovado === true;
