@@ -574,6 +574,15 @@ FEMFLOW.inserirHeaderApp = function () {
    🌸 COMMIT DE MUDANÇAS ESTRUTURAIS (NÍVEL / CICLO)
    Fonte da verdade: BACKEND
 =========================================================== */
+FEMFLOW.normalizePerfilHormonal = function (perfil, fallback = "regular") {
+  const p = String(perfil || "").trim().toLowerCase();
+  if (!p || p === "undefined" || p === "null") return fallback;
+  if (p === "contraceptivo") return "diu";
+  if (p === "diuhormonal") return "diu_hormonal";
+  if (p.endsWith("_quiz")) return p.replace(/_quiz$/, "");
+  return p;
+};
+
 FEMFLOW.commitMudanca = async function ({ tipo, payload = {} }) {
   const id = localStorage.getItem("femflow_id");
   if (!id) return;
@@ -632,7 +641,7 @@ FEMFLOW.commitMudanca = async function ({ tipo, payload = {} }) {
       });
 
       if (payload.perfilHormonal) {
-        localStorage.setItem("femflow_perfilHormonal", payload.perfilHormonal);
+        localStorage.setItem("femflow_perfilHormonal", FEMFLOW.normalizePerfilHormonal(payload.perfilHormonal));
       }
 
       if (payload.startDate) {
@@ -669,7 +678,7 @@ FEMFLOW.carregarCicloBackend = async function () {
     // Dados hormonais — sem alterar produto/ativa/personal
     localStorage.setItem("femflow_fase", resp.fase);
     localStorage.setItem("femflow_diaCiclo", resp.diaCiclo);
-    localStorage.setItem("femflow_perfilHormonal", resp.perfilHormonal);
+    localStorage.setItem("femflow_perfilHormonal", FEMFLOW.normalizePerfilHormonal(resp.perfilHormonal));
     if (resp.nivel) {
       localStorage.setItem("femflow_nivel", resp.nivel);
     }
@@ -1079,7 +1088,7 @@ FEMFLOW.carregarPerfil = async function () {
     }
     localStorage.setItem("femflow_startDate", r.data_inicio);
     localStorage.setItem("femflow_cycleLength", r.ciclo_duracao);
-    localStorage.setItem("femflow_perfilHormonal", r.perfilHormonal);
+    localStorage.setItem("femflow_perfilHormonal", FEMFLOW.normalizePerfilHormonal(r.perfilHormonal));
 
     const produtoRaw = (r.produto || "").toLowerCase().trim();
     const isVip = produtoRaw === "vip";

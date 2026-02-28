@@ -113,6 +113,16 @@ function _resolveHeaderIndex_(header, name, fallback) {
   return fallback;
 }
 
+function _normalizarPerfilHormonal_(perfil) {
+  const p = String(perfil || "").trim().toLowerCase();
+  if (!p || p === "undefined" || p === "null") return "";
+
+  if (p === "contraceptivo") return "diu";
+  if (p === "diuhormonal") return "diu_hormonal";
+  if (p.endsWith("_quiz")) return p.replace(/_quiz$/, "");
+  return p;
+}
+
 /* ======================================================
  * 🌸 SET CICLO — OPÇÃO A (STARTDATE RETROATIVO)
  * ------------------------------------------------------
@@ -160,16 +170,6 @@ function setCiclo_(data) {
   };
 
   const _clamp = (n, min, max) => Math.max(min, Math.min(max, n));
-
-  const _normalizarPerfilHormonal = (perfil) => {
-    const p = String(perfil || "").trim().toLowerCase();
-    if (!p) return "";
-
-    if (p === "contraceptivo") return "diu";
-    if (p === "diuhormonal") return "diu_hormonal";
-    if (p.endsWith("_quiz")) return p.replace(/_quiz$/, "");
-    return p;
-  };
 
   const fasePorDia = (dia) => {
     if (dia <= 5)  return "menstrual";
@@ -235,7 +235,7 @@ function setCiclo_(data) {
        6) Perfil_Hormonal (T)
     =============================== */
     const perfilBruto = data.perfilHormonal || data.perfil || data.perfilInterno;
-    const perfilFinal = _normalizarPerfilHormonal(perfilBruto);
+    const perfilFinal = _normalizarPerfilHormonal_(perfilBruto);
     if (perfilFinal) {
       sh.getRange(linha, idxPerfilHormonal + 1).setValue(perfilFinal);
     }
@@ -405,6 +405,7 @@ function sync(id) {
   const idxCicloDuracao = _resolveHeaderIndex_(header, "CicloDuracao", 9);
   const idxFase = _resolveHeaderIndex_(header, "Fase", 13);
   const idxDiaCiclo = _resolveHeaderIndex_(header, "DiaCiclo", 14);
+  const idxPerfilHormonal = _resolveHeaderIndex_(header, "Perfil_Hormonal", COL_PERFIL_HORMONAL);
 
   for (let i = 1; i < vals.length; i++) {
     if (String(vals[i][0]).trim() !== idNorm) continue;
@@ -413,6 +414,7 @@ function sync(id) {
 
     const dataInicio = vals[i][idxDataInicio];
     const cicloDuracao = Number(vals[i][idxCicloDuracao] || 28);
+    const perfilHormonal = _normalizarPerfilHormonal_(vals[i][idxPerfilHormonal] || "") || "regular";
     const dataInicioDate =
       dataInicio instanceof Date ? dataInicio : new Date(dataInicio);
     const hasDataInicio =
@@ -441,6 +443,7 @@ function sync(id) {
       modo: "auto",
       diaCiclo: ciclo.dia,
       fase: faseAtual,
+      perfilHormonal,
       dataInicio: hasDataInicio ? dataInicio : startBase
     };
   }
