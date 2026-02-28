@@ -39,6 +39,31 @@ window.FEMFLOW = window.FEMFLOW || {};
     return DISTRIBUICOES_VALIDAS.has(valor) ? valor : DISTRIBUICAO_FALLBACK;
   }
 
+  function extrairDistribuicaoDeFonte(raw) {
+    if (typeof raw === "string") {
+      const valor = raw.trim().toUpperCase();
+      return DISTRIBUICOES_VALIDAS.has(valor) ? valor : null;
+    }
+
+    if (!raw || typeof raw !== "object") return null;
+
+    const candidatos = [
+      raw.distribuicao,
+      raw.distribuição,
+      raw.tipo_treino,
+      raw.tipoTreino,
+      raw.caminhos,
+      raw.split
+    ];
+
+    for (const candidato of candidatos) {
+      const valor = extrairDistribuicaoDeFonte(candidato);
+      if (valor) return valor;
+    }
+
+    return null;
+  }
+
   function gerarDiasPorFase(faseMetodo, distribuicao) {
     const faseNorm = normalizarFaseMetodo(faseMetodo);
     const inicio = BASE_FASE[faseNorm];
@@ -65,10 +90,11 @@ window.FEMFLOW = window.FEMFLOW || {};
         .doc(`${nivelNorm}_${enfaseNorm}`);
 
       const treinoSnap = await docRef.get();
-      const distribuicaoTreino = normalizarDistribuicao(treinoSnap.data()?.distribuicao);
+      const treinoData = treinoSnap.data() || {};
+      const distribuicaoTreino = extrairDistribuicaoDeFonte(treinoData);
 
-      // Se o documento principal já traz distribuição válida, prioriza esse contrato.
-      if (DISTRIBUICOES_VALIDAS.has(String(treinoSnap.data()?.distribuicao || "").trim().toUpperCase())) {
+      // Contrato principal: distribuição pode chegar em `distribuicao` ou aliases legados.
+      if (distribuicaoTreino) {
         return distribuicaoTreino;
       }
 
@@ -84,12 +110,12 @@ window.FEMFLOW = window.FEMFLOW || {};
           .get();
 
         if (!blocosSnap.empty) {
-          const distribuicaoBloco = normalizarDistribuicao(blocosSnap.docs[0]?.data()?.distribuicao);
-          return distribuicaoBloco;
+          const distribuicaoBloco = extrairDistribuicaoDeFonte(blocosSnap.docs[0]?.data());
+          if (distribuicaoBloco) return distribuicaoBloco;
         }
       }
 
-      return distribuicaoTreino;
+      return DISTRIBUICAO_FALLBACK;
     } catch (err) {
       console.warn("[treino-caminhos] falha ao buscar distribuicao, usando fallback", err);
       return DISTRIBUICAO_FALLBACK;
