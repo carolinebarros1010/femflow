@@ -922,6 +922,23 @@ function confirmarNovoPrograma() {
 =========================================================== */
 async function handleCardClick(enfase, locked) {
 
+  const produto = (localStorage.getItem("femflow_produto") || "").toLowerCase();
+  const ativa   = localStorage.getItem("femflow_ativa") === "true";
+
+  if (locked && produto === "acesso_app" && ativa) {
+
+    const lang = FEMFLOW.lang || "pt";
+
+    const mensagens = {
+      pt: "Selecione o novo treino em Home em Monte seu treino",
+      en: "Select your new workout in Home under Build your workout",
+      fr: "Sélectionnez votre nouvel entraînement dans Accueil → Créer votre entraînement"
+    };
+
+    FEMFLOW.toast(mensagens[lang] || mensagens.pt);
+    return;
+  }
+
   /* =========================================
      🔒 CARD BLOQUEADO (VITRINE COMERCIAL)
   ========================================= */
