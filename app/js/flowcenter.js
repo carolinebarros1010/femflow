@@ -680,10 +680,22 @@ async function initFlowCenter() {
       ?.classList.toggle("label-active", f === ciclo.fase);
   });
 
-  const bloquearBotao = (btn, tipoCheckout = "app") => {
+  const bloquearBotao = (btn, tipoCheckout = "app", options = {}) => {
+    const {
+      impedirCheckout = false,
+      aoBloquear = null
+    } = options;
+
     if (!btn) return;
     btn.onclick = (e) => {
       e?.preventDefault?.();
+
+      if (typeof aoBloquear === "function") {
+        aoBloquear();
+      }
+
+      if (impedirCheckout) return;
+
       if (tipoCheckout === "personal") {
         FEMFLOW.toast(msgCheckout("personal"));
         abrirCheckout(getCheckoutLink("personal"));
@@ -1928,7 +1940,15 @@ async function initFlowCenter() {
   const customBtn = document.getElementById("toCustomTrain");
   if (customBtn) {
     if (!isCustomTreino) {
-      bloquearBotao(customBtn, "app");
+      const temAcessoCustomSemCheckout = hasPersonal || isVip || isApp || ativa;
+      bloquearBotao(customBtn, "app", {
+        impedirCheckout: temAcessoCustomSemCheckout,
+        aoBloquear: () => {
+          if (temAcessoCustomSemCheckout) {
+            FEMFLOW.toast("Selecione o novo treino em Home em Monte seu treino");
+          }
+        }
+      });
     } else {
       customBtn.onclick = () => {
         localStorage.removeItem("femflow_treino_endurance");
