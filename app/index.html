@@ -806,10 +806,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     $("#btnEntrar").textContent      = T.entrar;
     $("#linkCadastro").textContent   = T.cad;
     $("#goRecuperar").textContent    = T.esq;
-    $("#loginTermsLink").textContent = T.terms;
-    $("#loginPrivacyLink").textContent = T.privacy;
-    $("#loginLegalText").childNodes[0].textContent = `${T.legalPrefix} `;
-    $("#loginLegalText").childNodes[2].textContent = ` ${T.legalMiddle} `;
     btnLang.textContent              = `🌐 ${labels[lang] || labels.pt}`;
     const q = `?lang=${lang}`;
     $("#loginLegalText").innerHTML = `${T.legalPrefix} <a id="loginTermsLink" href="docs/terms.html${q}">${T.terms}</a> ${T.legalMiddle} <a id="loginPrivacyLink" href="docs/privacy.html${q}">${T.privacy}</a>.`;
