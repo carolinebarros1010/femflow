@@ -882,6 +882,48 @@ document.addEventListener("DOMContentLoaded", async () => {
     const diaCiclo = Number(perfil.diaCiclo || localStorage.getItem("femflow_diaCiclo") || 1);
     const caminhosApi = FEMFLOW.treinoCaminhos;
     const distribuicaoFallback = caminhosApi?.DISTRIBUICAO_FALLBACK || "ABCDE";
+    const DISTRIBUICOES_VALIDAS = new Set(["AB", "ABC", "ABCD", "ABCDE"]);
+    const STORAGE_DISTRIBUICAO_REF = "femflow_distribuicao_treino_ref";
+
+    const extrairDistribuicaoLocal = (...candidatos) => {
+      for (const candidato of candidatos) {
+        if (typeof candidato !== "string") continue;
+        const valor = candidato.trim().toUpperCase();
+        if (DISTRIBUICOES_VALIDAS.has(valor)) return valor;
+      }
+      return null;
+    };
+
+    const getDistribuicaoRefAtual = (nivelAtual, enfaseAtual) => {
+      const nivelRef = String(nivelAtual || "").trim().toLowerCase();
+      const enfaseRef = String(enfaseAtual || "").trim().toLowerCase();
+      if (!nivelRef || !enfaseRef) return "";
+      return `${nivelRef}_${enfaseRef}`;
+    };
+
+    const getDistribuicaoPerfilOuLocal = (nivelAtual, enfaseAtual) => {
+      const perfilDistribuicao = extrairDistribuicaoLocal(
+        perfil?.distribuicao,
+        perfil?.distribuição,
+        perfil?.tipo_treino,
+        perfil?.tipoTreino,
+        perfil?.caminhos,
+        perfil?.split
+      );
+
+      const refAtual = getDistribuicaoRefAtual(nivelAtual, enfaseAtual);
+      const refSalva = String(localStorage.getItem(STORAGE_DISTRIBUICAO_REF) || "").trim().toLowerCase();
+      const localDistribuicao = refAtual && refSalva === refAtual
+        ? extrairDistribuicaoLocal(localStorage.getItem("femflow_distribuicao_treino") || "")
+        : null;
+
+      const distribuicaoCache = refAtual
+        ? extrairDistribuicaoLocal(localStorage.getItem(`femflow_distribuicao_cache_${refAtual}`) || "")
+        : null;
+
+      return perfilDistribuicao || distribuicaoCache || localDistribuicao || null;
+    };
+
     let distribuicaoTreino = distribuicaoFallback;
     contextoCaminhoSelecionado = null;
 
@@ -890,13 +932,26 @@ document.addEventListener("DOMContentLoaded", async () => {
     const personalHormonalAtivo =
       localStorage.getItem("femflow_personal_hormonal") === "true";
 
+    const distribuicaoPerfilOuLocal = getDistribuicaoPerfilOuLocal(nivel, enfaseFinal);
+
     if (caminhosApi?.getDistribuicaoDoTreino && nivel && enfaseFinal && !FEMFLOW.engineTreino?.isExtraEnfase?.(enfaseFinal)) {
       distribuicaoTreino = await caminhosApi.getDistribuicaoDoTreino(nivel, enfaseFinal, {
         fase: faseMetodoPerfil,
         diaCiclo
       });
     }
-    distribuicaoTreino = caminhosApi?.normalizarDistribuicao?.(distribuicaoTreino) || distribuicaoFallback;
+
+    const distribuicaoNormalizada = caminhosApi?.normalizarDistribuicao?.(distribuicaoTreino) || distribuicaoFallback;
+    if (distribuicaoNormalizada === distribuicaoFallback && distribuicaoPerfilOuLocal) {
+      distribuicaoTreino = distribuicaoPerfilOuLocal;
+    } else {
+      distribuicaoTreino = distribuicaoNormalizada;
+      const refAtual = getDistribuicaoRefAtual(nivel, enfaseFinal);
+      if (refAtual) {
+        localStorage.setItem("femflow_distribuicao_treino", distribuicaoTreino);
+        localStorage.setItem(STORAGE_DISTRIBUICAO_REF, refAtual);
+      }
+    }
 
     const totalCaminhos = distribuicaoTreino.length;
     const caminhoValido = Number.isFinite(caminhoParam) && caminhoParam >= 1 && caminhoParam <= totalCaminhos;
