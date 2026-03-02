@@ -709,7 +709,7 @@ home: {
       "Complete {series} série(s) de {tempo} com {intervalo} de intervalo. Mantenha um ritmo de {ritmo}.",
     fallbackTempo: "30 min",
     fallback:
-      "Realize um cardio de {tempo} seguidos em um ritmo leve/moderado. Utilize o aparelho que mais gostas. Se academia: esteira, bicicleta, remo, escada. Se em casa: corrida, caminhada, corda, dança.",
+      "Use este cardio como uma orientação geral e ajuste o ritmo conforme seu objetivo e condicionamento.",
     descricaoZona:
       "Realize o treino dentro da zona pretendida {zona}. Ajuste ritmo, inclinação e cadência para se manter na intensidade proposta.",
     seriesLabel: "Séries: {series}",
@@ -1178,7 +1178,7 @@ home: {
     "Complete {series} set(s) of {tempo} with {intervalo} of rest. Keep a pace of {ritmo}.",
   fallbackTempo: "30 min",
   fallback:
-    "Do {tempo} of steady cardio at a light/moderate pace. Use the equipment you like most. At the gym: treadmill, bike, rower, stairs. At home: running, walking, jump rope, dance.",
+    "Use this cardio as a general guideline and adjust the pace to your goal and fitness level.",
   descricaoZona:
     "Complete the workout inside target zone {zona}. Adjust pace, incline and cadence to stay within the prescribed intensity.",
   seriesLabel: "Sets: {series}",
@@ -1649,7 +1649,7 @@ fr: {
     "Complétez {series} série(s) de {tempo} avec {intervalo} de repos. Gardez un rythme de {ritmo}.",
   fallbackTempo: "30 min",
   fallback:
-    "Réalise {tempo} de cardio continu à un rythme léger/modéré. Utilise l’appareil que tu préfères. En salle : tapis, vélo, rameur, escaliers. À la maison : course, marche, corde à sauter, danse.",
+    "Utilise ce cardio comme une indication générale et ajuste le rythme selon ton objectif et ta condition physique.",
   descricaoZona:
     "Réalisez l'entraînement dans la zone cible {zona}. Ajustez l'allure, l'inclinaison et la cadence pour rester dans l'intensité prévue.",
   seriesLabel: "Séries : {series}",
