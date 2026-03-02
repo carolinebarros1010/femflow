@@ -217,6 +217,11 @@ h1 {
   top: 6px;
 }
 
+#toEndurance.btn-locked::after {
+  content: none;
+}
+
+
 .tool:hover {
   background: var(--terracota);
   color: #fff;
