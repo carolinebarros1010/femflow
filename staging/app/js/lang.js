@@ -505,7 +505,7 @@ home: {
       "Complete {series} série(s) de {tempo} com {intervalo} de intervalo. Mantenha um ritmo de {ritmo} confortável.",
     fallbackTempo: "30 min",
     fallback:
-      "Realize um cardio de 30 min seguidos em um ritmo leve/moderado. Utilize o aparelho que mais gostas. Se academia: esteira, bicicleta, remo, escada. Se em casa: corrida, caminhada, corda, dança.",
+      "Use este cardio como uma orientação geral e ajuste o ritmo conforme seu objetivo e condicionamento.",
     seriesLabel: "Séries: {series}",
     tempoOnlyLabel: "Tempo: {tempo}",
     distanciaLabel: "Distância: {distancia}",

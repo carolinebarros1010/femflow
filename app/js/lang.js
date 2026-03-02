@@ -709,7 +709,7 @@ home: {
       "Complete {series} série(s) de {tempo} com {intervalo} de intervalo. Mantenha um ritmo de {ritmo}.",
     fallbackTempo: "30 min",
     fallback:
-      "Realize um cardio de {tempo} seguidos em um ritmo leve/moderado. Utilize o aparelho que mais gostas. Se academia: esteira, bicicleta, remo, escada. Se em casa: corrida, caminhada, corda, dança.",
+      "Use este cardio como uma orientação geral e ajuste o ritmo conforme seu objetivo e condicionamento.",
     descricaoZona:
       "Realize o treino dentro da zona pretendida {zona}. Ajuste ritmo, inclinação e cadência para se manter na intensidade proposta.",
     seriesLabel: "Séries: {series}",
