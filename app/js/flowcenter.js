@@ -463,11 +463,8 @@ async function initFlowCenter() {
      🔒 BLOQUEIO ENDURANCE — APP sem personal e sem seleção
   ============================================================ */
   const isAppProduto = produtoRaw === "acesso_app";
-  const isPersonalPerfil = parseBooleanish(perfil.personal) || produtoRaw.startsWith("personal");
-  const enfaseAtualPerfil = String(perfil.enfase || "").toLowerCase();
-  const enduranceSelecionado = enfaseAtualPerfil.startsWith("endurance_");
   const bloquearEnduranceApp =
-    isAppProduto && !personal && !isPersonalPerfil && !enduranceSelecionado && !endurancePublicIntent;
+    isAppProduto && !personal && !endurancePublicIntent;
 
   const freeAccess = normalizarFreeAccess(perfil);
   const freeEnabled = freeAccess?.enabled === true;
@@ -579,7 +576,7 @@ async function initFlowCenter() {
       customBtn.textContent = `${customLabel} ${L.treinoCustom}`;
     }
     if (el.toEvolution) el.toEvolution.textContent = `📈 ${L.evolucao}`;
-    const enduranceLabel = enduranceEnabled ? "🏃‍♂️" : "🔒";
+    const enduranceLabel = bloquearEnduranceApp ? "🔒" : "🏃‍♂️";
     if (el.toEndurance) el.toEndurance.textContent = `${enduranceLabel} ${L.endurance}`;
     if (el.toHomeSwitch) el.toHomeSwitch.textContent = `🏠 ${L.homeSwitch}`;
     const extraTitle = document.getElementById("extraTitle");
@@ -1962,7 +1959,12 @@ async function initFlowCenter() {
     enduranceBtn.disabled = false;
     enduranceBtn.classList.toggle("btn-locked", bloquearEnduranceApp);
     if (bloquearEnduranceApp) {
-      bloquearBotao(enduranceBtn, "app");
+      bloquearBotao(enduranceBtn, "app", {
+        impedirCheckout: true,
+        aoBloquear: () => {
+          FEMFLOW.toast("Selecione uma planilha de 30 dias na Home para liberar o Endurance.");
+        }
+      });
     }
   }
 
@@ -2248,8 +2250,7 @@ async function initFlowCenter() {
 
   enduranceBtn.onclick = async () => {
     if (bloquearEnduranceApp) {
-      FEMFLOW.toast(msgCheckout("app"));
-      abrirCheckout(getCheckoutLink("app"));
+      FEMFLOW.toast("Selecione uma planilha de 30 dias na Home para liberar o Endurance.");
       return;
     }
 
