@@ -1638,8 +1638,12 @@ async function handleCardClick(enfase, locked) {
 
   const produto = (localStorage.getItem("femflow_produto") || "").toLowerCase();
   const ativa   = localStorage.getItem("femflow_ativa") === "true";
+  const checkoutTipo =
+    enfase === "personal" || enfase === "bodyinsight"
+      ? "personal"
+      : "app";
 
-  if (locked && produto === "acesso_app" && ativa) {
+  if (locked && produto === "acesso_app" && ativa && checkoutTipo !== "personal") {
 
     const lang = FEMFLOW.lang || "pt";
 
@@ -1660,11 +1664,6 @@ async function handleCardClick(enfase, locked) {
       FEMFLOW.toast(getFollowmeEmBreveMessage());
       return;
     }
-
-    const checkoutTipo =
-      enfase === "personal" || enfase === "bodyinsight"
-        ? "personal"
-        : "app";
 
     FEMFLOW.toast(msgCheckout(checkoutTipo));
     abrirCheckout(getCheckoutLink(checkoutTipo));
