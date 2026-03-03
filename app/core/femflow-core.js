@@ -383,37 +383,37 @@ FEMFLOW.checkout = FEMFLOW.checkout || {
       pt: {
         aria: "Planos FemFlow",
         title: "Escolha seu plano",
-        subtitle: "Assinaturas disponíveis no app.",
+        subtitle: "Assine para desbloquear o FemFlow e baixar seus ebooks.",
         accessTitle: "Acesso App (mensal)",
         accessDesc: "Treinos e ebooks inclusos na assinatura.",
         personalTitle: "Personal (mensal)",
         personalDesc: "Acesso App + modo personal.",
-        buy: "Comprar",
-        restore: "Restaurar",
+        buy: "Assinar",
+        restore: "Restaurar compras",
         close: "Agora não"
       },
       en: {
         aria: "FemFlow plans",
         title: "Choose your plan",
-        subtitle: "Subscriptions available in-app.",
+        subtitle: "Subscribe to unlock FemFlow and download your ebooks.",
         accessTitle: "App Access (monthly)",
         accessDesc: "Workouts and ebooks included with your subscription.",
         personalTitle: "Personal (monthly)",
         personalDesc: "App Access + personal mode.",
-        buy: "Buy",
-        restore: "Restore",
+        buy: "Subscribe",
+        restore: "Restore purchases",
         close: "Not now"
       },
       fr: {
         aria: "Offres FemFlow",
         title: "Choisissez votre offre",
-        subtitle: "Abonnements disponibles dans l'app.",
+        subtitle: "Abonnez-vous pour débloquer FemFlow et télécharger vos ebooks.",
         accessTitle: "Accès App (mensuel)",
         accessDesc: "Entraînements et ebooks inclus dans l'abonnement.",
         personalTitle: "Personal (mensuel)",
         personalDesc: "Accès App + mode personal.",
-        buy: "Acheter",
-        restore: "Restaurer",
+        buy: "S’abonner",
+        restore: "Restaurer les achats",
         close: "Plus tard"
       }
     };
@@ -487,8 +487,8 @@ FEMFLOW.checkout = FEMFLOW.checkout || {
           <small data-paywall-personal-desc>Acesso App + modo personal.</small>
         </button>
         <div class="ff-ios-paywall-actions">
-          <button type="button" class="ff-ios-buy">Comprar</button>
-          <button type="button" class="ff-ios-restore">Restaurar</button>
+        <button type="button" class="ff-ios-buy">Comprar</button>
+          <button type="button" class="ff-ios-restore">Restaurar compras</button>
         </div>
         <button type="button" class="ff-ios-close">Agora não</button>
       </div>
@@ -544,13 +544,11 @@ FEMFLOW.checkout = FEMFLOW.checkout || {
 
 FEMFLOW.canAccessEbooks = function () {
   const produto = String(localStorage.getItem("femflow_produto") || "").toLowerCase().trim();
-  const trialApp = produto === "trial_app";
-  const acessoApp = produto === "acesso_app" && localStorage.getItem("femflow_ativa") === "true";
-  const modoPersonal = localStorage.getItem("femflow_mode_personal") === "true";
+  const ativa = localStorage.getItem("femflow_ativa") === "true";
   const vip = produto === "vip";
 
-  if (trialApp) return false;
-  return acessoApp || modoPersonal || vip;
+  if (produto === "trial_app") return false;
+  return ativa || vip;
 };
 
 FEMFLOW._setSplashHandoff = function () {
@@ -1769,57 +1767,42 @@ localStorage.removeItem("femflow_email");
 };
 
 FEMFLOW.isNativeIOS = function () {
-  const capacitor = window.Capacitor;
-  if (!capacitor) return false;
-
-  const getPlatform = typeof capacitor.getPlatform === "function"
-    ? capacitor.getPlatform.bind(capacitor)
-    : null;
-
-  return getPlatform ? getPlatform() === "ios" : false;
+  return Boolean(FEMFLOW.checkout?.isIOS?.());
 };
 
 FEMFLOW.getNativePurchasesPlugin = function () {
-  return window.Capacitor?.Plugins?.NativePurchases || null;
+  return window.NativePurchases || window.Capacitor?.Plugins?.NativePurchases || null;
 };
 
 FEMFLOW.updateEntitlementsFromPayload = function (payload = {}) {
-  const produtoRaw = String(payload.produto || localStorage.getItem("femflow_produto") || "")
-    .toLowerCase()
-    .trim();
-  const isVip = produtoRaw === "vip";
-  const ativaRaw = isVip || payload.ativa === true || payload.ativa === "true";
+  const acessoApp = payload.acesso_app === true || payload.acesso_app === "true";
+  const modoPersonal = payload.modo_personal === true || payload.modo_personal === "true";
+  const produtoAtual = String(localStorage.getItem("femflow_produto") || "").toLowerCase().trim();
+  const produtoPerfil = String(payload.produto || payload.produto_perfil || "").toLowerCase().trim();
 
-  localStorage.setItem("femflow_produto", produtoRaw);
-  localStorage.setItem("femflow_ativa", ativaRaw ? "true" : "false");
+  localStorage.setItem("femflow_ativa", acessoApp ? "true" : "false");
 
-  const acessos = payload.acessos || {};
-  const personalRaw =
-    acessos.personal ??
-    payload.personal ??
-    payload.Personal ??
-    payload.has_personal ??
-    payload.hasPersonal;
+  if (acessoApp) {
+    localStorage.setItem("femflow_produto", "acesso_app");
+  } else if (produtoPerfil === "trial_app") {
+    localStorage.setItem("femflow_produto", "trial_app");
+  } else if (!produtoAtual) {
+    localStorage.setItem("femflow_produto", "trial_app");
+  }
 
-  const hasPersonal =
-    personalRaw === true ||
-    personalRaw === "true" ||
-    personalRaw === 1 ||
-    personalRaw === "1" ||
-    isVip;
-
-  localStorage.setItem("femflow_has_personal", hasPersonal ? "true" : "false");
-  localStorage.removeItem("femflow_personal");
+  localStorage.setItem("femflow_mode_personal", modoPersonal ? "true" : "false");
+  localStorage.setItem("femflow_has_personal", modoPersonal ? "true" : "false");
 };
 
 FEMFLOW.refreshEntitlements = async function () {
   const id = localStorage.getItem("femflow_id") || "";
-  if (!id) return { status: "ignored", msg: "missing_user" };
+  const email = localStorage.getItem("femflow_email") || "";
+  if (!id && !email) return { status: "ignored", msg: "missing_user" };
 
   const resp = await FEMFLOW.post({
     action: "entitlements_status",
     id,
-    email: localStorage.getItem("femflow_email") || ""
+    email
   });
 
   if (resp?.status === "ok") {
@@ -1831,16 +1814,8 @@ FEMFLOW.refreshEntitlements = async function () {
 };
 
 FEMFLOW.checkout = FEMFLOW.checkout || {};
-FEMFLOW.checkout.openHotmart = function (url) {
-  if (!url) return;
-  if (typeof FEMFLOW.openExternal === "function") {
-    FEMFLOW.openExternal(url);
-    return;
-  }
-  window.open(url, "_blank");
-};
 
-FEMFLOW.iap = FEMFLOW.iap || {
+FEMFLOW.iap = Object.assign(FEMFLOW.iap || {}, {
   pluginReady: false,
   products: [],
   initialized: false,
@@ -1850,7 +1825,10 @@ FEMFLOW.iap = FEMFLOW.iap || {
     if (this.initialized) return { status: "ok", msg: "already_initialized" };
 
     const plugin = FEMFLOW.getNativePurchasesPlugin();
-    if (!plugin) return { status: "error", msg: "plugin_missing" };
+    if (!plugin) {
+      FEMFLOW.toast?.("IAP em configuração");
+      return { status: "stub", msg: "plugin_missing" };
+    }
 
     if (typeof plugin.initialize === "function") {
       await plugin.initialize({ storekit: 2 });
@@ -1863,18 +1841,20 @@ FEMFLOW.iap = FEMFLOW.iap || {
     return { status: "ok" };
   },
 
-  async listProducts() {
-    if (!FEMFLOW.isNativeIOS()) return [];
-    await this.init();
-
+  async listProducts(productIds = FEMFLOW.IAP_PRODUCT_IDS) {
+    if (!FEMFLOW.isNativeIOS()) return { status: "ignored", products: [] };
+    const initResult = await this.init();
     const plugin = FEMFLOW.getNativePurchasesPlugin();
-    if (!plugin) throw new Error("NativePurchases indisponível");
+    if (!plugin) return { status: initResult.status || "stub", products: [] };
 
     let result = [];
     if (typeof plugin.getProducts === "function") {
-      result = await plugin.getProducts({ productIds: FEMFLOW.IAP_PRODUCT_IDS });
+      result = await plugin.getProducts({ productIds });
     } else if (typeof plugin.listProducts === "function") {
-      result = await plugin.listProducts({ productIds: FEMFLOW.IAP_PRODUCT_IDS });
+      result = await plugin.listProducts({ productIds });
+    } else {
+      FEMFLOW.toast?.("IAP em configuração");
+      return { status: "stub", products: [] };
     }
 
     const products = Array.isArray(result)
@@ -1883,10 +1863,10 @@ FEMFLOW.iap = FEMFLOW.iap || {
         ? result.products
         : [];
     this.products = products;
-    return products;
+    return { status: "ok", products };
   },
 
-  async activatePurchaseOnBackend({ productId, transactionId, purchaseDate, expiresDate }) {
+  async activatePurchaseOnBackend({ productId, transactionId, purchaseDate, expiresDate, env }) {
     const id = localStorage.getItem("femflow_id") || "";
     const email = localStorage.getItem("femflow_email") || "";
 
@@ -1899,7 +1879,7 @@ FEMFLOW.iap = FEMFLOW.iap || {
       transactionId,
       purchaseDate,
       expiresDate,
-      env: FEMFLOW.ENV || "prod"
+      env: env || FEMFLOW.ENV || "prod"
     });
   },
 
@@ -1909,41 +1889,59 @@ FEMFLOW.iap = FEMFLOW.iap || {
       transactionId: String(tx.transactionId || tx.id || tx.originalTransactionId || ""),
       purchaseDate: tx.purchaseDate || tx.transactionDate || tx.purchasedAt || "",
       expiresDate: tx.expirationDate || tx.expiresDate || tx.expiryDate || "",
+      env: tx.environment || tx.env || "",
       isActive: tx.isActive !== false && tx.revoked !== true
     };
   },
 
   async purchase(productId) {
-    if (!FEMFLOW.isNativeIOS()) {
-      return { status: "ignored", msg: "not_ios" };
-    }
+    if (!FEMFLOW.isNativeIOS()) return { status: "ignored", msg: "not_ios" };
 
     await this.init();
     const plugin = FEMFLOW.getNativePurchasesPlugin();
-    if (!plugin || typeof plugin.purchaseProduct !== "function") {
-      throw new Error("purchaseProduct indisponível");
+    if (!plugin) {
+      FEMFLOW.toast?.("IAP em configuração");
+      return { status: "stub", msg: "plugin_missing" };
     }
 
-    const rawTx = await plugin.purchaseProduct({ productId });
+    let rawTx = null;
+    if (typeof plugin.purchaseProduct === "function") {
+      rawTx = await plugin.purchaseProduct({ productId });
+    } else if (typeof plugin.purchase === "function") {
+      rawTx = await plugin.purchase({ productId });
+    } else {
+      FEMFLOW.toast?.("IAP em configuração");
+      return { status: "stub", msg: "purchase_missing" };
+    }
+
     const tx = this.normalizeTransaction(rawTx, productId);
+    if (!tx.productId || !tx.transactionId) return { status: "error", msg: "invalid_transaction" };
 
     await this.activatePurchaseOnBackend(tx);
     await FEMFLOW.refreshEntitlements();
-    return tx;
+    return { status: "ok", transaction: tx };
   },
 
   async restore() {
-    if (!FEMFLOW.isNativeIOS()) {
-      return { status: "ignored", msg: "not_ios" };
-    }
+    if (!FEMFLOW.isNativeIOS()) return { status: "ignored", msg: "not_ios" };
 
     await this.init();
     const plugin = FEMFLOW.getNativePurchasesPlugin();
-    if (!plugin || typeof plugin.restorePurchases !== "function") {
-      throw new Error("restorePurchases indisponível");
+    if (!plugin) {
+      FEMFLOW.toast?.("IAP em configuração");
+      return { status: "stub", msg: "plugin_missing" };
     }
 
-    const restoredRaw = await plugin.restorePurchases();
+    let restoredRaw = [];
+    if (typeof plugin.restorePurchases === "function") {
+      restoredRaw = await plugin.restorePurchases();
+    } else if (typeof plugin.restore === "function") {
+      restoredRaw = await plugin.restore();
+    } else {
+      FEMFLOW.toast?.("IAP em configuração");
+      return { status: "stub", msg: "restore_missing" };
+    }
+
     const entries = Array.isArray(restoredRaw)
       ? restoredRaw
       : Array.isArray(restoredRaw?.purchases)
@@ -1959,9 +1957,9 @@ FEMFLOW.iap = FEMFLOW.iap || {
     }
 
     await FEMFLOW.refreshEntitlements();
-    return activeTransactions;
+    return { status: "ok", restored: activeTransactions };
   }
-};
+});
 
 FEMFLOW.iap.bindPaywallButtons = function () {
   const appBtn = document.querySelector('[data-iap-product="app_access"], #btnAcessoApp, #btnIapAcessoApp');

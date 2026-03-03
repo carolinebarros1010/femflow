@@ -61,7 +61,7 @@ function _findAlunaRowByIdOrEmail_(sh, payload) {
 function _resolvePlanFromAppleProduct_(productId) {
   const id = String(productId || "").trim().toLowerCase();
   if (id === "com.femflow.app.personal.monthly") {
-    return { plan: "personal", produto: "treino_personal", modoPersonal: true };
+    return { plan: "personal", produto: "acesso_app", modoPersonal: true };
   }
   return { plan: "access", produto: "acesso_app", modoPersonal: false };
 }
@@ -131,32 +131,40 @@ function entitlementsStatus_(payload) {
   const found = _findAlunaRowByIdOrEmail_(sh, payload || {});
   if (!found) return { status: "notfound", msg: "aluna_not_found" };
 
+  const headerInfo = _getHeaderMap_(sh);
+  const header = headerInfo.header;
   const headerMap = _ensureIapColumns_(sh);
   const values = sh.getRange(found.rowIndex, 1, 1, sh.getLastColumn()).getValues()[0];
 
-  const idxProduto = headerMap.Produto;
-  const idxLicencaAtiva = headerMap.LicencaAtiva;
-  const idxAcessoPersonal = headerMap.acesso_personal;
+  const idxProduto = header.indexOf("Produto");
+  const idxLicencaAtiva = header.indexOf("LicencaAtiva");
+  const idxAcessoPersonal = header.indexOf("acesso_personal");
 
-  if (idxProduto == null || idxLicencaAtiva == null || idxAcessoPersonal == null) {
+  if (idxProduto < 0 || idxLicencaAtiva < 0 || idxAcessoPersonal < 0) {
     return { status: "error", msg: "missing_required_columns" };
   }
 
   const produto = String(values[idxProduto] || "").toLowerCase().trim();
-  const ativa = values[idxLicencaAtiva] === true || String(values[idxLicencaAtiva] || "").toLowerCase() === "true";
-  const modoPersonalRaw = values[idxAcessoPersonal] === true || String(values[idxAcessoPersonal] || "").toLowerCase() === "true";
-  const plan = String(values[headerMap.IapPlan] || (modoPersonalRaw ? "personal" : "access")).trim();
+  const licencaAtiva = values[idxLicencaAtiva] === true || String(values[idxLicencaAtiva] || "").toLowerCase() === "true";
+  let modoPersonal = values[idxAcessoPersonal] === true || String(values[idxAcessoPersonal] || "").toLowerCase() === "true";
+  let acessoApp = licencaAtiva && produto !== "trial_app";
+
   const source = String(values[headerMap.IapSource] || "").trim() || "hotmart";
   const expiresAt = String(values[headerMap.IapExpiresAt] || "").trim();
+  const plan = String(values[headerMap.IapPlan] || "").trim() || (modoPersonal ? "personal" : "access");
 
-  const iapExpired = source === "apple_iap" && _isExpiredIso_(expiresAt);
+  if (source === "apple_iap" && _isExpiredIso_(expiresAt)) {
+    acessoApp = false;
+    modoPersonal = false;
+  }
 
   return {
     status: "ok",
-    acesso_app: iapExpired ? false : (produto === "acesso_app" || produto === "treino_personal" || produto === "vip") && ativa,
-    modo_personal: iapExpired ? false : modoPersonalRaw,
+    acesso_app: acessoApp,
+    modo_personal: modoPersonal,
     expiresAt: expiresAt,
     source: source,
-    plan: plan
+    plan: plan,
+    produto: produto
   };
 }

@@ -1174,13 +1174,12 @@ function canAccessEbooks() {
     return FEMFLOW.canAccessEbooks();
   }
 
-  const trialApp = localStorage.getItem("femflow_produto") === "trial_app";
-  const acessoApp = localStorage.getItem("femflow_produto") === "acesso_app" && localStorage.getItem("femflow_ativa") === "true";
-  const modoPersonal = localStorage.getItem("femflow_mode_personal") === "true";
-  const vip = localStorage.getItem("femflow_produto") === "vip";
+  const produto = String(localStorage.getItem("femflow_produto") || "").toLowerCase();
+  const ativa = localStorage.getItem("femflow_ativa") === "true";
+  const vip = produto === "vip";
 
-  if (trialApp) return false;
-  return acessoApp || modoPersonal || vip;
+  if (produto === "trial_app") return false;
+  return ativa || vip;
 }
 
 function getEbookButtonLabel(locked) {
@@ -1194,9 +1193,9 @@ function getEbookButtonLabel(locked) {
 function getEbookLockedDescription() {
   const lang = FEMFLOW.lang || "pt";
   const labels = {
-    pt: "Incluso na assinatura",
-    en: "Included with membership",
-    fr: "Inclus dans l’abonnement"
+    pt: "Incluso na assinatura…",
+    en: "Included with subscription…",
+    fr: "Inclus dans l’abonnement…"
   };
   return labels[lang] || labels.pt;
 }
@@ -1343,29 +1342,16 @@ function msgCheckout(tipo) {
   return mensagens[tipo]?.[lang] || mensagens[tipo]?.pt || "";
 }
 
-function abrirCheckout(url) {
-  if (!url) return;
-  FEMFLOW.checkout?.openHotmart?.(url);
+function abrirCheckout(tipo = "app") {
+  const preferredPlan = tipo === "personal" ? "personal" : "access";
+  FEMFLOW.checkout?.openCheckout?.({
+    reason: "locked_card",
+    preferredPlan
+  });
 }
 
 async function abrirCheckoutOuIap(tipo) {
-  if (FEMFLOW.isNativeIOS?.()) {
-    const productId = tipo === "personal"
-      ? FEMFLOW.IAP_PERSONAL_PRODUCT_ID
-      : FEMFLOW.IAP_APP_ACCESS_PRODUCT_ID;
-    await FEMFLOW.iap.purchase(productId);
-    return;
-  }
-
-  abrirCheckout(getCheckoutLink(tipo));
-}
-
-function getCheckoutLink(tipo) {
-  const fallbackPersonal = FEMFLOW.LINK_PERSONAL;
-  const fallbackAcesso = FEMFLOW.LINK_ACESSO_APP;
-  return tipo === "personal"
-    ? (typeof LINK_PERSONAL !== "undefined" ? LINK_PERSONAL : fallbackPersonal)
-    : (typeof LINK_ACESSO_APP !== "undefined" ? LINK_ACESSO_APP : fallbackAcesso);
+  abrirCheckout(tipo);
 }
 
 async function openBlockedFlow({ enfase = "", checkoutTipo = "app" } = {}) {
@@ -2242,4 +2228,8 @@ document.addEventListener("DOMContentLoaded", async () => {
 /* ============================================================
    🔥 Quando o idioma mudar → traduz de novo a home
 =========================================================== */
+document.addEventListener("femflow:entitlementsUpdated", () => {
+  window.location.reload();
+});
+
 document.addEventListener("femflow:langChange", aplicarIdiomaHome);
