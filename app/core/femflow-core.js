@@ -312,6 +312,18 @@ FEMFLOW.openInternal = function (path) {
   FEMFLOW.router?.(path);
 };
 
+
+FEMFLOW.canAccessEbooks = function () {
+  const produto = String(localStorage.getItem("femflow_produto") || "").toLowerCase().trim();
+  const trialApp = produto === "trial_app";
+  const acessoApp = produto === "acesso_app" && localStorage.getItem("femflow_ativa") === "true";
+  const modoPersonal = localStorage.getItem("femflow_mode_personal") === "true";
+  const vip = produto === "vip";
+
+  if (trialApp) return false;
+  return acessoApp || modoPersonal || vip;
+};
+
 FEMFLOW._setSplashHandoff = function () {
   try {
     sessionStorage.setItem("ff_splash_handoff", "1");
