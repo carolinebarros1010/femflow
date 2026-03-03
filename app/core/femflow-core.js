@@ -365,7 +365,14 @@ FEMFLOW.checkout = FEMFLOW.checkout || {
 
   async openCheckout({ reason = "", preferredPlan = "access" } = {}) {
     if (this.isIOS()) {
-      return this.openPaywall({ reason, preferredPlan });
+      const targetPlan = preferredPlan === "personal" ? "personal" : "access";
+      const productId = this.productIds[targetPlan] || this.productIds.access;
+
+      if (productId && FEMFLOW.iap?.purchase) {
+        return FEMFLOW.iap.purchase(productId);
+      }
+
+      return this.openPaywall({ reason, preferredPlan: targetPlan });
     }
     return this.openHotmart(preferredPlan);
   },
