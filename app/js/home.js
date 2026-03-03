@@ -1184,7 +1184,7 @@ function getEbookButtonLabel(locked) {
   const lang = FEMFLOW.lang || "pt";
   const labels = locked
     ? { pt: "Bloqueado", en: "Locked", fr: "Bloqué" }
-    : { pt: "Baixar PDF", en: "Download PDF", fr: "Télécharger le PDF" };
+    : { pt: "Abrir PDF", en: "Open PDF", fr: "Ouvrir le PDF" };
   return labels[lang] || labels.pt;
 }
 
