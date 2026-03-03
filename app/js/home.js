@@ -7,9 +7,6 @@
 /* LINKS */
 const LINK_ACESSO_APP = "https://pay.hotmart.com/T103984580L?off=ifcs6h6n";
 const LINK_PERSONAL   = "https://pay.hotmart.com/T103984580L?off=sybtfokt";
-const EBOOKS_DATA_URL = FEMFLOW_assetUrl("ebooks/ebooks.json");
-const EBOOKS_CACHE_KEY = "femflow_ebooks_cache_v1";
-const EBOOKS_CACHE_TTL_MS = 1000 * 60 * 30;
 
 /* FOLLOWME */
 const FOLLOWME_LINKS = {
@@ -29,6 +26,36 @@ const HOME_VIDEO_SOURCES = {
   en: "assets/heroen.mp4",
   fr: "assets/herofr.mp4"
 };
+
+const EBOOKS_HOME = [
+  {
+    nome: {
+      pt: "Hipopressivos para alívio das cólicas",
+      en: "Hypopressive exercises for menstrual cramp relief",
+      fr: "Hypopressifs pour soulager les douleurs menstruelles"
+    },
+    capa: "capahipopressivos.png",
+    arquivo: "Guia-Completo-de-Exerccios-Hipopressivos-para-Alvio-das-Clicas-Menstruais.pdf"
+  },
+  {
+    nome: {
+      pt: "Hidratação feminina: saúde hormonal e bem-estar",
+      en: "Women's hydration: hormonal health and wellness",
+      fr: "Hydratation féminine : santé hormonale et bien-être"
+    },
+    capa: "capaaguaequilibrio.png",
+    arquivo: "Guia-Completo-da-Hidratao-Feminina-Saude-Hormnios-e-Bem-Estar.pdf"
+  },
+  {
+    nome: {
+      pt: "FemFlow: jornada de empoderamento em 15 dias",
+      en: "FemFlow: 15-day empowerment journey",
+      fr: "FemFlow : parcours d'autonomisation en 15 jours"
+    },
+    capa: "capafemflow15.png",
+    arquivo: "FemFlow-jornada-de-empoderamento-de-15-dias-para-mulheres-rumo-a-uma-vida-ativa-.pdf"
+  }
+];
 
 
 function renderHomeSkeleton() {
@@ -1139,108 +1166,97 @@ function getThumbUrl(enfase) {
 =========================================================== */
 const EBOOKS_FALLBACK_COLOR = "#fceae3";
 
-function resolveEbookUrl(path) {
+function canAccessEbooks() {
+  if (typeof FEMFLOW.canAccessEbooks === "function") {
+    return FEMFLOW.canAccessEbooks();
+  }
+
+  const trialApp = localStorage.getItem("femflow_produto") === "trial_app";
+  const acessoApp = localStorage.getItem("femflow_produto") === "acesso_app" && localStorage.getItem("femflow_ativa") === "true";
+  const modoPersonal = localStorage.getItem("femflow_mode_personal") === "true";
+  const vip = localStorage.getItem("femflow_produto") === "vip";
+
+  if (trialApp) return false;
+  return acessoApp || modoPersonal || vip;
+}
+
+function getEbookButtonLabel(locked) {
+  const lang = FEMFLOW.lang || "pt";
+  const labels = locked
+    ? { pt: "Bloqueado", en: "Locked", fr: "Bloqué" }
+    : { pt: "Abrir PDF", en: "Open PDF", fr: "Ouvrir le PDF" };
+  return labels[lang] || labels.pt;
+}
+
+function getEbookLockedDescription() {
+  const lang = FEMFLOW.lang || "pt";
+  const labels = {
+    pt: "Incluso no plano",
+    en: "Included with membership",
+    fr: "Inclus dans l’abonnement"
+  };
+  return labels[lang] || labels.pt;
+}
+
+function resolveEbookAsset(path) {
   const p = String(path || "").trim();
   if (!p) return "";
   if (/^https?:\/\//i.test(p)) return p;
 
   let clean = p.replace(/^\/+/, "");
   clean = clean.replace(/^app\//, "");
-  clean = clean.replace(/^ebooks\//, "");
-
-  return FEMFLOW_assetUrl(`ebooks/${clean}`);
+  return FEMFLOW_assetUrl(clean);
 }
 
-function resolveEbookLink(link) {
-  if (!link) return "";
-  if (String(link).startsWith("http")) return link;
-  return resolveEbookUrl(link);
+function getEbookTitle(ebook) {
+  const lang = FEMFLOW.lang || "pt";
+  if (typeof ebook?.nome === "object") return ebook.nome[lang] || ebook.nome.pt || "eBook";
+  return ebook?.nome || "eBook";
 }
 
-function formatarPrecoEbook(preco, tipo) {
-  if (tipo === "download" || preco === "0,00") return "Gratuito";
-  if (!preco) return "";
-  return `R$ ${preco}`;
-}
-
-function ebookCardHTML(ebook) {
-  const titulo = ebook.nome || "eBook";
-  const preco = formatarPrecoEbook(ebook.preco, ebook.tipo);
-  const acao = ebook.tipo === "download" ? "Baixar" : "Comprar";
-  const gratuito = ebook.tipo === "download" || ebook.preco === "0,00";
-  const badgeGratuito = gratuito ? '<span class="badge-free">Gratuito</span>' : "";
-  const desc = [preco, acao].filter(Boolean).join(" • ");
-  const capa = ebook.capa ? resolveEbookUrl(ebook.capa) : "";
+function ebookCardHTML(ebook, locked) {
+  const titulo = getEbookTitle(ebook);
+  const capa = ebook.capa ? resolveEbookAsset(`ebooks/${ebook.capa}`) : "";
   const thumbStyle = `${capa ? `--thumb-url:url('${capa}');` : ""}background-color:${EBOOKS_FALLBACK_COLOR};`;
-  const destino = resolveEbookLink(ebook.link);
+  const filePath = resolveEbookAsset(`app/ebooks/downloads/${ebook.arquivo}`);
+  const ctaLabel = getEbookButtonLabel(locked);
 
   return `
-    <article class="card" data-destino="${destino}">
+    <article class="card${locked ? " locked" : ""}" data-ebook-file="${filePath}" data-locked="${locked}">
       <div class="thumb${capa ? " has-image" : ""}" style="${thumbStyle}">
-        ${badgeGratuito}
+        ${locked ? '<span class="lock-overlay">🔒</span>' : ""}
       </div>
       <div class="info">
         <h3 class="ttl">${titulo}</h3>
-        <p class="desc">${desc}</p>
+        <p class="desc">${locked ? getEbookLockedDescription() : ""}</p>
+        <button class="home-btn" type="button">${ctaLabel}</button>
       </div>
     </article>`;
 }
 
+function handleEbookClick(card) {
+  if (!card) return;
+  const locked = card.dataset.locked === "true";
+
+  if (locked) {
+    openBlockedFlow();
+    return;
+  }
+
+  const file = card.dataset.ebookFile;
+  if (file) {
+    window.open(file, "_blank");
+  }
+}
+
 function renderEbookRail(el, lista) {
   if (!el) return;
-  el.innerHTML = lista.map(ebookCardHTML).join("");
+  const locked = !canAccessEbooks();
+  el.innerHTML = (Array.isArray(lista) ? lista : []).map((ebook) => ebookCardHTML(ebook, locked)).join("");
   el.querySelectorAll(".card").forEach(card => {
-    card.onclick = () => {
-      if (card.dataset.destino) {
-        window.location.href = card.dataset.destino;
-      }
-    };
+    card.onclick = () => handleEbookClick(card);
   });
 }
-
-function lerEbooksCache() {
-  try {
-    const raw = localStorage.getItem(EBOOKS_CACHE_KEY);
-    if (!raw) return [];
-    const parsed = JSON.parse(raw);
-    if (!parsed || !Array.isArray(parsed.data)) return [];
-    const age = Date.now() - Number(parsed.savedAt || 0);
-    if (!Number.isFinite(age) || age > EBOOKS_CACHE_TTL_MS) return [];
-    return parsed.data;
-  } catch (err) {
-    return [];
-  }
-}
-
-function salvarEbooksCache(data) {
-  if (!Array.isArray(data)) return;
-  try {
-    localStorage.setItem(
-      EBOOKS_CACHE_KEY,
-      JSON.stringify({ data, savedAt: Date.now() })
-    );
-  } catch (err) {
-    // ignore quota errors
-  }
-}
-
-async function carregarEbooks() {
-  const cached = lerEbooksCache();
-  if (cached.length) return cached;
-
-  try {
-    const resp = await FEMFLOW.fetchWithRetry(EBOOKS_DATA_URL, { cache: "force-cache" });
-    if (!resp.ok) return [];
-    const data = await resp.json();
-    const lista = Array.isArray(data) ? data : [];
-    salvarEbooksCache(lista);
-    return lista;
-  } catch (err) {
-    console.warn("Falha ao carregar ebooks:", err);
-    return [];
-  }
-}
-
 /* ============================================================
    RENDERIZAÇÃO DOS CARDS
 =========================================================== */
@@ -1339,6 +1355,31 @@ function getCheckoutLink(tipo) {
   return tipo === "personal"
     ? (typeof LINK_PERSONAL !== "undefined" ? LINK_PERSONAL : fallbackPersonal)
     : (typeof LINK_ACESSO_APP !== "undefined" ? LINK_ACESSO_APP : fallbackAcesso);
+}
+
+function openBlockedFlow({ enfase = "", checkoutTipo = "app" } = {}) {
+  const produto = (localStorage.getItem("femflow_produto") || "").toLowerCase();
+  const ativa = localStorage.getItem("femflow_ativa") === "true";
+
+  if (produto === "acesso_app" && ativa && checkoutTipo !== "personal") {
+    const lang = FEMFLOW.lang || "pt";
+    const mensagens = {
+      pt: "Selecione o novo treino em Home em Monte seu treino",
+      en: "Select your new workout in Home under Build your workout",
+      fr: "Sélectionnez votre nouvel entraînement dans Accueil → Créer votre entraînement"
+    };
+
+    FEMFLOW.toast(mensagens[lang] || mensagens.pt);
+    return;
+  }
+
+  if (enfase && enfase.startsWith("followme_")) {
+    FEMFLOW.toast(getFollowmeEmBreveMessage());
+    return;
+  }
+
+  FEMFLOW.toast(msgCheckout(checkoutTipo));
+  abrirCheckout(getCheckoutLink(checkoutTipo));
 }
 
 function limparEstadoCustomTreino() {
@@ -1636,37 +1677,13 @@ async function garantirAcessoBodyInsight() {
 =========================================================== */
 async function handleCardClick(enfase, locked) {
 
-  const produto = (localStorage.getItem("femflow_produto") || "").toLowerCase();
-  const ativa   = localStorage.getItem("femflow_ativa") === "true";
   const checkoutTipo =
     enfase === "personal" || enfase === "bodyinsight"
       ? "personal"
       : "app";
 
-  if (locked && produto === "acesso_app" && ativa && checkoutTipo !== "personal") {
-
-    const lang = FEMFLOW.lang || "pt";
-
-    const mensagens = {
-      pt: "Selecione o novo treino em Home em Monte seu treino",
-      en: "Select your new workout in Home under Build your workout",
-      fr: "Sélectionnez votre nouvel entraînement dans Accueil → Créer votre entraînement"
-    };
-
-    FEMFLOW.toast(mensagens[lang] || mensagens.pt);
-    return;
-  }
-
   if (locked) {
-
-    // FOLLOWME mantém comportamento "Em breve"
-    if (enfase && enfase.startsWith("followme_")) {
-      FEMFLOW.toast(getFollowmeEmBreveMessage());
-      return;
-    }
-
-    FEMFLOW.toast(msgCheckout(checkoutTipo));
-    abrirCheckout(getCheckoutLink(checkoutTipo));
+    openBlockedFlow({ enfase, checkoutTipo });
     return;
   }
 
@@ -2202,9 +2219,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     renderRail(document.getElementById("railPlanilhas30Dias"), aplicarAcessoCards(CARDS_PLANILHAS_30_DIAS, perfil));
     aplicarIdiomaHome();
 
-    carregarEbooks().then((ebooks) => {
-      renderEbookRail(document.getElementById("railEbooks"), ebooks);
-    });
+    renderEbookRail(document.getElementById("railEbooks"), EBOOKS_HOME);
   } catch (err) {
     console.error("HOME init erro:", err);
     FEMFLOW.toast("Falha ao carregar. Verifique internet.");
