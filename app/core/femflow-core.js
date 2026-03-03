@@ -318,6 +318,229 @@ FEMFLOW.openInternal = function (path) {
   FEMFLOW.router?.(path);
 };
 
+FEMFLOW.LINK_ACESSO_APP = FEMFLOW.LINK_ACESSO_APP || "https://pay.hotmart.com/T103984580L?off=ifcs6h6n";
+FEMFLOW.LINK_PERSONAL = FEMFLOW.LINK_PERSONAL || "https://pay.hotmart.com/T103984580L?off=sybtfokt";
+
+FEMFLOW.iap = FEMFLOW.iap || {
+  async listProducts(productIds = []) {
+    if (FEMFLOW.checkout?.isIOS?.()) {
+      FEMFLOW.toast("IAP em configuração");
+    }
+    return {
+      status: "stub",
+      products: Array.isArray(productIds) ? productIds : []
+    };
+  },
+  async purchase(productId) {
+    if (FEMFLOW.checkout?.isIOS?.()) {
+      FEMFLOW.toast("IAP em configuração");
+    }
+    return { status: "stub", productId: String(productId || "") };
+  },
+  async restore() {
+    if (FEMFLOW.checkout?.isIOS?.()) {
+      FEMFLOW.toast("IAP em configuração");
+    }
+    return { status: "stub" };
+  }
+};
+
+FEMFLOW.checkout = FEMFLOW.checkout || {
+  productIds: {
+    access: "com.femflow.app.access.monthly",
+    personal: "com.femflow.app.personal.monthly"
+  },
+
+  isIOS() {
+    try {
+      const platform = String(window.Capacitor?.getPlatform?.() || "").toLowerCase();
+      if (platform === "ios") return true;
+    } catch (err) {}
+
+    const ua = String(navigator.userAgent || "").toLowerCase();
+    const hasIOS = /iphone|ipad|ipod/.test(ua);
+    const isMacTouch = /macintosh/.test(ua) && navigator.maxTouchPoints > 1;
+    return hasIOS || isMacTouch;
+  },
+
+  async openCheckout({ reason = "", preferredPlan = "access" } = {}) {
+    if (this.isIOS()) {
+      return this.openPaywall({ reason, preferredPlan });
+    }
+    return this.openHotmart(preferredPlan);
+  },
+
+  openHotmart(plan = "access") {
+    const targetPlan = plan === "personal" ? "personal" : "access";
+    const url = targetPlan === "personal" ? FEMFLOW.LINK_PERSONAL : FEMFLOW.LINK_ACESSO_APP;
+    if (!url) return;
+    FEMFLOW.openExternal(url);
+  },
+
+  _paywallCopy() {
+    const lang = String(FEMFLOW.lang || "pt").slice(0, 2).toLowerCase();
+    const copy = {
+      pt: {
+        aria: "Planos FemFlow",
+        title: "Escolha seu plano",
+        subtitle: "Assinaturas disponíveis no app.",
+        accessTitle: "Acesso App (mensal)",
+        accessDesc: "Treinos e ebooks inclusos na assinatura.",
+        personalTitle: "Personal (mensal)",
+        personalDesc: "Acesso App + modo personal.",
+        buy: "Comprar",
+        restore: "Restaurar",
+        close: "Agora não"
+      },
+      en: {
+        aria: "FemFlow plans",
+        title: "Choose your plan",
+        subtitle: "Subscriptions available in-app.",
+        accessTitle: "App Access (monthly)",
+        accessDesc: "Workouts and ebooks included with your subscription.",
+        personalTitle: "Personal (monthly)",
+        personalDesc: "App Access + personal mode.",
+        buy: "Buy",
+        restore: "Restore",
+        close: "Not now"
+      },
+      fr: {
+        aria: "Offres FemFlow",
+        title: "Choisissez votre offre",
+        subtitle: "Abonnements disponibles dans l'app.",
+        accessTitle: "Accès App (mensuel)",
+        accessDesc: "Entraînements et ebooks inclus dans l'abonnement.",
+        personalTitle: "Personal (mensuel)",
+        personalDesc: "Accès App + mode personal.",
+        buy: "Acheter",
+        restore: "Restaurer",
+        close: "Plus tard"
+      }
+    };
+    return copy[lang] || copy.pt;
+  },
+
+  _applyPaywallI18n(modal) {
+    if (!modal) return;
+    const copy = this._paywallCopy();
+    const dialog = modal.querySelector(".ff-ios-paywall");
+    if (dialog) dialog.setAttribute("aria-label", copy.aria);
+    const title = modal.querySelector("[data-paywall-title]");
+    const subtitle = modal.querySelector("[data-paywall-subtitle]");
+    const accessTitle = modal.querySelector("[data-paywall-access-title]");
+    const accessDesc = modal.querySelector("[data-paywall-access-desc]");
+    const personalTitle = modal.querySelector("[data-paywall-personal-title]");
+    const personalDesc = modal.querySelector("[data-paywall-personal-desc]");
+    const buy = modal.querySelector(".ff-ios-buy");
+    const restore = modal.querySelector(".ff-ios-restore");
+    const close = modal.querySelector(".ff-ios-close");
+
+    if (title) title.textContent = copy.title;
+    if (subtitle) subtitle.textContent = copy.subtitle;
+    if (accessTitle) accessTitle.textContent = copy.accessTitle;
+    if (accessDesc) accessDesc.textContent = copy.accessDesc;
+    if (personalTitle) personalTitle.textContent = copy.personalTitle;
+    if (personalDesc) personalDesc.textContent = copy.personalDesc;
+    if (buy) buy.textContent = copy.buy;
+    if (restore) restore.textContent = copy.restore;
+    if (close) close.textContent = copy.close;
+  },
+
+  _ensurePaywallModal() {
+    let modal = document.getElementById("ff-ios-paywall");
+    if (modal) return modal;
+
+    const styleId = "ff-ios-paywall-style";
+    if (!document.getElementById(styleId)) {
+      const style = document.createElement("style");
+      style.id = styleId;
+      style.textContent = `
+        .ff-ios-paywall-overlay{position:fixed;inset:0;background:rgba(18,16,25,.62);display:flex;align-items:center;justify-content:center;z-index:99999;padding:20px}
+        .ff-ios-paywall-overlay.hidden{display:none}
+        .ff-ios-paywall{width:min(460px,100%);background:#fff;border-radius:18px;padding:22px;box-shadow:0 18px 40px rgba(0,0,0,.22);font-family:inherit}
+        .ff-ios-paywall h3{margin:0 0 6px;font-size:1.3rem}
+        .ff-ios-paywall p{margin:0 0 14px;color:#4b4457}
+        .ff-ios-paywall-plan{width:100%;border:1px solid #f0d7dd;background:#fff7f7;border-radius:12px;padding:12px 14px;margin:0 0 10px;text-align:left;font-weight:600}
+        .ff-ios-paywall-plan small{display:block;font-weight:400;color:#6b6272;margin-top:4px}
+        .ff-ios-paywall-actions{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+        .ff-ios-paywall-actions button{flex:1 1 140px;border:0;border-radius:10px;padding:11px 12px;font-weight:700;cursor:pointer}
+        .ff-ios-buy{background:#8b3d68;color:#fff}
+        .ff-ios-restore{background:#f1eff4;color:#352f3f}
+        .ff-ios-close{margin-top:12px;width:100%;background:transparent;border:0;color:#6f6781;padding:8px;cursor:pointer}
+      `;
+      document.head.appendChild(style);
+    }
+
+    modal = document.createElement("div");
+    modal.id = "ff-ios-paywall";
+    modal.className = "ff-ios-paywall-overlay hidden";
+    modal.innerHTML = `
+      <div class="ff-ios-paywall" role="dialog" aria-modal="true" aria-label="Planos FemFlow">
+        <h3 data-paywall-title>Escolha seu plano</h3>
+        <p data-paywall-subtitle>Assinaturas disponíveis no app.</p>
+        <button type="button" class="ff-ios-paywall-plan" data-plan="access">
+          <span data-paywall-access-title>Acesso App (mensal)</span>
+          <small data-paywall-access-desc>Treinos e ebooks inclusos na assinatura.</small>
+        </button>
+        <button type="button" class="ff-ios-paywall-plan" data-plan="personal">
+          <span data-paywall-personal-title>Personal (mensal)</span>
+          <small data-paywall-personal-desc>Acesso App + modo personal.</small>
+        </button>
+        <div class="ff-ios-paywall-actions">
+          <button type="button" class="ff-ios-buy">Comprar</button>
+          <button type="button" class="ff-ios-restore">Restaurar</button>
+        </div>
+        <button type="button" class="ff-ios-close">Agora não</button>
+      </div>
+    `;
+
+    modal.addEventListener("click", (event) => {
+      if (event.target === modal) modal.classList.add("hidden");
+    });
+
+    let selectedPlan = "access";
+    const selectPlan = (plan) => {
+      selectedPlan = plan === "personal" ? "personal" : "access";
+      modal.querySelectorAll(".ff-ios-paywall-plan").forEach((btn) => {
+        btn.style.outline = btn.dataset.plan === selectedPlan ? "2px solid #8b3d68" : "none";
+      });
+    };
+
+    modal.querySelectorAll(".ff-ios-paywall-plan").forEach((btn) => {
+      btn.addEventListener("click", () => selectPlan(btn.dataset.plan));
+    });
+
+    modal.querySelector(".ff-ios-buy")?.addEventListener("click", () => {
+      const productId = this.productIds[selectedPlan] || this.productIds.access;
+      void FEMFLOW.iap.purchase(productId);
+    });
+
+    modal.querySelector(".ff-ios-restore")?.addEventListener("click", () => {
+      void FEMFLOW.iap.restore();
+    });
+
+    modal.querySelector(".ff-ios-close")?.addEventListener("click", () => {
+      modal.classList.add("hidden");
+    });
+
+    document.body.appendChild(modal);
+    this._applyPaywallI18n(modal);
+    selectPlan("access");
+    return modal;
+  },
+
+  openPaywall({ preferredPlan = "access" } = {}) {
+    const modal = this._ensurePaywallModal();
+    if (!modal) return;
+    this._applyPaywallI18n(modal);
+    modal.classList.remove("hidden");
+    const target = preferredPlan === "personal" ? "personal" : "access";
+    const btn = modal.querySelector(`.ff-ios-paywall-plan[data-plan="${target}"]`);
+    btn?.click();
+    void FEMFLOW.iap.listProducts(Object.values(this.productIds));
+  }
+};
+
 
 FEMFLOW.canAccessEbooks = function () {
   const produto = String(localStorage.getItem("femflow_produto") || "").toLowerCase().trim();

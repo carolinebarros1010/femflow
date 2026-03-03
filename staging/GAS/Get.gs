@@ -52,6 +52,10 @@ function doGet(e) {
     return _json({ notifications: listNotifications_() });
   }
 
+  if (action === "entitlements_status") {
+    return _json(entitlementsStatus_(params));
+  }
+
   return _json({ status: "ignored", msg: "unknown_action", action });
 }
 
