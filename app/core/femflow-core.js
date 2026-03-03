@@ -18,6 +18,12 @@ FEMFLOW.SCRIPT_URL =
   "https://femflowapi.falling-wildflower-a8c0.workers.dev/";
 FEMFLOW.API_URL = FEMFLOW.SCRIPT_URL;
 FEMFLOW.ENV = FEMFLOW_ENV;
+FEMFLOW.IAP_APP_ACCESS_PRODUCT_ID = "com.femflow.app.access.monthly";
+FEMFLOW.IAP_PERSONAL_PRODUCT_ID = "com.femflow.app.personal.monthly";
+FEMFLOW.IAP_PRODUCT_IDS = [
+  FEMFLOW.IAP_APP_ACCESS_PRODUCT_ID,
+  FEMFLOW.IAP_PERSONAL_PRODUCT_ID
+];
 
 FEMFLOW.lang = localStorage.getItem("femflow_lang") || "pt";
 FEMFLOW.setLang = function (lang) {
@@ -1539,6 +1545,231 @@ localStorage.removeItem("femflow_email");
   return resp;
 };
 
+FEMFLOW.isNativeIOS = function () {
+  const capacitor = window.Capacitor;
+  if (!capacitor) return false;
+
+  const getPlatform = typeof capacitor.getPlatform === "function"
+    ? capacitor.getPlatform.bind(capacitor)
+    : null;
+
+  return getPlatform ? getPlatform() === "ios" : false;
+};
+
+FEMFLOW.getNativePurchasesPlugin = function () {
+  return window.Capacitor?.Plugins?.NativePurchases || null;
+};
+
+FEMFLOW.updateEntitlementsFromPayload = function (payload = {}) {
+  const produtoRaw = String(payload.produto || localStorage.getItem("femflow_produto") || "")
+    .toLowerCase()
+    .trim();
+  const isVip = produtoRaw === "vip";
+  const ativaRaw = isVip || payload.ativa === true || payload.ativa === "true";
+
+  localStorage.setItem("femflow_produto", produtoRaw);
+  localStorage.setItem("femflow_ativa", ativaRaw ? "true" : "false");
+
+  const acessos = payload.acessos || {};
+  const personalRaw =
+    acessos.personal ??
+    payload.personal ??
+    payload.Personal ??
+    payload.has_personal ??
+    payload.hasPersonal;
+
+  const hasPersonal =
+    personalRaw === true ||
+    personalRaw === "true" ||
+    personalRaw === 1 ||
+    personalRaw === "1" ||
+    isVip;
+
+  localStorage.setItem("femflow_has_personal", hasPersonal ? "true" : "false");
+  localStorage.removeItem("femflow_personal");
+};
+
+FEMFLOW.refreshEntitlements = async function () {
+  const id = localStorage.getItem("femflow_id") || "";
+  if (!id) return { status: "ignored", msg: "missing_user" };
+
+  const resp = await FEMFLOW.post({
+    action: "entitlements_status",
+    id,
+    email: localStorage.getItem("femflow_email") || ""
+  });
+
+  if (resp?.status === "ok") {
+    FEMFLOW.updateEntitlementsFromPayload(resp);
+    document.dispatchEvent(new CustomEvent("femflow:entitlementsUpdated", { detail: resp }));
+  }
+
+  return resp;
+};
+
+FEMFLOW.checkout = FEMFLOW.checkout || {};
+FEMFLOW.checkout.openHotmart = function (url) {
+  if (!url) return;
+  if (typeof FEMFLOW.openExternal === "function") {
+    FEMFLOW.openExternal(url);
+    return;
+  }
+  window.open(url, "_blank");
+};
+
+FEMFLOW.iap = FEMFLOW.iap || {
+  pluginReady: false,
+  products: [],
+  initialized: false,
+
+  async init() {
+    if (!FEMFLOW.isNativeIOS()) return { status: "ignored", msg: "not_ios" };
+    if (this.initialized) return { status: "ok", msg: "already_initialized" };
+
+    const plugin = FEMFLOW.getNativePurchasesPlugin();
+    if (!plugin) return { status: "error", msg: "plugin_missing" };
+
+    if (typeof plugin.initialize === "function") {
+      await plugin.initialize({ storekit: 2 });
+    } else if (typeof plugin.init === "function") {
+      await plugin.init({ storekit: 2 });
+    }
+
+    this.pluginReady = true;
+    this.initialized = true;
+    return { status: "ok" };
+  },
+
+  async listProducts() {
+    if (!FEMFLOW.isNativeIOS()) return [];
+    await this.init();
+
+    const plugin = FEMFLOW.getNativePurchasesPlugin();
+    if (!plugin) throw new Error("NativePurchases indisponível");
+
+    let result = [];
+    if (typeof plugin.getProducts === "function") {
+      result = await plugin.getProducts({ productIds: FEMFLOW.IAP_PRODUCT_IDS });
+    } else if (typeof plugin.listProducts === "function") {
+      result = await plugin.listProducts({ productIds: FEMFLOW.IAP_PRODUCT_IDS });
+    }
+
+    const products = Array.isArray(result)
+      ? result
+      : Array.isArray(result?.products)
+        ? result.products
+        : [];
+    this.products = products;
+    return products;
+  },
+
+  async activatePurchaseOnBackend({ productId, transactionId, purchaseDate, expiresDate }) {
+    const id = localStorage.getItem("femflow_id") || "";
+    const email = localStorage.getItem("femflow_email") || "";
+
+    return FEMFLOW.post({
+      action: "iap_apple_activate",
+      id,
+      email,
+      userId: id,
+      productId,
+      transactionId,
+      purchaseDate,
+      expiresDate,
+      env: FEMFLOW.ENV || "prod"
+    });
+  },
+
+  normalizeTransaction(tx = {}, productIdFallback = "") {
+    return {
+      productId: tx.productId || tx.productIdentifier || productIdFallback,
+      transactionId: String(tx.transactionId || tx.id || tx.originalTransactionId || ""),
+      purchaseDate: tx.purchaseDate || tx.transactionDate || tx.purchasedAt || "",
+      expiresDate: tx.expirationDate || tx.expiresDate || tx.expiryDate || "",
+      isActive: tx.isActive !== false && tx.revoked !== true
+    };
+  },
+
+  async purchase(productId) {
+    if (!FEMFLOW.isNativeIOS()) {
+      return { status: "ignored", msg: "not_ios" };
+    }
+
+    await this.init();
+    const plugin = FEMFLOW.getNativePurchasesPlugin();
+    if (!plugin || typeof plugin.purchaseProduct !== "function") {
+      throw new Error("purchaseProduct indisponível");
+    }
+
+    const rawTx = await plugin.purchaseProduct({ productId });
+    const tx = this.normalizeTransaction(rawTx, productId);
+
+    await this.activatePurchaseOnBackend(tx);
+    await FEMFLOW.refreshEntitlements();
+    return tx;
+  },
+
+  async restore() {
+    if (!FEMFLOW.isNativeIOS()) {
+      return { status: "ignored", msg: "not_ios" };
+    }
+
+    await this.init();
+    const plugin = FEMFLOW.getNativePurchasesPlugin();
+    if (!plugin || typeof plugin.restorePurchases !== "function") {
+      throw new Error("restorePurchases indisponível");
+    }
+
+    const restoredRaw = await plugin.restorePurchases();
+    const entries = Array.isArray(restoredRaw)
+      ? restoredRaw
+      : Array.isArray(restoredRaw?.purchases)
+        ? restoredRaw.purchases
+        : [];
+
+    const activeTransactions = entries
+      .map(tx => this.normalizeTransaction(tx))
+      .filter(tx => tx.isActive && tx.productId && tx.transactionId);
+
+    for (const tx of activeTransactions) {
+      await this.activatePurchaseOnBackend(tx);
+    }
+
+    await FEMFLOW.refreshEntitlements();
+    return activeTransactions;
+  }
+};
+
+FEMFLOW.iap.bindPaywallButtons = function () {
+  const appBtn = document.querySelector('[data-iap-product="app_access"], #btnAcessoApp, #btnIapAcessoApp');
+  const personalBtn = document.querySelector('[data-iap-product="personal"], #btnPersonal, #btnIapPersonal');
+  const restoreBtn = document.querySelector('[data-iap-action="restore"], #btnRestorePurchases, #btnRestaurarCompras');
+
+  if (appBtn) {
+    appBtn.addEventListener("click", async (event) => {
+      if (!FEMFLOW.isNativeIOS()) return;
+      event.preventDefault();
+      await FEMFLOW.iap.purchase(FEMFLOW.IAP_APP_ACCESS_PRODUCT_ID);
+    });
+  }
+
+  if (personalBtn) {
+    personalBtn.addEventListener("click", async (event) => {
+      if (!FEMFLOW.isNativeIOS()) return;
+      event.preventDefault();
+      await FEMFLOW.iap.purchase(FEMFLOW.IAP_PERSONAL_PRODUCT_ID);
+    });
+  }
+
+  if (restoreBtn) {
+    restoreBtn.addEventListener("click", async (event) => {
+      if (!FEMFLOW.isNativeIOS()) return;
+      event.preventDefault();
+      await FEMFLOW.iap.restore();
+    });
+  }
+};
+
 
 /* ===========================================================
    DIA PROGRAMA — CONTADOR CONTÍNUO (GLOBAL)
@@ -2623,6 +2854,16 @@ FEMFLOW.init = async function () {
   const p = (location.pathname.split("/").pop() || "").toLowerCase();
   FEMFLOW.requireFirebaseAuthIfNeeded?.();
   FEMFLOW.renderVipBadge?.();
+
+  if (FEMFLOW.isNativeIOS()) {
+    try {
+      await FEMFLOW.iap.init();
+      await FEMFLOW.iap.listProducts();
+      FEMFLOW.iap.bindPaywallButtons();
+    } catch (error) {
+      FEMFLOW.warn?.("[FemFlow] IAP Apple indisponível:", error);
+    }
+  }
 
   // HOME → sem SYNC
   if (p === "home.html") {

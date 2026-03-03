@@ -1234,12 +1234,12 @@ function ebookCardHTML(ebook, locked) {
     </article>`;
 }
 
-function handleEbookClick(card) {
+async function handleEbookClick(card) {
   if (!card) return;
   const locked = card.dataset.locked === "true";
 
   if (locked) {
-    openBlockedFlow();
+    await openBlockedFlow();
     return;
   }
 
@@ -1342,11 +1342,19 @@ function msgCheckout(tipo) {
 
 function abrirCheckout(url) {
   if (!url) return;
-  if (typeof FEMFLOW.openExternal === "function") {
-    FEMFLOW.openExternal(url);
+  FEMFLOW.checkout?.openHotmart?.(url);
+}
+
+async function abrirCheckoutOuIap(tipo) {
+  if (FEMFLOW.isNativeIOS?.()) {
+    const productId = tipo === "personal"
+      ? FEMFLOW.IAP_PERSONAL_PRODUCT_ID
+      : FEMFLOW.IAP_APP_ACCESS_PRODUCT_ID;
+    await FEMFLOW.iap.purchase(productId);
     return;
   }
-  window.open(url, "_blank");
+
+  abrirCheckout(getCheckoutLink(tipo));
 }
 
 function getCheckoutLink(tipo) {
@@ -1357,7 +1365,7 @@ function getCheckoutLink(tipo) {
     : (typeof LINK_ACESSO_APP !== "undefined" ? LINK_ACESSO_APP : fallbackAcesso);
 }
 
-function openBlockedFlow({ enfase = "", checkoutTipo = "app" } = {}) {
+async function openBlockedFlow({ enfase = "", checkoutTipo = "app" } = {}) {
   const produto = (localStorage.getItem("femflow_produto") || "").toLowerCase();
   const ativa = localStorage.getItem("femflow_ativa") === "true";
 
@@ -1379,7 +1387,7 @@ function openBlockedFlow({ enfase = "", checkoutTipo = "app" } = {}) {
   }
 
   FEMFLOW.toast(msgCheckout(checkoutTipo));
-  abrirCheckout(getCheckoutLink(checkoutTipo));
+  await abrirCheckoutOuIap(checkoutTipo);
 }
 
 function limparEstadoCustomTreino() {
@@ -1683,7 +1691,7 @@ async function handleCardClick(enfase, locked) {
       : "app";
 
   if (locked) {
-    openBlockedFlow({ enfase, checkoutTipo });
+    await openBlockedFlow({ enfase, checkoutTipo });
     return;
   }
 
