@@ -364,10 +364,26 @@ FEMFLOW.checkout = FEMFLOW.checkout || {
   },
 
   async openCheckout({ reason = "", preferredPlan = "access" } = {}) {
-    if (this.isIOS()) {
-      return this.openPaywall({ reason, preferredPlan });
+    const targetPlan = preferredPlan === "personal" ? "personal" : "access";
+
+    if (!this.isIOS()) {
+      return this.openHotmart(targetPlan);
     }
-    return this.openHotmart(preferredPlan);
+
+    const productId = this.productIds[targetPlan] || this.productIds.access;
+    try {
+      const result = await FEMFLOW.iap.purchase(productId);
+      const status = String(result?.status || "").toLowerCase();
+      const purchaseSucceeded = status === "ok" || Boolean(result?.transactionId || result?.transaction?.transactionId);
+      const shouldFallbackPaywall = status === "stub" || status === "error" || status === "ignored";
+
+      if (purchaseSucceeded) return result;
+      if (!shouldFallbackPaywall) return result;
+    } catch (err) {
+      console.warn("IAP purchase falhou, abrindo paywall", err);
+    }
+
+    return this.openPaywall({ reason, preferredPlan: targetPlan });
   },
 
   openHotmart(plan = "access") {
