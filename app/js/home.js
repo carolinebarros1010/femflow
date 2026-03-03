@@ -7,6 +7,9 @@
 /* LINKS */
 const LINK_ACESSO_APP = "https://pay.hotmart.com/T103984580L?off=ifcs6h6n";
 const LINK_PERSONAL   = "https://pay.hotmart.com/T103984580L?off=sybtfokt";
+window.FEMFLOW = window.FEMFLOW || {};
+window.FEMFLOW.LINK_ACESSO_APP = window.FEMFLOW.LINK_ACESSO_APP || LINK_ACESSO_APP;
+window.FEMFLOW.LINK_PERSONAL = window.FEMFLOW.LINK_PERSONAL || LINK_PERSONAL;
 
 /* FOLLOWME */
 const FOLLOWME_LINKS = {
@@ -1191,7 +1194,7 @@ function getEbookButtonLabel(locked) {
 function getEbookLockedDescription() {
   const lang = FEMFLOW.lang || "pt";
   const labels = {
-    pt: "Incluso no plano",
+    pt: "Incluso na assinatura",
     en: "Included with membership",
     fr: "Inclus dans l’abonnement"
   };
@@ -1239,7 +1242,7 @@ function handleEbookClick(card) {
   const locked = card.dataset.locked === "true";
 
   if (locked) {
-    openBlockedFlow();
+    FEMFLOW.checkout.openCheckout({ reason: "locked_card", preferredPlan: "access" });
     return;
   }
 
@@ -1340,23 +1343,6 @@ function msgCheckout(tipo) {
   return mensagens[tipo]?.[lang] || mensagens[tipo]?.pt || "";
 }
 
-function abrirCheckout(url) {
-  if (!url) return;
-  if (typeof FEMFLOW.openExternal === "function") {
-    FEMFLOW.openExternal(url);
-    return;
-  }
-  window.open(url, "_blank");
-}
-
-function getCheckoutLink(tipo) {
-  const fallbackPersonal = FEMFLOW.LINK_PERSONAL;
-  const fallbackAcesso = FEMFLOW.LINK_ACESSO_APP;
-  return tipo === "personal"
-    ? (typeof LINK_PERSONAL !== "undefined" ? LINK_PERSONAL : fallbackPersonal)
-    : (typeof LINK_ACESSO_APP !== "undefined" ? LINK_ACESSO_APP : fallbackAcesso);
-}
-
 function openBlockedFlow({ enfase = "", checkoutTipo = "app" } = {}) {
   const produto = (localStorage.getItem("femflow_produto") || "").toLowerCase();
   const ativa = localStorage.getItem("femflow_ativa") === "true";
@@ -1379,7 +1365,10 @@ function openBlockedFlow({ enfase = "", checkoutTipo = "app" } = {}) {
   }
 
   FEMFLOW.toast(msgCheckout(checkoutTipo));
-  abrirCheckout(getCheckoutLink(checkoutTipo));
+  FEMFLOW.checkout.openCheckout({
+    reason: "locked_card",
+    preferredPlan: checkoutTipo === "personal" ? "personal" : "access"
+  });
 }
 
 function limparEstadoCustomTreino() {

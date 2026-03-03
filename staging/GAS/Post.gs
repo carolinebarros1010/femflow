@@ -289,6 +289,14 @@ function doPost(e) {
         resposta = adminCreateAluna_(data);
         break;
 
+      case "iap_apple_activate":
+        resposta = iapAppleActivate_(data);
+        break;
+
+      case "entitlements_status":
+        resposta = entitlementsStatus_(data);
+        break;
+
       /* ===========================
          🛒 HOTMART / DEFAULT
       ============================ */
