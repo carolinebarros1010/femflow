@@ -1349,11 +1349,9 @@ function abrirCheckout(url) {
 }
 
 async function abrirCheckoutOuIap(tipo) {
-  if (FEMFLOW.isNativeIOS?.()) {
-    const productId = tipo === "personal"
-      ? FEMFLOW.IAP_PERSONAL_PRODUCT_ID
-      : FEMFLOW.IAP_APP_ACCESS_PRODUCT_ID;
-    await FEMFLOW.iap.purchase(productId);
+  if (FEMFLOW.checkout?.openCheckout) {
+    const preferredPlan = tipo === "personal" ? "personal" : "access";
+    await FEMFLOW.checkout.openCheckout({ preferredPlan });
     return;
   }
 
