@@ -1237,12 +1237,12 @@ function ebookCardHTML(ebook, locked) {
     </article>`;
 }
 
-function handleEbookClick(card) {
+async function handleEbookClick(card) {
   if (!card) return;
   const locked = card.dataset.locked === "true";
 
   if (locked) {
-    FEMFLOW.checkout.openCheckout({ reason: "locked_card", preferredPlan: "access" });
+    await openBlockedFlow();
     return;
   }
 
@@ -1343,7 +1343,32 @@ function msgCheckout(tipo) {
   return mensagens[tipo]?.[lang] || mensagens[tipo]?.pt || "";
 }
 
-function openBlockedFlow({ enfase = "", checkoutTipo = "app" } = {}) {
+function abrirCheckout(url) {
+  if (!url) return;
+  FEMFLOW.checkout?.openHotmart?.(url);
+}
+
+async function abrirCheckoutOuIap(tipo) {
+  if (FEMFLOW.isNativeIOS?.()) {
+    const productId = tipo === "personal"
+      ? FEMFLOW.IAP_PERSONAL_PRODUCT_ID
+      : FEMFLOW.IAP_APP_ACCESS_PRODUCT_ID;
+    await FEMFLOW.iap.purchase(productId);
+    return;
+  }
+
+  abrirCheckout(getCheckoutLink(tipo));
+}
+
+function getCheckoutLink(tipo) {
+  const fallbackPersonal = FEMFLOW.LINK_PERSONAL;
+  const fallbackAcesso = FEMFLOW.LINK_ACESSO_APP;
+  return tipo === "personal"
+    ? (typeof LINK_PERSONAL !== "undefined" ? LINK_PERSONAL : fallbackPersonal)
+    : (typeof LINK_ACESSO_APP !== "undefined" ? LINK_ACESSO_APP : fallbackAcesso);
+}
+
+async function openBlockedFlow({ enfase = "", checkoutTipo = "app" } = {}) {
   const produto = (localStorage.getItem("femflow_produto") || "").toLowerCase();
   const ativa = localStorage.getItem("femflow_ativa") === "true";
 
@@ -1365,10 +1390,7 @@ function openBlockedFlow({ enfase = "", checkoutTipo = "app" } = {}) {
   }
 
   FEMFLOW.toast(msgCheckout(checkoutTipo));
-  FEMFLOW.checkout.openCheckout({
-    reason: "locked_card",
-    preferredPlan: checkoutTipo === "personal" ? "personal" : "access"
-  });
+  await abrirCheckoutOuIap(checkoutTipo);
 }
 
 function limparEstadoCustomTreino() {
@@ -1672,7 +1694,7 @@ async function handleCardClick(enfase, locked) {
       : "app";
 
   if (locked) {
-    openBlockedFlow({ enfase, checkoutTipo });
+    await openBlockedFlow({ enfase, checkoutTipo });
     return;
   }
 

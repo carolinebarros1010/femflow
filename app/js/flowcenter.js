@@ -53,11 +53,19 @@ function msgCheckout(tipo) {
 
 function abrirCheckout(url) {
   if (!url) return;
-  if (typeof FEMFLOW.openExternal === "function") {
-    FEMFLOW.openExternal(url);
+  FEMFLOW.checkout?.openHotmart?.(url);
+}
+
+async function abrirCheckoutOuIap(tipo) {
+  if (FEMFLOW.isNativeIOS?.()) {
+    const productId = tipo === "personal"
+      ? FEMFLOW.IAP_PERSONAL_PRODUCT_ID
+      : FEMFLOW.IAP_APP_ACCESS_PRODUCT_ID;
+    await FEMFLOW.iap.purchase(productId);
     return;
   }
-  window.open(url, "_blank");
+
+  abrirCheckout(getCheckoutLink(tipo));
 }
 
 function getCheckoutLink(tipo) {
@@ -684,7 +692,7 @@ async function initFlowCenter() {
     } = options;
 
     if (!btn) return;
-    btn.onclick = (e) => {
+    btn.onclick = async (e) => {
       e?.preventDefault?.();
 
       if (typeof aoBloquear === "function") {
@@ -695,10 +703,10 @@ async function initFlowCenter() {
 
       if (tipoCheckout === "personal") {
         FEMFLOW.toast(msgCheckout("personal"));
-        abrirCheckout(getCheckoutLink("personal"));
+        await abrirCheckoutOuIap("personal");
       } else {
         FEMFLOW.toast(msgCheckout("app"));
-        abrirCheckout(getCheckoutLink("app"));
+        await abrirCheckoutOuIap("app");
       }
     };
     btn.setAttribute("aria-disabled", "true");
@@ -1015,7 +1023,7 @@ async function initFlowCenter() {
       btn.type = "button";
       btn.className = `caminho-btn${caminho === sugerido ? " is-sugerido" : ""}`;
       btn.textContent = t("flowcenter.caminhosLabel", { caminho });
-      btn.addEventListener("click", () => {
+      btn.addEventListener("click", async () => {
         void abrirModalPreviewCaminho(caminho);
       });
       modalCaminhosBotoes.appendChild(btn);
@@ -1090,14 +1098,14 @@ async function initFlowCenter() {
   };
 
   if (extraBtn) {
-    extraBtn.onclick = () => {
+    extraBtn.onclick = async () => {
       if (isCustomTreino) {
         FEMFLOW.toast("Monte seu treino está ativo.");
         return;
       }
       if (!treinoAcessoOk) {
         FEMFLOW.toast(msgCheckout("app"));
-        abrirCheckout(getCheckoutLink("app"));
+        await abrirCheckoutOuIap("app");
         return;
       }
       abrirModalComLock(modalExtra);
@@ -1467,7 +1475,7 @@ async function initFlowCenter() {
 
     const btn = document.getElementById("enduranceWhatsappBtn");
     if (btn) {
-      btn.addEventListener("click", () => {
+      btn.addEventListener("click", async () => {
         console.log("Usuária acionou suporte WhatsApp - Endurance Personal");
       });
     }
@@ -1486,7 +1494,7 @@ async function initFlowCenter() {
       btn.className = "endurance-chip";
       btn.dataset.value = dia;
       btn.textContent = String(dia).slice(0, 3).replace(/^./, (c) => c.toUpperCase());
-      btn.addEventListener("click", () => {
+      btn.addEventListener("click", async () => {
         endurancePersonalState.diaSelecionado = dia;
         const chips = modalEndurancePersonalDias.querySelectorAll(".endurance-chip");
         chips.forEach((chip) => chip.classList.toggle("is-active", chip.dataset.value === dia));
@@ -1557,7 +1565,7 @@ async function initFlowCenter() {
       btn.className = "endurance-chip";
       btn.dataset.value = semana;
       btn.textContent = semana;
-      btn.addEventListener("click", () => {
+      btn.addEventListener("click", async () => {
         endurancePersonalState.semanaSelecionada = String(semana);
         endurancePersonalState.diaSelecionado = "";
         const chips = modalEndurancePersonalSemanas.querySelectorAll(".endurance-chip");
@@ -1806,10 +1814,10 @@ async function initFlowCenter() {
   };
 
   document.querySelectorAll("[data-extra-enfase]").forEach(btn => {
-    btn.addEventListener("click", () => {
+    btn.addEventListener("click", async () => {
       if (!treinoAcessoOk) {
         FEMFLOW.toast(msgCheckout("app"));
-        abrirCheckout(getCheckoutLink("app"));
+        await abrirCheckoutOuIap("app");
         return;
       }
       const enfase = btn.dataset.extraEnfase;
@@ -1825,7 +1833,7 @@ async function initFlowCenter() {
     });
   });
 
-  document.getElementById("toTrain").onclick = () => {
+  document.getElementById("toTrain").onclick = async () => {
     console.log("[flowcenter] toTrain:click", {
       isCustomTreino,
       personal,
@@ -1857,7 +1865,7 @@ async function initFlowCenter() {
 
     if (!hasPersonal && !acessoAtivo && !freeOk) {
       FEMFLOW.toast(msgCheckout("app"));
-      abrirCheckout(getCheckoutLink("app"));
+      await abrirCheckoutOuIap("app");
       return;
     }
 
@@ -2271,7 +2279,7 @@ async function initFlowCenter() {
 
     if (!enduranceEnabled) {
       FEMFLOW.toast(msgCheckout("app"));
-      abrirCheckout(getCheckoutLink("app"));
+      await abrirCheckoutOuIap("app");
       return;
     }
 

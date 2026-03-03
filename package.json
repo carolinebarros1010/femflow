@@ -30,7 +30,8 @@
     "@capacitor/android": "^8.1.0",
     "@capacitor/cli": "8.1.0",
     "@capacitor/core": "8.1.0",
-    "@capacitor/ios": "8.1.0"
+    "@capacitor/ios": "8.1.0",
+    "@capgo/native-purchases": "^6.0.0"
   },
   "devDependencies": {
     "typescript": "^5.9.3"
