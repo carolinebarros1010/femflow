@@ -339,8 +339,8 @@ FEMFLOW.isLegacyEbooksPath = function (path = "") {
 };
 
 FEMFLOW.iap = FEMFLOW.iap || {
-  _inFlightPurchase: false,
-  _inFlightRestore: false,
+  _purchaseInFlight: false,
+  _restoreInFlight: false,
   async listProducts(productIds = []) {
     if (FEMFLOW.checkout?.isIOS?.()) {
       FEMFLOW.toast("IAP em configuração");
@@ -360,7 +360,7 @@ FEMFLOW.iap = FEMFLOW.iap || {
     if (FEMFLOW.checkout?.isIOS?.()) {
       FEMFLOW.toast("IAP em configuração");
     }
-    return { status: "error", message: "IAP em configuração" };
+    return { status: "error", restoredCount: 0, message: "IAP em configuração" };
   }
 };
 
@@ -375,7 +375,7 @@ FEMFLOW.checkout = FEMFLOW.checkout || {
   },
 
   async openCheckout({ reason = "", preferredPlan = "access" } = {}) {
-    if (FEMFLOW.iap?._inFlightPurchase || FEMFLOW.iap?._inFlightRestore) {
+    if (FEMFLOW.iap?._purchaseInFlight || FEMFLOW.iap?._restoreInFlight) {
       FEMFLOW.toast?.("Processando...");
       return { status: "ignored", message: "purchase_in_flight" };
     }
@@ -559,7 +559,7 @@ FEMFLOW.checkout = FEMFLOW.checkout || {
       const message = String(result?.message || "").trim();
 
       if (status === "ok") {
-        FEMFLOW.toast?.(message || "Compra concluída com sucesso.");
+        FEMFLOW.toast?.(message || "Assinatura ativa. Acesso liberado.");
         modal.classList.add("hidden");
         return;
       }
@@ -569,7 +569,7 @@ FEMFLOW.checkout = FEMFLOW.checkout || {
         return;
       }
 
-      FEMFLOW.toast?.(message || "Não foi possível concluir agora.");
+      FEMFLOW.toast?.(message || "Não foi possível concluir. Tente novamente.");
     };
 
     const selectPlan = (plan) => {
@@ -584,7 +584,7 @@ FEMFLOW.checkout = FEMFLOW.checkout || {
     });
 
     modal.querySelector(".ff-ios-buy")?.addEventListener("click", async () => {
-      if (FEMFLOW.iap?._inFlightPurchase || FEMFLOW.iap?._inFlightRestore) {
+      if (FEMFLOW.iap?._purchaseInFlight || FEMFLOW.iap?._restoreInFlight) {
         FEMFLOW.toast?.("Processando...");
         return;
       }
@@ -600,7 +600,7 @@ FEMFLOW.checkout = FEMFLOW.checkout || {
     });
 
     modal.querySelector(".ff-ios-restore")?.addEventListener("click", async () => {
-      if (FEMFLOW.iap?._inFlightPurchase || FEMFLOW.iap?._inFlightRestore) {
+      if (FEMFLOW.iap?._purchaseInFlight || FEMFLOW.iap?._restoreInFlight) {
         FEMFLOW.toast?.("Processando...");
         return;
       }
@@ -1915,8 +1915,25 @@ FEMFLOW.iap = Object.assign(FEMFLOW.iap || {}, {
   pluginReady: false,
   products: [],
   initialized: false,
-  _inFlightPurchase: false,
-  _inFlightRestore: false,
+  _purchaseInFlight: false,
+  _restoreInFlight: false,
+
+  _statusCopy() {
+    const lang = String(FEMFLOW.lang || "pt").slice(0, 2).toLowerCase();
+    const copy = {
+      success: { pt: "Assinatura ativa. Acesso liberado.", en: "Subscription active. Access unlocked.", fr: "Abonnement actif. Accès débloqué." },
+      cancelled: { pt: "Compra cancelada.", en: "Purchase cancelled.", fr: "Achat annulé." },
+      genericError: { pt: "Não foi possível concluir. Tente novamente.", en: "Could not complete it. Please try again.", fr: "Impossible de finaliser. Réessayez." },
+      processing: { pt: "Processando...", en: "Processing...", fr: "Traitement..." }
+    };
+    const pick = (bucket) => copy[bucket]?.[lang] || copy[bucket]?.pt || "";
+    return {
+      success: pick("success"),
+      cancelled: pick("cancelled"),
+      genericError: pick("genericError"),
+      processing: pick("processing")
+    };
+  },
 
   async init() {
     if (!FEMFLOW.isNativeIOS()) return { status: "error", message: "Somente disponível no iOS nativo." };
@@ -1996,11 +2013,11 @@ FEMFLOW.iap = Object.assign(FEMFLOW.iap || {}, {
     if (!FEMFLOW.isNativeIOS()) {
       return { status: "error", message: "Somente disponível no iOS nativo." };
     }
-    if (this._inFlightPurchase || this._inFlightRestore) {
-      return { status: "error", message: "Processando..." };
+    if (this._purchaseInFlight || this._restoreInFlight) {
+      return { status: "error", message: this._statusCopy().processing };
     }
 
-    this._inFlightPurchase = true;
+    this._purchaseInFlight = true;
 
     try {
       await this.init();
@@ -2025,40 +2042,41 @@ FEMFLOW.iap = Object.assign(FEMFLOW.iap || {}, {
         const cancelCode = String(rawTx?.code || rawTx?.errorCode || rawTx?.status || "").toLowerCase();
         const cancelMsg = String(rawTx?.message || rawTx?.errorMessage || "").toLowerCase();
         const wasCancelled = cancelCode.includes("cancel") || cancelMsg.includes("cancel");
-        if (wasCancelled) return { status: "cancelled", message: "Compra cancelada." };
+        if (wasCancelled) return { status: "cancelled", message: this._statusCopy().cancelled };
         return { status: "error", message: "Transação inválida." };
       }
 
       await this.activatePurchaseOnBackend(tx);
       await FEMFLOW.refreshEntitlements();
-      return { status: "ok", message: "Compra concluída com sucesso.", transaction: tx };
+      document.dispatchEvent(new CustomEvent("femflow:entitlementsUpdated", { detail: { source: "iap_purchase", transactionId: tx.transactionId } }));
+      return { status: "ok", transactionId: tx.transactionId, message: this._statusCopy().success };
     } catch (err) {
       const code = String(err?.code || err?.errorCode || "").toLowerCase();
       const msg = String(err?.message || "").toLowerCase();
       const wasCancelled = code.includes("cancel") || msg.includes("cancel");
-      if (wasCancelled) return { status: "cancelled", message: "Compra cancelada." };
-      return { status: "error", message: err?.message || "Não foi possível concluir a compra." };
+      if (wasCancelled) return { status: "cancelled", message: this._statusCopy().cancelled };
+      return { status: "error", message: this._statusCopy().genericError };
     } finally {
-      this._inFlightPurchase = false;
+      this._purchaseInFlight = false;
     }
   },
 
   async restore() {
     if (!FEMFLOW.isNativeIOS()) {
-      return { status: "error", message: "Somente disponível no iOS nativo." };
+      return { status: "error", restoredCount: 0, message: "Somente disponível no iOS nativo." };
     }
-    if (this._inFlightPurchase || this._inFlightRestore) {
-      return { status: "error", message: "Processando..." };
+    if (this._purchaseInFlight || this._restoreInFlight) {
+      return { status: "error", restoredCount: 0, message: this._statusCopy().processing };
     }
 
-    this._inFlightRestore = true;
+    this._restoreInFlight = true;
 
     try {
       await this.init();
       const plugin = FEMFLOW.getNativePurchasesPlugin();
       if (!plugin) {
         FEMFLOW.toast?.("IAP em configuração");
-        return { status: "error", message: "IAP em configuração" };
+        return { status: "error", restoredCount: 0, message: "IAP em configuração" };
       }
 
       let restoredRaw = [];
@@ -2068,7 +2086,7 @@ FEMFLOW.iap = Object.assign(FEMFLOW.iap || {}, {
         restoredRaw = await plugin.restore();
       } else {
         FEMFLOW.toast?.("IAP em configuração");
-        return { status: "error", message: "IAP em configuração" };
+        return { status: "error", restoredCount: 0, message: "IAP em configuração" };
       }
 
       const entries = Array.isArray(restoredRaw)
@@ -2086,20 +2104,16 @@ FEMFLOW.iap = Object.assign(FEMFLOW.iap || {}, {
       }
 
       await FEMFLOW.refreshEntitlements();
-      const hasRestored = activeTransactions.length > 0;
+      document.dispatchEvent(new CustomEvent("femflow:entitlementsUpdated", { detail: { source: "iap_restore", restoredCount: activeTransactions.length } }));
       return {
         status: "ok",
-        message: hasRestored ? "Compras restauradas com sucesso." : "Nenhuma compra para restaurar.",
-        restored: activeTransactions
+        restoredCount: activeTransactions.length,
+        message: this._statusCopy().success
       };
     } catch (err) {
-      const code = String(err?.code || err?.errorCode || "").toLowerCase();
-      const msg = String(err?.message || "").toLowerCase();
-      const wasCancelled = code.includes("cancel") || msg.includes("cancel");
-      if (wasCancelled) return { status: "cancelled", message: "Restauração cancelada." };
-      return { status: "error", message: err?.message || "Não foi possível restaurar as compras." };
+      return { status: "error", restoredCount: 0, message: this._statusCopy().genericError };
     } finally {
-      this._inFlightRestore = false;
+      this._restoreInFlight = false;
     }
   }
 });
