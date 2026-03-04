@@ -51,27 +51,16 @@ function msgCheckout(tipo) {
   return mensagens[tipo]?.[lang] || mensagens[tipo]?.pt || "";
 }
 
-function abrirCheckout(url) {
-  if (!url) return;
-  FEMFLOW.checkout?.openHotmart?.(url);
+function abrirCheckout(tipo = "app") {
+  const preferredPlan = tipo === "personal" ? "personal" : "access";
+  FEMFLOW.checkout?.openCheckout?.({
+    reason: "locked_card",
+    preferredPlan
+  });
 }
 
 async function abrirCheckoutOuIap(tipo) {
-  if (FEMFLOW.checkout?.openCheckout) {
-    const preferredPlan = tipo === "personal" ? "personal" : "access";
-    await FEMFLOW.checkout.openCheckout({ preferredPlan });
-    return;
-  }
-
-  abrirCheckout(getCheckoutLink(tipo));
-}
-
-function getCheckoutLink(tipo) {
-  const fallbackPersonal = FEMFLOW.LINK_PERSONAL;
-  const fallbackAcesso = FEMFLOW.LINK_ACESSO_APP;
-  return tipo === "personal"
-    ? (typeof LINK_PERSONAL !== "undefined" ? LINK_PERSONAL : fallbackPersonal)
-    : (typeof LINK_ACESSO_APP !== "undefined" ? LINK_ACESSO_APP : fallbackAcesso);
+  abrirCheckout(tipo);
 }
 
 
