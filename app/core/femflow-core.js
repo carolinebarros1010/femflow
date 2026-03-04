@@ -335,6 +335,8 @@ FEMFLOW.isLegacyEbooksPath = function (path = "") {
 };
 
 FEMFLOW.iap = FEMFLOW.iap || {
+  _inFlightPurchase: false,
+  _inFlightRestore: false,
   async listProducts(productIds = []) {
     if (FEMFLOW.checkout?.isIOS?.()) {
       FEMFLOW.toast("IAP em configuração");
@@ -348,13 +350,13 @@ FEMFLOW.iap = FEMFLOW.iap || {
     if (FEMFLOW.checkout?.isIOS?.()) {
       FEMFLOW.toast("IAP em configuração");
     }
-    return { status: "stub", productId: String(productId || "") };
+    return { status: "error", message: "IAP em configuração", productId: String(productId || "") };
   },
   async restore() {
     if (FEMFLOW.checkout?.isIOS?.()) {
       FEMFLOW.toast("IAP em configuração");
     }
-    return { status: "stub" };
+    return { status: "error", message: "IAP em configuração" };
   }
 };
 
@@ -377,6 +379,11 @@ FEMFLOW.checkout = FEMFLOW.checkout || {
   },
 
   async openCheckout({ reason = "", preferredPlan = "access" } = {}) {
+    if (FEMFLOW.iap?._inFlightPurchase || FEMFLOW.iap?._inFlightRestore) {
+      FEMFLOW.toast?.("Processando...");
+      return { status: "ignored", message: "purchase_in_flight" };
+    }
+
     const targetPlan = preferredPlan === "personal" ? "personal" : "access";
 
     if (!this.isIOS()) {
@@ -388,7 +395,7 @@ FEMFLOW.checkout = FEMFLOW.checkout || {
       const result = await FEMFLOW.iap.purchase(productId);
       const status = String(result?.status || "").toLowerCase();
       const purchaseSucceeded = status === "ok" || Boolean(result?.transactionId || result?.transaction?.transactionId);
-      const shouldFallbackPaywall = status === "stub" || status === "error" || status === "ignored";
+      const shouldFallbackPaywall = status === "error" || status === "ignored";
 
       if (purchaseSucceeded) return result;
       if (!shouldFallbackPaywall) return result;
@@ -534,6 +541,34 @@ FEMFLOW.checkout = FEMFLOW.checkout || {
     });
 
     let selectedPlan = "access";
+    const setBusy = (busy) => {
+      modal.querySelectorAll("button").forEach((button) => {
+        if (button.classList.contains("ff-ios-close")) {
+          button.disabled = false;
+          return;
+        }
+        button.disabled = Boolean(busy);
+      });
+    };
+
+    const toastIapResult = (result = {}) => {
+      const status = String(result?.status || "").toLowerCase();
+      const message = String(result?.message || "").trim();
+
+      if (status === "ok") {
+        FEMFLOW.toast?.(message || "Compra concluída com sucesso.");
+        modal.classList.add("hidden");
+        return;
+      }
+
+      if (status === "cancelled") {
+        FEMFLOW.toast?.(message || "Compra cancelada.");
+        return;
+      }
+
+      FEMFLOW.toast?.(message || "Não foi possível concluir agora.");
+    };
+
     const selectPlan = (plan) => {
       selectedPlan = plan === "personal" ? "personal" : "access";
       modal.querySelectorAll(".ff-ios-paywall-plan").forEach((btn) => {
@@ -545,13 +580,35 @@ FEMFLOW.checkout = FEMFLOW.checkout || {
       btn.addEventListener("click", () => selectPlan(btn.dataset.plan));
     });
 
-    modal.querySelector(".ff-ios-buy")?.addEventListener("click", () => {
+    modal.querySelector(".ff-ios-buy")?.addEventListener("click", async () => {
+      if (FEMFLOW.iap?._inFlightPurchase || FEMFLOW.iap?._inFlightRestore) {
+        FEMFLOW.toast?.("Processando...");
+        return;
+      }
+
       const productId = this.productIds[selectedPlan] || this.productIds.access;
-      void FEMFLOW.iap.purchase(productId);
+      setBusy(true);
+      try {
+        const result = await FEMFLOW.iap.purchase(productId);
+        toastIapResult(result);
+      } finally {
+        setBusy(false);
+      }
     });
 
-    modal.querySelector(".ff-ios-restore")?.addEventListener("click", () => {
-      void FEMFLOW.iap.restore();
+    modal.querySelector(".ff-ios-restore")?.addEventListener("click", async () => {
+      if (FEMFLOW.iap?._inFlightPurchase || FEMFLOW.iap?._inFlightRestore) {
+        FEMFLOW.toast?.("Processando...");
+        return;
+      }
+
+      setBusy(true);
+      try {
+        const result = await FEMFLOW.iap.restore();
+        toastIapResult(result);
+      } finally {
+        setBusy(false);
+      }
     });
 
     modal.querySelector(".ff-ios-close")?.addEventListener("click", () => {
@@ -1854,15 +1911,17 @@ FEMFLOW.iap = Object.assign(FEMFLOW.iap || {}, {
   pluginReady: false,
   products: [],
   initialized: false,
+  _inFlightPurchase: false,
+  _inFlightRestore: false,
 
   async init() {
-    if (!FEMFLOW.isNativeIOS()) return { status: "ignored", msg: "not_ios" };
-    if (this.initialized) return { status: "ok", msg: "already_initialized" };
+    if (!FEMFLOW.isNativeIOS()) return { status: "error", message: "Somente disponível no iOS nativo." };
+    if (this.initialized) return { status: "ok", message: "IAP inicializado." };
 
     const plugin = FEMFLOW.getNativePurchasesPlugin();
     if (!plugin) {
       FEMFLOW.toast?.("IAP em configuração");
-      return { status: "stub", msg: "plugin_missing" };
+      return { status: "error", message: "IAP em configuração" };
     }
 
     if (typeof plugin.initialize === "function") {
@@ -1873,14 +1932,14 @@ FEMFLOW.iap = Object.assign(FEMFLOW.iap || {}, {
 
     this.pluginReady = true;
     this.initialized = true;
-    return { status: "ok" };
+    return { status: "ok", message: "IAP pronto." };
   },
 
   async listProducts(productIds = FEMFLOW.IAP_PRODUCT_IDS) {
-    if (!FEMFLOW.isNativeIOS()) return { status: "ignored", products: [] };
+    if (!FEMFLOW.isNativeIOS()) return { status: "error", message: "Somente disponível no iOS nativo.", products: [] };
     const initResult = await this.init();
     const plugin = FEMFLOW.getNativePurchasesPlugin();
-    if (!plugin) return { status: initResult.status || "stub", products: [] };
+    if (!plugin) return { status: "error", message: initResult.message || "IAP em configuração", products: [] };
 
     let result = [];
     if (typeof plugin.getProducts === "function") {
@@ -1889,7 +1948,7 @@ FEMFLOW.iap = Object.assign(FEMFLOW.iap || {}, {
       result = await plugin.listProducts({ productIds });
     } else {
       FEMFLOW.toast?.("IAP em configuração");
-      return { status: "stub", products: [] };
+      return { status: "error", message: "IAP em configuração", products: [] };
     }
 
     const products = Array.isArray(result)
@@ -1898,7 +1957,7 @@ FEMFLOW.iap = Object.assign(FEMFLOW.iap || {}, {
         ? result.products
         : [];
     this.products = products;
-    return { status: "ok", products };
+    return { status: "ok", message: "Produtos carregados.", products };
   },
 
   async activatePurchaseOnBackend({ productId, transactionId, purchaseDate, expiresDate, env }) {
@@ -1930,69 +1989,114 @@ FEMFLOW.iap = Object.assign(FEMFLOW.iap || {}, {
   },
 
   async purchase(productId) {
-    if (!FEMFLOW.isNativeIOS()) return { status: "ignored", msg: "not_ios" };
-
-    await this.init();
-    const plugin = FEMFLOW.getNativePurchasesPlugin();
-    if (!plugin) {
-      FEMFLOW.toast?.("IAP em configuração");
-      return { status: "stub", msg: "plugin_missing" };
+    if (!FEMFLOW.isNativeIOS()) {
+      return { status: "error", message: "Somente disponível no iOS nativo." };
+    }
+    if (this._inFlightPurchase || this._inFlightRestore) {
+      return { status: "error", message: "Processando..." };
     }
 
-    let rawTx = null;
-    if (typeof plugin.purchaseProduct === "function") {
-      rawTx = await plugin.purchaseProduct({ productId });
-    } else if (typeof plugin.purchase === "function") {
-      rawTx = await plugin.purchase({ productId });
-    } else {
-      FEMFLOW.toast?.("IAP em configuração");
-      return { status: "stub", msg: "purchase_missing" };
+    this._inFlightPurchase = true;
+
+    try {
+      await this.init();
+      const plugin = FEMFLOW.getNativePurchasesPlugin();
+      if (!plugin) {
+        FEMFLOW.toast?.("IAP em configuração");
+        return { status: "error", message: "IAP em configuração" };
+      }
+
+      let rawTx = null;
+      if (typeof plugin.purchaseProduct === "function") {
+        rawTx = await plugin.purchaseProduct({ productId });
+      } else if (typeof plugin.purchase === "function") {
+        rawTx = await plugin.purchase({ productId });
+      } else {
+        FEMFLOW.toast?.("IAP em configuração");
+        return { status: "error", message: "IAP em configuração" };
+      }
+
+      const tx = this.normalizeTransaction(rawTx, productId);
+      if (!tx.productId || !tx.transactionId) {
+        const cancelCode = String(rawTx?.code || rawTx?.errorCode || rawTx?.status || "").toLowerCase();
+        const cancelMsg = String(rawTx?.message || rawTx?.errorMessage || "").toLowerCase();
+        const wasCancelled = cancelCode.includes("cancel") || cancelMsg.includes("cancel");
+        if (wasCancelled) return { status: "cancelled", message: "Compra cancelada." };
+        return { status: "error", message: "Transação inválida." };
+      }
+
+      await this.activatePurchaseOnBackend(tx);
+      await FEMFLOW.refreshEntitlements();
+      return { status: "ok", message: "Compra concluída com sucesso.", transaction: tx };
+    } catch (err) {
+      const code = String(err?.code || err?.errorCode || "").toLowerCase();
+      const msg = String(err?.message || "").toLowerCase();
+      const wasCancelled = code.includes("cancel") || msg.includes("cancel");
+      if (wasCancelled) return { status: "cancelled", message: "Compra cancelada." };
+      return { status: "error", message: err?.message || "Não foi possível concluir a compra." };
+    } finally {
+      this._inFlightPurchase = false;
     }
-
-    const tx = this.normalizeTransaction(rawTx, productId);
-    if (!tx.productId || !tx.transactionId) return { status: "error", msg: "invalid_transaction" };
-
-    await this.activatePurchaseOnBackend(tx);
-    await FEMFLOW.refreshEntitlements();
-    return { status: "ok", transaction: tx };
   },
 
   async restore() {
-    if (!FEMFLOW.isNativeIOS()) return { status: "ignored", msg: "not_ios" };
-
-    await this.init();
-    const plugin = FEMFLOW.getNativePurchasesPlugin();
-    if (!plugin) {
-      FEMFLOW.toast?.("IAP em configuração");
-      return { status: "stub", msg: "plugin_missing" };
+    if (!FEMFLOW.isNativeIOS()) {
+      return { status: "error", message: "Somente disponível no iOS nativo." };
+    }
+    if (this._inFlightPurchase || this._inFlightRestore) {
+      return { status: "error", message: "Processando..." };
     }
 
-    let restoredRaw = [];
-    if (typeof plugin.restorePurchases === "function") {
-      restoredRaw = await plugin.restorePurchases();
-    } else if (typeof plugin.restore === "function") {
-      restoredRaw = await plugin.restore();
-    } else {
-      FEMFLOW.toast?.("IAP em configuração");
-      return { status: "stub", msg: "restore_missing" };
+    this._inFlightRestore = true;
+
+    try {
+      await this.init();
+      const plugin = FEMFLOW.getNativePurchasesPlugin();
+      if (!plugin) {
+        FEMFLOW.toast?.("IAP em configuração");
+        return { status: "error", message: "IAP em configuração" };
+      }
+
+      let restoredRaw = [];
+      if (typeof plugin.restorePurchases === "function") {
+        restoredRaw = await plugin.restorePurchases();
+      } else if (typeof plugin.restore === "function") {
+        restoredRaw = await plugin.restore();
+      } else {
+        FEMFLOW.toast?.("IAP em configuração");
+        return { status: "error", message: "IAP em configuração" };
+      }
+
+      const entries = Array.isArray(restoredRaw)
+        ? restoredRaw
+        : Array.isArray(restoredRaw?.purchases)
+          ? restoredRaw.purchases
+          : [];
+
+      const activeTransactions = entries
+        .map(tx => this.normalizeTransaction(tx))
+        .filter(tx => tx.isActive && tx.productId && tx.transactionId);
+
+      for (const tx of activeTransactions) {
+        await this.activatePurchaseOnBackend(tx);
+      }
+
+      await FEMFLOW.refreshEntitlements();
+      const hasRestored = activeTransactions.length > 0;
+      return {
+        status: "ok",
+        message: hasRestored ? "Compras restauradas com sucesso." : "Nenhuma compra para restaurar.",
+        restored: activeTransactions
+      };
+    } catch (err) {
+      const code = String(err?.code || err?.errorCode || "").toLowerCase();
+      const msg = String(err?.message || "").toLowerCase();
+      const wasCancelled = code.includes("cancel") || msg.includes("cancel");
+      if (wasCancelled) return { status: "cancelled", message: "Restauração cancelada." };
+      return { status: "error", message: err?.message || "Não foi possível restaurar as compras." };
+    } finally {
+      this._inFlightRestore = false;
     }
-
-    const entries = Array.isArray(restoredRaw)
-      ? restoredRaw
-      : Array.isArray(restoredRaw?.purchases)
-        ? restoredRaw.purchases
-        : [];
-
-    const activeTransactions = entries
-      .map(tx => this.normalizeTransaction(tx))
-      .filter(tx => tx.isActive && tx.productId && tx.transactionId);
-
-    for (const tx of activeTransactions) {
-      await this.activatePurchaseOnBackend(tx);
-    }
-
-    await FEMFLOW.refreshEntitlements();
-    return { status: "ok", restored: activeTransactions };
   }
 });
 
