@@ -74,6 +74,43 @@ function _isExpiredIso_(iso) {
   return ts < Date.now();
 }
 
+function computeEntitlementsFromRow_(row, headerMap) {
+  const idxProduto = headerMap && headerMap.Produto;
+  const idxLicencaAtiva = headerMap && headerMap.LicencaAtiva;
+  const idxAcessoPersonal = headerMap && headerMap.acesso_personal;
+  const idxIapSource = headerMap && headerMap.IapSource;
+  const idxIapExpiresAt = headerMap && headerMap.IapExpiresAt;
+  const idxIapPlan = headerMap && headerMap.IapPlan;
+
+  if (idxProduto == null || idxLicencaAtiva == null || idxAcessoPersonal == null) {
+    return { status: "error", msg: "missing_required_columns" };
+  }
+
+  const produto = String(row[idxProduto] || "").toLowerCase().trim();
+  const licencaAtiva = row[idxLicencaAtiva] === true || String(row[idxLicencaAtiva] || "").toLowerCase() === "true";
+  const acessoPersonal = row[idxAcessoPersonal] === true || String(row[idxAcessoPersonal] || "").toLowerCase() === "true";
+
+  const source = String((idxIapSource == null ? "" : row[idxIapSource]) || "").trim() || "hotmart";
+  const expiresAt = String((idxIapExpiresAt == null ? "" : row[idxIapExpiresAt]) || "").trim();
+
+  let acessoApp = licencaAtiva && produto !== "trial_app";
+  if (source === "apple_iap" && _isExpiredIso_(expiresAt)) {
+    acessoApp = false;
+  }
+
+  const modoPersonal = acessoApp ? acessoPersonal : false;
+  const plan = String((idxIapPlan == null ? "" : row[idxIapPlan]) || "").trim() || (modoPersonal ? "personal" : "access");
+
+  return {
+    status: "ok",
+    acesso_app: acessoApp,
+    modo_personal: modoPersonal,
+    expiresAt: expiresAt,
+    source: source,
+    plan: plan
+  };
+}
+
 function iapAppleActivate_(payload) {
   const sh = ensureAlunasHasColumns_();
   if (!sh) return { status: "error", msg: "sheet_not_found" };
@@ -131,40 +168,20 @@ function entitlementsStatus_(payload) {
   const found = _findAlunaRowByIdOrEmail_(sh, payload || {});
   if (!found) return { status: "notfound", msg: "aluna_not_found" };
 
-  const headerInfo = _getHeaderMap_(sh);
-  const header = headerInfo.header;
   const headerMap = _ensureIapColumns_(sh);
   const values = sh.getRange(found.rowIndex, 1, 1, sh.getLastColumn()).getValues()[0];
+  const entitlements = computeEntitlementsFromRow_(values, headerMap);
+  if (entitlements.status === "error") return entitlements;
 
-  const idxProduto = header.indexOf("Produto");
-  const idxLicencaAtiva = header.indexOf("LicencaAtiva");
-  const idxAcessoPersonal = header.indexOf("acesso_personal");
-
-  if (idxProduto < 0 || idxLicencaAtiva < 0 || idxAcessoPersonal < 0) {
-    return { status: "error", msg: "missing_required_columns" };
-  }
-
-  const produto = String(values[idxProduto] || "").toLowerCase().trim();
-  const licencaAtiva = values[idxLicencaAtiva] === true || String(values[idxLicencaAtiva] || "").toLowerCase() === "true";
-  let modoPersonal = values[idxAcessoPersonal] === true || String(values[idxAcessoPersonal] || "").toLowerCase() === "true";
-  let acessoApp = licencaAtiva && produto !== "trial_app";
-
-  const source = String(values[headerMap.IapSource] || "").trim() || "hotmart";
-  const expiresAt = String(values[headerMap.IapExpiresAt] || "").trim();
-  const plan = String(values[headerMap.IapPlan] || "").trim() || (modoPersonal ? "personal" : "access");
-
-  if (source === "apple_iap" && _isExpiredIso_(expiresAt)) {
-    acessoApp = false;
-    modoPersonal = false;
-  }
+  const produto = String(values[headerMap.Produto] || "").toLowerCase().trim();
 
   return {
     status: "ok",
-    acesso_app: acessoApp,
-    modo_personal: modoPersonal,
-    expiresAt: expiresAt,
-    source: source,
-    plan: plan,
+    acesso_app: entitlements.acesso_app,
+    modo_personal: entitlements.modo_personal,
+    expiresAt: entitlements.expiresAt,
+    source: entitlements.source,
+    plan: entitlements.plan,
     produto: produto
   };
 }

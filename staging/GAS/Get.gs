@@ -131,6 +131,7 @@ function _validarPerfil_(params) {
   const email = String(params.email || "").toLowerCase().trim();
   if (!id && !email) return { status: "error", msg: "missing_id" };
 
+  const headerMap = _ensureIapColumns_(sh);
   const rows = sh.getDataRange().getValues();
 
   for (let i = 1; i < rows.length; i++) {
@@ -171,6 +172,8 @@ function _validarPerfil_(params) {
       const ativa = isVip || row[7] === true || String(row[7] || "").toLowerCase() === "true";
 
       const freeAccess = _buildFreeAccess_(row);
+      const entitlements = computeEntitlementsFromRow_(row, headerMap);
+      if (entitlements.status === "error") return entitlements;
 
       return {
         perfilHormonal: _normalizarPerfilHormonal_(row[COL_PERFIL_HORMONAL] || "") || "regular",
@@ -180,6 +183,11 @@ function _validarPerfil_(params) {
         email: rowEmail,
         produto: row[5] || "",
         ativa,
+        acesso_app: entitlements.acesso_app,
+        modo_personal: entitlements.modo_personal,
+        expiresAt: entitlements.expiresAt,
+        source: entitlements.source,
+        plan: entitlements.plan,
         nivel: String(row[8] || "iniciante").toLowerCase(),
         enfase: String(row[12] || "nenhuma").toLowerCase(),
         fase: String(faseSync || "follicular").toLowerCase(),
