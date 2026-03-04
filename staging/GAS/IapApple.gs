@@ -83,7 +83,7 @@ function computeEntitlementsFromRow_(row, headerMap) {
   const idxIapPlan = headerMap && headerMap.IapPlan;
 
   if (idxProduto == null || idxLicencaAtiva == null || idxAcessoPersonal == null) {
-    return { status: "error", msg: "missing_required_columns" };
+    return null;
   }
 
   const produto = String(row[idxProduto] || "").toLowerCase().trim();
@@ -93,16 +93,13 @@ function computeEntitlementsFromRow_(row, headerMap) {
   const source = String((idxIapSource == null ? "" : row[idxIapSource]) || "").trim() || "hotmart";
   const expiresAt = String((idxIapExpiresAt == null ? "" : row[idxIapExpiresAt]) || "").trim();
 
-  let acessoApp = licencaAtiva && produto !== "trial_app";
-  if (source === "apple_iap" && _isExpiredIso_(expiresAt)) {
-    acessoApp = false;
-  }
+  const expired = source === "apple_iap" && _isExpiredIso_(expiresAt);
+  const acessoApp = licencaAtiva && produto !== "trial_app" && !expired;
 
   const modoPersonal = acessoApp ? acessoPersonal : false;
   const plan = String((idxIapPlan == null ? "" : row[idxIapPlan]) || "").trim() || (modoPersonal ? "personal" : "access");
 
   return {
-    status: "ok",
     acesso_app: acessoApp,
     modo_personal: modoPersonal,
     expiresAt: expiresAt,
@@ -168,19 +165,29 @@ function entitlementsStatus_(payload) {
   const found = _findAlunaRowByIdOrEmail_(sh, payload || {});
   if (!found) return { status: "notfound", msg: "aluna_not_found" };
 
-  const headerMap = _ensureIapColumns_(sh);
+  _ensureIapColumns_(sh);
+  const header = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0];
+  const headerMap = {
+    Produto: header.indexOf("Produto"),
+    LicencaAtiva: header.indexOf("LicencaAtiva"),
+    acesso_personal: header.indexOf("acesso_personal"),
+    IapSource: header.indexOf("IapSource"),
+    IapExpiresAt: header.indexOf("IapExpiresAt"),
+    IapPlan: header.indexOf("IapPlan")
+  };
+
+  if (headerMap.Produto < 0 || headerMap.LicencaAtiva < 0 || headerMap.acesso_personal < 0) {
+    return { status: "error", msg: "missing_required_columns" };
+  }
+
   const values = sh.getRange(found.rowIndex, 1, 1, sh.getLastColumn()).getValues()[0];
   const entitlements = computeEntitlementsFromRow_(values, headerMap);
-  if (entitlements.status === "error") return entitlements;
-
   const produto = String(values[headerMap.Produto] || "").toLowerCase().trim();
-
-  const modoPersonalNormalizado = entitlements.acesso_app && entitlements.modo_personal;
 
   return {
     status: "ok",
     acesso_app: entitlements.acesso_app,
-    modo_personal: modoPersonalNormalizado,
+    modo_personal: entitlements.modo_personal,
     expiresAt: entitlements.expiresAt,
     source: entitlements.source,
     plan: entitlements.plan,
