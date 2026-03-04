@@ -28,30 +28,57 @@ const HOME_VIDEO_SOURCES = {
 const EBOOKS_HOME = [
   {
     nome: {
-      pt: "Hipopressivos para alívio das cólicas",
-      en: "Hypopressive exercises for menstrual cramp relief",
-      fr: "Hypopressifs pour soulager les douleurs menstruelles"
+      pt: "Leveza no Ciclo: Hipopressivos para dias sem cólica",
+      en: "Cycle Relief: Hypopressive moves for cramp-free days",
+      fr: "Cycle léger : hypopressifs pour des jours sans douleurs"
     },
     capa: "capahipopressivos.png",
     arquivo: "Guia-Completo-de-Exerccios-Hipopressivos-para-Alvio-das-Clicas-Menstruais.pdf"
   },
   {
     nome: {
-      pt: "Hidratação feminina: saúde hormonal e bem-estar",
-      en: "Women's hydration: hormonal health and wellness",
-      fr: "Hydratation féminine : santé hormonale et bien-être"
+      pt: "Glow Feminino: hidratação para equilíbrio hormonal",
+      en: "Feminine Glow: hydration for hormonal balance",
+      fr: "Éclat féminin : hydratation pour l’équilibre hormonal"
     },
     capa: "capaaguaequilibrio.png",
     arquivo: "Guia-Completo-da-Hidratao-Feminina-Saude-Hormnios-e-Bem-Estar.pdf"
   },
   {
     nome: {
-      pt: "FemFlow: jornada de empoderamento em 15 dias",
-      en: "FemFlow: 15-day empowerment journey",
-      fr: "FemFlow : parcours d'autonomisation en 15 jours"
+      pt: "FemFlow 15 Dias: seu recomeço ativo e confiante",
+      en: "FemFlow 15 Days: your active, confident reset",
+      fr: "FemFlow 15 jours : votre renouveau actif et confiant"
     },
     capa: "capafemflow15.png",
     arquivo: "FemFlow-jornada-de-empoderamento-de-15-dias-para-mulheres-rumo-a-uma-vida-ativa-.pdf"
+  },
+  {
+    nome: {
+      pt: "TPM Zen: respiração guiada para acalmar e aliviar",
+      en: "Zen PMS: guided breathing to soothe and ease",
+      fr: "SPM Zen : respiration guidée pour apaiser"
+    },
+    capa: "capatpmzem.png",
+    arquivo: "protocolo_tpm_zen.pdf"
+  },
+  {
+    nome: {
+      pt: "Metabolismo Ativo: método FemFlow com efeito EPOC",
+      en: "Active Metabolism: FemFlow's EPOC method",
+      fr: "Métabolisme actif : méthode FemFlow avec effet EPOC"
+    },
+    capa: "capaefeitoEPOC.png",
+    arquivo: "efeito_epoc.pdf"
+  },
+  {
+    nome: {
+      pt: "Nutrição do Ciclo: energia e bem-estar em cada fase",
+      en: "Cycle Nutrition: energy and wellness in every phase",
+      fr: "Nutrition du cycle : énergie et bien-être à chaque phase"
+    },
+    capa: "placeholder.png",
+    arquivo: "nutricao_ciclo_hormonal.pdf"
   }
 ];
 
@@ -1177,14 +1204,6 @@ function canAccessEbooks() {
   return ativa || vip;
 }
 
-function getEbookButtonLabel(locked) {
-  const lang = FEMFLOW.lang || "pt";
-  const labels = locked
-    ? { pt: "Bloqueado", en: "Locked", fr: "Bloqué" }
-    : { pt: "Abrir PDF", en: "Open PDF", fr: "Ouvrir le PDF" };
-  return labels[lang] || labels.pt;
-}
-
 function getEbookLockedDescription() {
   const lang = FEMFLOW.lang || "pt";
   const labels = {
@@ -1216,7 +1235,6 @@ function ebookCardHTML(ebook, locked) {
   const capa = ebook.capa ? resolveEbookAsset(`ebooks/${ebook.capa}`) : "";
   const thumbStyle = `${capa ? `--thumb-url:url('${capa}');` : ""}background-color:${EBOOKS_FALLBACK_COLOR};`;
   const filePath = resolveEbookAsset(`app/ebooks/downloads/${ebook.arquivo}`);
-  const ctaLabel = getEbookButtonLabel(locked);
 
   return `
     <article class="card${locked ? " locked" : ""}" data-ebook-file="${filePath}" data-locked="${locked}">
@@ -1226,7 +1244,6 @@ function ebookCardHTML(ebook, locked) {
       <div class="info">
         <h3 class="ttl">${titulo}</h3>
         <p class="desc">${locked ? getEbookLockedDescription() : ""}</p>
-        <button class="home-btn" type="button">${ctaLabel}</button>
       </div>
     </article>`;
 }
