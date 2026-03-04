@@ -321,6 +321,19 @@ FEMFLOW.openInternal = function (path) {
 FEMFLOW.LINK_ACESSO_APP = FEMFLOW.LINK_ACESSO_APP || "https://pay.hotmart.com/T103984580L?off=ifcs6h6n";
 FEMFLOW.LINK_PERSONAL = FEMFLOW.LINK_PERSONAL || "https://pay.hotmart.com/T103984580L?off=sybtfokt";
 
+FEMFLOW.isCapacitorIOS = function () {
+  try {
+    return String(window.Capacitor?.getPlatform?.() || "").toLowerCase() === "ios";
+  } catch (err) {
+    return false;
+  }
+};
+
+FEMFLOW.isLegacyEbooksPath = function (path = "") {
+  const normalized = String(path || "").toLowerCase().replace(/^\/+/, "");
+  return normalized === "ebooks/index.html" || normalized === "ebooks/destaques.html";
+};
+
 FEMFLOW.iap = FEMFLOW.iap || {
   async listProducts(productIds = []) {
     if (FEMFLOW.checkout?.isIOS?.()) {
@@ -387,10 +400,16 @@ FEMFLOW.checkout = FEMFLOW.checkout || {
   },
 
   openHotmart(plan = "access") {
+    if (FEMFLOW.isCapacitorIOS?.()) {
+      console.warn("[iOS hardening] openHotmart bloqueado no iOS nativo.", { plan });
+      return { status: "blocked", reason: "ios_native_hardening" };
+    }
+
     const targetPlan = plan === "personal" ? "personal" : "access";
     const url = targetPlan === "personal" ? FEMFLOW.LINK_PERSONAL : FEMFLOW.LINK_ACESSO_APP;
     if (!url) return;
     FEMFLOW.openExternal(url);
+    return { status: "ok", plan: targetPlan };
   },
 
   _paywallCopy() {
@@ -2103,6 +2122,17 @@ FEMFLOW.router = pag => {
   const queryString = params.toString();
   const destino = queryString ? `${destinoBase}?${queryString}` : destinoBase;
   const current = (location.pathname.split("/").pop() || "").toLowerCase();
+
+  if (FEMFLOW.isCapacitorIOS?.() && FEMFLOW.isLegacyEbooksPath?.(destinoBase)) {
+    console.warn("[iOS hardening] Navegação bloqueada para ebooks legados:", destinoBase);
+    FEMFLOW.toast?.("Conteúdo indisponível no iOS nativo.");
+    const fallback = current === "home.html" ? null : "home.html";
+    if (!fallback) return;
+    FEMFLOW.pageTransition?.start();
+    location.href = fallback;
+    return;
+  }
+
   if (current === "index.html" && destinoBase === "index.html") return;
   FEMFLOW.pageTransition?.start();
   location.href = hashPart ? `${destino}#${hashPart}` : destino;
@@ -2115,6 +2145,28 @@ document.addEventListener("DOMContentLoaded", () => {
   FEMFLOW.pageTransition?.finish();
   FEMFLOW.installBackHandler?.();
   FEMFLOW.setupOfflineBanner?.();
+
+  if (FEMFLOW.isCapacitorIOS?.()) {
+    const currentPath = String(location.pathname || "").toLowerCase();
+    const relativePath = currentPath.includes("/app/")
+      ? currentPath.split("/app/").pop()
+      : currentPath.replace(/^\/+/, "");
+
+    if (FEMFLOW.isLegacyEbooksPath?.(relativePath)) {
+      console.warn("[iOS hardening] Acesso direto bloqueado para rota legada:", relativePath);
+      const fallback = currentPath.endsWith("/ebooks/index.html") || currentPath.endsWith("/ebooks/destaques.html")
+        ? "../home.html"
+        : "home.html";
+      location.replace(fallback);
+      return;
+    }
+
+    document.querySelectorAll('a[href*="hotmart.com"], [data-hotmart-link], .btn-hotmart').forEach((el) => {
+      const container = el.closest("li, .menu-item, .header-actions") || el;
+      container.classList.add("hidden");
+      if (container.style) container.style.display = "none";
+    });
+  }
 
   document.addEventListener("keydown", (event) => FEMFLOW.trapModalFocus?.(event));
 

@@ -220,11 +220,34 @@
   </div>
 
   <script>
+    function isNativeIOS() {
+      try {
+        return String(window.Capacitor?.getPlatform?.() || '').toLowerCase() === 'ios';
+      } catch (e) {
+        return false;
+      }
+    }
+
+    if (isNativeIOS()) {
+      console.warn('[iOS hardening] Página legada de destaques bloqueada no iOS nativo.');
+      window.location.replace('../home.html');
+    }
+
+    document.querySelectorAll('a[href*="hotmart.com"]').forEach((link) => {
+      const wrapper = link.closest('.meta') || link;
+      wrapper.style.display = 'none';
+    });
+
     const faixa = document.querySelector('.faixa-ebooks');
     document.getElementById('next').onclick = () => faixa.scrollBy({ left: 400, behavior: 'smooth' });
     document.getElementById('prev').onclick = () => faixa.scrollBy({ left: -400, behavior: 'smooth' });
 
     function goCadastro(url, ebook, tipo) {
+      if (isNativeIOS()) {
+        console.warn('[iOS hardening] goCadastro bloqueado no iOS nativo.', { url, ebook, tipo });
+        return false;
+      }
+
       localStorage.setItem('ebook', ebook);
       localStorage.setItem('tipo', tipo);
       window.open(url, '_blank');

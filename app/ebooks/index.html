@@ -6,9 +6,22 @@
   <title>MyFlowLife | eBooks</title>
   <link rel="stylesheet" href="style.css">
   <script>
+    function isNativeIOS() {
+      try {
+        return String(window.Capacitor?.getPlatform?.() || '').toLowerCase() === 'ios';
+      } catch (e) {
+        return false;
+      }
+    }
+
     function scrollLeft(id){ document.getElementById(id).scrollBy({left:-320, behavior:'smooth'}); }
     function scrollRight(id){ document.getElementById(id).scrollBy({left:320, behavior:'smooth'}); }
     function goCadastro(destino, ebook, origem){
+      if (isNativeIOS()) {
+        console.warn('[iOS hardening] CTA externo de ebook bloqueado no iOS nativo.', { destino, ebook, origem });
+        return false;
+      }
+
       try{ localStorage.setItem('origemURL', destino); }catch(e){}
       const url = `/cadastro/index.html?ebook=${encodeURIComponent(ebook)}&origem=${encodeURIComponent(origem)}`;
       window.location.href = url;
@@ -94,6 +107,17 @@
   </section>
 <script>
   document.addEventListener('DOMContentLoaded', () => {
+    if (isNativeIOS()) {
+      console.warn('[iOS hardening] Página legada de ebooks bloqueada no iOS nativo.');
+      window.location.replace('../home.html');
+      return;
+    }
+
+    document.querySelectorAll('a[href*="hotmart.com"]').forEach((link) => {
+      const wrapper = link.closest('.hbtn, .header-actions, .meta') || link;
+      wrapper.style.display = 'none';
+    });
+
     const scrollers = document.querySelectorAll('.row-wrap');
     scrollers.forEach(wrapper => {
       const scroller = wrapper.querySelector('.scroller');
