@@ -1379,6 +1379,57 @@ function limparEstadoCustomTreino() {
   localStorage.removeItem(CUSTOM_BLOCOS_KEY);
 }
 
+
+async function rerenderHomeEntitlementsUI() {
+  const catalogo = await carregarCatalogoFirebase();
+
+  const perfilTemPersonal = localStorage.getItem("femflow_has_personal") === "true";
+  const produto = String(localStorage.getItem("femflow_produto") || "").toLowerCase();
+  const isVip = produto === "vip";
+
+  const perfilCardsPersonal = {
+    produto,
+    ativa: localStorage.getItem("femflow_ativa") === "true",
+    personal: perfilTemPersonal,
+    free_access: (() => {
+      const freeAccessRaw = localStorage.getItem("femflow_free_access");
+      if (!freeAccessRaw) return null;
+      try { return JSON.parse(freeAccessRaw); }
+      catch (err) { return null; }
+    })()
+  };
+
+  if (catalogo.personal.length === 0) {
+    const cards = CARDS_PERSONAL_SIMBOLICOS.map(c => {
+      if (c.enfase === "personal") {
+        return { ...c, locked: !perfilTemPersonal };
+      }
+      return aplicarAcessoCards([c], perfilCardsPersonal)[0];
+    });
+    catalogo.personal.push(...cards);
+  }
+
+  catalogo.personal = [...aplicarAcessoCards(CARDS_BODYINSIGHT_SIMBOLICOS, perfilCardsPersonal), ...catalogo.personal];
+
+  if (catalogo.followme.length === 0) {
+    const cards = CARDS_FOLLOWME_SIMBOLICOS.map(c => ({
+      ...c,
+      locked: !isVip && produto !== c.enfase
+    }));
+    catalogo.followme.push(...cards);
+  }
+
+  clearHomeSkeleton();
+  renderRail(document.getElementById("railFollowMe"), catalogo.followme);
+  renderRail(document.getElementById("railMuscular"), catalogo.muscular);
+  renderRail(document.getElementById("railEsportes"), catalogo.esportes);
+  renderRail(document.getElementById("railCasa"), catalogo.casa);
+  renderRail(document.getElementById("railPersonal"), catalogo.personal);
+  renderRail(document.getElementById("railPlanilhas30Dias"), aplicarAcessoCards(CARDS_PLANILHAS_30_DIAS, perfilCardsPersonal));
+  renderEbookRail(document.getElementById("railEbooks"), EBOOKS_HOME);
+  aplicarIdiomaHome();
+}
+
 /* ============================================================
    MODAL — CONFIRMAÇÃO DE NOVO PROGRAMA
 =========================================================== */
@@ -2156,68 +2207,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-    const catalogo = await carregarCatalogoFirebase();
-
-    /* ============================================================
-       🧩 INJETAR VITRINE COMERCIAL (LOCAL CORRETO)
-    ============================================================ */
-    const perfilTemPersonal =
-      localStorage.getItem("femflow_has_personal") === "true";
-
-    const produto =
-      String(localStorage.getItem("femflow_produto") || "").toLowerCase();
-    const isVip = produto === "vip";
-
-    const perfilCardsPersonal = {
-      produto,
-      ativa: localStorage.getItem("femflow_ativa") === "true",
-      personal: perfilTemPersonal,
-      free_access: (() => {
-        const freeAccessRaw = localStorage.getItem("femflow_free_access");
-        if (!freeAccessRaw) return null;
-        try { return JSON.parse(freeAccessRaw); }
-        catch (err) { return null; }
-      })()
-    };
-
-    // PERSONAL — sempre aparece:
-    // - se tem personal → desbloqueado (ativa modo personal)
-    // - se não tem → locked e vira propaganda CTA
-    if (catalogo.personal.length === 0) {
-
-      const cards = CARDS_PERSONAL_SIMBOLICOS.map(c => {
-        if (c.enfase === "personal") {
-          return {
-            ...c,
-            locked: !perfilTemPersonal
-          };
-        }
-        return aplicarAcessoCards([c], perfilCardsPersonal)[0];
-      });
-    catalogo.personal.push(...cards);
-  }
-
-    catalogo.personal = [...aplicarAcessoCards(CARDS_BODYINSIGHT_SIMBOLICOS, perfilCardsPersonal), ...catalogo.personal];
-
-    // FOLLOWME — sempre aparece como vitrine
-    if (catalogo.followme.length === 0) {
-      const cards = CARDS_FOLLOWME_SIMBOLICOS.map(c => ({
-        ...c,
-        locked: !isVip && produto !== c.enfase
-      }));
-      catalogo.followme.push(...cards);
-    }
-
-    clearHomeSkeleton();
-    renderRail(document.getElementById("railFollowMe"), catalogo.followme);
-    renderRail(document.getElementById("railMuscular"), catalogo.muscular);
-    renderRail(document.getElementById("railEsportes"), catalogo.esportes);
-    renderRail(document.getElementById("railCasa"), catalogo.casa);
-    renderRail(document.getElementById("railPersonal"), catalogo.personal);
-    renderRail(document.getElementById("railPlanilhas30Dias"), aplicarAcessoCards(CARDS_PLANILHAS_30_DIAS, perfil));
-    aplicarIdiomaHome();
-
-    renderEbookRail(document.getElementById("railEbooks"), EBOOKS_HOME);
+    await rerenderHomeEntitlementsUI();
   } catch (err) {
     console.error("HOME init erro:", err);
     FEMFLOW.toast("Falha ao carregar. Verifique internet.");
@@ -2229,8 +2219,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 /* ============================================================
    🔥 Quando o idioma mudar → traduz de novo a home
 =========================================================== */
-document.addEventListener("femflow:entitlementsUpdated", () => {
-  window.location.reload();
+document.addEventListener("femflow:entitlementsUpdated", async () => {
+  try {
+    await carregarPerfilEAtualizarStorage();
+    await rerenderHomeEntitlementsUI();
+  } catch (err) {
+    console.warn("[HOME] Falha ao atualizar UI após entitlement:", err);
+  }
 });
 
 document.addEventListener("femflow:langChange", aplicarIdiomaHome);

@@ -272,7 +272,37 @@ function flowcenterPersistPerfil(perfil) {
 /* ============================================================
    🚀 INIT
 =========================================================== */
+
+
+function refreshFlowcenterLocksFromEntitlements() {
+  const produtoRaw = String(localStorage.getItem("femflow_produto") || "").toLowerCase();
+  const hasPersonal = localStorage.getItem("femflow_has_personal") === "true";
+  const modePersonal = localStorage.getItem("femflow_mode_personal") === "true";
+  const endurancePublicIntent = localStorage.getItem("femflow_endurance_public_intent") === "true";
+  const personal = hasPersonal && modePersonal;
+  const bloquearEnduranceApp = produtoRaw === "acesso_app" && !personal && !endurancePublicIntent;
+
+  const enduranceBtn = document.getElementById("toEndurance");
+  if (enduranceBtn) {
+    enduranceBtn.classList.toggle("btn-locked", bloquearEnduranceApp);
+    enduranceBtn.setAttribute("aria-disabled", bloquearEnduranceApp ? "true" : "false");
+  }
+
+  const customBtn = document.getElementById("toCustomTrain");
+  if (customBtn) {
+    const ativa = localStorage.getItem("femflow_ativa") === "true";
+    const isVip = produtoRaw === "vip";
+    const isApp = produtoRaw === "acesso_app" || produtoRaw === "trial_app";
+    const temAcessoCustom = hasPersonal || isVip || isApp || ativa;
+    customBtn.classList.toggle("btn-locked", !temAcessoCustom);
+    customBtn.setAttribute("aria-disabled", temAcessoCustom ? "false" : "true");
+  }
+}
+
 document.addEventListener("DOMContentLoaded", initFlowCenter);
+document.addEventListener("femflow:entitlementsUpdated", () => {
+  refreshFlowcenterLocksFromEntitlements();
+});
 
 async function initFlowCenter() {
   requestAnimationFrame(() => {
