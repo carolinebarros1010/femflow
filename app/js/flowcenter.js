@@ -6,7 +6,6 @@
    ✔ Separação ACESSO x MODO PERSONAL
 =========================================================== */
 
-const LINK_ACESSO_APP = "https://pay.hotmart.com/T103984580L?off=ifcs6h6n";
 const ENDURANCE_PUBLIC_IDS = [
   "bike_20000m",
   "bike_40000m",
