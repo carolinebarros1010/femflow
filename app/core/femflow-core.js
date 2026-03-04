@@ -321,9 +321,13 @@ FEMFLOW.openInternal = function (path) {
 FEMFLOW.LINK_ACESSO_APP = FEMFLOW.LINK_ACESSO_APP || "https://pay.hotmart.com/T103984580L?off=ifcs6h6n";
 FEMFLOW.LINK_PERSONAL = FEMFLOW.LINK_PERSONAL || "https://pay.hotmart.com/T103984580L?off=sybtfokt";
 
+FEMFLOW.isNativeIOS = function () {
+  return String(Capacitor?.getPlatform?.() || "").toLowerCase() === "ios";
+};
+
 FEMFLOW.isCapacitorIOS = function () {
   try {
-    return String(window.Capacitor?.getPlatform?.() || "").toLowerCase() === "ios";
+    return FEMFLOW.isNativeIOS();
   } catch (err) {
     return false;
   }
@@ -331,7 +335,7 @@ FEMFLOW.isCapacitorIOS = function () {
 
 FEMFLOW.isLegacyEbooksPath = function (path = "") {
   const normalized = String(path || "").toLowerCase().replace(/^\/+/, "");
-  return normalized === "ebooks/index.html" || normalized === "ebooks/destaques.html";
+  return /^ebooks\/.+\.html$/.test(normalized);
 };
 
 FEMFLOW.iap = FEMFLOW.iap || {
@@ -367,15 +371,7 @@ FEMFLOW.checkout = FEMFLOW.checkout || {
   },
 
   isIOS() {
-    try {
-      const platform = String(window.Capacitor?.getPlatform?.() || "").toLowerCase();
-      if (platform === "ios") return true;
-    } catch (err) {}
-
-    const ua = String(navigator.userAgent || "").toLowerCase();
-    const hasIOS = /iphone|ipad|ipod/.test(ua);
-    const isMacTouch = /macintosh/.test(ua) && navigator.maxTouchPoints > 1;
-    return hasIOS || isMacTouch;
+    return FEMFLOW.isCapacitorIOS?.() === true;
   },
 
   async openCheckout({ reason = "", preferredPlan = "access" } = {}) {
@@ -408,6 +404,13 @@ FEMFLOW.checkout = FEMFLOW.checkout || {
 
   openHotmart(plan = "access") {
     if (FEMFLOW.isCapacitorIOS?.()) {
+      const lang = String(FEMFLOW.lang || "pt").slice(0, 2).toLowerCase();
+      const mensagens = {
+        pt: "Assine no app para continuar",
+        en: "Subscribe in the app to continue",
+        fr: "Abonnez-vous dans l'app pour continuer"
+      };
+      FEMFLOW.toast?.(mensagens[lang] || mensagens.pt);
       console.warn("[iOS hardening] openHotmart bloqueado no iOS nativo.", { plan });
       return { status: "blocked", reason: "ios_native_hardening" };
     }
@@ -2259,9 +2262,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     if (FEMFLOW.isLegacyEbooksPath?.(relativePath)) {
       console.warn("[iOS hardening] Acesso direto bloqueado para rota legada:", relativePath);
-      const fallback = currentPath.endsWith("/ebooks/index.html") || currentPath.endsWith("/ebooks/destaques.html")
-        ? "../home.html"
-        : "home.html";
+      const fallback = relativePath.startsWith("ebooks/") ? "../home.html" : "home.html";
       location.replace(fallback);
       return;
     }

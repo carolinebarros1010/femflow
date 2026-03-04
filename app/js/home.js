@@ -4,12 +4,7 @@
    ✅ separa ACESSO (has_personal) de MODO (mode_personal)
 =========================================================== */
 
-/* LINKS */
-const LINK_ACESSO_APP = "https://pay.hotmart.com/T103984580L?off=ifcs6h6n";
-const LINK_PERSONAL   = "https://pay.hotmart.com/T103984580L?off=sybtfokt";
 window.FEMFLOW = window.FEMFLOW || {};
-window.FEMFLOW.LINK_ACESSO_APP = window.FEMFLOW.LINK_ACESSO_APP || LINK_ACESSO_APP;
-window.FEMFLOW.LINK_PERSONAL = window.FEMFLOW.LINK_PERSONAL || LINK_PERSONAL;
 
 /* FOLLOWME */
 const FOLLOWME_LINKS = {
