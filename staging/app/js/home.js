@@ -977,6 +977,12 @@ async function handleCardClick(enfase, locked) {
      (NUNCA vai direto para treino)
   ========================================= */
   if (enfase === "personal") {
+    const acessoApp = localStorage.getItem("femflow_ativa") === "true";
+    if (!acessoApp) {
+      localStorage.setItem("femflow_mode_personal", "false");
+      FEMFLOW.toast("Plano ativo necessário para usar o Modo Personal.", true);
+      return;
+    }
     FEMFLOW.toast("🌟 Modo Personal ativado!");
     localStorage.setItem("femflow_mode_personal", "true");
     return FEMFLOW.router("flowcenter.html");

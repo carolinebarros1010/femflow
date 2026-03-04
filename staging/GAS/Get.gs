@@ -174,6 +174,7 @@ function _validarPerfil_(params) {
       const freeAccess = _buildFreeAccess_(row);
       const entitlements = computeEntitlementsFromRow_(row, headerMap);
       if (entitlements.status === "error") return entitlements;
+      const modoPersonalNormalizado = entitlements.acesso_app && entitlements.modo_personal;
 
       return {
         perfilHormonal: _normalizarPerfilHormonal_(row[COL_PERFIL_HORMONAL] || "") || "regular",
@@ -184,7 +185,7 @@ function _validarPerfil_(params) {
         produto: row[5] || "",
         ativa,
         acesso_app: entitlements.acesso_app,
-        modo_personal: entitlements.modo_personal,
+        modo_personal: modoPersonalNormalizado,
         expiresAt: entitlements.expiresAt,
         source: entitlements.source,
         plan: entitlements.plan,
