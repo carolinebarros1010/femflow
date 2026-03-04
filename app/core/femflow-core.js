@@ -1868,7 +1868,8 @@ FEMFLOW.getNativePurchasesPlugin = function () {
 
 FEMFLOW.updateEntitlementsFromPayload = function (payload = {}) {
   const acessoApp = payload.acesso_app === true || payload.acesso_app === "true";
-  const modoPersonal = payload.modo_personal === true || payload.modo_personal === "true";
+  const modoPersonalPayload = payload.modo_personal === true || payload.modo_personal === "true";
+  const modoPersonal = acessoApp && modoPersonalPayload;
   const produtoAtual = String(localStorage.getItem("femflow_produto") || "").toLowerCase().trim();
   const produtoPerfil = String(payload.produto || payload.produto_perfil || "").toLowerCase().trim();
 

@@ -175,10 +175,12 @@ function entitlementsStatus_(payload) {
 
   const produto = String(values[headerMap.Produto] || "").toLowerCase().trim();
 
+  const modoPersonalNormalizado = entitlements.acesso_app && entitlements.modo_personal;
+
   return {
     status: "ok",
     acesso_app: entitlements.acesso_app,
-    modo_personal: entitlements.modo_personal,
+    modo_personal: modoPersonalNormalizado,
     expiresAt: entitlements.expiresAt,
     source: entitlements.source,
     plan: entitlements.plan,
