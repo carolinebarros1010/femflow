@@ -27,9 +27,12 @@
     console.info("[FEMFLOW.checkout] openCheckout", { planId: targetPlan, platform, context: ctx });
 
     if (platform === "ios") {
-      FEMFLOW.toast?.("Assinatura via Apple em configuração.");
-      console.info("[FEMFLOW.checkout] Checkout externo bloqueado no iOS (fase 1).", { planId: targetPlan, context: ctx });
-      return { ok: false, code: "ios_iap_not_ready", planId: targetPlan, platform };
+      if (typeof FEMFLOW.iapIOS?.purchaseIOS === "function") {
+        return FEMFLOW.iapIOS.purchaseIOS(targetPlan, Object.assign({}, ctx, { source: "checkout_gateway" }));
+      }
+
+      console.warn("[FEMFLOW.checkout] Camada iOS IAP indisponível.", { planId: targetPlan, context: ctx });
+      return { ok: false, code: "ios_iap_unavailable", planId: targetPlan, platform };
     }
 
     if (platform === "android" || platform === "web") {
