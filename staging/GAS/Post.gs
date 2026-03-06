@@ -293,6 +293,10 @@ function doPost(e) {
         resposta = iapAppleActivate_(data);
         break;
 
+      case "iap_apple_restore":
+        resposta = iapAppleRestore_(data);
+        break;
+
       case "entitlements_status":
         resposta = entitlementsStatus_(data);
         break;
