@@ -32,7 +32,9 @@ function _ensureIapColumns_(sh) {
     "IapValidationEvidence",
     "IapLastSource",
     "IapCorrelationId",
-    "IapIdempotencyKey"
+    "IapIdempotencyKey",
+    "IapLastNotificationType",
+    "IapLastNotificationSubtype"
   ];
 
   const headerInfo = _getHeaderMap_(sh);
@@ -47,6 +49,19 @@ function _ensureIapColumns_(sh) {
   }
 
   return _getHeaderMap_(sh).map;
+}
+
+function _coerceAppleDateToIso_(raw) {
+  if (raw == null || raw === "") return "";
+
+  if (typeof raw === "number" || /^\d+$/.test(String(raw).trim())) {
+    const numeric = Number(raw);
+    if (!isFinite(numeric) || numeric <= 0) return "";
+    const millis = numeric > 1e12 ? numeric : numeric * 1000;
+    return new Date(millis).toISOString();
+  }
+
+  return _coerceIsoOrEmpty_(raw);
 }
 
 function _findAlunaRowByIdOrEmail_(sh, payload) {
@@ -448,6 +463,8 @@ function _buildAppleIapLogContext_(payload, extra) {
   const merged = Object.assign({}, payload || {}, extra || {});
   return {
     userId: String(merged.userId || merged.id || "").trim(),
+    notificationType: String(merged.notificationType || "").trim(),
+    subtype: String(merged.subtype || "").trim(),
     transactionId: String(merged.transactionId || "").trim(),
     originalTransactionId: String(merged.originalTransactionId || "").trim(),
     correlationId: String(merged.correlationId || merged.notificationId || "").trim(),
@@ -497,15 +514,30 @@ function _parseAppleNotificationPayload_(payload) {
 
   const data = decodedRoot.data || root.data || {};
   const signedTx = String(data.signedTransactionInfo || root.signedTransactionInfo || "").trim();
+  const signedRenewal = String(data.signedRenewalInfo || root.signedRenewalInfo || "").trim();
   const decodedTx = signedTx ? (_parseSignedPayload_(signedTx) || {}) : {};
+  const decodedRenewal = signedRenewal ? (_parseSignedPayload_(signedRenewal) || {}) : {};
 
   const notificationType = String(decodedRoot.notificationType || root.notificationType || root.notification_type || "").trim();
   const subtype = String(decodedRoot.subtype || root.subtype || "").trim();
   const transactionId = String(decodedTx.transactionId || decodedTx.transaction_id || root.transactionId || root.transaction_id || "").trim();
   const originalTransactionId = String(decodedTx.originalTransactionId || decodedTx.original_transaction_id || root.originalTransactionId || root.original_transaction_id || transactionId || "").trim();
   const productId = String(decodedTx.productId || decodedTx.product_id || root.productId || root.product_id || "").trim();
-  const expiresDate = _coerceIsoOrEmpty_(decodedTx.expiresDate || decodedTx.expiresDateMs || root.expiresDate || root.expiresDateMs || root.expiryDate);
+  const expiresDate = _coerceAppleDateToIso_(
+    decodedTx.expiresDate || decodedTx.expiresDateMs || decodedTx.expiresDateMillis ||
+    root.expiresDate || root.expiresDateMs || root.expiryDate
+  );
+  const autoRenewStatusRaw = decodedRenewal.autoRenewStatus || decodedRenewal.auto_renew_status || root.autoRenewStatus;
+  const autoRenewStatus = autoRenewStatusRaw == null || autoRenewStatusRaw === ""
+    ? ""
+    : (String(autoRenewStatusRaw) === "1" || String(autoRenewStatusRaw).toLowerCase() === "true" ? "on" : "off");
+  const environment = String(decodedRoot.environment || decodedTx.environment || decodedRenewal.environment || root.environment || "").trim();
+  const bundleId = String(
+    decodedRoot.bundleId || decodedRoot.bundle_id || decodedTx.bundleId || decodedTx.bundle_id ||
+    decodedRenewal.bundleId || decodedRenewal.bundle_id || root.bundleId || root.bundle_id || ""
+  ).trim();
   const notificationUUID = String(decodedRoot.notificationUUID || root.notificationUUID || root.notificationId || "").trim();
+  const idempotencyKey = notificationUUID || _hashPayloadEvidence_(signedPayload || root);
 
   return {
     notificationType: notificationType,
@@ -514,9 +546,87 @@ function _parseAppleNotificationPayload_(payload) {
     originalTransactionId: originalTransactionId,
     productId: productId,
     expiresDate: expiresDate,
-    notificationId: notificationUUID || _hashPayloadEvidence_(root),
-    rawPayloadHash: _hashPayloadEvidence_(root)
+    autoRenewStatus: autoRenewStatus,
+    environment: environment,
+    bundleId: bundleId,
+    notificationUUID: notificationUUID,
+    notificationId: idempotencyKey,
+    rawPayloadHash: _hashPayloadEvidence_(root),
+    decodeState: {
+      rootDecoded: !!(signedPayload && Object.keys(decodedRoot).length),
+      transactionDecoded: !!(signedTx && Object.keys(decodedTx).length),
+      renewalDecoded: !!(signedRenewal && Object.keys(decodedRenewal).length)
+    }
   };
+}
+
+function _mapAppleNotificationEventToLocalStatus_(notificationType) {
+  const eventType = String(notificationType || "").trim().toUpperCase();
+  const table = {
+    "DID_RENEW": "active",
+    "SUBSCRIBED": "active",
+    "EXPIRED": "expired",
+    "REFUND": "revoked",
+    "REVOKE": "revoked",
+    "DID_FAIL_TO_RENEW": "retry",
+    "GRACE_PERIOD_EXPIRED": "expired"
+  };
+  return table[eventType] || "pending_validation";
+}
+
+function _isAllowedAppleEnvironment_(value) {
+  const env = String(value || "").trim();
+  return !env || env === "Sandbox" || env === "Production";
+}
+
+function _validateParsedAppleNotification_(parsed, targetRow, headerMap) {
+  if (!parsed.decodeState.rootDecoded) {
+    return { ok: false, msg: "invalid_signed_payload_root" };
+  }
+
+  const eventType = String(parsed.notificationType || "").trim().toUpperCase();
+  const requiresTransactionInfo = {
+    "DID_RENEW": true,
+    "SUBSCRIBED": true,
+    "EXPIRED": true,
+    "REFUND": true,
+    "REVOKE": true
+  };
+
+  if (requiresTransactionInfo[eventType] && !parsed.decodeState.transactionDecoded) {
+    return { ok: false, msg: "invalid_signed_transaction_info" };
+  }
+
+  if (!parsed.decodeState.transactionDecoded) {
+    const hasFallbackIdentity = !!(parsed.originalTransactionId || parsed.productId);
+    if (!hasFallbackIdentity) {
+      return { ok: false, msg: "insufficient_notification_identity" };
+    }
+  }
+
+  if (parsed.productId && IAP_APPLE_PRODUCT_IDS.indexOf(parsed.productId) < 0) {
+    return { ok: false, msg: "product_not_allowed" };
+  }
+
+  if (parsed.transactionId && !_isLikelyAppleTransactionId_(parsed.transactionId)) {
+    return { ok: false, msg: "invalid_transaction_id" };
+  }
+
+  const bundleExpected = String(PropertiesService.getScriptProperties().getProperty("APPLE_BUNDLE_ID") || "com.femflow.app").trim();
+  if (parsed.bundleId && bundleExpected && parsed.bundleId !== bundleExpected) {
+    return { ok: false, msg: "bundle_mismatch" };
+  }
+
+  if (!_isAllowedAppleEnvironment_(parsed.environment)) {
+    return { ok: false, msg: "invalid_environment" };
+  }
+
+  const rowOriginalTx = String(targetRow.row[headerMap.IapOriginalTransactionId] || "").trim();
+  if (rowOriginalTx && parsed.originalTransactionId && rowOriginalTx !== parsed.originalTransactionId) {
+    return { ok: false, msg: "original_transaction_mismatch" };
+  }
+
+  return { ok: true };
 }
 
 function iapAppleRestore_(payload) {
@@ -595,6 +705,9 @@ function iapAppleNotification_(payload) {
   const parsed = _parseAppleNotificationPayload_(payload || {});
 
   console.log("[IAP][notification]", JSON.stringify(_buildAppleIapLogContext_(payload, {
+    notificationType: parsed.notificationType,
+    subtype: parsed.subtype,
+    notificationUUID: parsed.notificationUUID,
     transactionId: parsed.transactionId,
     originalTransactionId: parsed.originalTransactionId,
     correlationId: parsed.notificationId,
@@ -614,10 +727,12 @@ function iapAppleNotification_(payload) {
       platform: "ios",
       notificationType: parsed.notificationType,
       subtype: parsed.subtype,
+      notificationUUID: parsed.notificationUUID,
       transactionId: parsed.transactionId,
       originalTransactionId: parsed.originalTransactionId,
       productId: parsed.productId,
       entitlementStatus: dupeStatus,
+      isActive: dupeStatus === "active",
       correlationId: parsed.notificationId,
       sourceOfTruth: "server"
     };
@@ -632,6 +747,7 @@ function iapAppleNotification_(payload) {
       platform: "ios",
       notificationType: parsed.notificationType,
       subtype: parsed.subtype,
+      notificationUUID: parsed.notificationUUID,
       transactionId: parsed.transactionId,
       originalTransactionId: parsed.originalTransactionId,
       productId: parsed.productId,
@@ -640,30 +756,56 @@ function iapAppleNotification_(payload) {
     };
   }
 
-  const eventType = parsed.notificationType;
-  let newStatus = "pending_validation";
-  let isActive = false;
-
-  if (eventType === "DID_RENEW") {
-    newStatus = "active";
-    isActive = true;
-  } else if (eventType === "EXPIRED" || eventType === "REFUND" || eventType === "REVOKE") {
-    newStatus = "expired";
-    isActive = false;
-  } else {
-    newStatus = String(targetRow.row[headerMap.IapStatus] || "pending_validation").toLowerCase().trim() || "pending_validation";
-    isActive = newStatus === "active";
+  const validation = _validateParsedAppleNotification_(parsed, targetRow, headerMap);
+  if (!validation.ok) {
+    return {
+      status: "error",
+      msg: validation.msg,
+      provider: "apple_iap",
+      platform: "ios",
+      notificationType: parsed.notificationType,
+      subtype: parsed.subtype,
+      notificationUUID: parsed.notificationUUID,
+      transactionId: parsed.transactionId,
+      originalTransactionId: parsed.originalTransactionId,
+      productId: parsed.productId,
+      entitlementStatus: "pending_validation",
+      isActive: false,
+      correlationId: parsed.notificationId,
+      sourceOfTruth: "server"
+    };
   }
+
+  const newStatus = _mapAppleNotificationEventToLocalStatus_(parsed.notificationType);
+  const isActive = newStatus === "active";
 
   sh.getRange(targetRow.rowIndex, headerMap.IapStatus + 1).setValue(newStatus);
   sh.getRange(targetRow.rowIndex, headerMap.LicencaAtiva + 1).setValue(isActive);
+  if (headerMap.acesso_personal != null && !isActive) {
+    sh.getRange(targetRow.rowIndex, headerMap.acesso_personal + 1).setValue(false);
+  }
   sh.getRange(targetRow.rowIndex, headerMap.IapLastValidatedAt + 1).setValue(_getCurrentIsoNow_());
   sh.getRange(targetRow.rowIndex, headerMap.IapCorrelationId + 1).setValue(parsed.notificationId);
   sh.getRange(targetRow.rowIndex, headerMap.IapLastSource + 1).setValue("notification");
   sh.getRange(targetRow.rowIndex, headerMap.IapIdempotencyKey + 1).setValue(parsed.notificationId);
-  sh.getRange(targetRow.rowIndex, headerMap.IapValidationEvidence + 1).setValue(parsed.rawPayloadHash);
+  sh.getRange(targetRow.rowIndex, headerMap.IapValidationEvidence + 1).setValue(JSON.stringify({
+    hash: parsed.rawPayloadHash,
+    notificationType: parsed.notificationType,
+    subtype: parsed.subtype,
+    environment: parsed.environment,
+    decodeState: parsed.decodeState,
+    verification: "unsigned_payload_consistency_only"
+  }));
+  if (headerMap.IapLastNotificationType != null) {
+    sh.getRange(targetRow.rowIndex, headerMap.IapLastNotificationType + 1).setValue(parsed.notificationType || "");
+  }
+  if (headerMap.IapLastNotificationSubtype != null) {
+    sh.getRange(targetRow.rowIndex, headerMap.IapLastNotificationSubtype + 1).setValue(parsed.subtype || "");
+  }
 
-  if (parsed.expiresDate) {
+  if (newStatus === "revoked") {
+    sh.getRange(targetRow.rowIndex, headerMap.IapExpiresAt + 1).setValue("");
+  } else if (parsed.expiresDate) {
     sh.getRange(targetRow.rowIndex, headerMap.IapExpiresAt + 1).setValue(parsed.expiresDate);
   }
   if (parsed.transactionId) {
@@ -675,8 +817,14 @@ function iapAppleNotification_(payload) {
   if (parsed.productId) {
     sh.getRange(targetRow.rowIndex, headerMap.IapProductId + 1).setValue(parsed.productId);
   }
+  if (parsed.environment && headerMap.IapEnv != null) {
+    sh.getRange(targetRow.rowIndex, headerMap.IapEnv + 1).setValue(parsed.environment);
+  }
 
   console.log("[IAP][notification]", JSON.stringify(_buildAppleIapLogContext_(payload, {
+    notificationType: parsed.notificationType,
+    subtype: parsed.subtype,
+    notificationUUID: parsed.notificationUUID,
     transactionId: parsed.transactionId,
     originalTransactionId: parsed.originalTransactionId,
     correlationId: parsed.notificationId,
@@ -691,12 +839,15 @@ function iapAppleNotification_(payload) {
     platform: "ios",
     notificationType: parsed.notificationType,
     subtype: parsed.subtype,
+    notificationUUID: parsed.notificationUUID,
     transactionId: parsed.transactionId,
     originalTransactionId: parsed.originalTransactionId,
     productId: parsed.productId,
     entitlementStatus: newStatus,
     isActive: isActive,
     correlationId: parsed.notificationId,
+    autoRenewStatus: parsed.autoRenewStatus,
+    environment: parsed.environment,
     sourceOfTruth: "server"
   };
 }
