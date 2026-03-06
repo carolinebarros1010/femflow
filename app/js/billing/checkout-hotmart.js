@@ -1,12 +1,16 @@
 (function initFemFlowCheckoutHotmart(global) {
   const FEMFLOW = global.FEMFLOW = global.FEMFLOW || {};
   FEMFLOW.checkout = FEMFLOW.checkout || {};
+  FEMFLOW.billing = FEMFLOW.billing || {};
 
+  // DEPRECATED compat layer: manter aliases legados (LINK_*) até migração total do billing.
   const HOTMART_PLAN_URLS = {
     access: FEMFLOW.LINK_ACESSO_APP || "https://pay.hotmart.com/T103984580L?off=ifcs6h6n",
     personal: FEMFLOW.LINK_PERSONAL || "https://pay.hotmart.com/T103984580L?off=sybtfokt"
   };
 
+  // Fonte principal para uso prático no comercial durante fase 1.5.
+  FEMFLOW.billing.hotmartPlanUrls = HOTMART_PLAN_URLS;
   FEMFLOW.checkout.hotmartPlanUrls = HOTMART_PLAN_URLS;
 
   function normalizePlanId(planId) {
@@ -30,7 +34,7 @@
     return "location_href";
   }
 
-  function openHotmartCheckout(planId, context) {
+  function openHotmartExternal(planId, context) {
     const targetPlan = normalizePlanId(planId);
     const targetUrl = HOTMART_PLAN_URLS[targetPlan];
 
@@ -51,6 +55,23 @@
     }
   }
 
+  function openHotmartCheckout(planId, context) {
+    const ctx = Object.assign({ source: "legacy_openHotmartCheckout" }, context || {});
+    console.warn("[DEPRECATED] FEMFLOW.checkout.openHotmartCheckout() agora delega para FEMFLOW.checkout.openCheckout().", { planId, context: ctx });
+
+    if (ctx.__fromOpenCheckout) {
+      return openHotmartExternal(planId, ctx);
+    }
+
+    if (typeof FEMFLOW.checkout.openCheckout === "function") {
+      return FEMFLOW.checkout.openCheckout(planId, ctx);
+    }
+
+    // Compat fallback temporário caso checkout.js ainda não tenha carregado.
+    return openHotmartExternal(planId, ctx);
+  }
+
+  FEMFLOW.checkout._openHotmartExternal = openHotmartExternal;
   FEMFLOW.checkout.openHotmartCheckout = openHotmartCheckout;
   FEMFLOW.checkout.openHotmart = openHotmartCheckout;
 })(window);

@@ -318,6 +318,7 @@ FEMFLOW.openInternal = function (path) {
   FEMFLOW.router?.(path);
 };
 
+// DEPRECATED compat layer temporária: manter até remover consumidores legados fora de billing.
 FEMFLOW.LINK_ACESSO_APP = FEMFLOW.LINK_ACESSO_APP || "https://pay.hotmart.com/T103984580L?off=ifcs6h6n";
 FEMFLOW.LINK_PERSONAL = FEMFLOW.LINK_PERSONAL || "https://pay.hotmart.com/T103984580L?off=sybtfokt";
 
@@ -375,6 +376,22 @@ FEMFLOW.checkout = FEMFLOW.checkout || {
   },
 
   async openCheckout({ reason = "", preferredPlan = "access" } = {}) {
+    // DEPRECATED: compat layer do core. Gateway oficial: FEMFLOW.checkout.openCheckout(planId, context) em js/billing/checkout.js.
+    const currentGatewayOpenCheckout = FEMFLOW.checkout?.openCheckout;
+    if (
+      typeof currentGatewayOpenCheckout === "function"
+      && currentGatewayOpenCheckout !== this.openCheckout
+      && !arguments[0]?.__fromCoreCompat
+    ) {
+      console.warn("[DEPRECATED] FEMFLOW.core.checkout.openCheckout legado delegando para gateway de billing.", { reason, preferredPlan });
+      return currentGatewayOpenCheckout(preferredPlan, {
+        source: "core_legacy_checkout",
+        reason,
+        preferredPlan,
+        __fromCoreCompat: true
+      });
+    }
+
     if (FEMFLOW.iap?._purchaseInFlight || FEMFLOW.iap?._restoreInFlight) {
       FEMFLOW.toast?.("Processando...");
       return { status: "ignored", message: "purchase_in_flight" };
@@ -403,6 +420,18 @@ FEMFLOW.checkout = FEMFLOW.checkout || {
   },
 
   openHotmart(plan = "access") {
+    // DEPRECATED compat layer temporária. TODO remover após migração total do billing.
+    console.warn("[DEPRECATED] FEMFLOW.core.checkout.openHotmart legado delegando para gateway de billing.", { plan });
+
+    const currentGatewayOpenCheckout = FEMFLOW.checkout?.openCheckout;
+    if (typeof currentGatewayOpenCheckout === "function" && currentGatewayOpenCheckout !== this.openCheckout) {
+      return currentGatewayOpenCheckout(plan, {
+        source: "core_legacy_openHotmart",
+        deprecated: true,
+        __fromCoreCompat: true
+      });
+    }
+
     if (FEMFLOW.isCapacitorIOS?.()) {
       const lang = String(FEMFLOW.lang || "pt").slice(0, 2).toLowerCase();
       const mensagens = {
