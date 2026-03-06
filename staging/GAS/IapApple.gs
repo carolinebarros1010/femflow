@@ -435,39 +435,315 @@ function _processIapAppleActivationCore_(payload, source) {
 }
 
 function iapAppleActivate_(payload) {
-  return _processIapAppleActivationCore_(payload || {}, "purchase");
+  const resp = _processIapAppleActivationCore_(payload || {}, "purchase");
+  console.log("[IAP][activate]", JSON.stringify(_buildAppleIapLogContext_(payload, {
+    status: resp && resp.status,
+    result: resp && resp.status,
+    entitlementStatus: resp && resp.entitlementStatus
+  })));
+  return resp;
+}
+
+function _buildAppleIapLogContext_(payload, extra) {
+  const merged = Object.assign({}, payload || {}, extra || {});
+  return {
+    userId: String(merged.userId || merged.id || "").trim(),
+    transactionId: String(merged.transactionId || "").trim(),
+    originalTransactionId: String(merged.originalTransactionId || "").trim(),
+    correlationId: String(merged.correlationId || merged.notificationId || "").trim(),
+    result: String(merged.result || merged.status || "").trim(),
+    entitlementStatus: String(merged.entitlementStatus || "").trim()
+  };
+}
+
+
+function _findRowsByIdempotencyKey_(sh, headerMap, idempotencyKey) {
+  const idxKey = headerMap.IapIdempotencyKey;
+  const wanted = String(idempotencyKey || "").trim();
+  if (idxKey == null || !wanted) return [];
+
+  const rows = sh.getDataRange().getValues();
+  const list = [];
+  for (var i = 1; i < rows.length; i++) {
+    const current = String(rows[i][idxKey] || "").trim();
+    if (current && current === wanted) {
+      list.push({ rowIndex: i + 1, row: rows[i] });
+    }
+  }
+
+  return list;
+}
+
+function _findRowByOriginalTransactionId_(sh, headerMap, originalTransactionId) {
+  const idxOriginal = headerMap.IapOriginalTransactionId;
+  const wanted = String(originalTransactionId || "").trim();
+  if (idxOriginal == null || !wanted) return null;
+
+  const rows = sh.getDataRange().getValues();
+  for (var i = 1; i < rows.length; i++) {
+    const current = String(rows[i][idxOriginal] || "").trim();
+    if (current && current === wanted) {
+      return { rowIndex: i + 1, row: rows[i] };
+    }
+  }
+
+  return null;
+}
+
+function _parseAppleNotificationPayload_(payload) {
+  const root = payload && typeof payload === "object" ? payload : {};
+  const signedPayload = String(root.signedPayload || root.signed_payload || "").trim();
+  const decodedRoot = signedPayload ? (_parseSignedPayload_(signedPayload) || {}) : {};
+
+  const data = decodedRoot.data || root.data || {};
+  const signedTx = String(data.signedTransactionInfo || root.signedTransactionInfo || "").trim();
+  const decodedTx = signedTx ? (_parseSignedPayload_(signedTx) || {}) : {};
+
+  const notificationType = String(decodedRoot.notificationType || root.notificationType || root.notification_type || "").trim();
+  const subtype = String(decodedRoot.subtype || root.subtype || "").trim();
+  const transactionId = String(decodedTx.transactionId || decodedTx.transaction_id || root.transactionId || root.transaction_id || "").trim();
+  const originalTransactionId = String(decodedTx.originalTransactionId || decodedTx.original_transaction_id || root.originalTransactionId || root.original_transaction_id || transactionId || "").trim();
+  const productId = String(decodedTx.productId || decodedTx.product_id || root.productId || root.product_id || "").trim();
+  const expiresDate = _coerceIsoOrEmpty_(decodedTx.expiresDate || decodedTx.expiresDateMs || root.expiresDate || root.expiresDateMs || root.expiryDate);
+  const notificationUUID = String(decodedRoot.notificationUUID || root.notificationUUID || root.notificationId || "").trim();
+
+  return {
+    notificationType: notificationType,
+    subtype: subtype,
+    transactionId: transactionId,
+    originalTransactionId: originalTransactionId,
+    productId: productId,
+    expiresDate: expiresDate,
+    notificationId: notificationUUID || _hashPayloadEvidence_(root),
+    rawPayloadHash: _hashPayloadEvidence_(root)
+  };
 }
 
 function iapAppleRestore_(payload) {
   const list = Array.isArray(payload && payload.transactions) ? payload.transactions : [];
 
   if (!list.length) {
-    return _processIapAppleActivationCore_(Object.assign({}, payload || {}, {
+    const single = _processIapAppleActivationCore_(Object.assign({}, payload || {}, {
       source: "restore"
     }), "restore");
+
+    console.log("[IAP][restore]", JSON.stringify(_buildAppleIapLogContext_(payload, {
+      status: single && single.status,
+      result: single && single.status,
+      entitlementStatus: single && single.entitlementStatus
+    })));
+
+    return single;
   }
 
   const results = [];
   let activeCount = 0;
+  let successCount = 0;
 
   for (var i = 0; i < list.length; i++) {
     const tx = list[i] || {};
     const merged = Object.assign({}, payload || {}, tx, { source: "restore" });
     const resp = _processIapAppleActivationCore_(merged, "restore");
     results.push(resp);
-    if (resp && resp.status === "ok" && resp.entitlementStatus === "active") {
-      activeCount += 1;
+
+    const txStatus = String(resp && resp.status || "").toLowerCase();
+    if (txStatus === "ok") {
+      successCount += 1;
+      if (resp && resp.entitlementStatus === "active") {
+        activeCount += 1;
+      }
+    }
+
+    console.log("[IAP][restore]", JSON.stringify(_buildAppleIapLogContext_(merged, {
+      status: txStatus || "error",
+      result: txStatus || "error",
+      entitlementStatus: resp && resp.entitlementStatus
+    })));
+  }
+
+  const failedCount = results.length - successCount;
+  const overallStatus = successCount === 0
+    ? "error"
+    : (failedCount > 0 ? "partial" : "ok");
+
+  return {
+    status: overallStatus,
+    provider: "apple_iap",
+    platform: "ios",
+    restored: results,
+    results: results,
+    totalCount: results.length,
+    processedCount: results.length,
+    restoredCount: successCount,
+    restoredActiveCount: activeCount,
+    failedCount: failedCount,
+    sourceOfTruth: "server"
+  };
+}
+
+function iapAppleNotification_(payload) {
+  const signedPayload = String(payload && (payload.signedPayload || payload.signed_payload) || "").trim();
+  if (!signedPayload) {
+    return { status: "error", msg: "missing_signed_payload" };
+  }
+
+  // TODO: verificar assinatura JWS Apple Notifications V2 antes de promover para produção robusta.
+  const sh = ensureAlunasHasColumns_();
+  if (!sh) return { status: "error", msg: "sheet_not_found" };
+
+  const headerMap = _ensureIapColumns_(sh);
+  const parsed = _parseAppleNotificationPayload_(payload || {});
+
+  console.log("[IAP][notification]", JSON.stringify(_buildAppleIapLogContext_(payload, {
+    transactionId: parsed.transactionId,
+    originalTransactionId: parsed.originalTransactionId,
+    correlationId: parsed.notificationId,
+    status: "received",
+    result: "received",
+    entitlementStatus: "pending_validation"
+  })));
+
+  const duplicate = _findRowsByIdempotencyKey_(sh, headerMap, parsed.notificationId);
+  if (duplicate.length > 0) {
+    const dupeRow = duplicate[0].row;
+    const dupeStatus = String(dupeRow[headerMap.IapStatus] || "").trim() || "pending_validation";
+    return {
+      status: "ok",
+      msg: "idempotent_notification_replay",
+      provider: "apple_iap",
+      platform: "ios",
+      notificationType: parsed.notificationType,
+      subtype: parsed.subtype,
+      transactionId: parsed.transactionId,
+      originalTransactionId: parsed.originalTransactionId,
+      productId: parsed.productId,
+      entitlementStatus: dupeStatus,
+      correlationId: parsed.notificationId,
+      sourceOfTruth: "server"
+    };
+  }
+
+  const targetRow = _findRowByOriginalTransactionId_(sh, headerMap, parsed.originalTransactionId);
+  if (!targetRow) {
+    return {
+      status: "ok",
+      msg: "notification_user_not_found",
+      provider: "apple_iap",
+      platform: "ios",
+      notificationType: parsed.notificationType,
+      subtype: parsed.subtype,
+      transactionId: parsed.transactionId,
+      originalTransactionId: parsed.originalTransactionId,
+      productId: parsed.productId,
+      correlationId: parsed.notificationId,
+      sourceOfTruth: "server"
+    };
+  }
+
+  const eventType = parsed.notificationType;
+  let newStatus = "pending_validation";
+  let isActive = false;
+
+  if (eventType === "DID_RENEW") {
+    newStatus = "active";
+    isActive = true;
+  } else if (eventType === "EXPIRED" || eventType === "REFUND" || eventType === "REVOKE") {
+    newStatus = "expired";
+    isActive = false;
+  } else {
+    newStatus = String(targetRow.row[headerMap.IapStatus] || "pending_validation").toLowerCase().trim() || "pending_validation";
+    isActive = newStatus === "active";
+  }
+
+  sh.getRange(targetRow.rowIndex, headerMap.IapStatus + 1).setValue(newStatus);
+  sh.getRange(targetRow.rowIndex, headerMap.LicencaAtiva + 1).setValue(isActive);
+  sh.getRange(targetRow.rowIndex, headerMap.IapLastValidatedAt + 1).setValue(_getCurrentIsoNow_());
+  sh.getRange(targetRow.rowIndex, headerMap.IapCorrelationId + 1).setValue(parsed.notificationId);
+  sh.getRange(targetRow.rowIndex, headerMap.IapLastSource + 1).setValue("notification");
+  sh.getRange(targetRow.rowIndex, headerMap.IapIdempotencyKey + 1).setValue(parsed.notificationId);
+  sh.getRange(targetRow.rowIndex, headerMap.IapValidationEvidence + 1).setValue(parsed.rawPayloadHash);
+
+  if (parsed.expiresDate) {
+    sh.getRange(targetRow.rowIndex, headerMap.IapExpiresAt + 1).setValue(parsed.expiresDate);
+  }
+  if (parsed.transactionId) {
+    sh.getRange(targetRow.rowIndex, headerMap.IapTransactionId + 1).setValue(parsed.transactionId);
+  }
+  if (parsed.originalTransactionId) {
+    sh.getRange(targetRow.rowIndex, headerMap.IapOriginalTransactionId + 1).setValue(parsed.originalTransactionId);
+  }
+  if (parsed.productId) {
+    sh.getRange(targetRow.rowIndex, headerMap.IapProductId + 1).setValue(parsed.productId);
+  }
+
+  console.log("[IAP][notification]", JSON.stringify(_buildAppleIapLogContext_(payload, {
+    transactionId: parsed.transactionId,
+    originalTransactionId: parsed.originalTransactionId,
+    correlationId: parsed.notificationId,
+    status: "processed",
+    result: "ok",
+    entitlementStatus: newStatus
+  })));
+
+  return {
+    status: "ok",
+    provider: "apple_iap",
+    platform: "ios",
+    notificationType: parsed.notificationType,
+    subtype: parsed.subtype,
+    transactionId: parsed.transactionId,
+    originalTransactionId: parsed.originalTransactionId,
+    productId: parsed.productId,
+    entitlementStatus: newStatus,
+    isActive: isActive,
+    correlationId: parsed.notificationId,
+    sourceOfTruth: "server"
+  };
+}
+
+function reconcileAppleSubscriptions_() {
+  const sh = ensureAlunasHasColumns_();
+  if (!sh) return { status: "error", msg: "sheet_not_found" };
+
+  const headerMap = _ensureIapColumns_(sh);
+  const rows = sh.getDataRange().getValues();
+  const nowIso = _getCurrentIsoNow_();
+
+  let scannedCount = 0;
+  let updatedCount = 0;
+
+  for (var i = 1; i < rows.length; i++) {
+    const row = rows[i];
+    const source = String(row[headerMap.IapSource] || "").trim();
+    if (source !== "apple_iap") continue;
+
+    scannedCount += 1;
+
+    const expiresAt = String(row[headerMap.IapExpiresAt] || "").trim();
+    const isExpired = _isExpiredIso_(expiresAt);
+    if (!isExpired) continue;
+
+    const currentStatus = String(row[headerMap.IapStatus] || "").toLowerCase().trim();
+    const currentLicense = _isTruthy_(row[headerMap.LicencaAtiva]);
+
+    if (currentStatus !== "expired" || currentLicense) {
+      sh.getRange(i + 1, headerMap.IapStatus + 1).setValue("expired");
+      sh.getRange(i + 1, headerMap.LicencaAtiva + 1).setValue(false);
+      if (headerMap.acesso_personal != null) {
+        sh.getRange(i + 1, headerMap.acesso_personal + 1).setValue(false);
+      }
+      sh.getRange(i + 1, headerMap.IapLastValidatedAt + 1).setValue(nowIso);
+      updatedCount += 1;
     }
   }
 
   return {
     status: "ok",
     provider: "apple_iap",
-    platform: "ios",
-    restored: results,
-    restoredCount: results.length,
-    restoredActiveCount: activeCount,
-    sourceOfTruth: "server"
+    scannedCount: scannedCount,
+    updatedCount: updatedCount,
+    sourceOfTruth: "local_reconciliation",
+    lastValidatedAt: nowIso
   };
 }
 

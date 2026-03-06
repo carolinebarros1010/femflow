@@ -301,6 +301,10 @@ function doPost(e) {
         resposta = entitlementsStatus_(data);
         break;
 
+      case "iap_apple_notification":
+        resposta = iapAppleNotification_(data);
+        break;
+
       /* ===========================
          🛒 HOTMART / DEFAULT
       ============================ */
