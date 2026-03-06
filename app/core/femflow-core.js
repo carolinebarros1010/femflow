@@ -2010,9 +2010,12 @@ FEMFLOW.iap = Object.assign(FEMFLOW.iap || {}, {
     return { status: "ok", message: "Produtos carregados.", products };
   },
 
-  async activatePurchaseOnBackend({ productId, transactionId, purchaseDate, expiresDate, env }) {
+  async activatePurchaseOnBackend({ productId, transactionId, originalTransactionId, purchaseDate, expiresDate, env, signedPayload, receipt, source }) {
     const id = localStorage.getItem("femflow_id") || "";
     const email = localStorage.getItem("femflow_email") || "";
+
+    const correlationId = crypto?.randomUUID?.() || ("ff-iap-" + Date.now() + "-" + Math.random().toString(36).slice(2));
+    const idempotencyKey = transactionId ? ("ios:" + transactionId) : correlationId;
 
     return FEMFLOW.post({
       action: "iap_apple_activate",
@@ -2021,19 +2024,28 @@ FEMFLOW.iap = Object.assign(FEMFLOW.iap || {}, {
       userId: id,
       productId,
       transactionId,
+      originalTransactionId,
       purchaseDate,
       expiresDate,
-      env: env || FEMFLOW.ENV || "prod"
+      env: env || FEMFLOW.ENV || "prod",
+      signedPayload: signedPayload || "",
+      receipt: receipt || "",
+      source: source || "purchase",
+      correlationId,
+      idempotencyKey
     });
   },
 
   normalizeTransaction(tx = {}, productIdFallback = "") {
     return {
-      productId: tx.productId || tx.productIdentifier || productIdFallback,
-      transactionId: String(tx.transactionId || tx.id || tx.originalTransactionId || ""),
+      productId: tx.productId || tx.productIdentifier || tx.product || productIdFallback,
+      transactionId: String(tx.transactionId || tx.id || tx.transaction?.id || tx.originalTransactionId || ""),
+      originalTransactionId: String(tx.originalTransactionId || tx.originalId || tx.originalTransaction?.id || ""),
       purchaseDate: tx.purchaseDate || tx.transactionDate || tx.purchasedAt || "",
       expiresDate: tx.expirationDate || tx.expiresDate || tx.expiryDate || "",
       env: tx.environment || tx.env || "",
+      signedPayload: tx.signedPayload || tx.jwsRepresentation || "",
+      receipt: tx.receipt || tx.transactionReceipt || "",
       isActive: tx.isActive !== false && tx.revoked !== true
     };
   },
@@ -2075,10 +2087,31 @@ FEMFLOW.iap = Object.assign(FEMFLOW.iap || {}, {
         return { status: "error", message: "Transação inválida." };
       }
 
-      await this.activatePurchaseOnBackend(tx);
+      const backendActivation = await this.activatePurchaseOnBackend(Object.assign({}, tx, { source: "purchase" }));
+      const backendOk = backendActivation && String(backendActivation.status || "").toLowerCase() === "ok";
+
+      if (!backendOk) {
+        return {
+          status: "error",
+          transactionId: tx.transactionId,
+          message: String(backendActivation?.msg || backendActivation?.message || "Ativação não confirmada no servidor."),
+          code: String(backendActivation?.code || backendActivation?.msg || "iap_backend_activation_failed"),
+          reason: backendActivation?.reason || "",
+          entitlementStatus: backendActivation?.entitlementStatus || "",
+          sourceOfTruth: backendActivation?.sourceOfTruth || "server"
+        };
+      }
+
       await FEMFLOW.refreshEntitlements();
-      document.dispatchEvent(new CustomEvent("femflow:entitlementsUpdated", { detail: { source: "iap_purchase", transactionId: tx.transactionId } }));
-      return { status: "ok", transactionId: tx.transactionId, message: this._statusCopy().success };
+      document.dispatchEvent(new CustomEvent("femflow:entitlementsUpdated", { detail: { source: "iap_purchase", transactionId: tx.transactionId, backend: backendActivation } }));
+      return {
+        status: "ok",
+        transactionId: tx.transactionId,
+        message: this._statusCopy().success,
+        provider: backendActivation?.provider || "apple_iap",
+        entitlementStatus: backendActivation?.entitlementStatus || "active",
+        sourceOfTruth: backendActivation?.sourceOfTruth || "server"
+      };
     } catch (err) {
       const code = String(err?.code || err?.errorCode || "").toLowerCase();
       const msg = String(err?.message || "").toLowerCase();
@@ -2128,8 +2161,24 @@ FEMFLOW.iap = Object.assign(FEMFLOW.iap || {}, {
         .map(tx => this.normalizeTransaction(tx))
         .filter(tx => tx.isActive && tx.productId && tx.transactionId);
 
-      for (const tx of activeTransactions) {
-        await this.activatePurchaseOnBackend(tx);
+      const id = localStorage.getItem("femflow_id") || "";
+      const email = localStorage.getItem("femflow_email") || "";
+      const correlationId = crypto?.randomUUID?.() || ("ff-restore-" + Date.now() + "-" + Math.random().toString(36).slice(2));
+
+      const restoreResp = await FEMFLOW.post({
+        action: "iap_apple_restore",
+        id,
+        email,
+        userId: id,
+        source: "restore",
+        correlationId,
+        transactions: activeTransactions.map((tx) => Object.assign({}, tx, {
+          idempotencyKey: tx.transactionId ? ("ios:" + tx.transactionId) : ""
+        }))
+      });
+
+      if (!restoreResp || (restoreResp.status !== "ok" && restoreResp.status !== "partial")) {
+        return { status: "error", restoredCount: 0, message: this._statusCopy().genericError };
       }
 
       await FEMFLOW.refreshEntitlements();
