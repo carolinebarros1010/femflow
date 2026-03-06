@@ -250,7 +250,13 @@
 
       localStorage.setItem('ebook', ebook);
       localStorage.setItem('tipo', tipo);
-      window.open(url, '_blank');
+
+      if (window.FEMFLOW?.openExternal) {
+        window.FEMFLOW.openExternal(url);
+        return false;
+      }
+
+      window.location.href = url;
       return false;
     }
   </script>

@@ -35,6 +35,21 @@
   }
 
   function openHotmartExternal(planId, context) {
+    const isIOS = FEMFLOW.platform?.isIOS?.() === true
+      || String(global.Capacitor?.getPlatform?.() || "").toLowerCase() === "ios";
+
+    if (isIOS) {
+      const lang = String(FEMFLOW.lang || "pt").slice(0, 2).toLowerCase();
+      const mensagens = {
+        pt: "Assine no app para continuar",
+        en: "Subscribe in the app to continue",
+        fr: "Abonnez-vous dans l'app pour continuer"
+      };
+      FEMFLOW.toast?.(mensagens[lang] || mensagens.pt);
+      console.warn("[iOS hardening] Checkout externo Hotmart bloqueado no iOS nativo.", { planId, context });
+      return { ok: false, code: "ios_external_checkout_blocked", planId: normalizePlanId(planId), platform: "ios" };
+    }
+
     const targetPlan = normalizePlanId(planId);
     const targetUrl = HOTMART_PLAN_URLS[targetPlan];
 

@@ -44,8 +44,8 @@
         return false;
       }
 
-      // Compat fallback temporário enquanto páginas legadas não carregam bundle completo do app.
-      window.location.href = 'https://pay.hotmart.com/T103984580L?off=ifcs6h6n';
+      // Compat fallback temporário sem redirecionamento direto para checkout externo.
+      console.warn('[iOS/compliance] Gateway de checkout indisponível nesta página legada.');
       return false;
     }
   </script>
@@ -56,7 +56,7 @@
       <div class="logo-text">MYFLOWLIFE</div>
       <div class="header-actions">
         <a class="hbtn" href="#" onclick="return openAppCheckoutLegacy();">App FemFlow</a>
-        <a class="hbtn" href="https://chat.whatsapp.com/FPNeAa1OvaZEThWBKdYOQZ?mode=wwc" target="_blank" rel="noopener">Newsletter</a>
+        <a class="hbtn js-newsletter-external" href="https://chat.whatsapp.com/FPNeAa1OvaZEThWBKdYOQZ?mode=wwc" target="_blank" rel="noopener">Newsletter</a>
       </div>
     </div>
   </header>
@@ -129,6 +129,9 @@
 <script>
   document.addEventListener('DOMContentLoaded', () => {
     if (isNativeIOS()) {
+      document.querySelectorAll('.js-newsletter-external').forEach((el) => {
+        el.style.display = 'none';
+      });
       console.warn('[iOS hardening] Página legada de ebooks bloqueada no iOS nativo.');
       window.location.replace('../home.html');
       return;
