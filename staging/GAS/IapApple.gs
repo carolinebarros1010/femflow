@@ -35,7 +35,9 @@ function _ensureIapColumns_(sh) {
     "IapCorrelationId",
     "IapIdempotencyKey",
     "IapLastNotificationType",
-    "IapLastNotificationSubtype"
+    "IapLastNotificationSubtype",
+    "IapValidationLevel",
+    "IapValidationMethod"
   ];
 
   const headerInfo = _getHeaderMap_(sh);
@@ -139,6 +141,16 @@ function _parseSignedPayload_(signedPayload) {
   }
 }
 
+
+function _buildValidationMeta_(level, method, mode, reason) {
+  return {
+    validationLevel: String(level || "unverified").trim(),
+    validationMethod: String(method || "none").trim(),
+    verificationMode: String(mode || "server").trim(),
+    verificationReason: String(reason || "").trim()
+  };
+}
+
 function _verifyReceiptWithApple_(receiptData, transactionId) {
   const receipt = String(receiptData || "").trim();
   if (!receipt) {
@@ -214,23 +226,36 @@ function _validateAppleTransactionServerSide_(payload, source) {
   const receipt = String(payload.receipt || payload.transactionReceipt || "").trim();
   const envHint = String(payload.environment || payload.env || payload.environmentHint || "").trim();
 
-  if (!productId || !transactionId) {
-    return { ok: false, status: "pending_validation", reason: "missing_product_or_transaction" };
+  function reject(reason) {
+    return Object.assign({ ok: false, status: "pending_validation", reason: reason },
+      _buildValidationMeta_("unverified", "none", "server", reason));
   }
 
-  if (IAP_APPLE_PRODUCT_IDS.indexOf(productId) < 0) {
-    return { ok: false, status: "pending_validation", reason: "product_not_allowed" };
-  }
-
-  if (!_isLikelyAppleTransactionId_(transactionId)) {
-    return { ok: false, status: "pending_validation", reason: "invalid_transaction_id" };
-  }
+  if (!productId || !transactionId) return reject("missing_product_or_transaction");
+  if (IAP_APPLE_PRODUCT_IDS.indexOf(productId) < 0) return reject("product_not_allowed");
+  if (!_isLikelyAppleTransactionId_(transactionId)) return reject("invalid_transaction_id");
 
   const bundleExpected = String(PropertiesService.getScriptProperties().getProperty("APPLE_BUNDLE_ID") || "com.femflow.app").trim();
 
   let validation = null;
 
-  if (signedPayload) {
+  if (receipt) {
+    const receiptValidation = _verifyReceiptWithApple_(receipt, transactionId);
+    if (receiptValidation.ok) {
+      if (receiptValidation.productId && receiptValidation.productId !== productId) return reject("product_mismatch_receipt");
+      if (originalTransactionId && receiptValidation.originalTransactionId && receiptValidation.originalTransactionId !== originalTransactionId) {
+        return reject("original_transaction_mismatch_receipt");
+      }
+      validation = Object.assign({}, receiptValidation, _buildValidationMeta_(
+        "pragmatic_remote",
+        "verifyReceipt",
+        "server",
+        "verify_receipt_ok"
+      ));
+    }
+  }
+
+  if (!validation && signedPayload) {
     const decoded = _parseSignedPayload_(signedPayload);
     if (decoded && typeof decoded === "object") {
       const decodedTx = String(decoded.transactionId || decoded.transaction_id || "").trim();
@@ -239,23 +264,14 @@ function _validateAppleTransactionServerSide_(payload, source) {
       const decodedBundle = String(decoded.bundleId || decoded.bundle_id || "").trim();
       const decodedEnv = String(decoded.environment || "").trim();
 
-      if (decodedTx && decodedTx !== transactionId) {
-        return { ok: false, status: "pending_validation", reason: "transaction_mismatch_signed_payload" };
-      }
-
-      if (decodedProduct && decodedProduct !== productId) {
-        return { ok: false, status: "pending_validation", reason: "product_mismatch_signed_payload" };
-      }
-
+      if (decodedTx && decodedTx !== transactionId) return reject("transaction_mismatch_signed_payload");
+      if (decodedProduct && decodedProduct !== productId) return reject("product_mismatch_signed_payload");
       if (decodedOriginal && originalTransactionId && decodedOriginal !== originalTransactionId) {
-        return { ok: false, status: "pending_validation", reason: "original_transaction_mismatch_signed_payload" };
+        return reject("original_transaction_mismatch_signed_payload");
       }
+      if (decodedBundle && bundleExpected && decodedBundle !== bundleExpected) return reject("bundle_mismatch");
 
-      if (decodedBundle && bundleExpected && decodedBundle !== bundleExpected) {
-        return { ok: false, status: "pending_validation", reason: "bundle_mismatch" };
-      }
-
-      validation = {
+      validation = Object.assign({
         ok: true,
         source: "signed_payload",
         productId: decodedProduct || productId,
@@ -265,33 +281,25 @@ function _validateAppleTransactionServerSide_(payload, source) {
         expiresDate: _coerceIsoOrEmpty_(decoded.expiresDate || decoded.expiresDateMs || payload.expiresDate),
         environment: decodedEnv || envHint,
         evidenceHash: _hashPayloadEvidence_(decoded)
-      };
-    }
-  }
-
-  if (!validation && receipt) {
-    const receiptValidation = _verifyReceiptWithApple_(receipt, transactionId);
-    if (receiptValidation.ok) {
-      if (receiptValidation.productId && receiptValidation.productId !== productId) {
-        return { ok: false, status: "pending_validation", reason: "product_mismatch_receipt" };
-      }
-      if (originalTransactionId && receiptValidation.originalTransactionId && receiptValidation.originalTransactionId !== originalTransactionId) {
-        return { ok: false, status: "pending_validation", reason: "original_transaction_mismatch_receipt" };
-      }
-      validation = receiptValidation;
-    } else {
-      return { ok: false, status: "pending_validation", reason: receiptValidation.reason || "receipt_validation_failed" };
+      }, _buildValidationMeta_(
+        "pragmatic",
+        "signed_payload_consistency",
+        "server",
+        "decoded_without_cryptographic_verification"
+      ));
     }
   }
 
   if (!validation) {
-    return { ok: false, status: "pending_validation", reason: "missing_apple_evidence" };
+    if (receipt) return reject("receipt_provided_but_not_verified");
+    if (signedPayload) return reject("signed_payload_unreadable");
+    return reject("missing_apple_evidence");
   }
 
   const normalizedExpires = validation.expiresDate || _coerceIsoOrEmpty_(payload.expiresDate || payload.expiryDate);
   const status = normalizedExpires && _isExpiredIso_(normalizedExpires) ? "expired" : "active";
 
-  return {
+  return Object.assign({
     ok: true,
     status: status,
     reason: "validated",
@@ -303,7 +311,12 @@ function _validateAppleTransactionServerSide_(payload, source) {
     expiresDate: normalizedExpires,
     environment: validation.environment || envHint,
     evidenceHash: validation.evidenceHash || _hashPayloadEvidence_({ productId: productId, transactionId: transactionId, source: source })
-  };
+  }, _buildValidationMeta_(
+    validation.validationLevel,
+    validation.validationMethod,
+    validation.verificationMode,
+    validation.verificationReason
+  ));
 }
 
 function _findRowsByTransactionId_(sh, headerMap, transactionId) {
@@ -476,9 +489,17 @@ function _resolveAppleReconcileOutcome_(row, headerMap, selection, nowIso, corre
           hash: remote.evidenceHash || "",
           transactionId: remote.transactionId || tx,
           originalTransactionId: remote.originalTransactionId || originalTx,
-          remoteEvidenceAvailable: true
+          remoteEvidenceAvailable: true,
+          validationLevel: remote.validationLevel || "pragmatic",
+          validationMethod: remote.validationMethod || "signed_payload_consistency",
+          verificationMode: remote.verificationMode || "server",
+          verificationReason: remote.verificationReason || ""
         }),
-        correlationId: correlationId
+        correlationId: correlationId,
+        validationLevel: remote.validationLevel || "pragmatic",
+        validationMethod: remote.validationMethod || "signed_payload_consistency",
+        verificationMode: remote.verificationMode || "server",
+        verificationReason: remote.verificationReason || ""
       };
     }
 
@@ -498,9 +519,17 @@ function _resolveAppleReconcileOutcome_(row, headerMap, selection, nowIso, corre
         result: "error",
         reason: remote.reason || "remote_validation_failed",
         selectionReason: selection.reason,
-        remoteEvidenceAvailable: true
+        remoteEvidenceAvailable: true,
+        validationLevel: "unverified",
+        validationMethod: "none",
+        verificationMode: "server",
+        verificationReason: remote.reason || "remote_validation_failed"
       }),
-      correlationId: correlationId
+      correlationId: correlationId,
+      validationLevel: "unverified",
+      validationMethod: "none",
+      verificationMode: "server",
+      verificationReason: remote.reason || "remote_validation_failed"
     };
   }
 
@@ -522,9 +551,17 @@ function _resolveAppleReconcileOutcome_(row, headerMap, selection, nowIso, corre
       result: "ok",
       reason: selection.reason,
       limitation: "missing_receipt_or_signed_payload",
-      remoteEvidenceAvailable: false
+      remoteEvidenceAvailable: false,
+      validationLevel: "local_only",
+      validationMethod: "local_expiry_inference",
+      verificationMode: "local",
+      verificationReason: "missing_receipt_or_signed_payload"
     }),
-    correlationId: correlationId
+    correlationId: correlationId,
+    validationLevel: "local_only",
+    validationMethod: "local_expiry_inference",
+    verificationMode: "local",
+    verificationReason: "missing_receipt_or_signed_payload"
   };
 }
 
@@ -551,6 +588,12 @@ function _applyAppleReconcileOutcome_(sh, rowIndex, headerMap, row, outcome) {
   }
   sh.getRange(rowIndex, headerMap.IapCorrelationId + 1).setValue(outcome.correlationId || "");
   sh.getRange(rowIndex, headerMap.IapValidationEvidence + 1).setValue(outcome.evidence || "");
+  if (headerMap.IapValidationLevel != null) {
+    sh.getRange(rowIndex, headerMap.IapValidationLevel + 1).setValue(outcome.validationLevel || "unverified");
+  }
+  if (headerMap.IapValidationMethod != null) {
+    sh.getRange(rowIndex, headerMap.IapValidationMethod + 1).setValue(outcome.validationMethod || "none");
+  }
 
   if (outcome.environment && headerMap.IapEnv != null) {
     sh.getRange(rowIndex, headerMap.IapEnv + 1).setValue(outcome.environment);
@@ -603,7 +646,29 @@ function _persistAppleValidationToRow_(sh, rowIndex, headerMap, payload, validat
   sh.getRange(rowIndex, headerMap.IapOriginalTransactionId + 1).setValue(validationResult.originalTransactionId || "");
   sh.getRange(rowIndex, headerMap.IapStatus + 1).setValue(finalStatus);
   sh.getRange(rowIndex, headerMap.IapLastValidatedAt + 1).setValue(_getCurrentIsoNow_());
-  sh.getRange(rowIndex, headerMap.IapValidationEvidence + 1).setValue(validationResult.evidenceHash || "");
+  const validationEvidence = {
+    hash: validationResult.evidenceHash || "",
+    validator: validationResult.validationMethod || "unknown",
+    validationLevel: validationResult.validationLevel || "unverified",
+    validationMethod: validationResult.validationMethod || "none",
+    verificationMode: validationResult.verificationMode || "server",
+    verificationReason: validationResult.verificationReason || validationResult.reason || "",
+    source: String(payload.source || "activate"),
+    transactionId: validationResult.transactionId || "",
+    originalTransactionId: validationResult.originalTransactionId || "",
+    productId: validationResult.productId || "",
+    hasReceipt: !!String(payload.receipt || payload.transactionReceipt || "").trim(),
+    hasSignedPayload: !!String(payload.signedPayload || "").trim(),
+    receipt: String(payload.receipt || payload.transactionReceipt || "").trim(),
+    signedPayload: String(payload.signedPayload || "").trim()
+  };
+  sh.getRange(rowIndex, headerMap.IapValidationEvidence + 1).setValue(JSON.stringify(validationEvidence));
+  if (headerMap.IapValidationLevel != null) {
+    sh.getRange(rowIndex, headerMap.IapValidationLevel + 1).setValue(validationResult.validationLevel || "unverified");
+  }
+  if (headerMap.IapValidationMethod != null) {
+    sh.getRange(rowIndex, headerMap.IapValidationMethod + 1).setValue(validationResult.validationMethod || "none");
+  }
   sh.getRange(rowIndex, headerMap.IapLastSource + 1).setValue(String(payload.source || "activate"));
   sh.getRange(rowIndex, headerMap.IapCorrelationId + 1).setValue(String(payload.correlationId || ""));
   sh.getRange(rowIndex, headerMap.IapIdempotencyKey + 1).setValue(String(payload.idempotencyKey || ""));
@@ -622,7 +687,10 @@ function _persistAppleValidationToRow_(sh, rowIndex, headerMap, payload, validat
     originalTransactionId: validationResult.originalTransactionId || "",
     entitlementStatus: finalStatus,
     lastValidatedAt: _getCurrentIsoNow_(),
-    sourceOfTruth: "server"
+    sourceOfTruth: "server",
+    validationLevel: validationResult.validationLevel || "unverified",
+    validationMethod: validationResult.validationMethod || "none",
+    verificationMode: validationResult.verificationMode || "server"
   };
 }
 
@@ -661,7 +729,10 @@ function _processIapAppleActivationCore_(payload, source) {
       entitlementStatus: statusValue,
       isActive: statusValue === "active",
       sourceOfTruth: "server",
-      lastValidatedAt: String(row[headerMap.IapLastValidatedAt] || "")
+      lastValidatedAt: String(row[headerMap.IapLastValidatedAt] || ""),
+      validationLevel: String((headerMap.IapValidationLevel == null ? "" : row[headerMap.IapValidationLevel]) || "").trim() || "unverified",
+      validationMethod: String((headerMap.IapValidationMethod == null ? "" : row[headerMap.IapValidationMethod]) || "").trim() || "none",
+      verificationMode: "server"
     };
   }
 
@@ -673,7 +744,10 @@ function _processIapAppleActivationCore_(payload, source) {
     transactionId: String(payload.transactionId || ""),
     originalTransactionId: String(payload.originalTransactionId || ""),
     result: validation.ok ? "ok" : "reject",
-    reason: validation.reason || ""
+    reason: validation.reason || "",
+    validationLevel: validation.validationLevel || "unverified",
+    validationMethod: validation.validationMethod || "none",
+    verificationMode: validation.verificationMode || "server"
   }));
 
   if (!validation.ok) {
@@ -683,7 +757,10 @@ function _processIapAppleActivationCore_(payload, source) {
       reason: validation.reason || "validation_failed",
       entitlementStatus: validation.status || "pending_validation",
       isActive: false,
-      sourceOfTruth: "server"
+      sourceOfTruth: "server",
+      validationLevel: validation.validationLevel || "unverified",
+      validationMethod: validation.validationMethod || "none",
+      verificationMode: validation.verificationMode || "server"
     };
   }
 
@@ -695,7 +772,10 @@ function iapAppleActivate_(payload) {
   console.log("[IAP][activate]", JSON.stringify(_buildAppleIapLogContext_(payload, {
     status: resp && resp.status,
     result: resp && resp.status,
-    entitlementStatus: resp && resp.entitlementStatus
+    entitlementStatus: resp && resp.entitlementStatus,
+    validationLevel: resp && resp.validationLevel,
+    validationMethod: resp && resp.validationMethod,
+    verificationMode: resp && resp.verificationMode
   })));
   return resp;
 }
@@ -710,7 +790,11 @@ function _buildAppleIapLogContext_(payload, extra) {
     originalTransactionId: String(merged.originalTransactionId || "").trim(),
     correlationId: String(merged.correlationId || merged.notificationId || "").trim(),
     result: String(merged.result || merged.status || "").trim(),
-    entitlementStatus: String(merged.entitlementStatus || "").trim()
+    entitlementStatus: String(merged.entitlementStatus || "").trim(),
+    validationLevel: String(merged.validationLevel || "").trim(),
+    validationMethod: String(merged.validationMethod || "").trim(),
+    verificationMode: String(merged.verificationMode || "").trim(),
+    reason: String(merged.reason || merged.verificationReason || "").trim()
   };
 }
 
@@ -881,7 +965,10 @@ function iapAppleRestore_(payload) {
     console.log("[IAP][restore]", JSON.stringify(_buildAppleIapLogContext_(payload, {
       status: single && single.status,
       result: single && single.status,
-      entitlementStatus: single && single.entitlementStatus
+      entitlementStatus: single && single.entitlementStatus,
+      validationLevel: single && single.validationLevel,
+      validationMethod: single && single.validationMethod,
+      verificationMode: single && single.verificationMode
     })));
 
     return single;
@@ -908,7 +995,10 @@ function iapAppleRestore_(payload) {
     console.log("[IAP][restore]", JSON.stringify(_buildAppleIapLogContext_(merged, {
       status: txStatus || "error",
       result: txStatus || "error",
-      entitlementStatus: resp && resp.entitlementStatus
+      entitlementStatus: resp && resp.entitlementStatus,
+      validationLevel: resp && resp.validationLevel,
+      validationMethod: resp && resp.validationMethod,
+      verificationMode: resp && resp.verificationMode
     })));
   }
 
@@ -928,7 +1018,8 @@ function iapAppleRestore_(payload) {
     restoredCount: successCount,
     restoredActiveCount: activeCount,
     failedCount: failedCount,
-    sourceOfTruth: "server"
+    sourceOfTruth: "server",
+    validationMode: "per_transaction"
   };
 }
 
@@ -954,7 +1045,10 @@ function iapAppleNotification_(payload) {
     correlationId: parsed.notificationId,
     status: "received",
     result: "received",
-    entitlementStatus: "pending_validation"
+    entitlementStatus: "pending_validation",
+    validationLevel: "pragmatic",
+    validationMethod: "notification_payload_consistency",
+    verificationMode: "server"
   })));
 
   const duplicate = _findRowsByIdempotencyKey_(sh, headerMap, parsed.notificationId);
@@ -975,7 +1069,10 @@ function iapAppleNotification_(payload) {
       entitlementStatus: dupeStatus,
       isActive: dupeStatus === "active",
       correlationId: parsed.notificationId,
-      sourceOfTruth: "server"
+      sourceOfTruth: "server",
+      validationLevel: String((headerMap.IapValidationLevel == null ? "" : dupeRow[headerMap.IapValidationLevel]) || "").trim() || "unverified",
+      validationMethod: String((headerMap.IapValidationMethod == null ? "" : dupeRow[headerMap.IapValidationMethod]) || "").trim() || "none",
+      verificationMode: "server"
     };
   }
 
@@ -993,7 +1090,10 @@ function iapAppleNotification_(payload) {
       originalTransactionId: parsed.originalTransactionId,
       productId: parsed.productId,
       correlationId: parsed.notificationId,
-      sourceOfTruth: "server"
+      sourceOfTruth: "server",
+      validationLevel: "unverified",
+      validationMethod: "none",
+      verificationMode: "server"
     };
   }
 
@@ -1013,7 +1113,10 @@ function iapAppleNotification_(payload) {
       entitlementStatus: "pending_validation",
       isActive: false,
       correlationId: parsed.notificationId,
-      sourceOfTruth: "server"
+      sourceOfTruth: "server",
+      validationLevel: "unverified",
+      validationMethod: "none",
+      verificationMode: "server"
     };
   }
 
@@ -1035,8 +1138,17 @@ function iapAppleNotification_(payload) {
     subtype: parsed.subtype,
     environment: parsed.environment,
     decodeState: parsed.decodeState,
-    verification: "unsigned_payload_consistency_only"
+    validationLevel: "pragmatic",
+    validationMethod: "notification_payload_consistency",
+    verificationMode: "server",
+    verificationReason: "jws_parsed_without_cryptographic_verification"
   }));
+  if (headerMap.IapValidationLevel != null) {
+    sh.getRange(targetRow.rowIndex, headerMap.IapValidationLevel + 1).setValue("pragmatic");
+  }
+  if (headerMap.IapValidationMethod != null) {
+    sh.getRange(targetRow.rowIndex, headerMap.IapValidationMethod + 1).setValue("notification_payload_consistency");
+  }
   if (headerMap.IapLastNotificationType != null) {
     sh.getRange(targetRow.rowIndex, headerMap.IapLastNotificationType + 1).setValue(parsed.notificationType || "");
   }
@@ -1071,7 +1183,10 @@ function iapAppleNotification_(payload) {
     correlationId: parsed.notificationId,
     status: "processed",
     result: "ok",
-    entitlementStatus: newStatus
+    entitlementStatus: newStatus,
+    validationLevel: "pragmatic",
+    validationMethod: "notification_payload_consistency",
+    verificationMode: "server"
   })));
 
   return {
@@ -1089,7 +1204,10 @@ function iapAppleNotification_(payload) {
     correlationId: parsed.notificationId,
     autoRenewStatus: parsed.autoRenewStatus,
     environment: parsed.environment,
-    sourceOfTruth: "server"
+    sourceOfTruth: "server",
+    validationLevel: "pragmatic",
+    validationMethod: "notification_payload_consistency",
+    verificationMode: "server"
   };
 }
 
@@ -1151,7 +1269,9 @@ function reconcileAppleSubscriptions_() {
         newStatus: outcome.newStatus,
         reconcileMode: outcome.reconcileMode,
         reason: outcome.reason,
-        correlationId: outcome.correlationId
+        correlationId: outcome.correlationId,
+        validationLevel: outcome.validationLevel,
+        validationMethod: outcome.validationMethod
       })));
     } catch (err) {
       errorCount += 1;
@@ -1175,7 +1295,8 @@ function reconcileAppleSubscriptions_() {
     retryCount: retryCount,
     errorCount: errorCount,
     sourceOfTruth: "reconcile_job",
-    lastValidatedAt: nowIso
+    lastValidatedAt: nowIso,
+    validationMode: "mixed_remote_and_local"
   };
 }
 
