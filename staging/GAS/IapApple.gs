@@ -31,6 +31,7 @@ function _ensureIapColumns_(sh) {
     "IapLastValidatedAt",
     "IapValidationEvidence",
     "IapLastSource",
+    "IapLastReconcileMode",
     "IapCorrelationId",
     "IapIdempotencyKey",
     "IapLastNotificationType",
@@ -330,6 +331,246 @@ function _isTruthy_(value) {
   if (typeof value === "boolean") return value;
   const normalized = String(value || "").toLowerCase().trim();
   return normalized === "true" || normalized === "1" || normalized === "yes" || normalized === "sim";
+}
+
+function _safeParseJsonObject_(raw) {
+  const text = String(raw || "").trim();
+  if (!text) return null;
+  try {
+    const parsed = JSON.parse(text);
+    return parsed && typeof parsed === "object" ? parsed : null;
+  } catch (err) {
+    return null;
+  }
+}
+
+function _isAppleStatusActiveLike_(status) {
+  const normalized = String(status || "").toLowerCase().trim();
+  return normalized === "active" || normalized === "retry" || normalized === "pending_validation";
+}
+
+function _buildAppleReconcileContext_(row, headerMap, updates) {
+  const patch = updates || {};
+  const previousStatus = String(row[headerMap.IapStatus] || "").trim();
+  return {
+    userId: String(row[0] || "").trim(),
+    transactionId: String(row[headerMap.IapTransactionId] || "").trim(),
+    originalTransactionId: String(row[headerMap.IapOriginalTransactionId] || "").trim(),
+    previousStatus: previousStatus,
+    newStatus: String(patch.newStatus || previousStatus || "").trim(),
+    reconcileMode: String(patch.reconcileMode || "skipped").trim(),
+    reason: String(patch.reason || "").trim(),
+    correlationId: String(patch.correlationId || "").trim()
+  };
+}
+
+function _extractAppleEvidenceForReconcile_(row, headerMap) {
+  const evidenceRaw = String(row[headerMap.IapValidationEvidence] || "").trim();
+  const evidenceObj = _safeParseJsonObject_(evidenceRaw) || {};
+
+  const receipt = String(
+    evidenceObj.receipt || evidenceObj.transactionReceipt || evidenceObj.latestReceipt || evidenceObj.latest_receipt || ""
+  ).trim();
+
+  const signedPayload = String(
+    evidenceObj.signedPayload || evidenceObj.signed_payload || evidenceObj.signedTransactionInfo || ""
+  ).trim();
+
+  return {
+    evidenceRaw: evidenceRaw,
+    evidenceObj: evidenceObj,
+    receipt: receipt,
+    signedPayload: signedPayload
+  };
+}
+
+function _shouldReconcileAppleRow_(row, headerMap, nowMs) {
+  const currentStatus = String(row[headerMap.IapStatus] || "").toLowerCase().trim();
+  const expiresAt = String(row[headerMap.IapExpiresAt] || "").trim();
+  const lastValidatedAt = String(row[headerMap.IapLastValidatedAt] || "").trim();
+  const licenseActive = _isTruthy_(row[headerMap.LicencaAtiva]);
+  const tx = String(row[headerMap.IapTransactionId] || "").trim();
+  const originalTx = String(row[headerMap.IapOriginalTransactionId] || "").trim();
+
+  if (!tx && !originalTx) {
+    return { eligible: false, reason: "missing_transaction_identity" };
+  }
+
+  if (currentStatus === "pending_validation") {
+    return { eligible: true, reason: "status_pending_validation" };
+  }
+
+  if (currentStatus === "retry") {
+    return { eligible: true, reason: "status_retry" };
+  }
+
+  const expiresMs = expiresAt ? Date.parse(expiresAt) : NaN;
+  if (isFinite(expiresMs)) {
+    const hoursToExpire = (expiresMs - nowMs) / (1000 * 60 * 60);
+    if (hoursToExpire <= 48 && hoursToExpire >= -12) {
+      return { eligible: true, reason: "near_expiry_window" };
+    }
+    if (hoursToExpire < 0 && (licenseActive || _isAppleStatusActiveLike_(currentStatus))) {
+      return { eligible: true, reason: "expired_but_active_locally" };
+    }
+  }
+
+  const lastValidatedMs = lastValidatedAt ? Date.parse(lastValidatedAt) : NaN;
+  if (!isFinite(lastValidatedMs)) {
+    return { eligible: true, reason: "missing_last_validated_at" };
+  }
+  const hoursSinceValidated = (nowMs - lastValidatedMs) / (1000 * 60 * 60);
+  if (hoursSinceValidated > 168) {
+    return { eligible: true, reason: "stale_validation" };
+  }
+
+  const statusLooksActive = _isAppleStatusActiveLike_(currentStatus);
+  if ((licenseActive && !statusLooksActive) || (!licenseActive && statusLooksActive)) {
+    return { eligible: true, reason: "status_license_divergence" };
+  }
+
+  if (originalTx && !currentStatus) {
+    return { eligible: true, reason: "original_transaction_inconsistent_state" };
+  }
+
+  return { eligible: false, reason: "not_eligible" };
+}
+
+function _resolveAppleReconcileOutcome_(row, headerMap, selection, nowIso, correlationId) {
+  const tx = String(row[headerMap.IapTransactionId] || "").trim();
+  const originalTx = String(row[headerMap.IapOriginalTransactionId] || "").trim();
+  const productId = String(row[headerMap.IapProductId] || "").trim();
+  const expiresAt = _coerceIsoOrEmpty_(row[headerMap.IapExpiresAt]);
+  const env = String(row[headerMap.IapEnv] || "").trim();
+  const evidence = _extractAppleEvidenceForReconcile_(row, headerMap);
+  const canRemote = !!(evidence.receipt || evidence.signedPayload);
+
+  if (canRemote) {
+    const payload = {
+      productId: productId,
+      transactionId: tx,
+      originalTransactionId: originalTx,
+      expiresDate: expiresAt,
+      environment: env,
+      signedPayload: evidence.signedPayload,
+      receipt: evidence.receipt
+    };
+    const remote = _validateAppleTransactionServerSide_(payload, "reconcile");
+    if (remote.ok) {
+      return {
+        reconcileMode: "remote",
+        resultType: "remote_validated",
+        newStatus: remote.status || "pending_validation",
+        expiresAt: remote.expiresDate || expiresAt,
+        environment: remote.environment || env,
+        productId: remote.productId || productId,
+        transactionId: remote.transactionId || tx,
+        originalTransactionId: remote.originalTransactionId || originalTx,
+        reason: selection.reason,
+        validatedAt: nowIso,
+        evidence: JSON.stringify({
+          mode: "remote",
+          validator: remote.source || "receipt_or_signed_payload",
+          result: "ok",
+          reason: selection.reason,
+          hash: remote.evidenceHash || "",
+          transactionId: remote.transactionId || tx,
+          originalTransactionId: remote.originalTransactionId || originalTx,
+          remoteEvidenceAvailable: true
+        }),
+        correlationId: correlationId
+      };
+    }
+
+    return {
+      reconcileMode: "remote",
+      resultType: "retry",
+      newStatus: remote.status || "retry",
+      expiresAt: expiresAt,
+      environment: env,
+      productId: productId,
+      transactionId: tx,
+      originalTransactionId: originalTx,
+      reason: "remote_validation_failed_" + String(remote.reason || "unknown"),
+      validatedAt: nowIso,
+      evidence: JSON.stringify({
+        mode: "remote",
+        result: "error",
+        reason: remote.reason || "remote_validation_failed",
+        selectionReason: selection.reason,
+        remoteEvidenceAvailable: true
+      }),
+      correlationId: correlationId
+    };
+  }
+
+  const expired = _isExpiredIso_(expiresAt);
+  const localStatus = expired ? "expired" : "active";
+  return {
+    reconcileMode: "local",
+    resultType: "local_only_reconciled",
+    newStatus: localStatus,
+    expiresAt: expiresAt,
+    environment: env,
+    productId: productId,
+    transactionId: tx,
+    originalTransactionId: originalTx,
+    reason: selection.reason + "_without_reusable_remote_evidence",
+    validatedAt: nowIso,
+    evidence: JSON.stringify({
+      mode: "local",
+      result: "ok",
+      reason: selection.reason,
+      limitation: "missing_receipt_or_signed_payload",
+      remoteEvidenceAvailable: false
+    }),
+    correlationId: correlationId
+  };
+}
+
+function _applyAppleReconcileOutcome_(sh, rowIndex, headerMap, row, outcome) {
+  const planData = _resolvePlanFromAppleProduct_(outcome.productId);
+  const active = outcome.newStatus === "active";
+
+  sh.getRange(rowIndex, headerMap.IapStatus + 1).setValue(outcome.newStatus || "pending_validation");
+  if (headerMap.IapPlan != null) {
+    sh.getRange(rowIndex, headerMap.IapPlan + 1).setValue(planData.plan);
+  }
+  sh.getRange(rowIndex, headerMap.IapExpiresAt + 1).setValue(outcome.expiresAt || "");
+  sh.getRange(rowIndex, headerMap.LicencaAtiva + 1).setValue(active);
+  if (active && headerMap.Produto != null) {
+    sh.getRange(rowIndex, headerMap.Produto + 1).setValue(planData.produto);
+  }
+  if (headerMap.acesso_personal != null) {
+    sh.getRange(rowIndex, headerMap.acesso_personal + 1).setValue(active && planData.modoPersonal);
+  }
+  sh.getRange(rowIndex, headerMap.IapLastValidatedAt + 1).setValue(outcome.validatedAt || _getCurrentIsoNow_());
+  sh.getRange(rowIndex, headerMap.IapLastSource + 1).setValue("reconcile");
+  if (headerMap.IapLastReconcileMode != null) {
+    sh.getRange(rowIndex, headerMap.IapLastReconcileMode + 1).setValue(outcome.reconcileMode || "skipped");
+  }
+  sh.getRange(rowIndex, headerMap.IapCorrelationId + 1).setValue(outcome.correlationId || "");
+  sh.getRange(rowIndex, headerMap.IapValidationEvidence + 1).setValue(outcome.evidence || "");
+
+  if (outcome.environment && headerMap.IapEnv != null) {
+    sh.getRange(rowIndex, headerMap.IapEnv + 1).setValue(outcome.environment);
+  }
+  if (outcome.productId && headerMap.IapProductId != null) {
+    sh.getRange(rowIndex, headerMap.IapProductId + 1).setValue(outcome.productId);
+  }
+  if (outcome.transactionId && headerMap.IapTransactionId != null) {
+    sh.getRange(rowIndex, headerMap.IapTransactionId + 1).setValue(outcome.transactionId);
+  }
+  if (outcome.originalTransactionId && headerMap.IapOriginalTransactionId != null) {
+    sh.getRange(rowIndex, headerMap.IapOriginalTransactionId + 1).setValue(outcome.originalTransactionId);
+  }
+
+  return {
+    changed: String(row[headerMap.IapStatus] || "").trim() !== outcome.newStatus ||
+      _isTruthy_(row[headerMap.LicencaAtiva]) !== active ||
+      String(row[headerMap.IapExpiresAt] || "").trim() !== String(outcome.expiresAt || "").trim(),
+    active: active
+  };
 }
 
 function _persistAppleValidationToRow_(sh, rowIndex, headerMap, payload, validationResult) {
@@ -859,9 +1100,16 @@ function reconcileAppleSubscriptions_() {
   const headerMap = _ensureIapColumns_(sh);
   const rows = sh.getDataRange().getValues();
   const nowIso = _getCurrentIsoNow_();
+  const nowMs = Date.parse(nowIso);
 
   let scannedCount = 0;
+  let eligibleCount = 0;
   let updatedCount = 0;
+  let remoteValidatedCount = 0;
+  let localOnlyCount = 0;
+  let skippedCount = 0;
+  let retryCount = 0;
+  let errorCount = 0;
 
   for (var i = 1; i < rows.length; i++) {
     const row = rows[i];
@@ -869,22 +1117,49 @@ function reconcileAppleSubscriptions_() {
     if (source !== "apple_iap") continue;
 
     scannedCount += 1;
-
-    const expiresAt = String(row[headerMap.IapExpiresAt] || "").trim();
-    const isExpired = _isExpiredIso_(expiresAt);
-    if (!isExpired) continue;
-
-    const currentStatus = String(row[headerMap.IapStatus] || "").toLowerCase().trim();
-    const currentLicense = _isTruthy_(row[headerMap.LicencaAtiva]);
-
-    if (currentStatus !== "expired" || currentLicense) {
-      sh.getRange(i + 1, headerMap.IapStatus + 1).setValue("expired");
-      sh.getRange(i + 1, headerMap.LicencaAtiva + 1).setValue(false);
-      if (headerMap.acesso_personal != null) {
-        sh.getRange(i + 1, headerMap.acesso_personal + 1).setValue(false);
+    const selection = _shouldReconcileAppleRow_(row, headerMap, nowMs);
+    if (!selection.eligible) {
+      skippedCount += 1;
+      if (headerMap.IapLastReconcileMode != null) {
+        sh.getRange(i + 1, headerMap.IapLastReconcileMode + 1).setValue("skipped");
       }
-      sh.getRange(i + 1, headerMap.IapLastValidatedAt + 1).setValue(nowIso);
-      updatedCount += 1;
+      console.log("[IAP][reconcile]", JSON.stringify(_buildAppleReconcileContext_(row, headerMap, {
+        reconcileMode: "skipped",
+        reason: selection.reason,
+        correlationId: ""
+      })));
+      continue;
+    }
+
+    eligibleCount += 1;
+    const correlationId = "reconcile_" + Utilities.getUuid();
+
+    try {
+      const outcome = _resolveAppleReconcileOutcome_(row, headerMap, selection, nowIso, correlationId);
+      const applyResult = _applyAppleReconcileOutcome_(sh, i + 1, headerMap, row, outcome);
+      if (applyResult.changed) updatedCount += 1;
+
+      if (outcome.resultType === "remote_validated") {
+        remoteValidatedCount += 1;
+      } else if (outcome.resultType === "local_only_reconciled") {
+        localOnlyCount += 1;
+      } else if (outcome.resultType === "retry") {
+        retryCount += 1;
+      }
+
+      console.log("[IAP][reconcile]", JSON.stringify(_buildAppleReconcileContext_(row, headerMap, {
+        newStatus: outcome.newStatus,
+        reconcileMode: outcome.reconcileMode,
+        reason: outcome.reason,
+        correlationId: outcome.correlationId
+      })));
+    } catch (err) {
+      errorCount += 1;
+      console.log("[IAP][reconcile][error]", JSON.stringify(_buildAppleReconcileContext_(row, headerMap, {
+        reconcileMode: "error",
+        reason: String(err),
+        correlationId: correlationId
+      })));
     }
   }
 
@@ -892,8 +1167,14 @@ function reconcileAppleSubscriptions_() {
     status: "ok",
     provider: "apple_iap",
     scannedCount: scannedCount,
+    eligibleCount: eligibleCount,
     updatedCount: updatedCount,
-    sourceOfTruth: "local_reconciliation",
+    remoteValidatedCount: remoteValidatedCount,
+    localOnlyCount: localOnlyCount,
+    skippedCount: skippedCount,
+    retryCount: retryCount,
+    errorCount: errorCount,
+    sourceOfTruth: "reconcile_job",
     lastValidatedAt: nowIso
   };
 }
