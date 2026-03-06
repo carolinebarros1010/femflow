@@ -310,7 +310,21 @@ FEMFLOW.sessionTransport = {
 
 FEMFLOW.openExternal = function (url) {
   if (!url) return;
-  window.location.href = url;
+
+  const targetUrl = String(url || "");
+  if (FEMFLOW.isCapacitorIOS?.() && /hotmart\.com/i.test(targetUrl)) {
+    const lang = String(FEMFLOW.lang || "pt").slice(0, 2).toLowerCase();
+    const mensagens = {
+      pt: "Assine no app para continuar",
+      en: "Subscribe in the app to continue",
+      fr: "Abonnez-vous dans l'app pour continuer"
+    };
+    FEMFLOW.toast?.(mensagens[lang] || mensagens.pt);
+    console.warn("[iOS hardening] Link externo de checkout bloqueado no iOS nativo.", { url: targetUrl });
+    return;
+  }
+
+  window.location.href = targetUrl;
 };
 
 FEMFLOW.openInternal = function (path) {
