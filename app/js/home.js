@@ -1355,10 +1355,10 @@ function msgCheckout(tipo) {
 }
 
 function abrirCheckout(tipo = "app") {
-  const preferredPlan = tipo === "personal" ? "personal" : "access";
-  FEMFLOW.checkout?.openCheckout?.({
+  const planId = tipo === "personal" ? "personal" : "access";
+  FEMFLOW.checkout?.openCheckout?.(planId, {
     reason: "locked_card",
-    preferredPlan
+    source: "home_blocked_flow"
   });
 }
 
