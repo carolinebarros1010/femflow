@@ -33,12 +33,12 @@
     }
 
     if (platform === "android" || platform === "web") {
-      return FEMFLOW.checkout.openHotmartCheckout?.(targetPlan, ctx)
+      return FEMFLOW.checkout._openHotmartExternal?.(targetPlan, Object.assign({}, ctx, { __fromOpenCheckout: true }))
         || { ok: false, code: "hotmart_checkout_unavailable", planId: targetPlan, platform };
     }
 
     console.warn("[FEMFLOW.checkout] Plataforma não reconhecida; usando fallback web.", { platform, planId: targetPlan, context: ctx });
-    return FEMFLOW.checkout.openHotmartCheckout?.(targetPlan, ctx)
+    return FEMFLOW.checkout._openHotmartExternal?.(targetPlan, Object.assign({}, ctx, { __fromOpenCheckout: true }))
       || { ok: false, code: "hotmart_checkout_unavailable", planId: targetPlan, platform };
   }
 

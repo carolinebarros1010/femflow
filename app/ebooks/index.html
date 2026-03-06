@@ -27,6 +27,27 @@
       window.location.href = url;
       return false;
     }
+
+    // DEPRECATED compat layer temporária para CTA legado de assinatura no catálogo de ebooks.
+    function openAppCheckoutLegacy() {
+      if (isNativeIOS()) {
+        console.warn('[iOS hardening] CTA legado App FemFlow bloqueado no iOS nativo.');
+        return false;
+      }
+
+      if (window.FEMFLOW?.checkout?.openCheckout) {
+        console.warn('[DEPRECATED] CTA legado App FemFlow delegando para gateway central de billing.');
+        window.FEMFLOW.checkout.openCheckout('access', {
+          source: 'ebooks_index_header_cta',
+          deprecated: true
+        });
+        return false;
+      }
+
+      // Compat fallback temporário enquanto páginas legadas não carregam bundle completo do app.
+      window.location.href = 'https://pay.hotmart.com/T103984580L?off=ifcs6h6n';
+      return false;
+    }
   </script>
 </head>
 <body>
@@ -34,7 +55,7 @@
     <div class="header-inner">
       <div class="logo-text">MYFLOWLIFE</div>
       <div class="header-actions">
-        <a class="hbtn" href="https://pay.hotmart.com/T103984580L?off=ifcs6h6n" target="_blank" rel="noopener">App FemFlow</a>
+        <a class="hbtn" href="#" onclick="return openAppCheckoutLegacy();">App FemFlow</a>
         <a class="hbtn" href="https://chat.whatsapp.com/FPNeAa1OvaZEThWBKdYOQZ?mode=wwc" target="_blank" rel="noopener">Newsletter</a>
       </div>
     </div>
