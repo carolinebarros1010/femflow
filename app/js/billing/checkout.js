@@ -27,11 +27,25 @@
     console.info("[FEMFLOW.checkout] openCheckout", { planId: targetPlan, platform, context: ctx });
 
     if (platform === "ios") {
-      if (typeof FEMFLOW.iapIOS?.purchaseIOS === "function") {
-        return FEMFLOW.iapIOS.purchaseIOS(targetPlan, Object.assign({}, ctx, { source: "checkout_gateway" }));
+      const iapProductId = FEMFLOW.iapIOS?.catalog?.[targetPlan] || "";
+      if (typeof FEMFLOW.iap?.purchase === "function") {
+        console.info("[FEMFLOW.checkout] iOS convergido para trilha server-authoritative.", {
+          planId: targetPlan,
+          provider: "apple_iap",
+          productId: iapProductId
+        });
+        return FEMFLOW.iap.purchase(iapProductId || targetPlan, Object.assign({}, ctx, {
+          source: "checkout_gateway",
+          planId: targetPlan,
+          provider: "apple_iap"
+        }));
       }
 
-      console.warn("[FEMFLOW.checkout] Camada iOS IAP indisponível.", { planId: targetPlan, context: ctx });
+      console.warn("[FEMFLOW.checkout] Camada iOS IAP indisponível.", {
+        planId: targetPlan,
+        productId: iapProductId,
+        context: ctx
+      });
       return { ok: false, code: "ios_iap_unavailable", planId: targetPlan, platform };
     }
 

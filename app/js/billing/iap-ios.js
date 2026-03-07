@@ -297,6 +297,11 @@
           : { status: "error", message: "not_ios" };
       }
 
+      if (typeof legacyPurchase === "function") {
+        const productIdFromInput = resolveProductId(planIdOrProductId) || planIdOrProductId;
+        return legacyPurchase.call(this, productIdFromInput, context);
+      }
+
       const productId = resolveProductId(planIdOrProductId);
       const planId = resolvePlanFromProductId(productId, planIdOrProductId);
       const result = await purchaseIOS(planId, context);
