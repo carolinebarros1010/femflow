@@ -312,7 +312,25 @@ FEMFLOW.openExternal = function (url) {
   if (!url) return;
 
   const targetUrl = String(url || "");
-  if (FEMFLOW.isCapacitorIOS?.() && /hotmart\.com/i.test(targetUrl)) {
+  const isIosNative = FEMFLOW.isCapacitorIOS?.();
+  const blockedCommercialHosts = [
+    /(^|\.)hotmart\.com$/i
+  ];
+
+  let shouldBlockExternal = false;
+  try {
+    const parsed = new URL(targetUrl, document.baseURI);
+    const host = String(parsed.hostname || "").toLowerCase();
+    const isBlockedHost = blockedCommercialHosts.some(function (pattern) {
+      return pattern.test(host);
+    });
+
+    shouldBlockExternal = isBlockedHost;
+  } catch (err) {
+    shouldBlockExternal = /hotmart\.com/i.test(targetUrl);
+  }
+
+  if (isIosNative && shouldBlockExternal) {
     const lang = String(FEMFLOW.lang || "pt").slice(0, 2).toLowerCase();
     const mensagens = {
       pt: "Assine no app para continuar",
@@ -320,12 +338,36 @@ FEMFLOW.openExternal = function (url) {
       fr: "Abonnez-vous dans l'app pour continuer"
     };
     FEMFLOW.toast?.(mensagens[lang] || mensagens.pt);
-    console.warn("[iOS hardening] Link externo de checkout bloqueado no iOS nativo.", { url: targetUrl });
+    console.warn("[iOS hardening] Link externo comercial bloqueado no iOS nativo.", { url: targetUrl });
     return;
   }
 
   window.location.href = targetUrl;
 };
+
+FEMFLOW.hardenIosExternalCommercialSurfaces = function () {
+  if (!FEMFLOW.isCapacitorIOS?.()) return;
+
+  const selectors = [
+    'a[href*="hotmart.com"]',
+    '.js-newsletter-external'
+  ].join(',');
+
+  document.querySelectorAll(selectors).forEach(function (link) {
+    link.setAttribute("aria-disabled", "true");
+    link.setAttribute("data-ios-hidden-commercial", "true");
+    link.style.display = "none";
+    link.addEventListener("click", function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+      FEMFLOW.toast?.("Assine no app para continuar");
+    });
+  });
+};
+
+document.addEventListener("DOMContentLoaded", function () {
+  FEMFLOW.hardenIosExternalCommercialSurfaces?.();
+});
 
 FEMFLOW.openInternal = function (path) {
   if (!path) return;
@@ -471,11 +513,14 @@ FEMFLOW.checkout = FEMFLOW.checkout || {
       pt: {
         aria: "Planos FemFlow",
         title: "Escolha seu plano",
-        subtitle: "Assine para desbloquear o FemFlow e baixar seus ebooks.",
+        subtitle: "Assine para acessar os recursos premium do FemFlow.",
         accessTitle: "Acesso App (mensal)",
-        accessDesc: "Treinos e ebooks inclusos na assinatura.",
+        accessDesc: "R$ 69,90 por mês",
         personalTitle: "Personal (mensal)",
-        personalDesc: "Acesso App + modo personal.",
+        personalDesc: "R$ 249,90 por mês",
+        legal: "A assinatura renova automaticamente a cada período, salvo cancelamento com pelo menos 24 horas de antecedência. O pagamento será cobrado na sua conta Apple. Você pode cancelar a qualquer momento nas configurações do seu Apple ID.",
+        terms: "Termos de uso",
+        privacy: "Política de privacidade",
         buy: "Assinar",
         restore: "Restaurar compras",
         close: "Agora não"
@@ -483,11 +528,14 @@ FEMFLOW.checkout = FEMFLOW.checkout || {
       en: {
         aria: "FemFlow plans",
         title: "Choose your plan",
-        subtitle: "Subscribe to unlock FemFlow and download your ebooks.",
+        subtitle: "Subscribe to access FemFlow premium features.",
         accessTitle: "App Access (monthly)",
-        accessDesc: "Workouts and ebooks included with your subscription.",
+        accessDesc: "R$ 69,90 per month",
         personalTitle: "Personal (monthly)",
-        personalDesc: "App Access + personal mode.",
+        personalDesc: "R$ 249,90 per month",
+        legal: "Subscriptions renew automatically each billing period unless canceled at least 24 hours before renewal. Payment is charged to your Apple account. You can cancel at any time in Apple ID settings.",
+        terms: "Terms of Use",
+        privacy: "Privacy Policy",
         buy: "Subscribe",
         restore: "Restore purchases",
         close: "Not now"
@@ -495,11 +543,14 @@ FEMFLOW.checkout = FEMFLOW.checkout || {
       fr: {
         aria: "Offres FemFlow",
         title: "Choisissez votre offre",
-        subtitle: "Abonnez-vous pour débloquer FemFlow et télécharger vos ebooks.",
+        subtitle: "Abonnez-vous pour accéder aux fonctionnalités premium de FemFlow.",
         accessTitle: "Accès App (mensuel)",
-        accessDesc: "Entraînements et ebooks inclus dans l'abonnement.",
+        accessDesc: "69,90 R$ par mois",
         personalTitle: "Personal (mensuel)",
-        personalDesc: "Accès App + mode personal.",
+        personalDesc: "249,90 R$ par mois",
+        legal: "L’abonnement se renouvelle automatiquement à chaque période, sauf annulation au moins 24 heures avant. Le paiement est débité de votre compte Apple. Vous pouvez annuler à tout moment dans les réglages de votre identifiant Apple.",
+        terms: "Conditions d’utilisation",
+        privacy: "Politique de confidentialité",
         buy: "S’abonner",
         restore: "Restaurer les achats",
         close: "Plus tard"
@@ -519,6 +570,9 @@ FEMFLOW.checkout = FEMFLOW.checkout || {
     const accessDesc = modal.querySelector("[data-paywall-access-desc]");
     const personalTitle = modal.querySelector("[data-paywall-personal-title]");
     const personalDesc = modal.querySelector("[data-paywall-personal-desc]");
+    const legal = modal.querySelector("[data-paywall-legal]");
+    const terms = modal.querySelector("[data-paywall-terms]");
+    const privacy = modal.querySelector("[data-paywall-privacy]");
     const buy = modal.querySelector(".ff-ios-buy");
     const restore = modal.querySelector(".ff-ios-restore");
     const close = modal.querySelector(".ff-ios-close");
@@ -529,6 +583,15 @@ FEMFLOW.checkout = FEMFLOW.checkout || {
     if (accessDesc) accessDesc.textContent = copy.accessDesc;
     if (personalTitle) personalTitle.textContent = copy.personalTitle;
     if (personalDesc) personalDesc.textContent = copy.personalDesc;
+    if (legal) legal.textContent = copy.legal;
+    if (terms) {
+      terms.textContent = copy.terms;
+      terms.setAttribute("href", FEMFLOW.assetUrl("docs/terms.html"));
+    }
+    if (privacy) {
+      privacy.textContent = copy.privacy;
+      privacy.setAttribute("href", FEMFLOW.assetUrl("docs/privacy.html"));
+    }
     if (buy) buy.textContent = copy.buy;
     if (restore) restore.textContent = copy.restore;
     if (close) close.textContent = copy.close;
@@ -554,6 +617,9 @@ FEMFLOW.checkout = FEMFLOW.checkout || {
         .ff-ios-paywall-actions button{flex:1 1 140px;border:0;border-radius:10px;padding:11px 12px;font-weight:700;cursor:pointer}
         .ff-ios-buy{background:#8b3d68;color:#fff}
         .ff-ios-restore{background:#f1eff4;color:#352f3f}
+        .ff-ios-paywall-legal{margin-top:8px;font-size:.78rem;line-height:1.35;color:#6b6272}
+        .ff-ios-paywall-links{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+        .ff-ios-paywall-links a{font-size:.8rem;color:#8b3d68;text-decoration:underline}
         .ff-ios-close{margin-top:12px;width:100%;background:transparent;border:0;color:#6f6781;padding:8px;cursor:pointer}
       `;
       document.head.appendChild(style);
@@ -577,6 +643,11 @@ FEMFLOW.checkout = FEMFLOW.checkout || {
         <div class="ff-ios-paywall-actions">
         <button type="button" class="ff-ios-buy">Comprar</button>
           <button type="button" class="ff-ios-restore">Restaurar compras</button>
+        </div>
+        <p class="ff-ios-paywall-legal" data-paywall-legal>A assinatura renova automaticamente a cada período, salvo cancelamento com pelo menos 24 horas de antecedência. O pagamento será cobrado na sua conta Apple. Você pode cancelar a qualquer momento nas configurações do seu Apple ID.</p>
+        <div class="ff-ios-paywall-links">
+          <a href="docs/terms.html" target="_blank" rel="noopener" data-paywall-terms>Termos de uso</a>
+          <a href="docs/privacy.html" target="_blank" rel="noopener" data-paywall-privacy>Política de privacidade</a>
         </div>
         <button type="button" class="ff-ios-close">Agora não</button>
       </div>

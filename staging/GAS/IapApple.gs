@@ -127,18 +127,83 @@ function _decodeBase64Url_(chunk) {
 }
 
 function _parseSignedPayload_(signedPayload) {
+  const parsed = _parseJwsWithHeader_(signedPayload);
+  return parsed.payload;
+}
+
+function _parseJwsWithHeader_(signedPayload) {
   const raw = String(signedPayload || "").trim();
-  if (!raw || raw.indexOf(".") < 0) return null;
+  if (!raw || raw.indexOf(".") < 0) {
+    return { raw: raw, validFormat: false, header: null, payload: null, signature: "", partCount: 0 };
+  }
 
   const parts = raw.split(".");
-  if (parts.length < 2) return null;
+  if (parts.length < 3) {
+    return { raw: raw, validFormat: false, header: null, payload: null, signature: "", partCount: parts.length };
+  }
+
+  let header = null;
+  let payload = null;
 
   try {
-    return JSON.parse(_decodeBase64Url_(parts[1]));
+    header = JSON.parse(_decodeBase64Url_(parts[0]));
+  } catch (err) {
+    console.log("[IAP] signed payload header parse error", String(err));
+  }
+
+  try {
+    payload = JSON.parse(_decodeBase64Url_(parts[1]));
   } catch (err) {
     console.log("[IAP] signed payload parse error", String(err));
-    return null;
   }
+
+  return {
+    raw: raw,
+    validFormat: true,
+    header: header,
+    payload: payload,
+    signature: String(parts[2] || ""),
+    partCount: parts.length
+  };
+}
+
+function _evaluateAppleJwsEnvelope_(jwsParsed, expectedTyp) {
+  const header = jwsParsed && jwsParsed.header || {};
+  const expectedType = String(expectedTyp || "JWT").trim();
+  const alg = String(header.alg || "").trim();
+  const typ = String(header.typ || "").trim();
+  const kid = String(header.kid || "").trim();
+  const x5c = Array.isArray(header.x5c) ? header.x5c : [];
+
+  const checks = {
+    formatValid: !!(jwsParsed && jwsParsed.validFormat),
+    payloadDecoded: !!(jwsParsed && jwsParsed.payload && typeof jwsParsed.payload === "object"),
+    algValid: alg === "ES256",
+    typValid: !expectedType || !typ || typ === expectedType,
+    hasKid: !!kid,
+    hasX5cChain: x5c.length > 0,
+    hasSignatureChunk: !!String(jwsParsed && jwsParsed.signature || "").trim()
+  };
+
+  const ok = checks.formatValid
+    && checks.payloadDecoded
+    && checks.algValid
+    && checks.typValid
+    && checks.hasSignatureChunk
+    && checks.hasKid
+    && checks.hasX5cChain;
+
+  return {
+    ok: ok,
+    checks: checks,
+    header: {
+      alg: alg,
+      typ: typ,
+      kid: kid,
+      x5cCount: x5c.length
+    },
+    limitation: "gas_no_jws_signature_verification"
+  };
 }
 
 
@@ -784,11 +849,14 @@ function _buildAppleIapLogContext_(payload, extra) {
   const merged = Object.assign({}, payload || {}, extra || {});
   return {
     userId: String(merged.userId || merged.id || "").trim(),
+    source: String(merged.source || merged.provider || "apple_iap").trim(),
     notificationType: String(merged.notificationType || "").trim(),
     subtype: String(merged.subtype || "").trim(),
+    productId: String(merged.productId || "").trim(),
     transactionId: String(merged.transactionId || "").trim(),
     originalTransactionId: String(merged.originalTransactionId || "").trim(),
     correlationId: String(merged.correlationId || merged.notificationId || "").trim(),
+    status: String(merged.status || merged.result || "").trim(),
     result: String(merged.result || merged.status || "").trim(),
     entitlementStatus: String(merged.entitlementStatus || "").trim(),
     validationLevel: String(merged.validationLevel || "").trim(),
@@ -835,13 +903,18 @@ function _findRowByOriginalTransactionId_(sh, headerMap, originalTransactionId) 
 function _parseAppleNotificationPayload_(payload) {
   const root = payload && typeof payload === "object" ? payload : {};
   const signedPayload = String(root.signedPayload || root.signed_payload || "").trim();
-  const decodedRoot = signedPayload ? (_parseSignedPayload_(signedPayload) || {}) : {};
+
+  const rootJws = _parseJwsWithHeader_(signedPayload);
+  const decodedRoot = rootJws.payload || {};
 
   const data = decodedRoot.data || root.data || {};
   const signedTx = String(data.signedTransactionInfo || root.signedTransactionInfo || "").trim();
   const signedRenewal = String(data.signedRenewalInfo || root.signedRenewalInfo || "").trim();
-  const decodedTx = signedTx ? (_parseSignedPayload_(signedTx) || {}) : {};
-  const decodedRenewal = signedRenewal ? (_parseSignedPayload_(signedRenewal) || {}) : {};
+
+  const txJws = _parseJwsWithHeader_(signedTx);
+  const renewalJws = _parseJwsWithHeader_(signedRenewal);
+  const decodedTx = txJws.payload || {};
+  const decodedRenewal = renewalJws.payload || {};
 
   const notificationType = String(decodedRoot.notificationType || root.notificationType || root.notification_type || "").trim();
   const subtype = String(decodedRoot.subtype || root.subtype || "").trim();
@@ -864,6 +937,10 @@ function _parseAppleNotificationPayload_(payload) {
   const notificationUUID = String(decodedRoot.notificationUUID || root.notificationUUID || root.notificationId || "").trim();
   const idempotencyKey = notificationUUID || _hashPayloadEvidence_(signedPayload || root);
 
+  const rootEnvelope = _evaluateAppleJwsEnvelope_(rootJws, "JWT");
+  const txEnvelope = signedTx ? _evaluateAppleJwsEnvelope_(txJws, "JWT") : null;
+  const renewalEnvelope = signedRenewal ? _evaluateAppleJwsEnvelope_(renewalJws, "JWT") : null;
+
   return {
     notificationType: notificationType,
     subtype: subtype,
@@ -878,12 +955,19 @@ function _parseAppleNotificationPayload_(payload) {
     notificationId: idempotencyKey,
     rawPayloadHash: _hashPayloadEvidence_(root),
     decodeState: {
-      rootDecoded: !!(signedPayload && Object.keys(decodedRoot).length),
-      transactionDecoded: !!(signedTx && Object.keys(decodedTx).length),
-      renewalDecoded: !!(signedRenewal && Object.keys(decodedRenewal).length)
+      rootDecoded: !!rootEnvelope.checks.payloadDecoded,
+      transactionDecoded: !!(txEnvelope && txEnvelope.checks.payloadDecoded),
+      renewalDecoded: !!(renewalEnvelope && renewalEnvelope.checks.payloadDecoded)
+    },
+    envelope: {
+      root: rootEnvelope,
+      transaction: txEnvelope,
+      renewal: renewalEnvelope,
+      limitation: "gas_no_jws_signature_verification"
     }
   };
 }
+
 
 function _mapAppleNotificationEventToLocalStatus_(notificationType) {
   const eventType = String(notificationType || "").trim().toUpperCase();
@@ -909,6 +993,10 @@ function _validateParsedAppleNotification_(parsed, targetRow, headerMap) {
     return { ok: false, msg: "invalid_signed_payload_root" };
   }
 
+  if (!parsed.envelope || !parsed.envelope.root || !parsed.envelope.root.ok) {
+    return { ok: false, msg: "invalid_jws_envelope_root" };
+  }
+
   const eventType = String(parsed.notificationType || "").trim().toUpperCase();
   const requiresTransactionInfo = {
     "DID_RENEW": true,
@@ -918,8 +1006,13 @@ function _validateParsedAppleNotification_(parsed, targetRow, headerMap) {
     "REVOKE": true
   };
 
-  if (requiresTransactionInfo[eventType] && !parsed.decodeState.transactionDecoded) {
-    return { ok: false, msg: "invalid_signed_transaction_info" };
+  if (requiresTransactionInfo[eventType]) {
+    if (!parsed.decodeState.transactionDecoded) {
+      return { ok: false, msg: "invalid_signed_transaction_info" };
+    }
+    if (!parsed.envelope || !parsed.envelope.transaction || !parsed.envelope.transaction.ok) {
+      return { ok: false, msg: "invalid_jws_envelope_transaction" };
+    }
   }
 
   if (!parsed.decodeState.transactionDecoded) {
@@ -951,8 +1044,14 @@ function _validateParsedAppleNotification_(parsed, targetRow, headerMap) {
     return { ok: false, msg: "original_transaction_mismatch" };
   }
 
-  return { ok: true };
+  return {
+    ok: true,
+    validationLevel: "pragmatic_header_chain",
+    validationMethod: "jws_header_and_payload_consistency",
+    verificationMode: "server"
+  };
 }
+
 
 function iapAppleRestore_(payload) {
   const list = Array.isArray(payload && payload.transactions) ? payload.transactions : [];
@@ -1029,8 +1128,7 @@ function iapAppleNotification_(payload) {
     return { status: "error", msg: "missing_signed_payload" };
   }
 
-  // TODO: verificar assinatura JWS Apple Notifications V2 antes de promover para produção robusta.
-  const sh = ensureAlunasHasColumns_();
+    const sh = ensureAlunasHasColumns_();
   if (!sh) return { status: "error", msg: "sheet_not_found" };
 
   const headerMap = _ensureIapColumns_(sh);
@@ -1046,8 +1144,8 @@ function iapAppleNotification_(payload) {
     status: "received",
     result: "received",
     entitlementStatus: "pending_validation",
-    validationLevel: "pragmatic",
-    validationMethod: "notification_payload_consistency",
+    validationLevel: "pragmatic_header_chain",
+    validationMethod: "jws_header_and_payload_consistency",
     verificationMode: "server"
   })));
 
@@ -1099,6 +1197,20 @@ function iapAppleNotification_(payload) {
 
   const validation = _validateParsedAppleNotification_(parsed, targetRow, headerMap);
   if (!validation.ok) {
+    console.log("[IAP][notification]", JSON.stringify(_buildAppleIapLogContext_(payload, {
+      notificationType: parsed.notificationType,
+      subtype: parsed.subtype,
+      transactionId: parsed.transactionId,
+      originalTransactionId: parsed.originalTransactionId,
+      correlationId: parsed.notificationId,
+      status: "rejected",
+      result: "error",
+      entitlementStatus: "pending_validation",
+      validationLevel: "unverified",
+      validationMethod: "none",
+      verificationMode: "server",
+      reason: validation.msg || "invalid_notification_payload"
+    })));
     return {
       status: "error",
       msg: validation.msg,
@@ -1138,16 +1250,17 @@ function iapAppleNotification_(payload) {
     subtype: parsed.subtype,
     environment: parsed.environment,
     decodeState: parsed.decodeState,
-    validationLevel: "pragmatic",
-    validationMethod: "notification_payload_consistency",
+    validationLevel: "pragmatic_header_chain",
+    validationMethod: "jws_header_and_payload_consistency",
     verificationMode: "server",
-    verificationReason: "jws_parsed_without_cryptographic_verification"
+    verificationReason: "header_chain_checked_without_signature_verification",
+    envelope: parsed.envelope
   }));
   if (headerMap.IapValidationLevel != null) {
-    sh.getRange(targetRow.rowIndex, headerMap.IapValidationLevel + 1).setValue("pragmatic");
+    sh.getRange(targetRow.rowIndex, headerMap.IapValidationLevel + 1).setValue("pragmatic_header_chain");
   }
   if (headerMap.IapValidationMethod != null) {
-    sh.getRange(targetRow.rowIndex, headerMap.IapValidationMethod + 1).setValue("notification_payload_consistency");
+    sh.getRange(targetRow.rowIndex, headerMap.IapValidationMethod + 1).setValue("jws_header_and_payload_consistency");
   }
   if (headerMap.IapLastNotificationType != null) {
     sh.getRange(targetRow.rowIndex, headerMap.IapLastNotificationType + 1).setValue(parsed.notificationType || "");
@@ -1184,8 +1297,8 @@ function iapAppleNotification_(payload) {
     status: "processed",
     result: "ok",
     entitlementStatus: newStatus,
-    validationLevel: "pragmatic",
-    validationMethod: "notification_payload_consistency",
+    validationLevel: "pragmatic_header_chain",
+    validationMethod: "jws_header_and_payload_consistency",
     verificationMode: "server"
   })));
 
@@ -1205,8 +1318,8 @@ function iapAppleNotification_(payload) {
     autoRenewStatus: parsed.autoRenewStatus,
     environment: parsed.environment,
     sourceOfTruth: "server",
-    validationLevel: "pragmatic",
-    validationMethod: "notification_payload_consistency",
+    validationLevel: "pragmatic_header_chain",
+    validationMethod: "jws_header_and_payload_consistency",
     verificationMode: "server"
   };
 }
