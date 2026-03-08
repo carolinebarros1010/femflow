@@ -375,8 +375,9 @@ FEMFLOW.openInternal = function (path) {
 };
 
 // DEPRECATED compat layer temporária: manter até remover consumidores legados fora de billing.
-FEMFLOW.LINK_ACESSO_APP = FEMFLOW.LINK_ACESSO_APP || "https://pay.hotmart.com/T103984580L?off=ifcs6h6n";
-FEMFLOW.LINK_PERSONAL = FEMFLOW.LINK_PERSONAL || "https://pay.hotmart.com/T103984580L?off=sybtfokt";
+// Compliance iOS: não injetar defaults Hotmart hardcoded no bundle principal.
+FEMFLOW.LINK_ACESSO_APP = FEMFLOW.LINK_ACESSO_APP || "";
+FEMFLOW.LINK_PERSONAL = FEMFLOW.LINK_PERSONAL || "";
 
 FEMFLOW.isNativeIOS = function () {
   return String(Capacitor?.getPlatform?.() || "").toLowerCase() === "ios";

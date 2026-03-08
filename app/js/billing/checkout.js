@@ -50,8 +50,19 @@
     }
 
     if (platform === "android" || platform === "web") {
-      return FEMFLOW.checkout._openHotmartExternal?.(targetPlan, Object.assign({}, ctx, { __fromOpenCheckout: true }))
-        || { ok: false, code: "hotmart_checkout_unavailable", planId: targetPlan, platform };
+      const openHotmartExternal = FEMFLOW.checkout._openHotmartExternal;
+      if (typeof openHotmartExternal === "function") {
+        return openHotmartExternal(targetPlan, Object.assign({}, ctx, { __fromOpenCheckout: true }));
+      }
+
+      if (typeof FEMFLOW.checkout.ensureHotmartModule === "function") {
+        return FEMFLOW.checkout.ensureHotmartModule().then(() =>
+          FEMFLOW.checkout._openHotmartExternal?.(targetPlan, Object.assign({}, ctx, { __fromOpenCheckout: true }))
+          || { ok: false, code: "hotmart_checkout_unavailable", planId: targetPlan, platform }
+        );
+      }
+
+      return { ok: false, code: "hotmart_checkout_unavailable", planId: targetPlan, platform };
     }
 
     console.warn("[FEMFLOW.checkout] Plataforma não reconhecida; usando fallback web.", { platform, planId: targetPlan, context: ctx });

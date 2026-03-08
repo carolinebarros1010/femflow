@@ -1230,14 +1230,22 @@ lista.forEach(item => {
     if (indicator) {
       indicator.classList.add("is-hidden");
     }
+    const isIos = FEMFLOW.isCapacitorIOS?.() === true;
     const emptyStateMessage = personalFinal
-      ? `
-        <p>Seu personal ainda não ajustou seu treino.</p>
-        <p>
-          Entre em contato no
-          <a class="btn-whatsapp" href="#" onclick="if(window.FEMFLOW?.openExternal){window.FEMFLOW.openExternal('https://wa.me/551151942268');}else{window.location.href='https://wa.me/551151942268';} return false;">WhatsApp +55 11 5194-2268</a>.
-        </p>
-      `
+      ? (isIos
+        ? `
+          <p>Seu personal ainda não ajustou seu treino.</p>
+          <p>
+            Assim que a configuração for concluída, seu treino aparecerá automaticamente aqui.
+          </p>
+        `
+        : `
+          <p>Seu personal ainda não ajustou seu treino.</p>
+          <p>
+            Entre em contato no
+            <a class="btn-whatsapp" href="#" onclick="if(window.FEMFLOW?.openExternal){window.FEMFLOW.openExternal('https://wa.me/551151942268');}else{window.location.href='https://wa.me/551151942268';} return false;">WhatsApp +55 11 5194-2268</a>.
+          </p>
+        `)
       : "<p>Nenhum treino disponível para hoje.</p>";
     track.innerHTML = `
       <div class="carousel-item">

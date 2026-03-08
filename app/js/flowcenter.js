@@ -1449,10 +1449,27 @@ async function initFlowCenter() {
   function abrirModalEndurancePersonalVazio() {
     if (!modalEndurancePersonal) return;
 
+    const isIos = FEMFLOW.isCapacitorIOS?.() === true;
     const whatsappNumber = "551151942268";
     const mensagem = encodeURIComponent(
       "Olá! Meu Endurance Personal ainda não está configurado no app. Pode verificar para mim? 🌸"
     );
+    const emptyActionHtml = isIos
+      ? `
+          <p class="endurance-empty-note">
+            Avise seu personal pelo canal já combinado e tente novamente em alguns minutos.
+          </p>
+        `
+      : `
+          <a
+            href="#"
+            class="endurance-btn"
+            id="enduranceWhatsappBtn"
+            data-whatsapp-url="https://wa.me/${whatsappNumber}?text=${mensagem}"
+          >
+            Falar no WhatsApp
+          </a>
+        `;
 
     if (modalEndurancePersonalSemanas) {
       modalEndurancePersonalSemanas.innerHTML = `
@@ -1462,16 +1479,11 @@ async function initFlowCenter() {
             Seu treino ainda não foi configurado
           </p>
           <p class="endurance-empty-sub">
-            Fale diretamente com seu personal para liberar seu Endurance.
+            ${isIos
+              ? "Seu Endurance será liberado automaticamente assim que o personal finalizar a configuração."
+              : "Fale diretamente com seu personal para liberar seu Endurance."}
           </p>
-          <a
-            href="#"
-            class="endurance-btn"
-            id="enduranceWhatsappBtn"
-            data-whatsapp-url="https://wa.me/${whatsappNumber}?text=${mensagem}"
-          >
-            Falar no WhatsApp
-          </a>
+          ${emptyActionHtml}
         </div>
       `;
     }
@@ -1489,20 +1501,22 @@ async function initFlowCenter() {
 
     abrirModalComLock(modalEndurancePersonal);
 
-    const btn = document.getElementById("enduranceWhatsappBtn");
-    if (btn) {
-      btn.addEventListener("click", async (event) => {
-        event.preventDefault();
-        const targetUrl = btn.getAttribute("data-whatsapp-url") || "";
-        if (targetUrl) {
-          if (window.FEMFLOW?.openExternal) {
-            window.FEMFLOW.openExternal(targetUrl);
-          } else {
-            window.location.href = targetUrl;
+    if (!isIos) {
+      const btn = document.getElementById("enduranceWhatsappBtn");
+      if (btn) {
+        btn.addEventListener("click", async (event) => {
+          event.preventDefault();
+          const targetUrl = btn.getAttribute("data-whatsapp-url") || "";
+          if (targetUrl) {
+            if (window.FEMFLOW?.openExternal) {
+              window.FEMFLOW.openExternal(targetUrl);
+            } else {
+              window.location.href = targetUrl;
+            }
           }
-        }
-        console.log("Usuária acionou suporte WhatsApp - Endurance Personal");
-      });
+          console.log("Usuária acionou suporte WhatsApp - Endurance Personal");
+        });
+      }
     }
   }
 
