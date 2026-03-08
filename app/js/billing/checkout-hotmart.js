@@ -4,14 +4,25 @@
   FEMFLOW.billing = FEMFLOW.billing || {};
 
   // DEPRECATED compat layer: manter aliases legados (LINK_*) até migração total do billing.
-  const HOTMART_PLAN_URLS = {
-    access: FEMFLOW.LINK_ACESSO_APP || "https://pay.hotmart.com/T103984580L?off=ifcs6h6n",
-    personal: FEMFLOW.LINK_PERSONAL || "https://pay.hotmart.com/T103984580L?off=sybtfokt"
-  };
+  // Compliance iOS: evitar defaults hardcoded no bundle; manter URLs apenas via configuração externa.
+  function resolveHotmartPlanUrls() {
+    const configuredHotmartUrls = FEMFLOW.checkout.hotmartPlanUrls
+      || FEMFLOW.billing.hotmartPlanUrls
+      || global.FEMFLOW_CONFIG?.billing?.hotmartPlanUrls
+      || {};
+
+    return {
+      access: String(configuredHotmartUrls.access || FEMFLOW.LINK_ACESSO_APP || "").trim(),
+      personal: String(configuredHotmartUrls.personal || FEMFLOW.LINK_PERSONAL || "").trim()
+    };
+  }
+
+  const HOTMART_PLAN_URLS = resolveHotmartPlanUrls();
 
   // Fonte principal para uso prático no comercial durante fase 1.5.
   FEMFLOW.billing.hotmartPlanUrls = HOTMART_PLAN_URLS;
   FEMFLOW.checkout.hotmartPlanUrls = HOTMART_PLAN_URLS;
+  FEMFLOW.checkout.resolveHotmartPlanUrls = resolveHotmartPlanUrls;
 
   function normalizePlanId(planId) {
     const text = String(planId || "").toLowerCase().trim();
@@ -51,7 +62,10 @@
     }
 
     const targetPlan = normalizePlanId(planId);
-    const targetUrl = HOTMART_PLAN_URLS[targetPlan];
+    const hotmartUrls = resolveHotmartPlanUrls();
+    FEMFLOW.billing.hotmartPlanUrls = hotmartUrls;
+    FEMFLOW.checkout.hotmartPlanUrls = hotmartUrls;
+    const targetUrl = hotmartUrls[targetPlan];
 
     if (!targetUrl) {
       console.error("[FEMFLOW.checkout] URL Hotmart não configurada para plano.", { planId, targetPlan, context });
@@ -89,4 +103,5 @@
   FEMFLOW.checkout._openHotmartExternal = openHotmartExternal;
   FEMFLOW.checkout.openHotmartCheckout = openHotmartCheckout;
   FEMFLOW.checkout.openHotmart = openHotmartCheckout;
+  FEMFLOW.checkout.hotmartReady = true;
 })(window);
