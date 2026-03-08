@@ -1465,10 +1465,10 @@ async function initFlowCenter() {
             Fale diretamente com seu personal para liberar seu Endurance.
           </p>
           <a
-            href="https://wa.me/${whatsappNumber}?text=${mensagem}"
-            target="_blank"
+            href="#"
             class="endurance-btn"
             id="enduranceWhatsappBtn"
+            data-whatsapp-url="https://wa.me/${whatsappNumber}?text=${mensagem}"
           >
             Falar no WhatsApp
           </a>
@@ -1491,7 +1491,16 @@ async function initFlowCenter() {
 
     const btn = document.getElementById("enduranceWhatsappBtn");
     if (btn) {
-      btn.addEventListener("click", async () => {
+      btn.addEventListener("click", async (event) => {
+        event.preventDefault();
+        const targetUrl = btn.getAttribute("data-whatsapp-url") || "";
+        if (targetUrl) {
+          if (window.FEMFLOW?.openExternal) {
+            window.FEMFLOW.openExternal(targetUrl);
+          } else {
+            window.location.href = targetUrl;
+          }
+        }
         console.log("Usuária acionou suporte WhatsApp - Endurance Personal");
       });
     }

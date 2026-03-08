@@ -1235,7 +1235,7 @@ lista.forEach(item => {
         <p>Seu personal ainda não ajustou seu treino.</p>
         <p>
           Entre em contato no
-          <a class="btn-whatsapp" href="https://wa.me/551151942268" target="_blank" rel="noopener">WhatsApp +55 11 5194-2268</a>.
+          <a class="btn-whatsapp" href="#" onclick="if(window.FEMFLOW?.openExternal){window.FEMFLOW.openExternal('https://wa.me/551151942268');}else{window.location.href='https://wa.me/551151942268';} return false;">WhatsApp +55 11 5194-2268</a>.
         </p>
       `
       : "<p>Nenhum treino disponível para hoje.</p>";
