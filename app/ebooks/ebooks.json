@@ -2,11 +2,11 @@
   {
     "capa": "capafemflow15.png",
     "nome": "FemFlow 15 Dias",
-    "preco": "9,90",
+    "preco": "",
     "link": "../home.html",
-    "tipo": "premium",
+    "tipo": "internal",
     "slug": "femflow15",
-    "origem": "interna"
+    "disponibilidade": "app"
   },
   {
     "capa": "capatpmzem.png",
@@ -19,20 +19,20 @@
   {
     "capa": "capaaguaequilibrio.png",
     "nome": "Guia Essencial Hidratação",
-    "preco": "9,90",
+    "preco": "",
     "link": "../home.html",
-    "tipo": "premium",
+    "tipo": "internal",
     "slug": "aguaequilibrio",
-    "origem": "interna"
+    "disponibilidade": "app"
   },
   {
     "capa": "capahipopressivos.png",
     "nome": "Exercícios Hipopressivos",
-    "preco": "9,90",
+    "preco": "",
     "link": "../home.html",
-    "tipo": "premium",
+    "tipo": "internal",
     "slug": "hipopressivos",
-    "origem": "interna"
+    "disponibilidade": "app"
   },
   {
     "capa": "capaefeitoEPOC.png",
