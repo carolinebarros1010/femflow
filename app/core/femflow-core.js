@@ -2537,10 +2537,12 @@ FEMFLOW.inserirHeaderApp = function () {
   h.innerHTML = `
     <img src="./assets/logofemflowterracotasf.png" class="ff-logo">
     <button id="ffNotificationsBtn" class="ff-notifications-btn" aria-label="${FEMFLOW.t("notifications.openAria")}" aria-haspopup="dialog">
-      🔔
+      <span class="ff-icon ff-icon-bell" aria-hidden="true"></span>
       <span id="ffNotificationsBadge" class="ff-notifications-badge" aria-hidden="true"></span>
     </button>
-    <button id="ffMenuBtn" class="ff-menu-btn">&#9776;</button>
+    <button id="ffMenuBtn" class="ff-menu-btn" aria-label="${FEMFLOW.t("menu.title")}">
+      <span class="ff-icon ff-icon-menu" aria-hidden="true"></span>
+    </button>
   `;
 
   document.body.prepend(h);
@@ -2699,18 +2701,18 @@ FEMFLOW.renderMenuLateral = function () {
       <h2 class="ff-menu-title">${FEMFLOW.t("menu.title")}</h2>
 
       <button class="ff-menu-op ff-close" data-go="fechar" aria-label="${FEMFLOW.t("menu.fechar")}">×</button>
-      <button class="ff-menu-op" data-go="idioma">🌐 ${FEMFLOW.t("menu.idioma")}</button>
-      <button class="ff-menu-op" data-go="sac">🛟 ${FEMFLOW.t("menu.sac")}</button>
-      <button class="ff-menu-op" data-go="ciclo">🎯 ${FEMFLOW.t("menu.ciclo")}</button>
-      <button class="ff-menu-op" data-go="respiracao">💨 ${FEMFLOW.t("menu.respiracao")}</button>
-      <button class="ff-menu-op" data-go="treinos">🏃 ${FEMFLOW.t("menu.treinos")}</button>
-      <button class="ff-menu-op" data-go="tema">🌓 ${FEMFLOW.t("menu.tema")}</button>
-      <button class="ff-menu-op" data-go="privacy">🔐 ${FEMFLOW.t("menu.privacy")}</button>
-      <button class="ff-menu-op" data-go="terms">📜 ${FEMFLOW.t("menu.terms")}</button>
-      <button class="ff-menu-op" data-go="deleteAccount">🗑️ ${FEMFLOW.t("menu.deleteAccount")}</button>
-      <button class="ff-menu-op" data-go="voltar">🔙 ${FEMFLOW.t("menu.voltar")}</button>
+      <button class="ff-menu-op" data-go="idioma">${FEMFLOW.t("menu.idioma")}</button>
+      <button class="ff-menu-op" data-go="sac">${FEMFLOW.t("menu.sac")}</button>
+      <button class="ff-menu-op" data-go="ciclo">${FEMFLOW.t("menu.ciclo")}</button>
+      <button class="ff-menu-op" data-go="respiracao">${FEMFLOW.t("menu.respiracao")}</button>
+      <button class="ff-menu-op" data-go="treinos">${FEMFLOW.t("menu.treinos")}</button>
+      <button class="ff-menu-op" data-go="tema">${FEMFLOW.t("menu.tema")}</button>
+      <button class="ff-menu-op" data-go="privacy">${FEMFLOW.t("menu.privacy")}</button>
+      <button class="ff-menu-op" data-go="terms">${FEMFLOW.t("menu.terms")}</button>
+      <button class="ff-menu-op" data-go="deleteAccount">${FEMFLOW.t("menu.deleteAccount")}</button>
+      <button class="ff-menu-op" data-go="voltar">${FEMFLOW.t("menu.voltar")}</button>
 
-      <button class="ff-logout" data-go="logout">🚪 ${FEMFLOW.t("menu.sair")}</button>
+      <button class="ff-logout" data-go="logout">${FEMFLOW.t("menu.sair")}</button>
     </div>
   `;
 
@@ -2916,13 +2918,13 @@ FEMFLOW.inserirModalIdioma = function () {
 
   modal.innerHTML = `
     <div class="ff-lang-box">
-      <h2>🌐 Idioma / Language / Langue</h2>
+      <h2>Idioma / Language / Langue</h2>
 
-      <button class="ff-lang-btn" data-lang="pt">🇧🇷 Português</button>
-      <button class="ff-lang-btn" data-lang="en">🇺🇸 English</button>
-      <button class="ff-lang-btn" data-lang="fr">🇫🇷 Français</button>
+      <button class="ff-lang-btn" data-lang="pt">Português</button>
+      <button class="ff-lang-btn" data-lang="en">English</button>
+      <button class="ff-lang-btn" data-lang="fr">Français</button>
 
-      <button class="ff-lang-close">✖ Fechar</button>
+      <button class="ff-lang-close">Fechar</button>
     </div>
   `;
 
@@ -3252,7 +3254,7 @@ FEMFLOW.renderNivelModal = function () {
   if (!modal) return;
 
   const title = modal.querySelector("h2");
-  if (title) title.textContent = `📊 ${FEMFLOW.t("nivelModal.title")}`;
+  if (title) title.textContent = FEMFLOW.t("nivelModal.title");
 
   const labels = {
     iniciante: FEMFLOW.t("nivelModal.iniciante"),

@@ -583,26 +583,34 @@ async function initFlowCenter() {
       document.getElementById("lbl-"+f).textContent = L[f];
     });
 
-    if (el.toBreath) el.toBreath.textContent = `💨 ${L.respiracao}`;
-    const customLabel = isCustomTreino ? "🔓" : "🔒";
+    if (el.toBreath) el.toBreath.textContent = L.respiracao;
     const treinoDisponivel = !isCustomTreino && treinoAcessoOk;
-    const treinoLabel = treinoDisponivel ? "🏋️‍♂️" : "🔒";
-    const extraLabel = !isCustomTreino && treinoAcessoOk ? "✨" : "🔒";
+    const extraDisponivel = !isCustomTreino && treinoAcessoOk;
     const treinoBtn = el.toTrain;
     if (treinoBtn) {
-      treinoBtn.textContent = `${treinoLabel} ${L.treino}`;
+      treinoBtn.textContent = L.treino;
       treinoBtn.classList.toggle("tool-cta", treinoDisponivel);
       treinoBtn.classList.toggle("tool-locked", !treinoDisponivel);
+      treinoBtn.classList.toggle("btn-locked", !treinoDisponivel);
+      treinoBtn.disabled = !treinoDisponivel;
+      treinoBtn.setAttribute("aria-disabled", treinoDisponivel ? "false" : "true");
     }
-    if (el.toExtraTrain) el.toExtraTrain.textContent = `${extraLabel} ${L.treinoExtra}`;
+    if (el.toExtraTrain) {
+      el.toExtraTrain.textContent = L.treinoExtra;
+      el.toExtraTrain.classList.toggle("tool-cta", extraDisponivel);
+      el.toExtraTrain.classList.toggle("tool-locked", !extraDisponivel);
+      el.toExtraTrain.classList.toggle("btn-locked", !extraDisponivel);
+      el.toExtraTrain.disabled = !extraDisponivel;
+      el.toExtraTrain.setAttribute("aria-disabled", extraDisponivel ? "false" : "true");
+    }
     const customBtn = el.toCustomTrain;
     if (customBtn) {
-      customBtn.textContent = `${customLabel} ${L.treinoCustom}`;
+      customBtn.textContent = L.treinoCustom;
     }
-    if (el.toEvolution) el.toEvolution.textContent = `📈 ${L.evolucao}`;
-    const enduranceLabel = bloquearEnduranceApp ? "🔒" : "🏃‍♂️";
+    if (el.toEvolution) el.toEvolution.textContent = L.evolucao;
+    const enduranceLabel = bloquearEnduranceApp ? "Bloqueado" : "Disponível";
     if (el.toEndurance) el.toEndurance.textContent = `${enduranceLabel} ${L.endurance}`;
-    if (el.toHomeSwitch) el.toHomeSwitch.textContent = `🏠 ${L.homeSwitch}`;
+    if (el.toHomeSwitch) el.toHomeSwitch.textContent = L.homeSwitch;
     const extraTitle = document.getElementById("extraTitle");
     const extraSub = document.getElementById("extraSub");
     if (extraTitle) extraTitle.textContent = L.treinoExtraTitulo;

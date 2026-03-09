@@ -46,6 +46,24 @@
    🔔 NOTIFICAÇÕES — BOTÃO + BADGE
 ============================================================ */
 
+.ff-icon {
+  width: 22px;
+  height: 22px;
+  display: inline-block;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.ff-icon-bell {
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Zm7-6.5-1.6-1.6V10a5.4 5.4 0 0 0-4.4-5.3V4a1 1 0 1 0-2 0v.7A5.4 5.4 0 0 0 6.6 10v3.9L5 15.5V17h14v-1.5Z'/%3E%3C/svg%3E") center/contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Zm7-6.5-1.6-1.6V10a5.4 5.4 0 0 0-4.4-5.3V4a1 1 0 1 0-2 0v.7A5.4 5.4 0 0 0 6.6 10v3.9L5 15.5V17h14v-1.5Z'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+
+.ff-icon-menu {
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M4 6h16v2H4V6Zm0 5h16v2H4v-2Zm0 5h16v2H4v-2Z'/%3E%3C/svg%3E") center/contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M4 6h16v2H4V6Zm0 5h16v2H4v-2Zm0 5h16v2H4v-2Z'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+
 .ff-notifications-btn,
 #ffNotificationsBtn {
   position: absolute !important;
@@ -189,6 +207,7 @@ body.dark .ff-menu-btn {
   bottom: 0;
   background: rgba(0,0,0,0.35);
   backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
   opacity: 0;
   pointer-events: none;
   transition: opacity .30s ease;
@@ -204,11 +223,13 @@ body.dark .ff-menu-btn {
   position: absolute;
   right: 0;
   top: 0;
-  width: 78%;
-  max-width: 330px;
+  width: min(86vw, 340px);
+  max-width: 340px;
   height: 100%;
   background: #fff;
-  padding: 26px;
+  padding: calc(var(--safe-top) + 18px) 18px calc(env(safe-area-inset-bottom, 0px) + 18px);
+  box-sizing: border-box;
+  overflow-y: auto;
   box-shadow: -4px 0 20px rgba(0,0,0,0.2);
   transform: translateX(100%);
   transition: transform .30s ease;
