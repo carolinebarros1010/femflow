@@ -619,7 +619,7 @@ if (b.tipo === "treino" && Number(b.boxNum) >= 900) {
       out.push({
         tipo: "aquecimentoPremium",
         box: 0,
-        titulo: "🌿 Aquecimento",
+        titulo: "Aquecimento",
         passos: b.passos || []
       });
       continue;
@@ -650,7 +650,7 @@ if (b.tipo === "treino" && Number(b.boxNum) >= 900) {
 ========================= */
 if (b.tipo === "hiit") {
   const boxBase = Number(b.boxNum || 500);
-  const titulo = FEMFLOW.engineTreino.selecionarTitulo(b) || "🔥 HIIT";
+  const titulo = FEMFLOW.engineTreino.selecionarTitulo(b) || "HIIT";
 
   const leve = Number(b.leve ?? b.fraco) || 20;
   const ciclos = Number(b.ciclos ?? b.ciclo) || 6;
@@ -681,7 +681,7 @@ if (b.tipo === "hiit") {
       out.push({
         tipo: "cardio_final",
         box: Number(b.boxNum || 900),
-        titulo: FEMFLOW.engineTreino.selecionarTitulo(b) || "💗 Cardio Final",
+        titulo: FEMFLOW.engineTreino.selecionarTitulo(b) || "Cardio Final",
         link: b.link || "",
         series: b.series ?? b.serie ?? "",
         tempo: b.tempo ?? "",
@@ -701,7 +701,7 @@ if (b.tipo === "hiit") {
       out.push({
         tipo: "cardio_intermediario",
         box: Number(b.boxNum || 0.5),
-        titulo: FEMFLOW.engineTreino.selecionarTitulo(b) || "💗 Cardio",
+        titulo: FEMFLOW.engineTreino.selecionarTitulo(b) || "Cardio",
         link: b.link || "",
         series: b.series ?? b.serie ?? "",
         tempo: b.tempo ?? "",
@@ -721,7 +721,7 @@ if (b.tipo === "hiit") {
       out.push({
         tipo: "resfriamentoPremium",
         box: Number(b.boxNum || 999),
-        titulo: "🧘 Resfriamento",
+        titulo: "Resfriamento",
         passos: b.passos || []
       });
       continue;

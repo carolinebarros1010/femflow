@@ -583,11 +583,11 @@ async function initFlowCenter() {
       document.getElementById("lbl-"+f).textContent = L[f];
     });
 
-    if (el.toBreath) el.toBreath.textContent = `💨 ${L.respiracao}`;
-    const customLabel = isCustomTreino ? "🔓" : "🔒";
+    if (el.toBreath) el.toBreath.textContent = L.respiracao;
+    const customLabel = isCustomTreino ? "Disponível" : "Bloqueado";
     const treinoDisponivel = !isCustomTreino && treinoAcessoOk;
-    const treinoLabel = treinoDisponivel ? "🏋️‍♂️" : "🔒";
-    const extraLabel = !isCustomTreino && treinoAcessoOk ? "✨" : "🔒";
+    const treinoLabel = treinoDisponivel ? "Disponível" : "Bloqueado";
+    const extraLabel = !isCustomTreino && treinoAcessoOk ? "Disponível" : "Bloqueado";
     const treinoBtn = el.toTrain;
     if (treinoBtn) {
       treinoBtn.textContent = `${treinoLabel} ${L.treino}`;
@@ -599,10 +599,10 @@ async function initFlowCenter() {
     if (customBtn) {
       customBtn.textContent = `${customLabel} ${L.treinoCustom}`;
     }
-    if (el.toEvolution) el.toEvolution.textContent = `📈 ${L.evolucao}`;
-    const enduranceLabel = bloquearEnduranceApp ? "🔒" : "🏃‍♂️";
+    if (el.toEvolution) el.toEvolution.textContent = L.evolucao;
+    const enduranceLabel = bloquearEnduranceApp ? "Bloqueado" : "Disponível";
     if (el.toEndurance) el.toEndurance.textContent = `${enduranceLabel} ${L.endurance}`;
-    if (el.toHomeSwitch) el.toHomeSwitch.textContent = `🏠 ${L.homeSwitch}`;
+    if (el.toHomeSwitch) el.toHomeSwitch.textContent = L.homeSwitch;
     const extraTitle = document.getElementById("extraTitle");
     const extraSub = document.getElementById("extraSub");
     if (extraTitle) extraTitle.textContent = L.treinoExtraTitulo;

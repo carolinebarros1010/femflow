@@ -547,7 +547,7 @@ home: {
   treinoExtraGluteo: "Glúteo",
   treinoExtraFechar: "Fechar",
 
-  enduranceModalTitulo: "🏃‍♂️ Defina seu Endurance",
+  enduranceModalTitulo: "Defina seu Endurance",
   enduranceModalSub: "Responda para personalizarmos o seu treino de cardio.",
   enduranceModalidadeLabel: "Qual modalidade?",
   enduranceModalidadePlaceholder: "Selecione a modalidade",
@@ -569,7 +569,7 @@ home: {
   enduranceRitmoPlaceholder: "Ex: 2:10/100m, 25 km/h, 5:20 min/km",
   enduranceCancelar: "Cancelar",
   enduranceSalvar: "Salvar e continuar",
-  enduranceSelecaoTitulo: "🏃‍♂️ Escolha sua sessão",
+  enduranceSelecaoTitulo: "Escolha sua sessão",
   enduranceSelecaoSub: "Selecione a semana e o dia do treino que você vai realizar.",
   enduranceSelecaoSemanaLabel: "Semana",
   enduranceSelecaoDiaLabel: "Dia",
@@ -667,7 +667,7 @@ home: {
       costas: "Costas",
       gluteo: "Glúteo"
     },
-    btnSalvar: "💾 Salvar treino",
+    btnSalvar: "Salvar treino",
     btnCancelar: "Cancelar",
     pseTitulo: "Como foi o treino?",
     pseLabel: "PSE (0 a 10)",
@@ -720,33 +720,33 @@ home: {
     ritmoLabel: "Ritmo: {ritmo}",
     intervaloLabel: "Intervalo: {intervalo}",
     milhasLabel: "Distância (milhas): {milhas}",
-    iniciar: "▶️ Iniciar cardio",
+    iniciar: "Iniciar cardio",
     zonas: {
       aria: "Informações sobre zonas de treino",
       fechar: "Fechar",
-      label: "🫀 Zona de treino: {zona}",
-      titulo: "🫀 Zonas de Treinamento",
+      label: "Zona de treino: {zona}",
+      titulo: "Zonas de Treinamento",
       sub: "As zonas indicam a intensidade do seu treino e ajudam a evoluir com segurança.",
-      z1Titulo: "🟢 Zona 1 — Muito leve",
+      z1Titulo: "Zona 1 — Muito leve",
       z1Texto: "Ritmo confortável. Ideal para aquecimento, recuperação e base aeróbica.",
-      z2Titulo: "🟢 Zona 2 — Leve",
+      z2Titulo: "Zona 2 — Leve",
       z2Texto: "Respiração controlada, ainda dá para conversar. Melhora resistência e queima de gordura.",
-      z3Titulo: "🟡 Zona 3 — Moderada",
+      z3Titulo: "Zona 3 — Moderada",
       z3Texto: "Respiração mais intensa, conversa difícil. Desenvolve capacidade aeróbica.",
-      z4Titulo: "🟠 Zona 4 — Forte",
+      z4Titulo: "Zona 4 — Forte",
       z4Texto: "Ritmo desafiador, poucas palavras por vez. Aumenta velocidade e limiar de lactato.",
-      z5Titulo: "🔴 Zona 5 — Muito forte",
+      z5Titulo: "Zona 5 — Muito forte",
       z5Texto: "Esforço máximo ou quase máximo. Trabalha potência e explosão."
     }
   },
      aquecimento: {
-    sugestao: "💨 Sugestão: prepare seu corpo com uma respiração consciente antes de começar.",
-    btn: "🌬️ Abrir protocolos de respiração"
+    sugestao: "Sugestão: prepare seu corpo com uma respiração consciente antes de começar.",
+    btn: "Abrir protocolos de respiração"
   },
 
   resfriamento: {
-    sugestao: "🌬️ Sugestão: finalize seu treino desacelerando com respiração suave.",
-    btn: "💗 Fazer respiração de fechamento"
+    sugestao: "Sugestão: finalize seu treino desacelerando com respiração suave.",
+    btn: "Fazer respiração de fechamento"
   }
   },
 resp: {
@@ -807,43 +807,43 @@ resp: {
 },
 series: {
   T: {
-    titulo: "🔗 Triset",
+    titulo: "Triset",
     texto: "Três exercícios combinados. Execute todos em sequência e descanse apenas ao final."
   },
   B: {
-    titulo: "🔗 Biset",
+    titulo: "Biset",
     texto: "Dois exercícios combinados. Execute ambos em sequência e descanse apenas ao final."
   },
   Q: {
-    titulo: "🔗 Quadriset",
+    titulo: "Quadriset",
     texto: "Quatro exercícios combinados. Execute todos em sequência e descanse apenas ao final."
   },
   C: {
-    titulo: "⏱️ Cluster",
+    titulo: "Cluster",
     texto: "Cada série é dividida em 4 mini-séries com pausas de 10 segundos entre elas."
   },
   I: {
-    titulo: "🧊 Isometria",
+    titulo: "Isometria",
     texto: "Permaneça com o músculo contraído por todo o tempo de execução."
   },
   CC: {
-    titulo: "🐢 Cadência Controlada",
+    titulo: "Cadência Controlada",
     texto: "Controle a fase excêntrica do movimento de forma lenta e consciente."
   },
   D: {
-    titulo: "🔥 Dropset",
+    titulo: "Dropset",
     texto: "Ao atingir a falha, reduza a carga 3 vezes consecutivas sem descanso."
   },
   RP: {
-    titulo: "⚡ Rest-Pause",
+    titulo: "Rest-Pause",
     texto: "Na última série, após a falha, reduza 50% da carga e execute 20 repetições."
   },
   AE: {
-    titulo: "👑 Advanced Elite",
+    titulo: "Advanced Elite",
     texto: "Execução livre, técnica avançada e estímulo máximo."
   },
   SM: {
-    titulo: "🟢 Submáxima",
+    titulo: "Submáxima",
     texto: "Descanso curto para estimular o músculo em ênfase."
   }
 }
@@ -1018,7 +1018,7 @@ home: {
   treinoExtraGluteo: "Glutes",
   treinoExtraFechar: "Close",
 
-  enduranceModalTitulo: "🏃‍♂️ Set your Endurance",
+  enduranceModalTitulo: "Set your Endurance",
   enduranceModalSub: "Answer these questions so we can personalize your cardio training.",
   enduranceModalidadeLabel: "Which modality?",
   enduranceModalidadePlaceholder: "Select a modality",
@@ -1040,7 +1040,7 @@ home: {
   enduranceRitmoPlaceholder: "Ex: 2:10/100m, 25 km/h, 5:20 min/km",
   enduranceCancelar: "Cancel",
   enduranceSalvar: "Save and continue",
-  enduranceSelecaoTitulo: "🏃‍♂️ Choose your session",
+  enduranceSelecaoTitulo: "Choose your session",
   enduranceSelecaoSub: "Select the week and day of the workout you will do.",
   enduranceSelecaoSemanaLabel: "Week",
   enduranceSelecaoDiaLabel: "Day",
@@ -1136,7 +1136,7 @@ home: {
       costas: "Back",
       gluteo: "Glutes"
     },
-    btnSalvar: "💾 Save workout",
+    btnSalvar: "Save workout",
     btnCancelar: "Cancel",
     pseTitulo: "How was the workout?",
     pseLabel: "RPE (0 to 10)",
@@ -1189,33 +1189,33 @@ home: {
   ritmoLabel: "Pace: {ritmo}",
   intervaloLabel: "Rest: {intervalo}",
   milhasLabel: "Distance (miles): {milhas}",
-  iniciar: "▶️ Start cardio",
+  iniciar: "Start cardio",
   zonas: {
     aria: "Training zones information",
     fechar: "Close",
-    label: "🫀 Training zone: {zona}",
-    titulo: "🫀 Training Zones",
+    label: "Training zone: {zona}",
+    titulo: "Training Zones",
     sub: "Zones show your workout intensity and help you progress safely.",
-    z1Titulo: "🟢 Zone 1 — Very light",
+    z1Titulo: "Zone 1 — Very light",
     z1Texto: "Comfortable pace. Ideal for warm-up, recovery and aerobic base.",
-    z2Titulo: "🟢 Zone 2 — Light",
+    z2Titulo: "Zone 2 — Light",
     z2Texto: "Controlled breathing, you can still talk. Improves endurance and fat burn.",
-    z3Titulo: "🟡 Zone 3 — Moderate",
+    z3Titulo: "Zone 3 — Moderate",
     z3Texto: "Heavier breathing, talking is hard. Develops aerobic capacity.",
-    z4Titulo: "🟠 Zone 4 — Hard",
+    z4Titulo: "Zone 4 — Hard",
     z4Texto: "Challenging pace, only a few words at a time. Increases speed and lactate threshold.",
-    z5Titulo: "🔴 Zone 5 — Very hard",
+    z5Titulo: "Zone 5 — Very hard",
     z5Texto: "Maximum or near-maximum effort. Trains power and explosiveness."
   }
 },
   aquecimento: {
-    sugestao: "💨 Tip: prepare your body with conscious breathing before you start.",
-    btn: "🌬️ Open breathing protocols"
+    sugestao: "Tip: prepare your body with conscious breathing before you start.",
+    btn: "Open breathing protocols"
   },
 
   resfriamento: {
-    sugestao: "🌬️ Tip: finish your workout by slowing down with gentle breathing.",
-    btn: "💗 Do a closing breathing"
+    sugestao: "Tip: finish your workout by slowing down with gentle breathing.",
+    btn: "Do a closing breathing"
   }   
   },
 resp: {
@@ -1277,43 +1277,43 @@ resp: {
   },
 series: {
   T: {
-    titulo: "🔗 Triset",
+    titulo: "Triset",
     texto: "Three exercises performed in sequence. Rest only after completing all."
   },
   B: {
-    titulo: "🔗 Biset",
+    titulo: "Biset",
     texto: "Two exercises performed in sequence. Rest only at the end."
   },
   Q: {
-    titulo: "🔗 Quadriset",
+    titulo: "Quadriset",
     texto: "Four exercises performed in sequence. Rest only after completing all."
   },
   C: {
-    titulo: "⏱️ Cluster",
+    titulo: "Cluster",
     texto: "Each set is divided into 4 mini-sets with 10-second pauses."
   },
   I: {
-    titulo: "🧊 Isometric",
+    titulo: "Isometric",
     texto: "Keep the muscle contracted for the entire execution time."
   },
   CC: {
-    titulo: "🐢 Controlled Tempo",
+    titulo: "Controlled Tempo",
     texto: "Slow and controlled eccentric phase."
   },
   D: {
-    titulo: "🔥 Dropset",
+    titulo: "Dropset",
     texto: "After failure, reduce load 3 consecutive times without rest."
   },
   RP: {
-    titulo: "⚡ Rest-Pause",
+    titulo: "Rest-Pause",
     texto: "On the last set, after failure, reduce load by 50% and perform 20 reps."
   },
   AE: {
-    titulo: "👑 Advanced Elite",
+    titulo: "Advanced Elite",
     texto: "Free execution, advanced technique and maximum stimulus."
   },
   SM: {
-    titulo: "🟢 Submaximal",
+    titulo: "Submaximal",
     texto: "Short rest intervals to emphasize the target muscle."
   }
 }
@@ -1489,7 +1489,7 @@ fr: {
   treinoExtraGluteo: "Fessiers",
   treinoExtraFechar: "Fermer",
 
-  enduranceModalTitulo: "🏃‍♂️ Définissez votre Endurance",
+  enduranceModalTitulo: "Définissez votre Endurance",
   enduranceModalSub: "Répondez pour que nous puissions personnaliser votre entraînement cardio.",
   enduranceModalidadeLabel: "Quelle modalité ?",
   enduranceModalidadePlaceholder: "Sélectionnez une modalité",
@@ -1511,7 +1511,7 @@ fr: {
   enduranceRitmoPlaceholder: "Ex : 2:10/100m, 25 km/h, 5:20 min/km",
   enduranceCancelar: "Annuler",
   enduranceSalvar: "Enregistrer et continuer",
-  enduranceSelecaoTitulo: "🏃‍♂️ Choisissez votre session",
+  enduranceSelecaoTitulo: "Choisissez votre session",
   enduranceSelecaoSub: "Sélectionnez la semaine et le jour de l'entraînement que vous allez faire.",
   enduranceSelecaoSemanaLabel: "Semaine",
   enduranceSelecaoDiaLabel: "Jour",
@@ -1607,7 +1607,7 @@ fr: {
       costas: "Dos",
       gluteo: "Fessiers"
     },
-    btnSalvar: "💾 Enregistrer l’entraînement",
+    btnSalvar: "Enregistrer l’entraînement",
     btnCancelar: "Annuler",
     pseTitulo: "Comment était l'entraînement ?",
     pseLabel: "PSE (0 à 10)",
@@ -1660,33 +1660,33 @@ fr: {
   ritmoLabel: "Rythme : {ritmo}",
   intervaloLabel: "Repos : {intervalo}",
   milhasLabel: "Distance (miles) : {milhas}",
-  iniciar: "▶️ Démarrer le cardio",
+  iniciar: "Démarrer le cardio",
   zonas: {
     aria: "Informations sur les zones d'entraînement",
     fechar: "Fermer",
-    label: "🫀 Zone d'entraînement : {zona}",
-    titulo: "🫀 Zones d'entraînement",
+    label: "Zone d'entraînement : {zona}",
+    titulo: "Zones d'entraînement",
     sub: "Les zones indiquent l'intensité de votre entraînement et vous aident à progresser en sécurité.",
-    z1Titulo: "🟢 Zone 1 — Très légère",
+    z1Titulo: "Zone 1 — Très légère",
     z1Texto: "Rythme confortable. Idéal pour l'échauffement, la récupération et la base aérobie.",
-    z2Titulo: "🟢 Zone 2 — Légère",
+    z2Titulo: "Zone 2 — Légère",
     z2Texto: "Respiration contrôlée, vous pouvez encore parler. Améliore l'endurance et la combustion des graisses.",
-    z3Titulo: "🟡 Zone 3 — Modérée",
+    z3Titulo: "Zone 3 — Modérée",
     z3Texto: "Respiration plus intense, conversation difficile. Développe la capacité aérobie.",
-    z4Titulo: "🟠 Zone 4 — Forte",
+    z4Titulo: "Zone 4 — Forte",
     z4Texto: "Rythme exigeant, quelques mots à la fois. Augmente la vitesse et le seuil lactique.",
-    z5Titulo: "🔴 Zone 5 — Très forte",
+    z5Titulo: "Zone 5 — Très forte",
     z5Texto: "Effort maximal ou quasi maximal. Travaille la puissance et l'explosivité."
   }
 },
    aquecimento: {
-    sugestao: "💨 Astuce : prépare ton corps avec une respiration consciente avant de commencer.",
-    btn: "🌬️ Ouvrir les protocoles de respiration"
+    sugestao: "Astuce : prépare ton corps avec une respiration consciente avant de commencer.",
+    btn: "Ouvrir les protocoles de respiration"
   },
 
   resfriamento: {
-    sugestao: "🌬️ Astuce : termine ton entraînement en ralentissant avec une respiration douce.",
-    btn: "💗 Faire une respiration de fin"
+    sugestao: "Astuce : termine ton entraînement en ralentissant avec une respiration douce.",
+    btn: "Faire une respiration de fin"
   }   
  
   },
@@ -1748,43 +1748,43 @@ resp: {
   },
   series: {
   T: {
-    titulo: "🔗 Triset",
+    titulo: "Triset",
     texto: "Trois exercices enchaînés. Repos uniquement à la fin."
   },
   B: {
-    titulo: "🔗 Biset",
+    titulo: "Biset",
     texto: "Deux exercices enchaînés. Repos uniquement à la fin."
   },
   Q: {
-    titulo: "🔗 Quadriset",
+    titulo: "Quadriset",
     texto: "Quatre exercices enchaînés. Repos uniquement à la fin."
   },
   C: {
-    titulo: "⏱️ Cluster",
+    titulo: "Cluster",
     texto: "Chaque série est divisée en 4 mini-séries avec 10 secondes de pause."
   },
   I: {
-    titulo: "🧊 Isométrie",
+    titulo: "Isométrie",
     texto: "Gardez le muscle contracté pendant toute la durée d'exécution."
   },
   CC: {
-    titulo: "🐢 Cadence contrôlée",
+    titulo: "Cadence contrôlée",
     texto: "Phase excentrique lente et contrôlée."
   },
   D: {
-    titulo: "🔥 Dropset",
+    titulo: "Dropset",
     texto: "Après l’échec, réduisez la charge 3 fois sans repos."
   },
   RP: {
-    titulo: "⚡ Rest-Pause",
+    titulo: "Rest-Pause",
     texto: "À la dernière série, après l’échec, réduisez la charge de 50 % et effectuez 20 répétitions."
   },
   AE: {
-    titulo: "👑 Advanced Elite",
+    titulo: "Advanced Elite",
     texto: "Exécution libre, technique avancée et stimulus maximal."
   },
   SM: {
-    titulo: "🟢 Submaximale",
+    titulo: "Submaximale",
     texto: "Repos courts pour stimuler le muscle ciblé."
   }
 }
