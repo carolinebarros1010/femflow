@@ -16,7 +16,7 @@ Canal esperado: `window.webkit?.messageHandlers?.iap?.postMessage(payload)`.
 ```json
 {
   "event": "purchase",
-  "productId": "com.femflow.app.access.monthly",
+  "productId": "com.femflow.app.premium.monthly",
   "context": { "source": "paywall" }
 }
 ```
@@ -37,7 +37,7 @@ Callbacks expostos em `window.FEMFLOW_IAP_BRIDGE`.
 {
   "event": "purchaseSuccess",
   "transactionId": "100000123456",
-  "productId": "com.femflow.app.access.monthly",
+  "productId": "com.femflow.app.premium.monthly",
   "originalTransactionId": "100000123000",
   "entitlementStatus": "active"
 }
