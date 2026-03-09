@@ -181,11 +181,18 @@ body.dark .ff-notifications-btn {
 }
 
 /* Hard shield contra resets */
-.ff-menu-btn *,
-#ffMenuBtn * {
+.ff-menu-btn *:not(.ff-icon),
+#ffMenuBtn *:not(.ff-icon) {
   width: auto !important;
   max-width: none !important;
   display: inline !important;
+}
+
+.ff-menu-btn .ff-icon,
+#ffMenuBtn .ff-icon {
+  display: inline-block !important;
+  width: 22px !important;
+  height: 22px !important;
 }
 
 /* Tema escuro */
