@@ -198,7 +198,7 @@
 
 ### 1) Compra aprovada
 - Objetivo: confirmar ativação ponta a ponta.
-- Pré-condição: conta iOS sandbox válida, produto permitido (`com.femflow.app.access.monthly` ou `...personal...`).
+- Pré-condição: conta iOS sandbox válida, produto permitido (`com.femflow.app.premium.monthly` ou `com.femflow.app.personal.pro.monthly`).
 - Ação: comprar no app iOS.
 - FE: retorno `ok`, toast sucesso, evento `femflow:entitlementsUpdated`.
 - BE: `iap_apple_activate` `status=ok`, `entitlementStatus=active`.

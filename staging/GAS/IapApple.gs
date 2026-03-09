@@ -1,6 +1,6 @@
 const IAP_APPLE_PRODUCT_IDS = [
-  "com.femflow.app.access.monthly",
-  "com.femflow.app.personal.monthly"
+  "com.femflow.app.premium.monthly",
+  "com.femflow.app.personal.pro.monthly"
 ];
 
 function _getHeaderMap_(sh) {
@@ -85,7 +85,7 @@ function _findAlunaRowByIdOrEmail_(sh, payload) {
 
 function _resolvePlanFromAppleProduct_(productId) {
   const id = String(productId || "").trim().toLowerCase();
-  if (id === "com.femflow.app.personal.monthly") {
+  if (id === "com.femflow.app.personal.pro.monthly") {
     return { plan: "personal", produto: "acesso_app", modoPersonal: true };
   }
   return { plan: "access", produto: "acesso_app", modoPersonal: false };

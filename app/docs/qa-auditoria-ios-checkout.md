@@ -1,207 +1,259 @@
-# Auditoria técnica — Checkout iOS / Entitlements / Consistência Front x GAS
+# Re-auditoria técnica — iOS Checkout / IAP / Entitlements (pós-correções)
 
 Data: 2026-03-04
-Escopo analisado: `app/core/femflow-core.js`, `app/js/home.js`, `app/js/flowcenter.js`, `staging/GAS/Get.gs`, `staging/GAS/Post.gs`, `staging/GAS/IapApple.gs`, `staging/GAS/Header.gs`.
-
-## 1) Confirmação do fluxo (fim a fim)
-
-### 1.1 Home (card bloqueado)
-- Clique no card chama `handleCardClick(enfase, locked)`.
-- Se `locked`, chama `openBlockedFlow({ enfase, checkoutTipo })`.
-- `openBlockedFlow` chama `abrirCheckoutOuIap(checkoutTipo)`.
-- `abrirCheckoutOuIap` delega para `abrirCheckout`.
-- `abrirCheckout` chama `FEMFLOW.checkout.openCheckout({ reason: "locked_card", preferredPlan })`.
-
-### 1.2 Home (ebook bloqueado)
-- Clique no ebook chama `handleEbookClick(card)`.
-- Se bloqueado, chama `openBlockedFlow()`.
-- O fluxo converge para o mesmo `FEMFLOW.checkout.openCheckout(...)`.
-
-### 1.3 FlowCenter (botões bloqueados)
-- O helper `bloquearBotao` intercepta clique e chama `abrirCheckoutOuIap("personal"|"app")`.
-- `abrirCheckoutOuIap` delega para `abrirCheckout`.
-- `abrirCheckout` chama `FEMFLOW.checkout.openCheckout({ reason: "locked_card", preferredPlan })`.
-
-### 1.4 Decisão por plataforma no entrypoint único
-- `openCheckout` calcula plano (`access` / `personal`).
-- Se **não iOS**: chama `openHotmart(targetPlan)`.
-- Se **iOS**: tenta `FEMFLOW.iap.purchase(productId)`.
-- Se compra retorna sucesso (`status === "ok"` ou `transactionId`), encerra sem modal.
-- Se retorno for `stub/error/ignored` (ou exceção): abre modal iOS (`openPaywall`).
-
-### 1.5 Confirmação das regras pedidas
-- ✅ Home e FlowCenter convergem para `openCheckout`.
-- ✅ iOS tenta IAP e faz fallback para paywall modal.
-- ✅ Android/Web continuam via Hotmart no ramo `!isIOS()`.
-- ⚠️ Há links Hotmart hardcoded ainda presentes em `home.js` e `flowcenter.js` (constantes), embora o caminho de bloqueio atual esteja centralizado em `openCheckout`.
-
-### 1.6 Caminhos alternativos que podem abrir Hotmart no iOS
-- `FEMFLOW.checkout.openHotmart` permanece público e chamável diretamente por qualquer código futuro.
-- `home.js` define `window.FEMFLOW.LINK_*` com URLs Hotmart; isso não abre checkout sozinho, mas mantém a superfície para abertura externa.
-- Existem páginas separadas de ebooks com links Hotmart (`app/ebooks/*.html`) que podem violar diretriz de iOS se acessíveis dentro do app nativo.
+Escopo auditado (código atual):
+- `app/core/femflow-core.js`
+- `app/js/home.js`
+- `app/js/flowcenter.js`
+- `staging/GAS/Get.gs`
+- `staging/GAS/Post.gs`
+- `staging/GAS/IapApple.gs`
+- `staging/GAS/Header.gs`
 
 ---
 
-## 2) Consistência de regras (Front x GAS)
+## 0) Resumo executivo
 
-### 2.1 Produto base e personal como modo
-- Backend Apple activate resolve ambos SKUs para `produto: "acesso_app"` e diferencia modo por `acesso_personal` (AE).
-- Isso está alinhado com regra de negócio “Personal é modo, não produto”.
+### Status geral
+- **Convergência de fluxo Home/FlowCenter para `openCheckout`: OK**.
+- **Roteamento por plataforma (iOS IAP, Android/Web Hotmart): OK**.
+- **Regra de produto base `acesso_app` + personal por AE: OK no Apple Activate**.
+- **Gap crítico ainda aberto:** `validar` não aplica expiração Apple (`IapExpiresAt`), enquanto `entitlements_status` aplica.
+- **Risco App Store ainda presente:** referências/links Hotmart continuam no bundle e em páginas que podem ser acessadas no iOS.
 
-### 2.2 Entitlements (GAS)
-- `entitlementsStatus_` devolve `acesso_app` e `modo_personal`.
-- Se `source === "apple_iap"` e `IapExpiresAt` expirado, força `acesso_app=false` e `modo_personal=false`.
-
-### 2.3 Entitlements (Front)
-- `refreshEntitlements` chama action `entitlements_status`, atualiza localStorage e dispara evento `femflow:entitlementsUpdated`.
-- `updateEntitlementsFromPayload` grava:
-  - `femflow_ativa` por `acesso_app`
-  - `femflow_produto` para `acesso_app` quando entitlement ativo
-  - `femflow_mode_personal` e `femflow_has_personal` por `modo_personal`
-
-### 2.4 Divergência importante com `validar`
-- Home/FlowCenter dependem primariamente de `action=validar` para montar estado.
-- `validar` considera `ativa` por `LicencaAtiva` (ou VIP) e **não aplica expiração Apple (`IapExpiresAt`)**.
-- Portanto, após expiração Apple, `entitlements_status` pode negar acesso, mas `validar` continuar marcando `ativa=true`.
-
-### 2.5 Ebooks
-- Front define ebooks bloqueados quando `produto === trial_app`; liberados para `ativa=true` ou `vip`.
-- Regra está coerente com o solicitado.
+### Veredito rápido
+- Conforme interesse: **Parcial**.
+- Pronto para produção iOS: **Não**.
 
 ---
 
-## 3) Bugs / riscos lógicos (com severidade)
+## 1) CONFIRMAÇÃO DO FLUXO (fim a fim)
+
+## 1.1 Home — clique em card bloqueado
+Cadeia chamada:
+1. `renderRail` registra click em `.card`.
+2. click chama `handleCardClick(enfase, locked)`.
+3. se `locked === true`, chama `openBlockedFlow({ enfase, checkoutTipo })`.
+4. `openBlockedFlow` chama `abrirCheckoutOuIap(checkoutTipo)`.
+5. `abrirCheckoutOuIap` delega para `abrirCheckout`.
+6. `abrirCheckout` chama `FEMFLOW.checkout.openCheckout({ reason: "locked_card", preferredPlan })`.
+
+## 1.2 Home — clique em ebook bloqueado
+Cadeia chamada:
+1. `renderEbookRail` registra click.
+2. `handleEbookClick(card)`.
+3. se `locked`, chama `openBlockedFlow()`.
+4. converge para `FEMFLOW.checkout.openCheckout(...)`.
+
+## 1.3 FlowCenter — botões bloqueados
+Cadeia chamada:
+1. `bloquearBotao` intercepta clique.
+2. chama `abrirCheckoutOuIap("personal"|"app")`.
+3. delega para `abrirCheckout`.
+4. `abrirCheckout` chama `FEMFLOW.checkout.openCheckout({ reason: "locked_card", preferredPlan })`.
+
+## 1.4 Entry point único e comportamento por plataforma
+No `FEMFLOW.checkout.openCheckout`:
+- `preferredPlan` mapeia para `access/personal`.
+- Se **não iOS** (`!isIOS()`): `openHotmart(targetPlan)`.
+- Se **iOS**:
+  - tenta `FEMFLOW.iap.purchase(productId)`;
+  - sucesso se `status="ok"` ou `transactionId` presente;
+  - fallback para `openPaywall(...)` em `stub/error/ignored` ou exceção.
+
+## 1.5 Conclusão da seção
+- ✅ Home e FlowCenter convergem no mesmo entrypoint (`openCheckout`).
+- ✅ iOS tenta IAP e faz fallback para modal paywall.
+- ✅ Android/Web seguem Hotmart.
+- ⚠️ Ainda existem superfícies de Hotmart no código (ver seção 5).
+
+## 1.6 Caminhos alternativos que ainda podem abrir Hotmart no iOS
+- `FEMFLOW.checkout.openHotmart` continua público e acionável por qualquer chamada direta.
+- `home.js` continua setando `window.FEMFLOW.LINK_ACESSO_APP` e `window.FEMFLOW.LINK_PERSONAL`.
+- Páginas `app/ebooks/*.html` mantêm CTAs de compra externa (Hotmart).
+
+---
+
+## 2) CONSISTÊNCIA DE REGRAS (Front x GAS)
+
+## 2.1 Regra produto base + personal modo
+### Backend (Apple Activate)
+`iapAppleActivate_`:
+- resolve SKU `access` e `personal` para `Produto = acesso_app`;
+- define personal por `acesso_personal` (AE);
+- marca `LicencaAtiva = true`;
+- persiste metadados IAP (`IapExpiresAt`, `IapSource`, etc.).
+
+✅ Alinhado com regra: **Personal não é produto, é modo (AE)**.
+
+## 2.2 Regra de entitlements
+### Backend (`entitlements_status`)
+`entitlementsStatus_` retorna:
+- `acesso_app`
+- `modo_personal`
+- `source/plan/expiresAt/produto`
+
+E aplica expiração Apple:
+- se `source === apple_iap` e `IapExpiresAt` expirado: força `acesso_app=false` e `modo_personal=false`.
+
+### Front (`refreshEntitlements`)
+- chama action `entitlements_status`;
+- atualiza localStorage com `updateEntitlementsFromPayload`;
+- emite evento `femflow:entitlementsUpdated`.
+
+## 2.3 Divergência ainda existente com `validar`
+`_validarPerfil_` (fonte principal de Home/FlowCenter) ainda calcula `ativa` por `LicencaAtiva`/VIP e **não lê/aplica `IapExpiresAt`**.
+
+Impacto:
+- sessão pode vir “ativa” via `validar`, mas “expirada” via `entitlements_status`.
+- comportamento pode oscilar conforme endpoint consumido no momento.
+
+## 2.4 Ebooks
+No front (`FEMFLOW.canAccessEbooks` e fallback em `home.js`):
+- `trial_app` => bloqueado
+- `ativa=true` ou `vip` => liberado
+
+✅ Regra dos ebooks está aderente ao solicitado.
+
+---
+
+## 3) ANÁLISE DE BUGS / RISCOS LÓGICOS (com severidade)
 
 ## Alta
-1. **Divergência crítica `validar` x `entitlements_status` (expiração Apple)**
-   - Evidência: expiração só é aplicada em `entitlementsStatus_`; `validar` não considera `IapExpiresAt`.
-   - Impacto: usuária iOS expirada pode continuar com acesso indevido; risco de inconsistência de cobrança e compliance.
-   - Correção: aplicar regra de expiração também em `validar` (ou fazer `validar` consumir `entitlementsStatus_` internamente).
+1. **Divergência de autorização entre `validar` e `entitlements_status`**
+   - Evidência: expiração Apple só é aplicada em `entitlementsStatus_`.
+   - Impacto: acesso incorreto pós-expiração, inconsistência de estado e risco de cobrança/compliance.
+   - Correção: centralizar cálculo de entitlement em função única consumida por ambos endpoints.
 
-2. **Risco App Store: links/pistas de Hotmart no bundle iOS**
-   - Evidência: constantes Hotmart em `home.js`, `flowcenter.js`, `femflow-core.js` e páginas `app/ebooks` com CTA externo.
-   - Impacto: possível rejeição por “steering to external purchase” se revisores encontrarem rota/tela acessível.
-   - Correção: em build iOS, remover/feature-flag todo texto/link Hotmart e esconder páginas com compra externa.
+2. **Risco de steering externo no iOS (App Review)**
+   - Evidência: URLs Hotmart continuam no core/home e páginas de ebooks com CTA externo.
+   - Impacto: possível rejeição App Store se revisores encontrarem rota/tela acessível.
+   - Correção: build flag iOS para remover/esconder qualquer compra externa e texto relacionado.
 
-3. **Sem lock anti-duplo clique no purchase**
-   - Evidência: `openCheckout` e botões do modal chamam `FEMFLOW.iap.purchase` sem mutex/inFlight.
-   - Impacto: múltiplos disparos simultâneos de compra/activate, UX ruim, erros intermitentes.
-   - Correção: implementar `purchaseInFlight` global + desabilitar botão até resolução.
+3. **Sem trava de concorrência de compra (multi-clique)**
+   - Evidência: `openCheckout` e botão buy do modal disparam `iap.purchase` sem `inFlight`.
+   - Impacto: múltiplas tentativas simultâneas, duplicidade de chamadas e UX degradada.
+   - Correção: mutex transacional + estado de loading/disable em botões.
 
 ## Média
-4. **Race pós-compra: UI pode não refletir imediatamente em Home/FlowCenter**
-   - Evidência: `refreshEntitlements` atualiza localStorage, mas Home/FlowCenter não escutam `femflow:entitlementsUpdated` para re-render imediato.
-   - Impacto: card ainda bloqueado até recarregar/revalidar.
-   - Correção: listeners em Home/FlowCenter para reaplicar regras após evento.
+4. **Race de atualização de UI após purchase/restore**
+   - Evidência: há evento `femflow:entitlementsUpdated`, mas Home/FlowCenter não re-renderizam explicitamente nesse evento.
+   - Impacto: tela pode permanecer bloqueada até refresh/navigation.
+   - Correção: listeners para recomputar bloqueios e re-render local.
 
-5. **Fallback parcial no modal (compra falha no modal não reabre fallback orientado)**
-   - Evidência: botão `ff-ios-buy` chama `iap.purchase` diretamente e ignora resultado.
-   - Impacto: em erro no plugin/rede, usuária fica sem feedback estruturado além eventual toast.
-   - Correção: tratar retorno/erro no botão, exibir estado e CTA de retry.
+5. **Fallback do modal com pouca observabilidade de erro**
+   - Evidência: botão buy no modal chama `iap.purchase` e ignora retorno.
+   - Impacto: falha sem feedback claro de causa/ação seguinte.
+   - Correção: capturar status/erro, mostrar mensagem e opção de tentar novamente.
 
-6. **Restore sem feedback de resultado para usuário**
-   - Evidência: botão restore chama `iap.restore()` sem UI de sucesso/falha.
-   - Impacto: restore pode funcionar sem usuária saber; suporte aumenta.
-   - Correção: toast/modal de sucesso, e erro contextual com próximos passos.
-
-7. **Detecção iOS por user-agent pode afetar PWA em iPad/Mac touch**
-   - Evidência: `isIOS` usa UA + `maxTouchPoints` além Capacitor platform.
-   - Impacto: PWA web em iPad pode entrar em fluxo IAP sem plugin (vai cair em paywall fallback).
-   - Correção: exigir `Capacitor.getPlatform()==ios` para comportamento de compra nativa, mantendo fallback explícito para web.
+6. **Restore sem feedback explícito no fluxo de UX**
+   - Evidência: botão restore chama `iap.restore()` sem confirmação visual robusta.
+   - Impacto: usuária não sabe se restaurou; aumenta chamados de suporte.
+   - Correção: toasts/estado de sucesso/erro + refresh visual do bloqueio.
 
 ## Baixa
-8. **Constante Hotmart não utilizada em `flowcenter.js`**
-   - Evidência: `const LINK_ACESSO_APP` declarada e sem uso.
-   - Impacto: ruído e risco de regressão futura.
+7. **Detecção iOS por UA pode classificar PWA como iOS nativo**
+   - Evidência: `isIOS()` mistura `Capacitor.getPlatform()` + heurística de user-agent.
+   - Impacto: PWA iPad/Mac touch pode cair em tentativa IAP sem plugin.
+   - Correção: priorizar detecção de runtime nativo quando necessário para compra.
+
+8. **Constante Hotmart não utilizada no FlowCenter**
+   - Evidência: `const LINK_ACESSO_APP` em `flowcenter.js` sem uso funcional.
+   - Impacto: ruído e chance de regressão.
    - Correção: remover constante morta.
 
-9. **Dependência de índices fixos em partes do GAS**
-   - Evidência: `Get.gs` lê `row[5]`, `row[7]`, etc.; embora `Header.gs` mantenha contrato canônico.
-   - Impacto: quebra silenciosa se colunas mudarem fora do header oficial.
-   - Correção: migrar leituras para map por nome (`header.indexOf`/header map), como já feito em IAP.
+9. **Leitura por índice fixo em partes do GAS**
+   - Evidência: `_validarPerfil_` usa `row[5]`, `row[7]` etc.
+   - Impacto: manutenção frágil se schema mudar.
+   - Correção: migrar para mapa por header (`header.indexOf`/mapa único).
 
 ---
 
-## 4) Edge cases simulados
+## 4) EDGE CASES (simulação técnica)
 
 1. **iOS sem plugin (webview/PWA)**
-   - Comportamento: `iap.purchase` retorna `stub` → `openCheckout` abre paywall.
-   - Resultado: fallback ok, sem Hotmart.
+- Resultado atual: `purchase` retorna `stub` ⇒ `openCheckout` cai no paywall.
+- Avaliação: fallback funcional e sem Hotmart.
 
-2. **iOS com plugin mas sem produtos carregados**
-   - `purchase` independe de `listProducts` prévio; pode falhar no plugin.
-   - Em erro/exceção no `openCheckout`: abre paywall.
-   - No modal, nova tentativa pode repetir falha sem UX clara.
+2. **iOS com plugin, sem produtos carregados**
+- `purchase` pode falhar no plugin; `openCheckout` abre paywall em exceção/erro.
+- Avaliação: funcional, mas sem UX clara no modal para diagnóstico.
 
-3. **Compra concluída no device, backend activate falha**
-   - `purchase` chama `activatePurchaseOnBackend`; erro rejeita promise.
-   - `openCheckout` captura e abre paywall.
-   - Usuária pode ter pago, mas continuar bloqueada até restore/retry.
+3. **Compra concluída, backend activate falha**
+- `purchase` rejeita ao falhar `activatePurchaseOnBackend`.
+- `openCheckout` cai no catch e abre paywall.
+- Avaliação: risco de “paguei e não liberou” até restore/retry.
 
-4. **Rede offline durante purchase/activate**
-   - Se compra não inicia: fallback modal.
-   - Se compra conclui e activate falha por rede: risco de “paguei e não liberou”.
+4. **Rede offline em purchase/activate**
+- Purchase pode falhar cedo (fallback modal).
+- Se compra conclui no device e falha no activate por rede, entitlement pode atrasar.
+- Avaliação: precisa estratégia de retry automático/sincronização posterior.
 
 5. **Restore em novo dispositivo**
-   - `restore` itera transações ativas e chama activate para cada uma.
-   - Depois chama `refreshEntitlements`.
-   - Funcional, porém sem feedback UX robusto.
+- `restore` percorre transações ativas, ativa no backend, depois refresh entitlements.
+- Avaliação: core correto; falta UX de confirmação.
 
 6. **Expiração Apple**
-   - Em `entitlements_status`: re-bloqueia.
-   - Em `validar`: pode continuar liberado (gap crítico).
+- `entitlements_status`: re-bloqueia corretamente.
+- `validar`: ainda pode manter ativa.
+- Avaliação: inconsistência crítica permanece.
 
-7. **Migração Hotmart antiga para iOS IAP**
-   - Apple activate força `Produto=acesso_app`; AE define personal.
-   - Compatível com regra de produto base único.
+7. **Usuária Hotmart antiga migra para iOS IAP**
+- Apple activate normaliza `Produto=acesso_app` e AE para personal.
+- Avaliação: coerente com regra de negócio.
 
 8. **AE=true e LicencaAtiva=false**
-   - Em `entitlements_status`, `modo_personal` pode vir true mesmo com `acesso_app=false` (quando não expirado por Apple).
-   - No front, `femflow_has_personal=true` pode coexistir com acesso app negado; verificar se UI bloqueia corretamente cards base.
+- `entitlements_status` pode retornar `modo_personal=true` com `acesso_app=false` (caso não expirado por Apple e dados inconsistentes).
+- Avaliação: validar regra de negócio desejada; pode exigir normalização para evitar personal sem base ativa.
 
 ---
 
-## 5) Conformidade App Store (risco de rejeição)
+## 5) CONFORMIDADE APP STORE (risco de rejeição)
 
-- **Texto/link externo no iOS**: há forte presença de links Hotmart no código e páginas de ebooks com compra externa.
-- **Paywall iOS**: copy atual fala de assinatura in-app e tem botão restore (positivo).
-- **Restore visível**: está presente no modal iOS.
-- **Risco estimado**: **Médio/Alto**.
-  - Médio se rotas externas não forem acessíveis no app iOS final.
-  - Alto se qualquer tela iOS expuser CTA/link Hotmart.
+## Checklist de compliance observado
+- iOS bloqueado não deve abrir Hotmart: **OK no fluxo central `openCheckout`**.
+- Paywall iOS sem menção explícita a Hotmart: **OK**.
+- Botão restore visível: **OK**.
+- Referências externas de compra no bundle: **NÃO OK** (ainda existem).
 
----
-
-## 6) Checklist “pronto para subir” (20 itens)
-
-1. Validar card bloqueado Home (iOS) → tentativa IAP.
-2. Validar card bloqueado FlowCenter (iOS) → tentativa IAP.
-3. Confirmar fallback para modal em plugin ausente.
-4. Confirmar fallback para modal em erro de purchase.
-5. Confirmar Android/Web abre Hotmart normalmente.
-6. Garantir nenhum CTA Hotmart aparece no build iOS.
-7. Testar duplo clique rápido no botão de compra.
-8. Testar compra aprovada + activate OK + desbloqueio imediato UI.
-9. Testar compra aprovada + activate FAIL (mensagem e recovery).
-10. Testar restore com assinatura ativa em novo dispositivo.
-11. Testar restore sem assinatura (mensagem amigável).
-12. Validar `entitlements_status` após purchase/restore.
-13. Validar `validar` reflete expiração Apple (ajustar antes de subir).
-14. Validar regra ebooks: trial bloqueia; ativa/vip libera.
-15. Validar AE/personal: modo ligado apenas por coluna AE, não produto.
-16. Confirmar Apple activate grava `Produto=acesso_app`.
-17. Testar downgrade/upgrade entre SKUs do grupo de assinatura.
-18. Revisar logs essenciais (`purchase`, `activate`, `entitlements`, `restore`).
-19. Revisar strings PT/EN/FR do paywall e mensagens bloqueio.
-20. Testar expiração real/simulada (ISO + timezone) e re-bloqueio total.
+## Classificação de risco
+- **Risco de rejeição: Médio/Alto**.
+  - **Médio** se rotas externas estiverem realmente inacessíveis no app iOS de review.
+  - **Alto** se qualquer caminho navegável mostrar CTA/link Hotmart no iOS.
 
 ---
 
-## 7) Veredito
+## 6) CHECKLIST FINAL — “PRONTO PARA SUBIR” (20 itens)
+
+1. Home card bloqueado (iOS) tenta IAP antes de qualquer outra ação.
+2. FlowCenter bloqueado (iOS) tenta IAP no mesmo entrypoint.
+3. Ebooks bloqueados em trial_app.
+4. Ebooks liberados em assinante (`LicencaAtiva=true`) e VIP.
+5. Fallback paywall abre quando plugin ausente.
+6. Fallback paywall abre quando purchase retorna erro.
+7. Android/Web continuam abrindo Hotmart.
+8. Nenhuma rota iOS navegável exibe CTA de pagamento externo.
+9. Strings PT/EN/FR revisadas no paywall e toasts de bloqueio.
+10. Duplo clique no comprar não gera múltiplas compras.
+11. Compra aprovada + activate ok desbloqueia UI sem reload.
+12. Compra aprovada + activate fail mostra erro recuperável.
+13. Restore em novo device reativa entitlements com feedback claro.
+14. `entitlements_status` consistente com dados de planilha.
+15. `validar` consistente com `entitlements_status` para expiração Apple.
+16. Expiração (`IapExpiresAt`) testada com timezone/ISO real.
+17. `iap_apple_activate` grava `Produto=acesso_app` para ambos SKUs.
+18. `acesso_personal` (AE) é a única fonte de personal entitlement.
+19. Logs de purchase/activate/restore/entitlements capturados para suporte.
+20. Testes de downgrade/upgrade no grupo de assinatura validados.
+
+---
+
+## 7) VEREDITO
 
 - **Está conforme interesse?** **Parcial**.
-- **Está pronto para produção iOS?** **Não**, devido a gap crítico entre `validar` e `entitlements_status` + risco de compliance por links externos.
-- **Top 3 correções antes de review Apple**:
-  1. Unificar regra de entitlement/expiração em `validar` e `entitlements_status`.
-  2. Implementar lock de concorrência e UX de erro/sucesso para purchase/restore.
-  3. Remover/ocultar totalmente referências Hotmart no build iOS (código, textos e páginas acessíveis).
+- **Está pronto para produção iOS?** **Não**.
+
+### 3 correções prioritárias antes de enviar para review
+1. **Unificar entitlement entre `validar` e `entitlements_status`**, incluindo expiração Apple em ambos.
+2. **Remover/ocultar toda superfície de compra externa no build iOS** (código, páginas e strings).
+3. **Adicionar controle de concorrência + feedback UX robusto** para purchase/restore (loading, sucesso, erro, retry).

@@ -18,8 +18,8 @@ FEMFLOW.SCRIPT_URL =
   "https://femflowapi.falling-wildflower-a8c0.workers.dev/";
 FEMFLOW.API_URL = FEMFLOW.SCRIPT_URL;
 FEMFLOW.ENV = FEMFLOW_ENV;
-FEMFLOW.IAP_APP_ACCESS_PRODUCT_ID = "com.femflow.app.access.monthly";
-FEMFLOW.IAP_PERSONAL_PRODUCT_ID = "com.femflow.app.personal.monthly";
+FEMFLOW.IAP_APP_ACCESS_PRODUCT_ID = "com.femflow.app.premium.monthly";
+FEMFLOW.IAP_PERSONAL_PRODUCT_ID = "com.femflow.app.personal.pro.monthly";
 FEMFLOW.IAP_PRODUCT_IDS = [
   FEMFLOW.IAP_APP_ACCESS_PRODUCT_ID,
   FEMFLOW.IAP_PERSONAL_PRODUCT_ID
@@ -424,8 +424,8 @@ FEMFLOW.iap = FEMFLOW.iap || {
 
 FEMFLOW.checkout = FEMFLOW.checkout || {
   productIds: {
-    access: "com.femflow.app.access.monthly",
-    personal: "com.femflow.app.personal.monthly"
+    access: "com.femflow.app.premium.monthly",
+    personal: "com.femflow.app.personal.pro.monthly"
   },
 
   isIOS() {
