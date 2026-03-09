@@ -4,12 +4,7 @@
    ✅ separa ACESSO (has_personal) de MODO (mode_personal)
 =========================================================== */
 
-/* LINKS */
-const LINK_ACESSO_APP = "https://pay.hotmart.com/T103984580L?off=ifcs6h6n";
-const LINK_PERSONAL   = "https://pay.hotmart.com/T103984580L?off=sybtfokt";
 window.FEMFLOW = window.FEMFLOW || {};
-window.FEMFLOW.LINK_ACESSO_APP = window.FEMFLOW.LINK_ACESSO_APP || LINK_ACESSO_APP;
-window.FEMFLOW.LINK_PERSONAL = window.FEMFLOW.LINK_PERSONAL || LINK_PERSONAL;
 
 /* FOLLOWME */
 const FOLLOWME_LINKS = {
@@ -33,30 +28,57 @@ const HOME_VIDEO_SOURCES = {
 const EBOOKS_HOME = [
   {
     nome: {
-      pt: "Hipopressivos para alívio das cólicas",
-      en: "Hypopressive exercises for menstrual cramp relief",
-      fr: "Hypopressifs pour soulager les douleurs menstruelles"
+      pt: "Leveza no Ciclo: Hipopressivos para dias sem cólica",
+      en: "Cycle Relief: Hypopressive moves for cramp-free days",
+      fr: "Cycle léger : hypopressifs pour des jours sans douleurs"
     },
     capa: "capahipopressivos.png",
     arquivo: "Guia-Completo-de-Exerccios-Hipopressivos-para-Alvio-das-Clicas-Menstruais.pdf"
   },
   {
     nome: {
-      pt: "Hidratação feminina: saúde hormonal e bem-estar",
-      en: "Women's hydration: hormonal health and wellness",
-      fr: "Hydratation féminine : santé hormonale et bien-être"
+      pt: "Glow Feminino: hidratação para equilíbrio hormonal",
+      en: "Feminine Glow: hydration for hormonal balance",
+      fr: "Éclat féminin : hydratation pour l’équilibre hormonal"
     },
     capa: "capaaguaequilibrio.png",
     arquivo: "Guia-Completo-da-Hidratao-Feminina-Saude-Hormnios-e-Bem-Estar.pdf"
   },
   {
     nome: {
-      pt: "FemFlow: jornada de empoderamento em 15 dias",
-      en: "FemFlow: 15-day empowerment journey",
-      fr: "FemFlow : parcours d'autonomisation en 15 jours"
+      pt: "FemFlow 15 Dias: seu recomeço ativo e confiante",
+      en: "FemFlow 15 Days: your active, confident reset",
+      fr: "FemFlow 15 jours : votre renouveau actif et confiant"
     },
     capa: "capafemflow15.png",
     arquivo: "FemFlow-jornada-de-empoderamento-de-15-dias-para-mulheres-rumo-a-uma-vida-ativa-.pdf"
+  },
+  {
+    nome: {
+      pt: "TPM Zen: respiração guiada para acalmar e aliviar",
+      en: "Zen PMS: guided breathing to soothe and ease",
+      fr: "SPM Zen : respiration guidée pour apaiser"
+    },
+    capa: "capatpmzem.png",
+    arquivo: "protocolo_tpm_zen.pdf"
+  },
+  {
+    nome: {
+      pt: "Metabolismo Ativo: método FemFlow com efeito EPOC",
+      en: "Active Metabolism: FemFlow's EPOC method",
+      fr: "Métabolisme actif : méthode FemFlow avec effet EPOC"
+    },
+    capa: "capaefeitoEPOC.png",
+    arquivo: "efeito_epoc.pdf"
+  },
+  {
+    nome: {
+      pt: "Nutrição do Ciclo: energia e bem-estar em cada fase",
+      en: "Cycle Nutrition: energy and wellness in every phase",
+      fr: "Nutrition du cycle : énergie et bien-être à chaque phase"
+    },
+    capa: "placeholder.png",
+    arquivo: "nutricao_ciclo_hormonal.pdf"
   }
 ];
 
@@ -1182,14 +1204,6 @@ function canAccessEbooks() {
   return ativa || vip;
 }
 
-function getEbookButtonLabel(locked) {
-  const lang = FEMFLOW.lang || "pt";
-  const labels = locked
-    ? { pt: "Bloqueado", en: "Locked", fr: "Bloqué" }
-    : { pt: "Abrir PDF", en: "Open PDF", fr: "Ouvrir le PDF" };
-  return labels[lang] || labels.pt;
-}
-
 function getEbookLockedDescription() {
   const lang = FEMFLOW.lang || "pt";
   const labels = {
@@ -1221,17 +1235,15 @@ function ebookCardHTML(ebook, locked) {
   const capa = ebook.capa ? resolveEbookAsset(`ebooks/${ebook.capa}`) : "";
   const thumbStyle = `${capa ? `--thumb-url:url('${capa}');` : ""}background-color:${EBOOKS_FALLBACK_COLOR};`;
   const filePath = resolveEbookAsset(`app/ebooks/downloads/${ebook.arquivo}`);
-  const ctaLabel = getEbookButtonLabel(locked);
 
   return `
     <article class="card${locked ? " locked" : ""}" data-ebook-file="${filePath}" data-locked="${locked}">
       <div class="thumb${capa ? " has-image" : ""}" style="${thumbStyle}">
-        ${locked ? '<span class="lock-overlay">🔒</span>' : ""}
+        ${locked ? '<span class="lock-overlay" aria-hidden="true"></span>' : ""}
       </div>
       <div class="info">
         <h3 class="ttl">${titulo}</h3>
         <p class="desc">${locked ? getEbookLockedDescription() : ""}</p>
-        <button class="home-btn" type="button">${ctaLabel}</button>
       </div>
     </article>`;
 }
@@ -1267,7 +1279,7 @@ function cardHTML(p) {
   const titulo = typeof p.titulo === "object" ? p.titulo[lang] : p.titulo;
   const desc = typeof p.desc === "object" ? p.desc[lang] : p.desc;
   const lockedClass = p.locked ? " locked" : "";
-  const lockOverlay = p.locked ? '<span class="lock-overlay">🔒</span>' : "";
+  const lockOverlay = p.locked ? '<span class="lock-overlay" aria-hidden="true"></span>' : "";
   const freeBadge = p.isFree ? '<span class="badge-free">Gratuito</span>' : "";
   const emBreveBadge = p.emBreve
     ? `<span class="badge-soon">${getComingSoonLabel()}</span>`
@@ -1343,10 +1355,10 @@ function msgCheckout(tipo) {
 }
 
 function abrirCheckout(tipo = "app") {
-  const preferredPlan = tipo === "personal" ? "personal" : "access";
-  FEMFLOW.checkout?.openCheckout?.({
+  const planId = tipo === "personal" ? "personal" : "access";
+  FEMFLOW.billing?.openPaywall?.(planId, {
     reason: "locked_card",
-    preferredPlan
+    source: "home_blocked_flow"
   });
 }
 
@@ -1382,6 +1394,57 @@ async function openBlockedFlow({ enfase = "", checkoutTipo = "app" } = {}) {
 function limparEstadoCustomTreino() {
   localStorage.removeItem(CUSTOM_TREINO_KEY);
   localStorage.removeItem(CUSTOM_BLOCOS_KEY);
+}
+
+
+async function rerenderHomeEntitlementsUI() {
+  const catalogo = await carregarCatalogoFirebase();
+
+  const perfilTemPersonal = localStorage.getItem("femflow_has_personal") === "true";
+  const produto = String(localStorage.getItem("femflow_produto") || "").toLowerCase();
+  const isVip = produto === "vip";
+
+  const perfilCardsPersonal = {
+    produto,
+    ativa: localStorage.getItem("femflow_ativa") === "true",
+    personal: perfilTemPersonal,
+    free_access: (() => {
+      const freeAccessRaw = localStorage.getItem("femflow_free_access");
+      if (!freeAccessRaw) return null;
+      try { return JSON.parse(freeAccessRaw); }
+      catch (err) { return null; }
+    })()
+  };
+
+  if (catalogo.personal.length === 0) {
+    const cards = CARDS_PERSONAL_SIMBOLICOS.map(c => {
+      if (c.enfase === "personal") {
+        return { ...c, locked: !perfilTemPersonal };
+      }
+      return aplicarAcessoCards([c], perfilCardsPersonal)[0];
+    });
+    catalogo.personal.push(...cards);
+  }
+
+  catalogo.personal = [...aplicarAcessoCards(CARDS_BODYINSIGHT_SIMBOLICOS, perfilCardsPersonal), ...catalogo.personal];
+
+  if (catalogo.followme.length === 0) {
+    const cards = CARDS_FOLLOWME_SIMBOLICOS.map(c => ({
+      ...c,
+      locked: !isVip && produto !== c.enfase
+    }));
+    catalogo.followme.push(...cards);
+  }
+
+  clearHomeSkeleton();
+  renderRail(document.getElementById("railFollowMe"), catalogo.followme);
+  renderRail(document.getElementById("railMuscular"), catalogo.muscular);
+  renderRail(document.getElementById("railEsportes"), catalogo.esportes);
+  renderRail(document.getElementById("railCasa"), catalogo.casa);
+  renderRail(document.getElementById("railPersonal"), catalogo.personal);
+  renderRail(document.getElementById("railPlanilhas30Dias"), aplicarAcessoCards(CARDS_PLANILHAS_30_DIAS, perfilCardsPersonal));
+  renderEbookRail(document.getElementById("railEbooks"), EBOOKS_HOME);
+  aplicarIdiomaHome();
 }
 
 /* ============================================================
@@ -1716,6 +1779,12 @@ async function handleCardClick(enfase, locked) {
      (NUNCA vai direto para treino)
   ========================================= */
   if (enfase === "personal") {
+    const acessoApp = localStorage.getItem("femflow_ativa") === "true";
+    if (!acessoApp) {
+      localStorage.setItem("femflow_mode_personal", "false");
+      FEMFLOW.toast("Plano ativo necessário para usar o Modo Personal.", true);
+      return;
+    }
     FEMFLOW.toast("🌟 Modo Personal ativado!");
     localStorage.setItem("femflow_mode_personal", "true");
     return FEMFLOW.router("flowcenter.html");
@@ -2155,68 +2224,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-    const catalogo = await carregarCatalogoFirebase();
-
-    /* ============================================================
-       🧩 INJETAR VITRINE COMERCIAL (LOCAL CORRETO)
-    ============================================================ */
-    const perfilTemPersonal =
-      localStorage.getItem("femflow_has_personal") === "true";
-
-    const produto =
-      String(localStorage.getItem("femflow_produto") || "").toLowerCase();
-    const isVip = produto === "vip";
-
-    const perfilCardsPersonal = {
-      produto,
-      ativa: localStorage.getItem("femflow_ativa") === "true",
-      personal: perfilTemPersonal,
-      free_access: (() => {
-        const freeAccessRaw = localStorage.getItem("femflow_free_access");
-        if (!freeAccessRaw) return null;
-        try { return JSON.parse(freeAccessRaw); }
-        catch (err) { return null; }
-      })()
-    };
-
-    // PERSONAL — sempre aparece:
-    // - se tem personal → desbloqueado (ativa modo personal)
-    // - se não tem → locked e vira propaganda CTA
-    if (catalogo.personal.length === 0) {
-
-      const cards = CARDS_PERSONAL_SIMBOLICOS.map(c => {
-        if (c.enfase === "personal") {
-          return {
-            ...c,
-            locked: !perfilTemPersonal
-          };
-        }
-        return aplicarAcessoCards([c], perfilCardsPersonal)[0];
-      });
-    catalogo.personal.push(...cards);
-  }
-
-    catalogo.personal = [...aplicarAcessoCards(CARDS_BODYINSIGHT_SIMBOLICOS, perfilCardsPersonal), ...catalogo.personal];
-
-    // FOLLOWME — sempre aparece como vitrine
-    if (catalogo.followme.length === 0) {
-      const cards = CARDS_FOLLOWME_SIMBOLICOS.map(c => ({
-        ...c,
-        locked: !isVip && produto !== c.enfase
-      }));
-      catalogo.followme.push(...cards);
-    }
-
-    clearHomeSkeleton();
-    renderRail(document.getElementById("railFollowMe"), catalogo.followme);
-    renderRail(document.getElementById("railMuscular"), catalogo.muscular);
-    renderRail(document.getElementById("railEsportes"), catalogo.esportes);
-    renderRail(document.getElementById("railCasa"), catalogo.casa);
-    renderRail(document.getElementById("railPersonal"), catalogo.personal);
-    renderRail(document.getElementById("railPlanilhas30Dias"), aplicarAcessoCards(CARDS_PLANILHAS_30_DIAS, perfil));
-    aplicarIdiomaHome();
-
-    renderEbookRail(document.getElementById("railEbooks"), EBOOKS_HOME);
+    await rerenderHomeEntitlementsUI();
   } catch (err) {
     console.error("HOME init erro:", err);
     FEMFLOW.toast("Falha ao carregar. Verifique internet.");
@@ -2228,8 +2236,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 /* ============================================================
    🔥 Quando o idioma mudar → traduz de novo a home
 =========================================================== */
-document.addEventListener("femflow:entitlementsUpdated", () => {
-  window.location.reload();
+document.addEventListener("femflow:entitlementsUpdated", async () => {
+  try {
+    await carregarPerfilEAtualizarStorage();
+    await rerenderHomeEntitlementsUI();
+  } catch (err) {
+    console.warn("[HOME] Falha ao atualizar UI após entitlement:", err);
+  }
 });
 
 document.addEventListener("femflow:langChange", aplicarIdiomaHome);

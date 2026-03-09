@@ -73,7 +73,7 @@
 
   <!-- Rodapé -->
   <div class="fix-footer">
-    <button id="salvarTreinoBtn" class="btn-primary-clean">💾 Salvar treino</button>
+    <button id="salvarTreinoBtn" class="btn-primary-clean">Salvar treino</button>
     <button id="cancelarTreinoBtn" class="btn-tertiary-clean">Cancelar</button>
   </div>
 
@@ -86,7 +86,7 @@
       <p class="modal-helper" id="pseHint">PSE é sua percepção de esforço no treino (0 = muito leve, 10 = máximo).</p>
       <div class="pse-slider-wrapper">
         <div class="pse-emoji" id="pseEmojiWrap" aria-live="polite">
-          <span id="pseEmoji">😴</span>
+          <span id="pseEmoji">Muito leve</span>
           <span class="pse-emoji-value" id="pseEmojiValue">0</span>
         </div>
         <input type="range" min="0" max="10" value="0" id="pseInput" class="modal-slider"/>
@@ -136,6 +136,7 @@
 
 <!-- SCRIPTS FEMFLOW -->
 <script src="core/femflow-core.js" defer></script>
+<script src="js/billing/access.js" defer></script>
 <script src="js/lang.js" defer></script>
 <script src="./js/treino-engine.js" defer></script>
 <script src="./js/treino-caminhos.js" defer></script>
@@ -265,7 +266,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 <!-- MODAL DE NÍVEL (TREINO) -->
 <div id="modal-nivel" class="modal-nivel oculto">
   <div class="modal-nivel-box">
-    <h2>📊 Selecione seu nível</h2>
+    <h2>Selecione seu nível</h2>
 
     <button class="nivel-btn" data-nivel="iniciante">Iniciante</button>
     <button class="nivel-btn" data-nivel="intermediaria">Intermediária</button>

@@ -6,7 +6,6 @@
    ✔ Separação ACESSO x MODO PERSONAL
 =========================================================== */
 
-const LINK_ACESSO_APP = "https://pay.hotmart.com/T103984580L?off=ifcs6h6n";
 const ENDURANCE_PUBLIC_IDS = [
   "bike_20000m",
   "bike_40000m",
@@ -52,10 +51,10 @@ function msgCheckout(tipo) {
 }
 
 function abrirCheckout(tipo = "app") {
-  const preferredPlan = tipo === "personal" ? "personal" : "access";
-  FEMFLOW.checkout?.openCheckout?.({
+  const planId = tipo === "personal" ? "personal" : "access";
+  FEMFLOW.billing?.openPaywall?.(planId, {
     reason: "locked_card",
-    preferredPlan
+    source: "flowcenter_blocked_flow"
   });
 }
 
@@ -273,7 +272,37 @@ function flowcenterPersistPerfil(perfil) {
 /* ============================================================
    🚀 INIT
 =========================================================== */
+
+
+function refreshFlowcenterLocksFromEntitlements() {
+  const produtoRaw = String(localStorage.getItem("femflow_produto") || "").toLowerCase();
+  const hasPersonal = localStorage.getItem("femflow_has_personal") === "true";
+  const modePersonal = localStorage.getItem("femflow_mode_personal") === "true";
+  const endurancePublicIntent = localStorage.getItem("femflow_endurance_public_intent") === "true";
+  const personal = hasPersonal && modePersonal;
+  const bloquearEnduranceApp = produtoRaw === "acesso_app" && !personal && !endurancePublicIntent;
+
+  const enduranceBtn = document.getElementById("toEndurance");
+  if (enduranceBtn) {
+    enduranceBtn.classList.toggle("btn-locked", bloquearEnduranceApp);
+    enduranceBtn.setAttribute("aria-disabled", bloquearEnduranceApp ? "true" : "false");
+  }
+
+  const customBtn = document.getElementById("toCustomTrain");
+  if (customBtn) {
+    const ativa = localStorage.getItem("femflow_ativa") === "true";
+    const isVip = produtoRaw === "vip";
+    const isApp = produtoRaw === "acesso_app" || produtoRaw === "trial_app";
+    const temAcessoCustom = hasPersonal || isVip || isApp || ativa;
+    customBtn.classList.toggle("btn-locked", !temAcessoCustom);
+    customBtn.setAttribute("aria-disabled", temAcessoCustom ? "false" : "true");
+  }
+}
+
 document.addEventListener("DOMContentLoaded", initFlowCenter);
+document.addEventListener("femflow:entitlementsUpdated", () => {
+  refreshFlowcenterLocksFromEntitlements();
+});
 
 async function initFlowCenter() {
   requestAnimationFrame(() => {
@@ -554,11 +583,11 @@ async function initFlowCenter() {
       document.getElementById("lbl-"+f).textContent = L[f];
     });
 
-    if (el.toBreath) el.toBreath.textContent = `💨 ${L.respiracao}`;
-    const customLabel = isCustomTreino ? "🔓" : "🔒";
+    if (el.toBreath) el.toBreath.textContent = L.respiracao;
+    const customLabel = isCustomTreino ? "Disponível" : "Bloqueado";
     const treinoDisponivel = !isCustomTreino && treinoAcessoOk;
-    const treinoLabel = treinoDisponivel ? "🏋️‍♂️" : "🔒";
-    const extraLabel = !isCustomTreino && treinoAcessoOk ? "✨" : "🔒";
+    const treinoLabel = treinoDisponivel ? "Disponível" : "Bloqueado";
+    const extraLabel = !isCustomTreino && treinoAcessoOk ? "Disponível" : "Bloqueado";
     const treinoBtn = el.toTrain;
     if (treinoBtn) {
       treinoBtn.textContent = `${treinoLabel} ${L.treino}`;
@@ -570,10 +599,10 @@ async function initFlowCenter() {
     if (customBtn) {
       customBtn.textContent = `${customLabel} ${L.treinoCustom}`;
     }
-    if (el.toEvolution) el.toEvolution.textContent = `📈 ${L.evolucao}`;
-    const enduranceLabel = bloquearEnduranceApp ? "🔒" : "🏃‍♂️";
+    if (el.toEvolution) el.toEvolution.textContent = L.evolucao;
+    const enduranceLabel = bloquearEnduranceApp ? "Bloqueado" : "Disponível";
     if (el.toEndurance) el.toEndurance.textContent = `${enduranceLabel} ${L.endurance}`;
-    if (el.toHomeSwitch) el.toHomeSwitch.textContent = `🏠 ${L.homeSwitch}`;
+    if (el.toHomeSwitch) el.toHomeSwitch.textContent = L.homeSwitch;
     const extraTitle = document.getElementById("extraTitle");
     const extraSub = document.getElementById("extraSub");
     if (extraTitle) extraTitle.textContent = L.treinoExtraTitulo;
@@ -1420,10 +1449,27 @@ async function initFlowCenter() {
   function abrirModalEndurancePersonalVazio() {
     if (!modalEndurancePersonal) return;
 
+    const isIos = FEMFLOW.isCapacitorIOS?.() === true;
     const whatsappNumber = "551151942268";
     const mensagem = encodeURIComponent(
       "Olá! Meu Endurance Personal ainda não está configurado no app. Pode verificar para mim? 🌸"
     );
+    const emptyActionHtml = isIos
+      ? `
+          <p class="endurance-empty-note">
+            Avise seu personal pelo canal já combinado e tente novamente em alguns minutos.
+          </p>
+        `
+      : `
+          <a
+            href="#"
+            class="endurance-btn"
+            id="enduranceWhatsappBtn"
+            data-whatsapp-url="https://wa.me/${whatsappNumber}?text=${mensagem}"
+          >
+            Falar no WhatsApp
+          </a>
+        `;
 
     if (modalEndurancePersonalSemanas) {
       modalEndurancePersonalSemanas.innerHTML = `
@@ -1433,16 +1479,11 @@ async function initFlowCenter() {
             Seu treino ainda não foi configurado
           </p>
           <p class="endurance-empty-sub">
-            Fale diretamente com seu personal para liberar seu Endurance.
+            ${isIos
+              ? "Seu Endurance será liberado automaticamente assim que o personal finalizar a configuração."
+              : "Fale diretamente com seu personal para liberar seu Endurance."}
           </p>
-          <a
-            href="https://wa.me/${whatsappNumber}?text=${mensagem}"
-            target="_blank"
-            class="endurance-btn"
-            id="enduranceWhatsappBtn"
-          >
-            Falar no WhatsApp
-          </a>
+          ${emptyActionHtml}
         </div>
       `;
     }
@@ -1460,11 +1501,22 @@ async function initFlowCenter() {
 
     abrirModalComLock(modalEndurancePersonal);
 
-    const btn = document.getElementById("enduranceWhatsappBtn");
-    if (btn) {
-      btn.addEventListener("click", async () => {
-        console.log("Usuária acionou suporte WhatsApp - Endurance Personal");
-      });
+    if (!isIos) {
+      const btn = document.getElementById("enduranceWhatsappBtn");
+      if (btn) {
+        btn.addEventListener("click", async (event) => {
+          event.preventDefault();
+          const targetUrl = btn.getAttribute("data-whatsapp-url") || "";
+          if (targetUrl) {
+            if (window.FEMFLOW?.openExternal) {
+              window.FEMFLOW.openExternal(targetUrl);
+            } else {
+              window.location.href = targetUrl;
+            }
+          }
+          console.log("Usuária acionou suporte WhatsApp - Endurance Personal");
+        });
+      }
     }
   }
 

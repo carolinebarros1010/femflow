@@ -18,8 +18,8 @@ FEMFLOW.SCRIPT_URL =
   "https://femflowapi.falling-wildflower-a8c0.workers.dev/";
 FEMFLOW.API_URL = FEMFLOW.SCRIPT_URL;
 FEMFLOW.ENV = FEMFLOW_ENV;
-FEMFLOW.IAP_APP_ACCESS_PRODUCT_ID = "com.femflow.app.access.monthly";
-FEMFLOW.IAP_PERSONAL_PRODUCT_ID = "com.femflow.app.personal.monthly";
+FEMFLOW.IAP_APP_ACCESS_PRODUCT_ID = "com.femflow.app.premium.monthly";
+FEMFLOW.IAP_PERSONAL_PRODUCT_ID = "com.femflow.app.personal.pro.monthly";
 FEMFLOW.IAP_PRODUCT_IDS = [
   FEMFLOW.IAP_APP_ACCESS_PRODUCT_ID,
   FEMFLOW.IAP_PERSONAL_PRODUCT_ID
@@ -310,18 +310,95 @@ FEMFLOW.sessionTransport = {
 
 FEMFLOW.openExternal = function (url) {
   if (!url) return;
-  window.location.href = url;
+
+  const targetUrl = String(url || "");
+  const isIosNative = FEMFLOW.isCapacitorIOS?.();
+  const blockedCommercialHosts = [
+    /(^|\.)hotmart\.com$/i
+  ];
+
+  let shouldBlockExternal = false;
+  try {
+    const parsed = new URL(targetUrl, document.baseURI);
+    const host = String(parsed.hostname || "").toLowerCase();
+    const isBlockedHost = blockedCommercialHosts.some(function (pattern) {
+      return pattern.test(host);
+    });
+
+    shouldBlockExternal = isBlockedHost;
+  } catch (err) {
+    shouldBlockExternal = /hotmart\.com/i.test(targetUrl);
+  }
+
+  if (isIosNative && shouldBlockExternal) {
+    const lang = String(FEMFLOW.lang || "pt").slice(0, 2).toLowerCase();
+    const mensagens = {
+      pt: "Assine no app para continuar",
+      en: "Subscribe in the app to continue",
+      fr: "Abonnez-vous dans l'app pour continuer"
+    };
+    FEMFLOW.toast?.(mensagens[lang] || mensagens.pt);
+    console.warn("[iOS hardening] Link externo comercial bloqueado no iOS nativo.", { url: targetUrl });
+    return;
+  }
+
+  window.location.href = targetUrl;
 };
+
+FEMFLOW.hardenIosExternalCommercialSurfaces = function () {
+  if (!FEMFLOW.isCapacitorIOS?.()) return;
+
+  const selectors = [
+    'a[href*="hotmart.com"]',
+    '.js-newsletter-external'
+  ].join(',');
+
+  document.querySelectorAll(selectors).forEach(function (link) {
+    link.setAttribute("aria-disabled", "true");
+    link.setAttribute("data-ios-hidden-commercial", "true");
+    link.style.display = "none";
+    link.addEventListener("click", function (event) {
+      event.preventDefault();
+      event.stopPropagation();
+      FEMFLOW.toast?.("Assine no app para continuar");
+    });
+  });
+};
+
+document.addEventListener("DOMContentLoaded", function () {
+  FEMFLOW.hardenIosExternalCommercialSurfaces?.();
+});
 
 FEMFLOW.openInternal = function (path) {
   if (!path) return;
   FEMFLOW.router?.(path);
 };
 
-FEMFLOW.LINK_ACESSO_APP = FEMFLOW.LINK_ACESSO_APP || "https://pay.hotmart.com/T103984580L?off=ifcs6h6n";
-FEMFLOW.LINK_PERSONAL = FEMFLOW.LINK_PERSONAL || "https://pay.hotmart.com/T103984580L?off=sybtfokt";
+// DEPRECATED compat layer temporária: manter até remover consumidores legados fora de billing.
+// Compliance iOS: não injetar defaults Hotmart hardcoded no bundle principal.
+FEMFLOW.LINK_ACESSO_APP = FEMFLOW.LINK_ACESSO_APP || "";
+FEMFLOW.LINK_PERSONAL = FEMFLOW.LINK_PERSONAL || "";
+
+FEMFLOW.isNativeIOS = function () {
+  return String(Capacitor?.getPlatform?.() || "").toLowerCase() === "ios";
+};
+
+FEMFLOW.isCapacitorIOS = function () {
+  try {
+    return FEMFLOW.isNativeIOS();
+  } catch (err) {
+    return false;
+  }
+};
+
+FEMFLOW.isLegacyEbooksPath = function (path = "") {
+  const normalized = String(path || "").toLowerCase().replace(/^\/+/, "");
+  return /^ebooks\/.+\.html$/.test(normalized);
+};
 
 FEMFLOW.iap = FEMFLOW.iap || {
+  _purchaseInFlight: false,
+  _restoreInFlight: false,
   async listProducts(productIds = []) {
     if (FEMFLOW.checkout?.isIOS?.()) {
       FEMFLOW.toast("IAP em configuração");
@@ -335,35 +412,48 @@ FEMFLOW.iap = FEMFLOW.iap || {
     if (FEMFLOW.checkout?.isIOS?.()) {
       FEMFLOW.toast("IAP em configuração");
     }
-    return { status: "stub", productId: String(productId || "") };
+    return { status: "error", message: "IAP em configuração", productId: String(productId || "") };
   },
   async restore() {
     if (FEMFLOW.checkout?.isIOS?.()) {
       FEMFLOW.toast("IAP em configuração");
     }
-    return { status: "stub" };
+    return { status: "error", restoredCount: 0, message: "IAP em configuração" };
   }
 };
 
 FEMFLOW.checkout = FEMFLOW.checkout || {
   productIds: {
-    access: "com.femflow.app.access.monthly",
-    personal: "com.femflow.app.personal.monthly"
+    access: "com.femflow.app.premium.monthly",
+    personal: "com.femflow.app.personal.pro.monthly"
   },
 
   isIOS() {
-    try {
-      const platform = String(window.Capacitor?.getPlatform?.() || "").toLowerCase();
-      if (platform === "ios") return true;
-    } catch (err) {}
-
-    const ua = String(navigator.userAgent || "").toLowerCase();
-    const hasIOS = /iphone|ipad|ipod/.test(ua);
-    const isMacTouch = /macintosh/.test(ua) && navigator.maxTouchPoints > 1;
-    return hasIOS || isMacTouch;
+    return FEMFLOW.isCapacitorIOS?.() === true;
   },
 
   async openCheckout({ reason = "", preferredPlan = "access" } = {}) {
+    // DEPRECATED: compat layer do core. Gateway oficial: FEMFLOW.checkout.openCheckout(planId, context) em js/billing/checkout.js.
+    const currentGatewayOpenCheckout = FEMFLOW.checkout?.openCheckout;
+    if (
+      typeof currentGatewayOpenCheckout === "function"
+      && currentGatewayOpenCheckout !== this.openCheckout
+      && !arguments[0]?.__fromCoreCompat
+    ) {
+      console.warn("[DEPRECATED] FEMFLOW.core.checkout.openCheckout legado delegando para gateway de billing.", { reason, preferredPlan });
+      return currentGatewayOpenCheckout(preferredPlan, {
+        source: "core_legacy_checkout",
+        reason,
+        preferredPlan,
+        __fromCoreCompat: true
+      });
+    }
+
+    if (FEMFLOW.iap?._purchaseInFlight || FEMFLOW.iap?._restoreInFlight) {
+      FEMFLOW.toast?.("Processando...");
+      return { status: "ignored", message: "purchase_in_flight" };
+    }
+
     const targetPlan = preferredPlan === "personal" ? "personal" : "access";
 
     if (!this.isIOS()) {
@@ -375,7 +465,7 @@ FEMFLOW.checkout = FEMFLOW.checkout || {
       const result = await FEMFLOW.iap.purchase(productId);
       const status = String(result?.status || "").toLowerCase();
       const purchaseSucceeded = status === "ok" || Boolean(result?.transactionId || result?.transaction?.transactionId);
-      const shouldFallbackPaywall = status === "stub" || status === "error" || status === "ignored";
+      const shouldFallbackPaywall = status === "error" || status === "ignored";
 
       if (purchaseSucceeded) return result;
       if (!shouldFallbackPaywall) return result;
@@ -387,10 +477,35 @@ FEMFLOW.checkout = FEMFLOW.checkout || {
   },
 
   openHotmart(plan = "access") {
+    // DEPRECATED compat layer temporária. TODO remover após migração total do billing.
+    console.warn("[DEPRECATED] FEMFLOW.core.checkout.openHotmart legado delegando para gateway de billing.", { plan });
+
+    const currentGatewayOpenCheckout = FEMFLOW.checkout?.openCheckout;
+    if (typeof currentGatewayOpenCheckout === "function" && currentGatewayOpenCheckout !== this.openCheckout) {
+      return currentGatewayOpenCheckout(plan, {
+        source: "core_legacy_openHotmart",
+        deprecated: true,
+        __fromCoreCompat: true
+      });
+    }
+
+    if (FEMFLOW.isCapacitorIOS?.()) {
+      const lang = String(FEMFLOW.lang || "pt").slice(0, 2).toLowerCase();
+      const mensagens = {
+        pt: "Assine no app para continuar",
+        en: "Subscribe in the app to continue",
+        fr: "Abonnez-vous dans l'app pour continuer"
+      };
+      FEMFLOW.toast?.(mensagens[lang] || mensagens.pt);
+      console.warn("[iOS hardening] openHotmart bloqueado no iOS nativo.", { plan });
+      return { status: "blocked", reason: "ios_native_hardening" };
+    }
+
     const targetPlan = plan === "personal" ? "personal" : "access";
     const url = targetPlan === "personal" ? FEMFLOW.LINK_PERSONAL : FEMFLOW.LINK_ACESSO_APP;
     if (!url) return;
     FEMFLOW.openExternal(url);
+    return { status: "ok", plan: targetPlan };
   },
 
   _paywallCopy() {
@@ -399,11 +514,14 @@ FEMFLOW.checkout = FEMFLOW.checkout || {
       pt: {
         aria: "Planos FemFlow",
         title: "Escolha seu plano",
-        subtitle: "Assine para desbloquear o FemFlow e baixar seus ebooks.",
+        subtitle: "Assine para acessar os recursos premium do FemFlow.",
         accessTitle: "Acesso App (mensal)",
-        accessDesc: "Treinos e ebooks inclusos na assinatura.",
+        accessDesc: "R$ 69,90 por mês",
         personalTitle: "Personal (mensal)",
-        personalDesc: "Acesso App + modo personal.",
+        personalDesc: "R$ 249,90 por mês",
+        legal: "A assinatura renova automaticamente a cada período, salvo cancelamento com pelo menos 24 horas de antecedência. O pagamento será cobrado na sua conta Apple. Você pode cancelar a qualquer momento nas configurações do seu Apple ID.",
+        terms: "Termos de uso",
+        privacy: "Política de privacidade",
         buy: "Assinar",
         restore: "Restaurar compras",
         close: "Agora não"
@@ -411,11 +529,14 @@ FEMFLOW.checkout = FEMFLOW.checkout || {
       en: {
         aria: "FemFlow plans",
         title: "Choose your plan",
-        subtitle: "Subscribe to unlock FemFlow and download your ebooks.",
+        subtitle: "Subscribe to access FemFlow premium features.",
         accessTitle: "App Access (monthly)",
-        accessDesc: "Workouts and ebooks included with your subscription.",
+        accessDesc: "R$ 69,90 per month",
         personalTitle: "Personal (monthly)",
-        personalDesc: "App Access + personal mode.",
+        personalDesc: "R$ 249,90 per month",
+        legal: "Subscriptions renew automatically each billing period unless canceled at least 24 hours before renewal. Payment is charged to your Apple account. You can cancel at any time in Apple ID settings.",
+        terms: "Terms of Use",
+        privacy: "Privacy Policy",
         buy: "Subscribe",
         restore: "Restore purchases",
         close: "Not now"
@@ -423,11 +544,14 @@ FEMFLOW.checkout = FEMFLOW.checkout || {
       fr: {
         aria: "Offres FemFlow",
         title: "Choisissez votre offre",
-        subtitle: "Abonnez-vous pour débloquer FemFlow et télécharger vos ebooks.",
+        subtitle: "Abonnez-vous pour accéder aux fonctionnalités premium de FemFlow.",
         accessTitle: "Accès App (mensuel)",
-        accessDesc: "Entraînements et ebooks inclus dans l'abonnement.",
+        accessDesc: "69,90 R$ par mois",
         personalTitle: "Personal (mensuel)",
-        personalDesc: "Accès App + mode personal.",
+        personalDesc: "249,90 R$ par mois",
+        legal: "L’abonnement se renouvelle automatiquement à chaque période, sauf annulation au moins 24 heures avant. Le paiement est débité de votre compte Apple. Vous pouvez annuler à tout moment dans les réglages de votre identifiant Apple.",
+        terms: "Conditions d’utilisation",
+        privacy: "Politique de confidentialité",
         buy: "S’abonner",
         restore: "Restaurer les achats",
         close: "Plus tard"
@@ -447,6 +571,9 @@ FEMFLOW.checkout = FEMFLOW.checkout || {
     const accessDesc = modal.querySelector("[data-paywall-access-desc]");
     const personalTitle = modal.querySelector("[data-paywall-personal-title]");
     const personalDesc = modal.querySelector("[data-paywall-personal-desc]");
+    const legal = modal.querySelector("[data-paywall-legal]");
+    const terms = modal.querySelector("[data-paywall-terms]");
+    const privacy = modal.querySelector("[data-paywall-privacy]");
     const buy = modal.querySelector(".ff-ios-buy");
     const restore = modal.querySelector(".ff-ios-restore");
     const close = modal.querySelector(".ff-ios-close");
@@ -457,6 +584,15 @@ FEMFLOW.checkout = FEMFLOW.checkout || {
     if (accessDesc) accessDesc.textContent = copy.accessDesc;
     if (personalTitle) personalTitle.textContent = copy.personalTitle;
     if (personalDesc) personalDesc.textContent = copy.personalDesc;
+    if (legal) legal.textContent = copy.legal;
+    if (terms) {
+      terms.textContent = copy.terms;
+      terms.setAttribute("href", FEMFLOW.assetUrl("docs/terms.html"));
+    }
+    if (privacy) {
+      privacy.textContent = copy.privacy;
+      privacy.setAttribute("href", FEMFLOW.assetUrl("docs/privacy.html"));
+    }
     if (buy) buy.textContent = copy.buy;
     if (restore) restore.textContent = copy.restore;
     if (close) close.textContent = copy.close;
@@ -482,6 +618,9 @@ FEMFLOW.checkout = FEMFLOW.checkout || {
         .ff-ios-paywall-actions button{flex:1 1 140px;border:0;border-radius:10px;padding:11px 12px;font-weight:700;cursor:pointer}
         .ff-ios-buy{background:#8b3d68;color:#fff}
         .ff-ios-restore{background:#f1eff4;color:#352f3f}
+        .ff-ios-paywall-legal{margin-top:8px;font-size:.78rem;line-height:1.35;color:#6b6272}
+        .ff-ios-paywall-links{display:flex;gap:10px;flex-wrap:wrap;margin-top:8px}
+        .ff-ios-paywall-links a{font-size:.8rem;color:#8b3d68;text-decoration:underline}
         .ff-ios-close{margin-top:12px;width:100%;background:transparent;border:0;color:#6f6781;padding:8px;cursor:pointer}
       `;
       document.head.appendChild(style);
@@ -506,6 +645,11 @@ FEMFLOW.checkout = FEMFLOW.checkout || {
         <button type="button" class="ff-ios-buy">Comprar</button>
           <button type="button" class="ff-ios-restore">Restaurar compras</button>
         </div>
+        <p class="ff-ios-paywall-legal" data-paywall-legal>A assinatura renova automaticamente a cada período, salvo cancelamento com pelo menos 24 horas de antecedência. O pagamento será cobrado na sua conta Apple. Você pode cancelar a qualquer momento nas configurações do seu Apple ID.</p>
+        <div class="ff-ios-paywall-links">
+          <a href="docs/terms.html" target="_blank" rel="noopener" data-paywall-terms>Termos de uso</a>
+          <a href="docs/privacy.html" target="_blank" rel="noopener" data-paywall-privacy>Política de privacidade</a>
+        </div>
         <button type="button" class="ff-ios-close">Agora não</button>
       </div>
     `;
@@ -515,6 +659,34 @@ FEMFLOW.checkout = FEMFLOW.checkout || {
     });
 
     let selectedPlan = "access";
+    const setBusy = (busy) => {
+      modal.querySelectorAll("button").forEach((button) => {
+        if (button.classList.contains("ff-ios-close")) {
+          button.disabled = false;
+          return;
+        }
+        button.disabled = Boolean(busy);
+      });
+    };
+
+    const toastIapResult = (result = {}) => {
+      const status = String(result?.status || "").toLowerCase();
+      const message = String(result?.message || "").trim();
+
+      if (status === "ok") {
+        FEMFLOW.toast?.(message || "Assinatura ativa. Acesso liberado.");
+        modal.classList.add("hidden");
+        return;
+      }
+
+      if (status === "cancelled") {
+        FEMFLOW.toast?.(message || "Compra cancelada.");
+        return;
+      }
+
+      FEMFLOW.toast?.(message || "Não foi possível concluir. Tente novamente.");
+    };
+
     const selectPlan = (plan) => {
       selectedPlan = plan === "personal" ? "personal" : "access";
       modal.querySelectorAll(".ff-ios-paywall-plan").forEach((btn) => {
@@ -526,13 +698,35 @@ FEMFLOW.checkout = FEMFLOW.checkout || {
       btn.addEventListener("click", () => selectPlan(btn.dataset.plan));
     });
 
-    modal.querySelector(".ff-ios-buy")?.addEventListener("click", () => {
+    modal.querySelector(".ff-ios-buy")?.addEventListener("click", async () => {
+      if (FEMFLOW.iap?._purchaseInFlight || FEMFLOW.iap?._restoreInFlight) {
+        FEMFLOW.toast?.("Processando...");
+        return;
+      }
+
       const productId = this.productIds[selectedPlan] || this.productIds.access;
-      void FEMFLOW.iap.purchase(productId);
+      setBusy(true);
+      try {
+        const result = await FEMFLOW.iap.purchase(productId);
+        toastIapResult(result);
+      } finally {
+        setBusy(false);
+      }
     });
 
-    modal.querySelector(".ff-ios-restore")?.addEventListener("click", () => {
-      void FEMFLOW.iap.restore();
+    modal.querySelector(".ff-ios-restore")?.addEventListener("click", async () => {
+      if (FEMFLOW.iap?._purchaseInFlight || FEMFLOW.iap?._restoreInFlight) {
+        FEMFLOW.toast?.("Processando...");
+        return;
+      }
+
+      setBusy(true);
+      try {
+        const result = await FEMFLOW.iap.restore();
+        toastIapResult(result);
+      } finally {
+        setBusy(false);
+      }
     });
 
     modal.querySelector(".ff-ios-close")?.addEventListener("click", () => {
@@ -1792,7 +1986,8 @@ FEMFLOW.getNativePurchasesPlugin = function () {
 
 FEMFLOW.updateEntitlementsFromPayload = function (payload = {}) {
   const acessoApp = payload.acesso_app === true || payload.acesso_app === "true";
-  const modoPersonal = payload.modo_personal === true || payload.modo_personal === "true";
+  const modoPersonalPayload = payload.modo_personal === true || payload.modo_personal === "true";
+  const modoPersonal = acessoApp && modoPersonalPayload;
   const produtoAtual = String(localStorage.getItem("femflow_produto") || "").toLowerCase().trim();
   const produtoPerfil = String(payload.produto || payload.produto_perfil || "").toLowerCase().trim();
 
@@ -1835,15 +2030,34 @@ FEMFLOW.iap = Object.assign(FEMFLOW.iap || {}, {
   pluginReady: false,
   products: [],
   initialized: false,
+  _purchaseInFlight: false,
+  _restoreInFlight: false,
+
+  _statusCopy() {
+    const lang = String(FEMFLOW.lang || "pt").slice(0, 2).toLowerCase();
+    const copy = {
+      success: { pt: "Assinatura ativa. Acesso liberado.", en: "Subscription active. Access unlocked.", fr: "Abonnement actif. Accès débloqué." },
+      cancelled: { pt: "Compra cancelada.", en: "Purchase cancelled.", fr: "Achat annulé." },
+      genericError: { pt: "Não foi possível concluir. Tente novamente.", en: "Could not complete it. Please try again.", fr: "Impossible de finaliser. Réessayez." },
+      processing: { pt: "Processando...", en: "Processing...", fr: "Traitement..." }
+    };
+    const pick = (bucket) => copy[bucket]?.[lang] || copy[bucket]?.pt || "";
+    return {
+      success: pick("success"),
+      cancelled: pick("cancelled"),
+      genericError: pick("genericError"),
+      processing: pick("processing")
+    };
+  },
 
   async init() {
-    if (!FEMFLOW.isNativeIOS()) return { status: "ignored", msg: "not_ios" };
-    if (this.initialized) return { status: "ok", msg: "already_initialized" };
+    if (!FEMFLOW.isNativeIOS()) return { status: "error", message: "Somente disponível no iOS nativo." };
+    if (this.initialized) return { status: "ok", message: "IAP inicializado." };
 
     const plugin = FEMFLOW.getNativePurchasesPlugin();
     if (!plugin) {
       FEMFLOW.toast?.("IAP em configuração");
-      return { status: "stub", msg: "plugin_missing" };
+      return { status: "error", message: "IAP em configuração" };
     }
 
     if (typeof plugin.initialize === "function") {
@@ -1854,14 +2068,14 @@ FEMFLOW.iap = Object.assign(FEMFLOW.iap || {}, {
 
     this.pluginReady = true;
     this.initialized = true;
-    return { status: "ok" };
+    return { status: "ok", message: "IAP pronto." };
   },
 
   async listProducts(productIds = FEMFLOW.IAP_PRODUCT_IDS) {
-    if (!FEMFLOW.isNativeIOS()) return { status: "ignored", products: [] };
+    if (!FEMFLOW.isNativeIOS()) return { status: "error", message: "Somente disponível no iOS nativo.", products: [] };
     const initResult = await this.init();
     const plugin = FEMFLOW.getNativePurchasesPlugin();
-    if (!plugin) return { status: initResult.status || "stub", products: [] };
+    if (!plugin) return { status: "error", message: initResult.message || "IAP em configuração", products: [] };
 
     let result = [];
     if (typeof plugin.getProducts === "function") {
@@ -1870,7 +2084,7 @@ FEMFLOW.iap = Object.assign(FEMFLOW.iap || {}, {
       result = await plugin.listProducts({ productIds });
     } else {
       FEMFLOW.toast?.("IAP em configuração");
-      return { status: "stub", products: [] };
+      return { status: "error", message: "IAP em configuração", products: [] };
     }
 
     const products = Array.isArray(result)
@@ -1879,12 +2093,15 @@ FEMFLOW.iap = Object.assign(FEMFLOW.iap || {}, {
         ? result.products
         : [];
     this.products = products;
-    return { status: "ok", products };
+    return { status: "ok", message: "Produtos carregados.", products };
   },
 
-  async activatePurchaseOnBackend({ productId, transactionId, purchaseDate, expiresDate, env }) {
+  async activatePurchaseOnBackend({ productId, transactionId, originalTransactionId, purchaseDate, expiresDate, env, signedPayload, receipt, source }) {
     const id = localStorage.getItem("femflow_id") || "";
     const email = localStorage.getItem("femflow_email") || "";
+
+    const correlationId = crypto?.randomUUID?.() || ("ff-iap-" + Date.now() + "-" + Math.random().toString(36).slice(2));
+    const idempotencyKey = transactionId ? ("ios:" + transactionId) : correlationId;
 
     return FEMFLOW.post({
       action: "iap_apple_activate",
@@ -1893,87 +2110,175 @@ FEMFLOW.iap = Object.assign(FEMFLOW.iap || {}, {
       userId: id,
       productId,
       transactionId,
+      originalTransactionId,
       purchaseDate,
       expiresDate,
-      env: env || FEMFLOW.ENV || "prod"
+      env: env || FEMFLOW.ENV || "prod",
+      signedPayload: signedPayload || "",
+      receipt: receipt || "",
+      source: source || "purchase",
+      correlationId,
+      idempotencyKey
     });
   },
 
   normalizeTransaction(tx = {}, productIdFallback = "") {
     return {
-      productId: tx.productId || tx.productIdentifier || productIdFallback,
-      transactionId: String(tx.transactionId || tx.id || tx.originalTransactionId || ""),
+      productId: tx.productId || tx.productIdentifier || tx.product || productIdFallback,
+      transactionId: String(tx.transactionId || tx.id || tx.transaction?.id || tx.originalTransactionId || ""),
+      originalTransactionId: String(tx.originalTransactionId || tx.originalId || tx.originalTransaction?.id || ""),
       purchaseDate: tx.purchaseDate || tx.transactionDate || tx.purchasedAt || "",
       expiresDate: tx.expirationDate || tx.expiresDate || tx.expiryDate || "",
       env: tx.environment || tx.env || "",
+      signedPayload: tx.signedPayload || tx.jwsRepresentation || "",
+      receipt: tx.receipt || tx.transactionReceipt || "",
       isActive: tx.isActive !== false && tx.revoked !== true
     };
   },
 
   async purchase(productId) {
-    if (!FEMFLOW.isNativeIOS()) return { status: "ignored", msg: "not_ios" };
-
-    await this.init();
-    const plugin = FEMFLOW.getNativePurchasesPlugin();
-    if (!plugin) {
-      FEMFLOW.toast?.("IAP em configuração");
-      return { status: "stub", msg: "plugin_missing" };
+    if (!FEMFLOW.isNativeIOS()) {
+      return { status: "error", message: "Somente disponível no iOS nativo." };
+    }
+    if (this._purchaseInFlight || this._restoreInFlight) {
+      return { status: "error", message: this._statusCopy().processing };
     }
 
-    let rawTx = null;
-    if (typeof plugin.purchaseProduct === "function") {
-      rawTx = await plugin.purchaseProduct({ productId });
-    } else if (typeof plugin.purchase === "function") {
-      rawTx = await plugin.purchase({ productId });
-    } else {
-      FEMFLOW.toast?.("IAP em configuração");
-      return { status: "stub", msg: "purchase_missing" };
+    this._purchaseInFlight = true;
+
+    try {
+      await this.init();
+      const plugin = FEMFLOW.getNativePurchasesPlugin();
+      if (!plugin) {
+        FEMFLOW.toast?.("IAP em configuração");
+        return { status: "error", message: "IAP em configuração" };
+      }
+
+      let rawTx = null;
+      if (typeof plugin.purchaseProduct === "function") {
+        rawTx = await plugin.purchaseProduct({ productId });
+      } else if (typeof plugin.purchase === "function") {
+        rawTx = await plugin.purchase({ productId });
+      } else {
+        FEMFLOW.toast?.("IAP em configuração");
+        return { status: "error", message: "IAP em configuração" };
+      }
+
+      const tx = this.normalizeTransaction(rawTx, productId);
+      if (!tx.productId || !tx.transactionId) {
+        const cancelCode = String(rawTx?.code || rawTx?.errorCode || rawTx?.status || "").toLowerCase();
+        const cancelMsg = String(rawTx?.message || rawTx?.errorMessage || "").toLowerCase();
+        const wasCancelled = cancelCode.includes("cancel") || cancelMsg.includes("cancel");
+        if (wasCancelled) return { status: "cancelled", message: this._statusCopy().cancelled };
+        return { status: "error", message: "Transação inválida." };
+      }
+
+      const backendActivation = await this.activatePurchaseOnBackend(Object.assign({}, tx, { source: "purchase" }));
+      const backendOk = backendActivation && String(backendActivation.status || "").toLowerCase() === "ok";
+
+      if (!backendOk) {
+        return {
+          status: "error",
+          transactionId: tx.transactionId,
+          message: String(backendActivation?.msg || backendActivation?.message || "Ativação não confirmada no servidor."),
+          code: String(backendActivation?.code || backendActivation?.msg || "iap_backend_activation_failed"),
+          reason: backendActivation?.reason || "",
+          entitlementStatus: backendActivation?.entitlementStatus || "",
+          sourceOfTruth: backendActivation?.sourceOfTruth || "server"
+        };
+      }
+
+      await FEMFLOW.refreshEntitlements();
+      document.dispatchEvent(new CustomEvent("femflow:entitlementsUpdated", { detail: { source: "iap_purchase", transactionId: tx.transactionId, backend: backendActivation } }));
+      return {
+        status: "ok",
+        transactionId: tx.transactionId,
+        message: this._statusCopy().success,
+        provider: backendActivation?.provider || "apple_iap",
+        entitlementStatus: backendActivation?.entitlementStatus || "active",
+        sourceOfTruth: backendActivation?.sourceOfTruth || "server"
+      };
+    } catch (err) {
+      const code = String(err?.code || err?.errorCode || "").toLowerCase();
+      const msg = String(err?.message || "").toLowerCase();
+      const wasCancelled = code.includes("cancel") || msg.includes("cancel");
+      if (wasCancelled) return { status: "cancelled", message: this._statusCopy().cancelled };
+      return { status: "error", message: this._statusCopy().genericError };
+    } finally {
+      this._purchaseInFlight = false;
     }
-
-    const tx = this.normalizeTransaction(rawTx, productId);
-    if (!tx.productId || !tx.transactionId) return { status: "error", msg: "invalid_transaction" };
-
-    await this.activatePurchaseOnBackend(tx);
-    await FEMFLOW.refreshEntitlements();
-    return { status: "ok", transaction: tx };
   },
 
   async restore() {
-    if (!FEMFLOW.isNativeIOS()) return { status: "ignored", msg: "not_ios" };
-
-    await this.init();
-    const plugin = FEMFLOW.getNativePurchasesPlugin();
-    if (!plugin) {
-      FEMFLOW.toast?.("IAP em configuração");
-      return { status: "stub", msg: "plugin_missing" };
+    if (!FEMFLOW.isNativeIOS()) {
+      return { status: "error", restoredCount: 0, message: "Somente disponível no iOS nativo." };
+    }
+    if (this._purchaseInFlight || this._restoreInFlight) {
+      return { status: "error", restoredCount: 0, message: this._statusCopy().processing };
     }
 
-    let restoredRaw = [];
-    if (typeof plugin.restorePurchases === "function") {
-      restoredRaw = await plugin.restorePurchases();
-    } else if (typeof plugin.restore === "function") {
-      restoredRaw = await plugin.restore();
-    } else {
-      FEMFLOW.toast?.("IAP em configuração");
-      return { status: "stub", msg: "restore_missing" };
+    this._restoreInFlight = true;
+
+    try {
+      await this.init();
+      const plugin = FEMFLOW.getNativePurchasesPlugin();
+      if (!plugin) {
+        FEMFLOW.toast?.("IAP em configuração");
+        return { status: "error", restoredCount: 0, message: "IAP em configuração" };
+      }
+
+      let restoredRaw = [];
+      if (typeof plugin.restorePurchases === "function") {
+        restoredRaw = await plugin.restorePurchases();
+      } else if (typeof plugin.restore === "function") {
+        restoredRaw = await plugin.restore();
+      } else {
+        FEMFLOW.toast?.("IAP em configuração");
+        return { status: "error", restoredCount: 0, message: "IAP em configuração" };
+      }
+
+      const entries = Array.isArray(restoredRaw)
+        ? restoredRaw
+        : Array.isArray(restoredRaw?.purchases)
+          ? restoredRaw.purchases
+          : [];
+
+      const activeTransactions = entries
+        .map(tx => this.normalizeTransaction(tx))
+        .filter(tx => tx.isActive && tx.productId && tx.transactionId);
+
+      const id = localStorage.getItem("femflow_id") || "";
+      const email = localStorage.getItem("femflow_email") || "";
+      const correlationId = crypto?.randomUUID?.() || ("ff-restore-" + Date.now() + "-" + Math.random().toString(36).slice(2));
+
+      const restoreResp = await FEMFLOW.post({
+        action: "iap_apple_restore",
+        id,
+        email,
+        userId: id,
+        source: "restore",
+        correlationId,
+        transactions: activeTransactions.map((tx) => Object.assign({}, tx, {
+          idempotencyKey: tx.transactionId ? ("ios:" + tx.transactionId) : ""
+        }))
+      });
+
+      if (!restoreResp || (restoreResp.status !== "ok" && restoreResp.status !== "partial")) {
+        return { status: "error", restoredCount: 0, message: this._statusCopy().genericError };
+      }
+
+      await FEMFLOW.refreshEntitlements();
+      document.dispatchEvent(new CustomEvent("femflow:entitlementsUpdated", { detail: { source: "iap_restore", restoredCount: activeTransactions.length } }));
+      return {
+        status: "ok",
+        restoredCount: activeTransactions.length,
+        message: this._statusCopy().success
+      };
+    } catch (err) {
+      return { status: "error", restoredCount: 0, message: this._statusCopy().genericError };
+    } finally {
+      this._restoreInFlight = false;
     }
-
-    const entries = Array.isArray(restoredRaw)
-      ? restoredRaw
-      : Array.isArray(restoredRaw?.purchases)
-        ? restoredRaw.purchases
-        : [];
-
-    const activeTransactions = entries
-      .map(tx => this.normalizeTransaction(tx))
-      .filter(tx => tx.isActive && tx.productId && tx.transactionId);
-
-    for (const tx of activeTransactions) {
-      await this.activatePurchaseOnBackend(tx);
-    }
-
-    await FEMFLOW.refreshEntitlements();
-    return { status: "ok", restored: activeTransactions };
   }
 });
 
@@ -2103,6 +2408,17 @@ FEMFLOW.router = pag => {
   const queryString = params.toString();
   const destino = queryString ? `${destinoBase}?${queryString}` : destinoBase;
   const current = (location.pathname.split("/").pop() || "").toLowerCase();
+
+  if (FEMFLOW.isCapacitorIOS?.() && FEMFLOW.isLegacyEbooksPath?.(destinoBase)) {
+    console.warn("[iOS hardening] Navegação bloqueada para ebooks legados:", destinoBase);
+    FEMFLOW.toast?.("Conteúdo indisponível no iOS nativo.");
+    const fallback = current === "home.html" ? null : "home.html";
+    if (!fallback) return;
+    FEMFLOW.pageTransition?.start();
+    location.href = fallback;
+    return;
+  }
+
   if (current === "index.html" && destinoBase === "index.html") return;
   FEMFLOW.pageTransition?.start();
   location.href = hashPart ? `${destino}#${hashPart}` : destino;
@@ -2115,6 +2431,26 @@ document.addEventListener("DOMContentLoaded", () => {
   FEMFLOW.pageTransition?.finish();
   FEMFLOW.installBackHandler?.();
   FEMFLOW.setupOfflineBanner?.();
+
+  if (FEMFLOW.isCapacitorIOS?.()) {
+    const currentPath = String(location.pathname || "").toLowerCase();
+    const relativePath = currentPath.includes("/app/")
+      ? currentPath.split("/app/").pop()
+      : currentPath.replace(/^\/+/, "");
+
+    if (FEMFLOW.isLegacyEbooksPath?.(relativePath)) {
+      console.warn("[iOS hardening] Acesso direto bloqueado para rota legada:", relativePath);
+      const fallback = relativePath.startsWith("ebooks/") ? "../home.html" : "home.html";
+      location.replace(fallback);
+      return;
+    }
+
+    document.querySelectorAll('a[href*="hotmart.com"], [data-hotmart-link], .btn-hotmart').forEach((el) => {
+      const container = el.closest("li, .menu-item, .header-actions") || el;
+      container.classList.add("hidden");
+      if (container.style) container.style.display = "none";
+    });
+  }
 
   document.addEventListener("keydown", (event) => FEMFLOW.trapModalFocus?.(event));
 
@@ -2363,18 +2699,18 @@ FEMFLOW.renderMenuLateral = function () {
       <h2 class="ff-menu-title">${FEMFLOW.t("menu.title")}</h2>
 
       <button class="ff-menu-op ff-close" data-go="fechar" aria-label="${FEMFLOW.t("menu.fechar")}">×</button>
-      <button class="ff-menu-op" data-go="idioma">🌐 ${FEMFLOW.t("menu.idioma")}</button>
-      <button class="ff-menu-op" data-go="sac">🛟 ${FEMFLOW.t("menu.sac")}</button>
-      <button class="ff-menu-op" data-go="ciclo">🎯 ${FEMFLOW.t("menu.ciclo")}</button>
-      <button class="ff-menu-op" data-go="respiracao">💨 ${FEMFLOW.t("menu.respiracao")}</button>
-      <button class="ff-menu-op" data-go="treinos">🏃 ${FEMFLOW.t("menu.treinos")}</button>
-      <button class="ff-menu-op" data-go="tema">🌓 ${FEMFLOW.t("menu.tema")}</button>
-      <button class="ff-menu-op" data-go="privacy">🔐 ${FEMFLOW.t("menu.privacy")}</button>
-      <button class="ff-menu-op" data-go="terms">📜 ${FEMFLOW.t("menu.terms")}</button>
-      <button class="ff-menu-op" data-go="deleteAccount">🗑️ ${FEMFLOW.t("menu.deleteAccount")}</button>
-      <button class="ff-menu-op" data-go="voltar">🔙 ${FEMFLOW.t("menu.voltar")}</button>
+      <button class="ff-menu-op" data-go="idioma">${FEMFLOW.t("menu.idioma")}</button>
+      <button class="ff-menu-op" data-go="sac">${FEMFLOW.t("menu.sac")}</button>
+      <button class="ff-menu-op" data-go="ciclo">${FEMFLOW.t("menu.ciclo")}</button>
+      <button class="ff-menu-op" data-go="respiracao">${FEMFLOW.t("menu.respiracao")}</button>
+      <button class="ff-menu-op" data-go="treinos">${FEMFLOW.t("menu.treinos")}</button>
+      <button class="ff-menu-op" data-go="tema">${FEMFLOW.t("menu.tema")}</button>
+      <button class="ff-menu-op" data-go="privacy">${FEMFLOW.t("menu.privacy")}</button>
+      <button class="ff-menu-op" data-go="terms">${FEMFLOW.t("menu.terms")}</button>
+      <button class="ff-menu-op" data-go="deleteAccount">${FEMFLOW.t("menu.deleteAccount")}</button>
+      <button class="ff-menu-op" data-go="voltar">${FEMFLOW.t("menu.voltar")}</button>
 
-      <button class="ff-logout" data-go="logout">🚪 ${FEMFLOW.t("menu.sair")}</button>
+      <button class="ff-logout" data-go="logout">${FEMFLOW.t("menu.sair")}</button>
     </div>
   `;
 
@@ -2580,13 +2916,13 @@ FEMFLOW.inserirModalIdioma = function () {
 
   modal.innerHTML = `
     <div class="ff-lang-box">
-      <h2>🌐 Idioma / Language / Langue</h2>
+      <h2>Idioma / Language / Langue</h2>
 
       <button class="ff-lang-btn" data-lang="pt">🇧🇷 Português</button>
       <button class="ff-lang-btn" data-lang="en">🇺🇸 English</button>
       <button class="ff-lang-btn" data-lang="fr">🇫🇷 Français</button>
 
-      <button class="ff-lang-close">✖ Fechar</button>
+      <button class="ff-lang-close">Fechar</button>
     </div>
   `;
 
@@ -2916,7 +3252,7 @@ FEMFLOW.renderNivelModal = function () {
   if (!modal) return;
 
   const title = modal.querySelector("h2");
-  if (title) title.textContent = `📊 ${FEMFLOW.t("nivelModal.title")}`;
+  if (title) title.textContent = FEMFLOW.t("nivelModal.title");
 
   const labels = {
     iniciante: FEMFLOW.t("nivelModal.iniciante"),

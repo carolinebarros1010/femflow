@@ -94,20 +94,20 @@
 
 <!-- NAV -->
 <div class="toolbar">
-  <button class="tool" id="toTrain">🏋️‍♂️ —</button>
-  <button class="tool" id="toEndurance">🏃‍♂️ Endurance</button>
-  <button class="tool" id="toBreath">💨 —</button>
-  <button class="tool" id="toExtraTrain">✨ —</button>
-  <button class="tool" id="toCustomTrain">🧩 —</button>
-  <button class="tool" id="toEvolution">📈 —</button>
+  <button class="tool" id="toTrain">Treino</button>
+  <button class="tool" id="toEndurance">Endurance</button>
+  <button class="tool" id="toBreath">Respiração</button>
+  <button class="tool" id="toExtraTrain">Treino Extra</button>
+  <button class="tool" id="toCustomTrain">Treino Personal</button>
+  <button class="tool" id="toEvolution">Evolução</button>
 </div>
 
-<button class="flowcenter-home-switch" id="toHomeSwitch">🏠 —</button>
+<button class="flowcenter-home-switch" id="toHomeSwitch">Home</button>
 
 <!-- MODAL DE NÍVEL -->
 <div id="modal-nivel" class="modal-nivel oculto">
   <div class="modal-nivel-box">
-    <h2>📊 Selecione seu nível</h2>
+    <h2>Selecione seu nível</h2>
 
     <button class="nivel-btn" data-nivel="iniciante">Iniciante</button>
     <button class="nivel-btn" data-nivel="intermediaria">Intermediária</button>
@@ -124,7 +124,7 @@
 <!-- MODAL DE TREINO EXTRA -->
 <div id="modal-extra" class="modal-extra oculto">
   <div class="modal-extra-box">
-    <h2 id="extraTitle">✨ Treino Extra</h2>
+    <h2 id="extraTitle">Treino Extra</h2>
     <p id="extraSub" class="modal-extra-sub">Escolha a área que deseja focar hoje.</p>
 
     <button class="extra-btn" data-extra-enfase="extra_superior">Superior</button>
@@ -147,7 +147,7 @@
 <!-- MODAL ENDURANCE -->
 <div id="modal-endurance" class="modal-endurance oculto" aria-hidden="true">
   <div class="modal-endurance-box" role="dialog" aria-modal="true">
-    <h2 id="enduranceModalTitulo">🏃‍♂️ Defina seu Endurance</h2>
+    <h2 id="enduranceModalTitulo">Defina seu Endurance</h2>
     <p class="modal-endurance-sub" id="enduranceModalSub">
       Responda para personalizarmos o seu treino de cardio.
     </p>
@@ -208,7 +208,7 @@
 <!-- MODAL ENDURANCE — SELEÇÃO -->
 <div id="modal-endurance-selecao" class="modal-endurance modal-endurance-selecao oculto" aria-hidden="true">
   <div class="modal-endurance-box" role="dialog" aria-modal="true">
-    <h2 id="enduranceSelecaoTitulo">🏃‍♂️ Escolha sua sessão</h2>
+    <h2 id="enduranceSelecaoTitulo">Escolha sua sessão</h2>
     <p class="modal-endurance-sub" id="enduranceSelecaoSub">
       Selecione a semana e o dia do treino que você vai realizar.
     </p>
@@ -246,7 +246,7 @@
 <!-- MODAL ENDURANCE PERSONAL — EXCLUSIVO -->
 <div id="modal-endurance-personal" class="modal-endurance modal-endurance-personal oculto" aria-hidden="true" data-mode="personal">
   <div class="modal-endurance-box" role="dialog" aria-modal="true">
-    <h2>✨ Endurance Personal</h2>
+    <h2>Endurance Personal</h2>
     <p class="modal-endurance-sub" id="endurancePersonalSub">
       Treino individual do seu personal. Selecione apenas opções disponíveis.
     </p>
@@ -267,7 +267,7 @@
     </div>
 
     <div id="endurancePersonalEmpty" class="endurance-personal-empty oculto">
-      <div class="endurance-personal-empty-icon">🌸</div>
+      <div class="endurance-personal-empty-icon">•</div>
       <p>Seu personal ainda não configurou seu endurance.</p>
       <button type="button" class="endurance-btn ghost" id="endurancePersonalFalar">Falar com meu personal</button>
     </div>
@@ -315,6 +315,11 @@
 <script src="services/firebase-init.js?v=20250127" defer></script>
 
 <script src="core/femflow-core.js" defer></script>
+<script src="js/billing/platform.js" defer></script>
+<script src="js/billing/checkout-hotmart-loader.js" defer></script>
+<script src="js/billing/iap-ios.js" defer></script>
+<script src="js/billing/checkout.js" defer></script>
+<script src="js/billing/access.js" defer></script>
 <script src="js/lang.js" defer></script>
 <script src="js/treino-engine.js" defer></script>
 <script src="js/treino-caminhos.js" defer></script>
