@@ -584,20 +584,28 @@ async function initFlowCenter() {
     });
 
     if (el.toBreath) el.toBreath.textContent = L.respiracao;
-    const customLabel = isCustomTreino ? "Disponível" : "Bloqueado";
     const treinoDisponivel = !isCustomTreino && treinoAcessoOk;
-    const treinoLabel = treinoDisponivel ? "Disponível" : "Bloqueado";
-    const extraLabel = !isCustomTreino && treinoAcessoOk ? "Disponível" : "Bloqueado";
+    const extraDisponivel = !isCustomTreino && treinoAcessoOk;
     const treinoBtn = el.toTrain;
     if (treinoBtn) {
-      treinoBtn.textContent = `${treinoLabel} ${L.treino}`;
+      treinoBtn.textContent = L.treino;
       treinoBtn.classList.toggle("tool-cta", treinoDisponivel);
       treinoBtn.classList.toggle("tool-locked", !treinoDisponivel);
+      treinoBtn.classList.toggle("btn-locked", !treinoDisponivel);
+      treinoBtn.disabled = !treinoDisponivel;
+      treinoBtn.setAttribute("aria-disabled", treinoDisponivel ? "false" : "true");
     }
-    if (el.toExtraTrain) el.toExtraTrain.textContent = `${extraLabel} ${L.treinoExtra}`;
+    if (el.toExtraTrain) {
+      el.toExtraTrain.textContent = L.treinoExtra;
+      el.toExtraTrain.classList.toggle("tool-cta", extraDisponivel);
+      el.toExtraTrain.classList.toggle("tool-locked", !extraDisponivel);
+      el.toExtraTrain.classList.toggle("btn-locked", !extraDisponivel);
+      el.toExtraTrain.disabled = !extraDisponivel;
+      el.toExtraTrain.setAttribute("aria-disabled", extraDisponivel ? "false" : "true");
+    }
     const customBtn = el.toCustomTrain;
     if (customBtn) {
-      customBtn.textContent = `${customLabel} ${L.treinoCustom}`;
+      customBtn.textContent = L.treinoCustom;
     }
     if (el.toEvolution) el.toEvolution.textContent = L.evolucao;
     const enduranceLabel = bloquearEnduranceApp ? "Bloqueado" : "Disponível";

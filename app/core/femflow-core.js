@@ -2537,10 +2537,12 @@ FEMFLOW.inserirHeaderApp = function () {
   h.innerHTML = `
     <img src="./assets/logofemflowterracotasf.png" class="ff-logo">
     <button id="ffNotificationsBtn" class="ff-notifications-btn" aria-label="${FEMFLOW.t("notifications.openAria")}" aria-haspopup="dialog">
-      🔔
+      <span class="ff-icon ff-icon-bell" aria-hidden="true"></span>
       <span id="ffNotificationsBadge" class="ff-notifications-badge" aria-hidden="true"></span>
     </button>
-    <button id="ffMenuBtn" class="ff-menu-btn">&#9776;</button>
+    <button id="ffMenuBtn" class="ff-menu-btn" aria-label="${FEMFLOW.t("menu.title")}">
+      <span class="ff-icon ff-icon-menu" aria-hidden="true"></span>
+    </button>
   `;
 
   document.body.prepend(h);
@@ -2918,9 +2920,9 @@ FEMFLOW.inserirModalIdioma = function () {
     <div class="ff-lang-box">
       <h2>Idioma / Language / Langue</h2>
 
-      <button class="ff-lang-btn" data-lang="pt">🇧🇷 Português</button>
-      <button class="ff-lang-btn" data-lang="en">🇺🇸 English</button>
-      <button class="ff-lang-btn" data-lang="fr">🇫🇷 Français</button>
+      <button class="ff-lang-btn" data-lang="pt">Português</button>
+      <button class="ff-lang-btn" data-lang="en">English</button>
+      <button class="ff-lang-btn" data-lang="fr">Français</button>
 
       <button class="ff-lang-close">Fechar</button>
     </div>
