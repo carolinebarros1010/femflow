@@ -89,7 +89,7 @@ body {
   background: var(--terracota);
   width: 0%;
   transition: width .35s;
-  z-index: 10;
+  z-index: 11000;
 }
 
 /* ============================================================
@@ -201,16 +201,17 @@ body {
   position: fixed;
   left: 0;
   right: 0;
+  bottom: 12px;
   bottom: max(env(safe-area-inset-bottom, 0px), 12px);
   width: 100%;
   padding: 12px 14px;
-  background: transparent;
+  background: linear-gradient(180deg, transparent 0%, rgba(255,245,239,0.95) 36%, rgba(255,245,239,1) 100%);
   display: flex;
   justify-content: center;
   align-items: center;
   flex-wrap: wrap;
   gap: 14px;
-  z-index: 10;
+  z-index: 11000;
 }
 
 body {
@@ -796,7 +797,7 @@ font-size: 0.9rem !important;
   top: 8px;
   right: 8px;
   border: none;
-  background: transparent;
+  background: linear-gradient(180deg, transparent 0%, rgba(255,245,239,0.95) 36%, rgba(255,245,239,1) 100%);
   font-size: 1.1rem;
   cursor: pointer;
 }

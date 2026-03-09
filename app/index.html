@@ -52,7 +52,7 @@
       <h2 id="tLoginBemVinda">Bem-vinda</h2>
       <p class="subtitle" id="tLoginSub">Acesse ou crie sua conta para iniciar seu ciclo</p>
 
-      <button id="btnLoginLang" class="login-lang-btn">🌐 Português</button>
+      <button id="btnLoginLang" class="login-lang-btn">Idioma: Português</button>
 
       <input id="loginEmail" type="email" placeholder="Seu e-mail"/>
 
@@ -80,7 +80,7 @@
           <img src="assets/icons/apple.svg">
         </div>
 
-        <div class="social-icon boho bio" id="bioSignIn">🔒</div>
+        <div class="social-icon boho bio" id="bioSignIn" aria-label="Login seguro"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M17 10h-1V8a4 4 0 1 0-8 0v2H7a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2Zm-7-2a2 2 0 1 1 4 0v2h-4V8Zm2 9a2 2 0 0 1-1-3.73V12h2v1.27A2 2 0 0 1 12 17Z"/></svg></div>
       </div>
 
     </div>
@@ -806,7 +806,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     $("#btnEntrar").textContent      = T.entrar;
     $("#linkCadastro").textContent   = T.cad;
     $("#goRecuperar").textContent    = T.esq;
-    btnLang.textContent              = `🌐 ${labels[lang] || labels.pt}`;
+    btnLang.textContent              = `Idioma: ${labels[lang] || labels.pt}`;
     const q = `?lang=${lang}`;
     $("#loginLegalText").innerHTML = `${T.legalPrefix} <a id="loginTermsLink" href="docs/terms.html${q}">${T.terms}</a> ${T.legalMiddle} <a id="loginPrivacyLink" href="docs/privacy.html${q}">${T.privacy}</a>.`;
   }
@@ -831,15 +831,15 @@ document.addEventListener("DOMContentLoaded", async () => {
 =============================== -->
 <div id="ff-lang-modal" class="ff-lang-modal hidden">
   <div class="ff-lang-box">
-    <h2>🌐 Idioma / Language / Langue</h2>
+    <h2>Idioma / Language / Langue</h2>
 
-    <button onclick="setLoginLang('pt')" class="ff-lang-btn">🇧🇷 Português</button>
-    <button onclick="setLoginLang('en')" class="ff-lang-btn">🇺🇸 English</button>
-    <button onclick="setLoginLang('fr')" class="ff-lang-btn">🇫🇷 Français</button>
+    <button onclick="setLoginLang('pt')" class="ff-lang-btn">Português</button>
+    <button onclick="setLoginLang('en')" class="ff-lang-btn">English</button>
+    <button onclick="setLoginLang('fr')" class="ff-lang-btn">Français</button>
 
     <button class="ff-lang-close"
       onclick="document.getElementById('ff-lang-modal').classList.add('hidden')">
-      ✖ Fechar
+      Fechar
     </button>
   </div>
 </div>
