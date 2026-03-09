@@ -52,7 +52,7 @@ function msgCheckout(tipo) {
 
 function abrirCheckout(tipo = "app") {
   const planId = tipo === "personal" ? "personal" : "access";
-  FEMFLOW.checkout?.openCheckout?.(planId, {
+  FEMFLOW.billing?.openPaywall?.(planId, {
     reason: "locked_card",
     source: "flowcenter_blocked_flow"
   });
