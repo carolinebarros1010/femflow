@@ -1239,7 +1239,7 @@ function ebookCardHTML(ebook, locked) {
   return `
     <article class="card${locked ? " locked" : ""}" data-ebook-file="${filePath}" data-locked="${locked}">
       <div class="thumb${capa ? " has-image" : ""}" style="${thumbStyle}">
-        ${locked ? '<span class="lock-overlay">🔒</span>' : ""}
+        ${locked ? '<span class="lock-overlay" aria-hidden="true"></span>' : ""}
       </div>
       <div class="info">
         <h3 class="ttl">${titulo}</h3>
@@ -1279,7 +1279,7 @@ function cardHTML(p) {
   const titulo = typeof p.titulo === "object" ? p.titulo[lang] : p.titulo;
   const desc = typeof p.desc === "object" ? p.desc[lang] : p.desc;
   const lockedClass = p.locked ? " locked" : "";
-  const lockOverlay = p.locked ? '<span class="lock-overlay">🔒</span>' : "";
+  const lockOverlay = p.locked ? '<span class="lock-overlay" aria-hidden="true"></span>' : "";
   const freeBadge = p.isFree ? '<span class="badge-free">Gratuito</span>' : "";
   const emBreveBadge = p.emBreve
     ? `<span class="badge-soon">${getComingSoonLabel()}</span>`

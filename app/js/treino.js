@@ -388,7 +388,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       if (doneSet.has(exercicioId)) {
         item.classList.add("ff-ex-done");
         if (btnSerie) {
-          btnSerie.textContent = "✔️ Exercício concluído";
+          btnSerie.textContent = "Exercício concluído";
           btnSerie.classList.add("done");
           btnSerie.disabled = true;
         }
@@ -448,18 +448,18 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   window.addEventListener("pagehide", forceTreinoSnapshot);
 
-  function getPseEmoji(valor) {
-    if (valor <= 2) return "😌";
-    if (valor <= 4) return "🙂";
-    if (valor <= 6) return "😅";
-    if (valor <= 8) return "😓";
-    return "🥵";
+  function getPseLabel(valor) {
+    if (valor <= 2) return "Muito leve";
+    if (valor <= 4) return "Leve";
+    if (valor <= 6) return "Moderado";
+    if (valor <= 8) return "Intenso";
+    return "Máximo";
   }
 
   function atualizarPseDisplay(valor) {
     if (!pseEmoji || !pseValor) return;
     const val = Number(valor || 0);
-    pseEmoji.textContent = getPseEmoji(val);
+    pseEmoji.textContent = getPseLabel(val);
     pseValor.textContent = String(val);
   }
 
@@ -761,7 +761,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     update();
   }
 
-  const pseEmojis = ["😴", "🙂", "🙂", "😌", "🙂", "😅", "😅", "😮‍💨", "😮‍💨", "🥵", "🥵"];
+  const pseEmojis = ["Muito leve", "Leve", "Leve", "Confortável", "Moderado", "Moderado+", "Intenso", "Muito intenso", "Muito intenso", "Máximo", "Máximo"];
 
   function atualizarEmojiPse(valor) {
     if (!pseEmoji) return;
@@ -1488,7 +1488,7 @@ if (tipoDominante === "hiitPremium") {
   const lang = FEMFLOW.lang || "pt";
   const fallbackMap = {
     pt: `
-      🔥 <b>Protocolo ${forte} / ${leve}</b><br>
+      <b>Protocolo ${forte} / ${leve}</b><br>
       Execute ${forte}s em alta intensidade e depois ${leve}s de recuperação.<br>
       Repita por ${ciclos} ciclos seguindo o timer abaixo.<br><br>
 
@@ -1498,7 +1498,7 @@ if (tipoDominante === "hiitPremium") {
       </span>
     `,
     en: `
-      🔥 <b>Protocol ${forte} / ${leve}</b><br>
+      <b>Protocol ${forte} / ${leve}</b><br>
       Do ${forte}s at high intensity and then ${leve}s of recovery.<br>
       Repeat for ${ciclos} cycles following the timer below.<br><br>
 
@@ -1508,7 +1508,7 @@ if (tipoDominante === "hiitPremium") {
       </span>
     `,
     fr: `
-      🔥 <b>Protocole ${forte} / ${leve}</b><br>
+      <b>Protocole ${forte} / ${leve}</b><br>
       Faites ${forte}s en haute intensité puis ${leve}s de récupération.<br>
       Répétez pendant ${ciclos} cycles en suivant le minuteur ci-dessous.<br><br>
 
@@ -1521,7 +1521,7 @@ if (tipoDominante === "hiitPremium") {
   const fallbackTexto = fallbackMap[lang] || fallbackMap.pt;
   const sugestaoHTML = link
     ? `
-      🔥 <b>${t("treino.hiit.protocolo", { forte, leve })}</b><br>
+      <b>${t("treino.hiit.protocolo", { forte, leve })}</b><br>
       ${t("treino.hiit.descricao", { forte, leve })}<br>
       ${t("treino.hiit.ciclos", { ciclos })}<br><br>
 
@@ -1663,14 +1663,14 @@ const totalSeries = Number(ex.series) || 1;
   const repsValue = ex.reps ? String(ex.reps).trim() : "";
   const seriesValue = ex.series ? String(ex.series).trim() : "";
   const repsInfoHTML = isIsometria
-    ? `<span>⏱️ <b>${execTempoText}</b> execução</span>`
+    ? `<span><b>Execução:</b> ${execTempoText}</span>`
     : distanciaText
-    ? `<span>📏 <b>${distanciaText}</b></span>`
+    ? `<span><b>Distância:</b> ${distanciaText}</span>`
     : repsValue
-    ? `<span>🔁 <b>${repsValue}</b></span>`
+    ? `<span><b>Reps:</b> ${repsValue}</span>`
     : execTempoValue
-    ? `<span>⏱️ <b>${execTempoText}</b></span>`
-    : `<span>🔁 <b>-</b></span>`;
+    ? `<span><b>Tempo:</b> ${execTempoText}</span>`
+    : `<span><b>Reps:</b> -</span>`;
 
 
 const serieProgressHTML = `
@@ -1685,7 +1685,7 @@ const serieProgressHTML = `
 const serieBtnHTML = `
   <button class="ff-serie-next-btn"
         data-role="serie-next">
-    ✔️ Concluir série
+    Concluir série
   </button>
 `;
 
@@ -1701,7 +1701,7 @@ const serieBtnHTML = `
       <div class="ff-cluster-wrap" data-cluster="true">
 
         <button class="ff-cluster-btn" data-cluster-start>
-          ▶️ Iniciar bloco
+          Iniciar bloco
         </button>
 
         <div class="ff-cluster-timer hidden">
@@ -1720,11 +1720,11 @@ if (ex._isRestPause && ex._isUltimoDoCombo) {
     <div class="ff-restpause-wrap hidden" data-rp="true">
 
       <p class="ff-restpause-label">
-        ⚡ Rest-Pause — reduza a carga e execute novamente
+        Rest-Pause — reduza a carga e execute novamente
       </p>
 
       <button class="ff-restpause-btn">
-        ▶️ Iniciar pausa RP
+        Iniciar pausa RP
       </button>
 
       <span class="ff-restpause-status">
@@ -1745,7 +1745,7 @@ if (ex._isRestPause && ex._isUltimoDoCombo) {
 if (ex._cadenciaExcentrica) {
   observacoesHTML += `
     <div class="ff-cadencia-note">
-      🐢 Controle a descida do movimento
+      Controle a descida do movimento
     </div>
   `;
 }
@@ -1754,7 +1754,7 @@ if (ex._cadenciaExcentrica) {
 if (ex._isometriaTempo) {
   observacoesHTML += `
     <div class="ff-isometria-note">
-      🧊 Permaneça com o músculo contraído por todo o tempo de execução.
+      Permaneça com o músculo contraído por todo o tempo de execução.
     </div>
   `;
 }
@@ -1772,7 +1772,7 @@ if (ex._isometriaTempo) {
     descansoHTML = `
       <div class="ff-descanso-wrap">
         <button class="ff-descanso-btn btnStartTimer">
-          ▶️ Iniciar descanso
+          Iniciar descanso
         </button>
 
         <span class="ff-timer-count">${fmtTime(intervalo)}</span>
@@ -1808,9 +1808,9 @@ return `
     </div>
 
     <div class="ff-info-line">
-      <span>🌀 <b>${seriesValue || "-"}</b>x</span>
+      <span><b>Séries:</b> ${seriesValue || "-"}x</span>
       ${repsInfoHTML}
-      <span>⏱️ <b>${intervalo}s</b></span>
+      <span><b>Intervalo:</b> ${intervalo}s</span>
     </div>
 
     <!-- 📊 PROGRESSO DE SÉRIES -->
@@ -1854,13 +1854,13 @@ return `
       btn.onclick = () => {
         if (rodando) {
           rodando = false;
-          btn.textContent = "▶️ Retomar";
+          btn.textContent = "Retomar";
           clearInterval(intv);
           return;
         }
 
         rodando = true;
-        btn.textContent = "⏸️ Pausar";
+        btn.textContent = "Pausar";
 
         if (restante <= 0) restante = total;
 
@@ -1878,7 +1878,7 @@ return `
           if (restante <= 0) {
             clearInterval(intv);
             rodando = false;
-            btn.textContent = "✔️ Finalizado";
+            btn.textContent = "Finalizado";
           }
 
         }, 1000);
@@ -1970,7 +1970,7 @@ function initClusterTimers() {
       if (rodando) return;
 
       rodando = true;
-      btn.textContent = "⏸️ Rodando…";
+      btn.textContent = "Rodando...";
       timerBox.classList.remove("hidden");
 
       tempo = 10;
@@ -1988,7 +1988,7 @@ function initClusterTimers() {
         if (tempo <= 0) {
           clearInterval(intv);
           rodando = false;
-          btn.textContent = "▶️ Próximo bloco";
+          btn.textContent = "Próximo bloco";
           timerBox.classList.add("hidden");
         }
       }, 1000);
@@ -2013,7 +2013,7 @@ function initRestPause() {
       if (rodando) return;
 
       rodando = true;
-      btn.textContent = "⏸️ Pausando…";
+      btn.textContent = "Pausando...";
       fill.style.width = "100%";
 
       let restante = pausa;
@@ -2027,7 +2027,7 @@ function initRestPause() {
           clearInterval(intv);
           rodando = false;
 
-          btn.textContent = "✔️ RP concluído";
+          btn.textContent = "RP concluído";
 
           const exItem = rpWrap.closest(".ff-ex-item");
           if (exItem) {
@@ -2072,7 +2072,7 @@ function initSeriesProgress() {
         exItem.dataset.rpDone = "true";
 
         btnSerie.disabled = false;
-        btnSerie.textContent = "✔️ Finalizar exercício";
+        btnSerie.textContent = "Finalizar exercício";
       }, { once: true });
     }
 
@@ -2099,7 +2099,7 @@ function initSeriesProgress() {
         if (atual === total && exigeRP && !rpConcluido) {
           rpWrap.classList.remove("hidden");
 
-          btnSerie.textContent = "⚡ Executar Rest-Pause";
+          btnSerie.textContent = "Executar Rest-Pause";
           btnSerie.disabled = true;
         }
 
@@ -2109,7 +2109,7 @@ function initSeriesProgress() {
 
       /* ✅ FINALIZA EXERCÍCIO */
       if (atual === total && (!exigeRP || rpConcluido)) {
-        btnSerie.textContent = "✔️ Exercício concluído";
+        btnSerie.textContent = "Exercício concluído";
         btnSerie.classList.add("done");
         btnSerie.disabled = true;
 
@@ -2391,7 +2391,7 @@ tipoTreino,
         }
 
         clearTreinoSnapshot();
-        FEMFLOW.toast("Treino salvo com sucesso! 💪");
+        FEMFLOW.toast("Treino salvo com sucesso!");
         registrarEvolucao({ pse, diaPrograma: resp.diaPrograma || diaPrograma });
         encerrarTreino();
 
@@ -2519,10 +2519,10 @@ window.getTreinoText = function (path, fallback = "") {
 window.getAquecimentoUI = function () {
   return {
     sugestao: getTreinoText("treino.aquecimento.sugestao",
-      "💨 Sugestão: prepare seu corpo com uma respiração consciente antes de começar."
+      "Sugestão: prepare seu corpo com uma respiração consciente antes de começar."
     ),
     btn: getTreinoText("treino.aquecimento.btn",
-      "🌬️ Abrir protocolos de respiração"
+      "Abrir protocolos de respiração"
     )
   };
 };
@@ -2530,7 +2530,7 @@ window.getAquecimentoUI = function () {
 window.getResfriamentoUI = function () {
   return {
     sugestao: getTreinoText("treino.resfriamento.sugestao",
-      "🌬️ Sugestão: finalize seu treino desacelerando com respiração suave."
+      "Sugestão: finalize seu treino desacelerando com respiração suave."
     ),
     btn: getTreinoText("treino.resfriamento.btn",
       "💗 Fazer respiração de fechamento"

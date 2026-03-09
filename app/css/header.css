@@ -189,6 +189,7 @@ body.dark .ff-menu-btn {
   bottom: 0;
   background: rgba(0,0,0,0.35);
   backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
   opacity: 0;
   pointer-events: none;
   transition: opacity .30s ease;
@@ -204,11 +205,13 @@ body.dark .ff-menu-btn {
   position: absolute;
   right: 0;
   top: 0;
-  width: 78%;
-  max-width: 330px;
+  width: min(86vw, 340px);
+  max-width: 340px;
   height: 100%;
   background: #fff;
-  padding: 26px;
+  padding: calc(var(--safe-top) + 18px) 18px calc(env(safe-area-inset-bottom, 0px) + 18px);
+  box-sizing: border-box;
+  overflow-y: auto;
   box-shadow: -4px 0 20px rgba(0,0,0,0.2);
   transform: translateX(100%);
   transition: transform .30s ease;
