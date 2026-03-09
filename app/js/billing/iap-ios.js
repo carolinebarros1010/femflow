@@ -4,8 +4,8 @@
 
   // Catálogo mínimo da Fase 2. TODO fase 3+: expandir para catálogo unificado do backend.
   const IOS_PRODUCT_MAP = {
-    access: "com.femflow.app.access.monthly",
-    personal: "com.femflow.app.personal.monthly"
+    access: "com.femflow.app.premium.monthly",
+    personal: "com.femflow.app.personal.pro.monthly"
   };
 
   const PRODUCT_TO_PLAN = Object.keys(IOS_PRODUCT_MAP).reduce((acc, planId) => {
