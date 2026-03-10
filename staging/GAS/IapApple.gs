@@ -86,7 +86,7 @@ function _buildBlockedEntitlementContract_(reason, extras) {
     sourceOfTruth: "server"
   });
 
-  return Object.assign(blocked, extras || {}, {
+  return Object.assign({}, blocked, extras || {}, {
     status: "blocked",
     reason: String(reason || "blocked"),
     msg: String(reason || "blocked")
@@ -117,7 +117,9 @@ function _getEntitlementBlockReasonFromRow_(row, headerMap) {
     };
   }
 
-  const produto = String(row[headerMap.Produto] || "").toLowerCase().trim();
+  const produto = headerMap.Produto != null
+    ? String(row[headerMap.Produto] || "").toLowerCase().trim()
+    : "";
   if (produto === "exclusao_solicitada") {
     return {
       reason: "delete_requested",
@@ -144,7 +146,7 @@ function _logManualGrant_(payload) {
 }
 
 function _applyManualAccessMetadata_(sh, rowIndex, headerMap, metadata) {
-  if (!sh || !headerMap || !rowIndex) return;
+  if (!sh || !headerMap || rowIndex <= 0) return;
   const meta = metadata || {};
   const source = String(meta.source || "manual_admin").trim();
   const plan = String(meta.plan || (meta.personal ? "personal" : "access")).trim();
@@ -171,7 +173,9 @@ function _computeUnifiedAccessState_(row, headerMap) {
     lastValidatedAt: ""
   };
 
-  const produto = String(row[headerMap.Produto] || "").toLowerCase().trim();
+  const produto = headerMap.Produto != null
+    ? String(row[headerMap.Produto] || "").toLowerCase().trim()
+    : "";
   const isVip = produto === "vip";
 
   if (isVip) {
