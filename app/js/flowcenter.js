@@ -62,6 +62,40 @@ async function abrirCheckoutOuIap(tipo) {
   abrirCheckout(tipo);
 }
 
+function executarBlockedAction(context = {}, options = {}) {
+  const { source = "flowcenter_blocked_flow", forceSkipCheckout = false } = options;
+
+  if (!FEMFLOW.blockedActionPolicy) {
+    console.error("blockedActionPolicy missing");
+    FEMFLOW.toast("Recurso indisponível.");
+    return null;
+  }
+
+  const action = FEMFLOW.blockedActionPolicy.resolveBlockedCardAction(context);
+
+  FEMFLOW.toast(
+    FEMFLOW.blockedActionPolicy.getBlockedActionToast(action.toastKey)
+  );
+
+  if (forceSkipCheckout || action.skipCheckout || !action.checkoutPlanId) {
+    return action;
+  }
+
+  const allowedPlans = ["access", "personal"];
+
+  if (!allowedPlans.includes(action.checkoutPlanId)) {
+    console.warn("Invalid planId from policy:", action.checkoutPlanId);
+    return action;
+  }
+
+  FEMFLOW.billing?.openPaywall?.(action.checkoutPlanId, {
+    reason: action.reasonCode || "locked_card",
+    source
+  });
+
+  return action;
+}
+
 
 function renderFlowcenterSkeleton() {
   const mount = document.body;
@@ -712,7 +746,8 @@ async function initFlowCenter() {
   const bloquearBotao = (btn, tipoCheckout = "app", options = {}) => {
     const {
       impedirCheckout = false,
-      aoBloquear = null
+      aoBloquear = null,
+      blockedContext = {}
     } = options;
 
     if (!btn) return;
@@ -725,13 +760,16 @@ async function initFlowCenter() {
 
       if (impedirCheckout) return;
 
-      if (tipoCheckout === "personal") {
-        FEMFLOW.toast(msgCheckout("personal"));
-        await abrirCheckoutOuIap("personal");
-      } else {
-        FEMFLOW.toast(msgCheckout("app"));
-        await abrirCheckoutOuIap("app");
-      }
+      executarBlockedAction({
+        categoria: tipoCheckout === "personal" ? "personal" : "app",
+        checkoutTipo: tipoCheckout,
+        produto: produtoRaw,
+        ativa: acessoAtivo,
+        hasPersonal,
+        ...blockedContext
+      }, {
+        source: "flowcenter_blocked_button"
+      });
     };
     btn.setAttribute("aria-disabled", "true");
   };
@@ -1128,8 +1166,16 @@ async function initFlowCenter() {
         return;
       }
       if (!treinoAcessoOk) {
-        FEMFLOW.toast(msgCheckout("app"));
-        await abrirCheckoutOuIap("app");
+        executarBlockedAction({
+          categoria: "app",
+          checkoutTipo: "app",
+          produto: produtoRaw,
+          ativa: acessoAtivo,
+          hasPersonal,
+          enfase: String(localStorage.getItem("femflow_enfase") || "")
+        }, {
+          source: "flowcenter_extra"
+        });
         return;
       }
       abrirModalComLock(modalExtra);
@@ -1911,8 +1957,16 @@ async function initFlowCenter() {
     const freeOk = freeValido && freeEnfases.includes(enfase);
 
     if (!hasPersonal && !acessoAtivo && !freeOk) {
-      FEMFLOW.toast(msgCheckout("app"));
-      await abrirCheckoutOuIap("app");
+      executarBlockedAction({
+        categoria: "app",
+        checkoutTipo: "app",
+        produto: produtoRaw,
+        ativa: acessoAtivo,
+        hasPersonal,
+        enfase
+      }, {
+        source: "flowcenter_to_train"
+      });
       return;
     }
 
@@ -1995,6 +2049,14 @@ async function initFlowCenter() {
       const temAcessoCustomSemCheckout = hasPersonal || isVip || isApp || ativa;
       bloquearBotao(customBtn, "app", {
         impedirCheckout: temAcessoCustomSemCheckout,
+        blockedContext: {
+          categoria: "app",
+          produto: produtoRaw,
+          ativa: acessoAtivo,
+          hasPersonal,
+          enfase: "monte_seu_treino",
+          isAccessAppIncludedContext: true
+        },
         aoBloquear: () => {
           if (temAcessoCustomSemCheckout) {
             FEMFLOW.toast("Selecione o novo treino em Home em Monte seu treino");
@@ -2016,6 +2078,14 @@ async function initFlowCenter() {
     if (bloquearEnduranceApp) {
       bloquearBotao(enduranceBtn, "app", {
         impedirCheckout: true,
+        blockedContext: {
+          categoria: "app",
+          produto: produtoRaw,
+          ativa: acessoAtivo,
+          hasPersonal,
+          enfase: "endurance",
+          isAccessAppIncludedContext: true
+        },
         aoBloquear: () => {
           FEMFLOW.toast("Selecione uma planilha de 30 dias na Home para liberar o Endurance.");
         }

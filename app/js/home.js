@@ -1402,28 +1402,8 @@ async function abrirCheckoutOuIap(tipo) {
   abrirCheckout(tipo);
 }
 
-async function openBlockedFlow({ enfase = "", checkoutTipo = "app" } = {}) {
-  const produto = (localStorage.getItem("femflow_produto") || "").toLowerCase();
-  const ativa = localStorage.getItem("femflow_ativa") === "true";
-  const hasPersonal = localStorage.getItem("femflow_has_personal") === "true";
-  const categoria = inferirCategoria(enfase);
-
-  const blockedAction = resolveBlockedCardAction({
-    enfase,
-    categoria,
-    produto,
-    ativa,
-    hasPersonal
-  });
-
-  void checkoutTipo;
-
-  if (
-    produto === "acesso_app" &&
-    ativa &&
-    blockedAction.checkoutPlanId === "access" &&
-    categoriaSegueRegrasAcessoApp(categoria)
-  ) {
+async function openBlockedFlow({ enfase = "", checkoutTipo = "app", isAccessAppIncludedContext = false } = {}) {
+  if (isAccessAppIncludedContext === true || isAccessAppIncludedContext === "true") {
     const lang = FEMFLOW.lang || "pt";
     const mensagens = {
       pt: "Selecione o novo treino em Home em Monte seu treino",
@@ -1803,7 +1783,11 @@ async function handleCardClick(enfase, locked) {
       : "app";
 
   if (locked) {
-    await openBlockedFlow({ enfase, checkoutTipo });
+    await openBlockedFlow({
+      enfase,
+      checkoutTipo,
+      isAccessAppIncludedContext: enfase === "monte_seu_treino"
+    });
     return;
   }
 
