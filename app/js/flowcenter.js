@@ -753,7 +753,7 @@ async function initFlowCenter() {
     const {
       impedirCheckout = false,
       aoBloquear = null,
-      blockedContext = {}
+      blockedContext = null
     } = options;
 
     if (!btn) return;
@@ -762,19 +762,15 @@ async function initFlowCenter() {
 
       if (typeof aoBloquear === "function") {
         aoBloquear();
+        if (impedirCheckout) return;
       }
 
-      if (impedirCheckout) return;
+      const defaultBlockedContext = tipoCheckout === "personal"
+        ? { enfase: "personal", categoria: "personal" }
+        : { categoria: "app" };
 
-      executarBlockedAction({
-        categoria: tipoCheckout === "personal" ? "personal" : "app",
-        checkoutTipo: tipoCheckout,
-        produto: produtoRaw,
-        ativa: acessoAtivo,
-        hasPersonal,
-        ...blockedContext
-      }, {
-        source: "flowcenter_blocked_button"
+      await executarBlockedAction(blockedContext || defaultBlockedContext, {
+        forceSkipCheckout: impedirCheckout
       });
     };
     btn.setAttribute("aria-disabled", "true");
@@ -1172,16 +1168,7 @@ async function initFlowCenter() {
         return;
       }
       if (!treinoAcessoOk) {
-        executarBlockedAction({
-          categoria: "app",
-          checkoutTipo: "app",
-          produto: produtoRaw,
-          ativa: acessoAtivo,
-          hasPersonal,
-          enfase: String(localStorage.getItem("femflow_enfase") || "")
-        }, {
-          source: "flowcenter_extra"
-        });
+        await executarBlockedAction({ categoria: "app" });
         return;
       }
       abrirModalComLock(modalExtra);
@@ -1972,16 +1959,7 @@ async function initFlowCenter() {
     const freeOk = freeValido && freeEnfases.includes(enfase);
 
     if (!hasPersonal && !acessoAtivo && !freeOk) {
-      executarBlockedAction({
-        categoria: "app",
-        checkoutTipo: "app",
-        produto: produtoRaw,
-        ativa: acessoAtivo,
-        hasPersonal,
-        enfase
-      }, {
-        source: "flowcenter_to_train"
-      });
+      await executarBlockedAction({ categoria: "app" });
       return;
     }
 
@@ -2064,19 +2042,9 @@ async function initFlowCenter() {
       const temAcessoCustomSemCheckout = hasPersonal || isVip || isApp || ativa;
       bloquearBotao(customBtn, "app", {
         impedirCheckout: temAcessoCustomSemCheckout,
-        blockedContext: {
-          categoria: "app",
-          produto: produtoRaw,
-          ativa: acessoAtivo,
-          hasPersonal,
-          enfase: "monte_seu_treino",
-          isAccessAppIncludedContext: true
-        },
-        aoBloquear: () => {
-          if (temAcessoCustomSemCheckout) {
-            FEMFLOW.toast("Selecione o novo treino em Home em Monte seu treino");
-          }
-        }
+        blockedContext: temAcessoCustomSemCheckout
+          ? { categoria: "app", isAccessAppIncludedContext: true }
+          : { categoria: "app" }
       });
     } else {
       customBtn.onclick = () => {
