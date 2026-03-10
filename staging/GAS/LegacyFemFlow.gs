@@ -21,7 +21,13 @@ function legacyValidarId_(id) {
   return { valido: ids.includes(String(id || "").trim()) };
 }
 
-function legacyUpgrade_(id, nivel, origem, token) {
+function legacyUpgrade_(id, nivel, origem, token, platformHint) {
+  const platform = _normalizePlatform_(platformHint || "");
+  if (platform === "ios") {
+    _logUpgrade({ id, nivel, origem, status: "blocked_ios_platform" });
+    return { error: "blocked_ios_platform" };
+  }
+
   if (!_isLegacyUpgradeToken_(token)) {
     _logUpgrade({ id, nivel, origem, status: "unauthorized" });
     return { error: "unauthorized" };
@@ -37,6 +43,13 @@ function legacyUpgrade_(id, nivel, origem, token) {
   const values = sh.getDataRange().getValues();
   for (let i = 1; i < values.length; i++) {
     if (String(values[i][0] || "").trim() === idNorm) {
+      const headerMap = _ensureIapColumns_(sh);
+      const source = String(values[i][headerMap.IapSource] || "").trim().toLowerCase();
+      if (source === "apple_iap") {
+        _logUpgrade({ id: idNorm, nivel: nivelNorm, origem, status: "blocked_ios_apple_source" });
+        return { error: "blocked_ios_apple_source" };
+      }
+
       const row = i + 1;
       sh.getRange(row, 7).setValue(new Date()); // DataCompra
       sh.getRange(row, 8).setValue(true); // LicencaAtiva

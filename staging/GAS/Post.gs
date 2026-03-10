@@ -184,7 +184,7 @@ function doPost(e) {
          🔐 UPGRADE MANUAL (LEGACY)
       ============================ */
       case "upgrade":
-        resposta = legacyUpgrade_(data.id, data.nivel, "POST", data.token);
+        resposta = legacyUpgrade_(data.id, data.nivel, "POST", data.token, data.platform);
         break;
 
       /* ===========================
