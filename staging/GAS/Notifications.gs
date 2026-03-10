@@ -13,7 +13,13 @@ const NOTIFICATIONS_HEADERS = [
   "CreatedAt",
   "SendAt",
   "Status",
-  "Deeplink"
+  "Deeplink",
+  "TitlePt",
+  "TitleEn",
+  "TitleFr",
+  "MessagePt",
+  "MessageEn",
+  "MessageFr"
 ];
 
 function getNotificationsSheet_() {
@@ -24,14 +30,31 @@ function createNotification_(data) {
   const now = new Date();
   const id = Utilities.getUuid();
 
+  const titlePt = String(data.titlePt || data.title_pt || data.title || "").trim();
+  const titleEn = String(data.titleEn || data.title_en || "").trim();
+  const titleFr = String(data.titleFr || data.title_fr || "").trim();
+  const messagePt = String(data.messagePt || data.message_pt || data.message || "").trim();
+  const messageEn = String(data.messageEn || data.message_en || "").trim();
+  const messageFr = String(data.messageFr || data.message_fr || "").trim();
+
   const payload = {
-    title: data.title || "",
-    message: data.message || "",
+    title: titlePt,
+    message: messagePt,
+    titlePt,
+    titleEn,
+    titleFr,
+    messagePt,
+    messageEn,
+    messageFr,
     type: data.type || "",
     push: data.push === true || String(data.push || "").toLowerCase() === "true",
     target: data.target || "",
     deeplink: data.deeplink || ""
   };
+
+  if (!payload.title || !payload.message) {
+    return { status: "error", msg: "missing_pt_copy" };
+  }
 
   try {
     const sheet = getNotificationsSheet_();
@@ -47,7 +70,13 @@ function createNotification_(data) {
       now,
       "",
       "draft",
-      payload.deeplink
+      payload.deeplink,
+      payload.titlePt,
+      payload.titleEn,
+      payload.titleFr,
+      payload.messagePt,
+      payload.messageEn,
+      payload.messageFr
     ]);
   } catch (err) {
     return { status: "error", msg: "sheet_error" };
@@ -82,7 +111,13 @@ function listNotifications_() {
     createdAt: header.indexOf("CreatedAt"),
     sendAt: header.indexOf("SendAt"),
     status: header.indexOf("Status"),
-    deeplink: header.indexOf("Deeplink")
+    deeplink: header.indexOf("Deeplink"),
+    titlePt: header.indexOf("TitlePt"),
+    titleEn: header.indexOf("TitleEn"),
+    titleFr: header.indexOf("TitleFr"),
+    messagePt: header.indexOf("MessagePt"),
+    messageEn: header.indexOf("MessageEn"),
+    messageFr: header.indexOf("MessageFr")
   };
 
   const rows = values.slice(1);
@@ -100,7 +135,13 @@ function listNotifications_() {
     createdAt: row[idx.createdAt],
     sendAt: row[idx.sendAt],
     status: row[idx.status],
-    deeplink: row[idx.deeplink]
+    deeplink: row[idx.deeplink],
+    titlePt: idx.titlePt === -1 ? row[idx.title] : row[idx.titlePt],
+    titleEn: idx.titleEn === -1 ? "" : row[idx.titleEn],
+    titleFr: idx.titleFr === -1 ? "" : row[idx.titleFr],
+    messagePt: idx.messagePt === -1 ? row[idx.message] : row[idx.messagePt],
+    messageEn: idx.messageEn === -1 ? "" : row[idx.messageEn],
+    messageFr: idx.messageFr === -1 ? "" : row[idx.messageFr]
   }));
 }
 
@@ -163,7 +204,13 @@ function sendNotification_(data) {
     target: header.indexOf("Target"),
     sendAt: header.indexOf("SendAt"),
     status: header.indexOf("Status"),
-    deeplink: header.indexOf("Deeplink")
+    deeplink: header.indexOf("Deeplink"),
+    titlePt: header.indexOf("TitlePt"),
+    titleEn: header.indexOf("TitleEn"),
+    titleFr: header.indexOf("TitleFr"),
+    messagePt: header.indexOf("MessagePt"),
+    messageEn: header.indexOf("MessageEn"),
+    messageFr: header.indexOf("MessageFr")
   };
 
   if (Object.keys(idx).some((key) => idx[key] === -1)) {
@@ -224,6 +271,7 @@ function sendNotification_(data) {
   const pushHeader = pushValues[0];
   const pushIdx = {
     userId: pushHeader.indexOf("UserId"),
+    lang: pushHeader.indexOf("Lang"),
     pushToken: pushHeader.indexOf("PushToken"),
     lastSentAt: pushHeader.indexOf("LastSentAt")
   };
@@ -243,18 +291,34 @@ function sendNotification_(data) {
     if (targetFilter && rowUserId !== targetFilter) continue;
 
     unique.add(rowToken);
-    targets.push({ token: rowToken, rowIndex: i });
+    const rowLang = normalizeNotificationLang_(pushValues[i][pushIdx.lang]);
+    targets.push({ token: rowToken, rowIndex: i, lang: rowLang });
   }
 
   if (!targets.length) {
     return { status: "error", msg: "no_tokens" };
   }
 
-  const notificationPayload = {
-    title: String(row[idx.title] || ""),
-    body: String(row[idx.message] || ""),
-    type: String(row[idx.type] || ""),
-    deeplink: String(row[idx.deeplink] || "")
+  const baseTitle = String(row[idx.title] || "").trim();
+  const baseBody = String(row[idx.message] || "").trim();
+
+  if (!baseTitle || !baseBody) {
+    return { status: "error", msg: "missing_title_or_body" };
+  }
+
+  const notificationDictionary = {
+    pt: {
+      title: String(idx.titlePt === -1 ? baseTitle : row[idx.titlePt] || baseTitle).trim(),
+      body: String(idx.messagePt === -1 ? baseBody : row[idx.messagePt] || baseBody).trim()
+    },
+    en: {
+      title: String(idx.titleEn === -1 ? "" : row[idx.titleEn] || "").trim(),
+      body: String(idx.messageEn === -1 ? "" : row[idx.messageEn] || "").trim()
+    },
+    fr: {
+      title: String(idx.titleFr === -1 ? "" : row[idx.titleFr] || "").trim(),
+      body: String(idx.messageFr === -1 ? "" : row[idx.messageFr] || "").trim()
+    }
   };
 
   const successTokens = [];
@@ -264,13 +328,11 @@ function sendNotification_(data) {
     const payload = {
       message: {
         token: target.token,
-        notification: {
-          title: notificationPayload.title,
-          body: notificationPayload.body
-        },
+        notification: resolveNotificationCopyByLang_(target.lang, notificationDictionary),
         data: {
-          type: notificationPayload.type,
-          deeplink: notificationPayload.deeplink || ""
+          type: String(row[idx.type] || ""),
+          deeplink: String(row[idx.deeplink] || ""),
+          lang: target.lang
         }
       }
     };
@@ -325,6 +387,23 @@ function sendNotification_(data) {
     sent: successTokens.length,
     failed: results.length - successTokens.length,
     results
+  };
+}
+
+function normalizeNotificationLang_(langRaw) {
+  const normalized = String(langRaw || "pt").trim().toLowerCase();
+  if (normalized === "en" || normalized === "fr") return normalized;
+  return "pt";
+}
+
+function resolveNotificationCopyByLang_(lang, dictionary) {
+  const targetLang = normalizeNotificationLang_(lang);
+  const fallback = dictionary.pt || { title: "", body: "" };
+  const requested = dictionary[targetLang] || {};
+
+  return {
+    title: String(requested.title || fallback.title || "").trim(),
+    body: String(requested.body || fallback.body || "").trim()
   };
 }
 
@@ -428,6 +507,5 @@ function adminSendNotification_(notificationId) {
 function adminListNotifications_() {
   return { notifications: listNotifications_() };
 }
-
 
 
