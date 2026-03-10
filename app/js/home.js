@@ -25,6 +25,32 @@ const HOME_VIDEO_SOURCES = {
   fr: "assets/herofr.mp4"
 };
 
+
+function getEntitlementsSnapshot() {
+  return (typeof FEMFLOW.getEntitlements === "function")
+    ? FEMFLOW.getEntitlements()
+    : {
+        product: String(localStorage.getItem("femflow_produto") || "").toLowerCase(),
+        active: localStorage.getItem("femflow_ativa") === "true",
+        hasPersonal: localStorage.getItem("femflow_has_personal") === "true",
+        vip: String(localStorage.getItem("femflow_produto") || "").toLowerCase() === "vip",
+        freeAccess: localStorage.getItem("femflow_free_access") || null,
+        expiresAt: null
+      };
+}
+
+function getEntitlementsFreeAccess() {
+  const entitlements = getEntitlementsSnapshot();
+  const freeAccessRaw = entitlements.freeAccess;
+  if (!freeAccessRaw) return null;
+  if (typeof freeAccessRaw === "object") return freeAccessRaw;
+  try {
+    return JSON.parse(freeAccessRaw);
+  } catch (err) {
+    return null;
+  }
+}
+
 const EBOOKS_HOME = [
   {
     nome: {
@@ -410,7 +436,7 @@ function logAcessoDebug(enfase, perfil, contexto) {
     categoria: inferirCategoria(enfase),
     produto: String(perfil?.produto || "").toLowerCase(),
     ativa: !!perfil?.ativa,
-    hasPersonal: localStorage.getItem("femflow_has_personal") === "true",
+    hasPersonal: getEntitlementsSnapshot().hasPersonal,
     free_access_raw: freeAccess,
     free_enabled: freeAccess?.enabled === true,
     free_until_raw: freeAccess?.until ?? null,
@@ -504,10 +530,17 @@ function persistPerfil(perfil) {
   localStorage.removeItem("femflow_personal"); // legado: nunca usar mais
 
   const freeAccess = normalizarFreeAccess(perfil);
-  localStorage.setItem(
-    "femflow_free_access",
-    freeAccess ? JSON.stringify(freeAccess) : ""
-  );
+  const freeAccessSerialized = freeAccess ? JSON.stringify(freeAccess) : "";
+  localStorage.setItem("femflow_free_access", freeAccessSerialized);
+  FEMFLOW.setEntitlements?.({
+    product: produto,
+    active: isVip || !!perfil.ativa,
+    hasPersonal,
+    vip: isVip,
+    freeAccess: freeAccessSerialized || null,
+    expiresAt: perfil.expiresAt || perfil.expires_at || null
+  });
+  FEMFLOW.persistEntitlementsToCache?.();
 
   // ciclo + programa (CRÍTICO)
   localStorage.setItem("femflow_perfilHormonal", FEMFLOW.normalizePerfilHormonal(perfil.perfilHormonal));
@@ -699,7 +732,7 @@ function podeAcessar(enfase, perfil) {
 
   const categoria = inferirCategoria(enfase);
   const produto = (perfil.produto || "").toLowerCase();
-  const hasPersonal = localStorage.getItem("femflow_has_personal") === "true";
+  const hasPersonal = getEntitlementsSnapshot().hasPersonal;
   const ativa = !!perfil.ativa;
 
   if (hasPersonal) {
@@ -814,17 +847,13 @@ function injetarCardsPresets(catalogo, perfil, nivelAluno) {
 async function carregarCatalogoFirebase() {
   const nivelAluno = normalizarNivel(localStorage.getItem("femflow_nivel"));
 
-  let freeAccess = null;
-  const freeAccessRaw = localStorage.getItem("femflow_free_access");
-  if (freeAccessRaw) {
-    try { freeAccess = JSON.parse(freeAccessRaw); }
-    catch (err) { freeAccess = null; }
-  }
+  const entitlements = getEntitlementsSnapshot();
+  const freeAccess = getEntitlementsFreeAccess();
 
   const perfil = {
-    produto: localStorage.getItem("femflow_produto"),
-    ativa: localStorage.getItem("femflow_ativa") === "true",
-    personal: localStorage.getItem("femflow_has_personal") === "true",
+    produto: entitlements.product,
+    ativa: entitlements.active,
+    personal: entitlements.hasPersonal,
     free_access: freeAccess
   };
 
@@ -1196,9 +1225,10 @@ function canAccessEbooks() {
     return FEMFLOW.canAccessEbooks();
   }
 
-  const produto = String(localStorage.getItem("femflow_produto") || "").toLowerCase();
-  const ativa = localStorage.getItem("femflow_ativa") === "true";
-  const vip = produto === "vip";
+  const entitlements = getEntitlementsSnapshot();
+  const produto = String(entitlements.product || "").toLowerCase();
+  const ativa = entitlements.active;
+  const vip = entitlements.vip;
 
   if (produto === "trial_app") return false;
   return ativa || vip;
@@ -1440,20 +1470,16 @@ function limparEstadoCustomTreino() {
 async function rerenderHomeEntitlementsUI() {
   const catalogo = await carregarCatalogoFirebase();
 
-  const perfilTemPersonal = localStorage.getItem("femflow_has_personal") === "true";
-  const produto = String(localStorage.getItem("femflow_produto") || "").toLowerCase();
-  const isVip = produto === "vip";
+  const entitlements = getEntitlementsSnapshot();
+  const perfilTemPersonal = entitlements.hasPersonal;
+  const produto = String(entitlements.product || "").toLowerCase();
+  const isVip = entitlements.vip;
 
   const perfilCardsPersonal = {
     produto,
-    ativa: localStorage.getItem("femflow_ativa") === "true",
+    ativa: entitlements.active,
     personal: perfilTemPersonal,
-    free_access: (() => {
-      const freeAccessRaw = localStorage.getItem("femflow_free_access");
-      if (!freeAccessRaw) return null;
-      try { return JSON.parse(freeAccessRaw); }
-      catch (err) { return null; }
-    })()
+    free_access: getEntitlementsFreeAccess()
   };
 
   if (catalogo.personal.length === 0) {
@@ -1823,7 +1849,7 @@ async function handleCardClick(enfase, locked) {
      (NUNCA vai direto para treino)
   ========================================= */
   if (enfase === "personal") {
-    const acessoApp = localStorage.getItem("femflow_ativa") === "true";
+    const acessoApp = getEntitlementsSnapshot().active;
     if (!acessoApp) {
       localStorage.setItem("femflow_mode_personal", "false");
       FEMFLOW.toast("Plano ativo necessário para usar o Modo Personal.", true);

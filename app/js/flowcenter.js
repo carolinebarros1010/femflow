@@ -6,6 +6,32 @@
    ✔ Separação ACESSO x MODO PERSONAL
 =========================================================== */
 
+
+function getEntitlementsSnapshot() {
+  return (typeof FEMFLOW.getEntitlements === "function")
+    ? FEMFLOW.getEntitlements()
+    : {
+        product: String(localStorage.getItem("femflow_produto") || "").toLowerCase(),
+        active: localStorage.getItem("femflow_ativa") === "true",
+        hasPersonal: localStorage.getItem("femflow_has_personal") === "true",
+        vip: String(localStorage.getItem("femflow_produto") || "").toLowerCase() === "vip",
+        freeAccess: localStorage.getItem("femflow_free_access") || null,
+        expiresAt: null
+      };
+}
+
+function getEntitlementsFreeAccess() {
+  const entitlements = getEntitlementsSnapshot();
+  const freeAccessRaw = entitlements.freeAccess;
+  if (!freeAccessRaw) return null;
+  if (typeof freeAccessRaw === "object") return freeAccessRaw;
+  try {
+    return JSON.parse(freeAccessRaw);
+  } catch (err) {
+    return null;
+  }
+}
+
 const ENDURANCE_PUBLIC_IDS = [
   "bike_20000m",
   "bike_40000m",
@@ -32,35 +58,6 @@ const ENDURANCE_PUBLIC_LABELS = {
   natacao_2000m: "Natação 2000 m"
 };
 
-
-function msgCheckout(tipo) {
-  const lang = FEMFLOW.lang || "pt";
-  const mensagens = {
-    personal: {
-      pt: "Este recurso faz parte do Personal. Para liberar, assine o Personal.",
-      en: "This feature is part of Personal. Subscribe to Personal to unlock it.",
-      fr: "Cette fonctionnalité fait partie du Personal. Abonnez-vous au Personal pour la débloquer."
-    },
-    app: {
-      pt: "Seu acesso está bloqueado. Para liberar, adquira o Acesso ao App.",
-      en: "Your access is locked. Purchase App Access to unlock it.",
-      fr: "Votre accès est bloqué. Achetez l’Accès à l’app pour le débloquer."
-    }
-  };
-  return mensagens[tipo]?.[lang] || mensagens[tipo]?.pt || "";
-}
-
-function abrirCheckout(tipo = "app") {
-  const planId = tipo === "personal" ? "personal" : "access";
-  FEMFLOW.billing?.openPaywall?.(planId, {
-    reason: "locked_card",
-    source: "flowcenter_blocked_flow"
-  });
-}
-
-async function abrirCheckoutOuIap(tipo) {
-  abrirCheckout(tipo);
-}
 
 function executarBlockedAction(context = {}, options = {}) {
   const { source = "flowcenter_blocked_flow", forceSkipCheckout = false } = options;
@@ -210,6 +207,7 @@ function buildPerfilFromStorage() {
   const email = localStorage.getItem("femflow_email") || "";
   if (!id && !email) return null;
 
+  const entitlements = getEntitlementsSnapshot();
   return {
     id,
     email,
@@ -219,12 +217,12 @@ function buildPerfilFromStorage() {
     diaPrograma: Number(localStorage.getItem("femflow_diaPrograma") || 1),
     ciclo_duracao: Number(localStorage.getItem("femflow_cycleLength") || 28),
     enfase: localStorage.getItem("femflow_enfase") || "",
-    produto: localStorage.getItem("femflow_produto") || "",
-    ativa: localStorage.getItem("femflow_ativa") === "true",
+    produto: entitlements.product || "",
+    ativa: entitlements.active,
     acessos: {
-      personal: localStorage.getItem("femflow_has_personal") === "true"
+      personal: entitlements.hasPersonal
     },
-    free_access: localStorage.getItem("femflow_free_access") || ""
+    free_access: getEntitlementsFreeAccess() || ""
   };
 }
 
@@ -296,10 +294,17 @@ function flowcenterPersistPerfil(perfil) {
   const acessos = perfil.acessos || {};
   const produto = String(perfil.produto || "").toLowerCase();
   const isVip = produto === "vip";
-  localStorage.setItem(
-    "femflow_has_personal",
-    acessos.personal === true || isVip ? "true" : "false"
-  );
+  const hasPersonal = acessos.personal === true || isVip;
+  localStorage.setItem("femflow_has_personal", hasPersonal ? "true" : "false");
+  FEMFLOW.setEntitlements?.({
+    product: produto,
+    active: isVip || perfil.ativa === true || perfil.ativa === "true",
+    hasPersonal,
+    vip: isVip,
+    freeAccess: freeAccess ? JSON.stringify(freeAccess) : null,
+    expiresAt: perfil.expiresAt || perfil.expires_at || null
+  });
+  FEMFLOW.persistEntitlementsToCache?.();
 }
 
 
@@ -309,8 +314,9 @@ function flowcenterPersistPerfil(perfil) {
 
 
 function refreshFlowcenterLocksFromEntitlements() {
-  const produtoRaw = String(localStorage.getItem("femflow_produto") || "").toLowerCase();
-  const hasPersonal = localStorage.getItem("femflow_has_personal") === "true";
+  const entitlements = getEntitlementsSnapshot();
+  const produtoRaw = String(entitlements.product || "").toLowerCase();
+  const hasPersonal = entitlements.hasPersonal;
   const modePersonal = localStorage.getItem("femflow_mode_personal") === "true";
   const endurancePublicIntent = localStorage.getItem("femflow_endurance_public_intent") === "true";
   const personal = hasPersonal && modePersonal;
@@ -324,7 +330,7 @@ function refreshFlowcenterLocksFromEntitlements() {
 
   const customBtn = document.getElementById("toCustomTrain");
   if (customBtn) {
-    const ativa = localStorage.getItem("femflow_ativa") === "true";
+    const ativa = entitlements.active;
     const isVip = produtoRaw === "vip";
     const isApp = produtoRaw === "acesso_app" || produtoRaw === "trial_app";
     const temAcessoCustom = hasPersonal || isVip || isApp || ativa;
@@ -493,7 +499,7 @@ async function initFlowCenter() {
   const isVip = produtoRaw === "vip";
   const isTrial = produtoRaw === "trial_app";
   const ativa = parseBooleanish(perfil.ativa);
-  const hasPersonal  = localStorage.getItem("femflow_has_personal") === "true";
+  const hasPersonal  = getEntitlementsSnapshot().hasPersonal;
   const modePersonal = localStorage.getItem("femflow_mode_personal") === "true";
   const enduranceConfigRaw = localStorage.getItem("femflow_endurance_config");
   const enduranceSetupExists =
@@ -1909,8 +1915,17 @@ async function initFlowCenter() {
   document.querySelectorAll("[data-extra-enfase]").forEach(btn => {
     btn.addEventListener("click", async () => {
       if (!treinoAcessoOk) {
-        FEMFLOW.toast(msgCheckout("app"));
-        await abrirCheckoutOuIap("app");
+        const entitlements = getEntitlementsSnapshot();
+        await executarBlockedAction({
+          categoria: "app",
+          checkoutTipo: "app",
+          produto: entitlements.product,
+          ativa: entitlements.active,
+          hasPersonal: entitlements.hasPersonal,
+          enfase: String(btn.dataset.extraEnfase || "endurance").toLowerCase() || "endurance"
+        }, {
+          source: "flowcenter_extra_enfase"
+        });
         return;
       }
       const enfase = btn.dataset.extraEnfase;
@@ -2379,7 +2394,7 @@ async function initFlowCenter() {
       return;
     }
 
-    const hasPersonal = localStorage.getItem("femflow_has_personal") === "true";
+    const hasPersonal = getEntitlementsSnapshot().hasPersonal;
     const endurancePublicIntentAtivo =
       localStorage.getItem("femflow_endurance_public_intent") === "true";
     const modePersonal =
@@ -2395,8 +2410,17 @@ async function initFlowCenter() {
     }
 
     if (!enduranceEnabled) {
-      FEMFLOW.toast(msgCheckout("app"));
-      await abrirCheckoutOuIap("app");
+      const entitlements = getEntitlementsSnapshot();
+      await executarBlockedAction({
+        categoria: "app",
+        checkoutTipo: "app",
+        produto: entitlements.product,
+        ativa: entitlements.active,
+        hasPersonal: entitlements.hasPersonal,
+        enfase: "endurance"
+      }, {
+        source: "flowcenter_endurance"
+      });
       return;
     }
 
