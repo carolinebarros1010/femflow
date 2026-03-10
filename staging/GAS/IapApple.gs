@@ -72,6 +72,92 @@ function _buildEntitlementContract_(base) {
   };
 }
 
+function _buildBlockedEntitlementContract_(reason, extras) {
+  const blocked = _buildEntitlementContract_({
+    status: "blocked",
+    isActive: false,
+    modo_personal: false,
+    entitlementStatus: "blocked",
+    source: "unknown",
+    provider: "internal",
+    platform: "cross_platform",
+    plan: "access",
+    expiresAt: "",
+    sourceOfTruth: "server"
+  });
+
+  return Object.assign(blocked, extras || {}, {
+    status: "blocked",
+    reason: String(reason || "blocked"),
+    msg: String(reason || "blocked")
+  });
+}
+
+function _getEntitlementBlockReasonFromRow_(row, headerMap) {
+  const idxStatusConta = typeof COL_STATUS_CONTA === "number" ? COL_STATUS_CONTA : -1;
+  const idxDeleteRequestedAt = typeof COL_DELETE_REQUESTED_AT === "number" ? COL_DELETE_REQUESTED_AT : -1;
+  const statusContaRaw = idxStatusConta >= 0 ? row[idxStatusConta] : "";
+  const statusConta = typeof _normalizarStatusConta_ === "function"
+    ? _normalizarStatusConta_(statusContaRaw)
+    : String(statusContaRaw || "").toLowerCase().trim();
+
+  if (statusConta === "delete_requested") {
+    return {
+      reason: "delete_requested",
+      extras: {
+        accountStatus: "delete_requested",
+        deleteRequestedAt: idxDeleteRequestedAt >= 0 ? row[idxDeleteRequestedAt] || "" : ""
+      }
+    };
+  }
+  if (statusConta && statusConta !== "ativa") {
+    return {
+      reason: "account_blocked",
+      extras: { accountStatus: statusConta }
+    };
+  }
+
+  const produto = String(row[headerMap.Produto] || "").toLowerCase().trim();
+  if (produto === "exclusao_solicitada") {
+    return {
+      reason: "delete_requested",
+      extras: { produto: "exclusao_solicitada" }
+    };
+  }
+
+  return null;
+}
+
+function _logManualGrant_(payload) {
+  const p = payload || {};
+  console.log("[ACCESS][MANUAL_GRANT]" + JSON.stringify({
+    userId: String(p.userId || p.id || "").trim(),
+    email: String(p.email || "").toLowerCase().trim(),
+    source: String(p.source || "manual").trim(),
+    flow: String(p.flow || "manual_update").trim(),
+    product: String(p.product || "").trim(),
+    plan: String(p.plan || "access").trim(),
+    personal: !!p.personal,
+    actor: String(p.actor || "system").trim(),
+    result: String(p.result || "updated").trim()
+  }));
+}
+
+function _applyManualAccessMetadata_(sh, rowIndex, headerMap, metadata) {
+  if (!sh || !headerMap || !rowIndex) return;
+  const meta = metadata || {};
+  const source = String(meta.source || "manual_admin").trim();
+  const plan = String(meta.plan || (meta.personal ? "personal" : "access")).trim();
+  const flow = String(meta.flow || "manual_update").trim();
+  const nowIso = new Date().toISOString();
+
+  if (headerMap.IapSource != null) sh.getRange(rowIndex, headerMap.IapSource + 1).setValue(source);
+  if (headerMap.IapStatus != null) sh.getRange(rowIndex, headerMap.IapStatus + 1).setValue("active");
+  if (headerMap.IapPlan != null) sh.getRange(rowIndex, headerMap.IapPlan + 1).setValue(plan);
+  if (headerMap.IapLastSource != null) sh.getRange(rowIndex, headerMap.IapLastSource + 1).setValue(flow);
+  if (headerMap.IapLastValidatedAt != null) sh.getRange(rowIndex, headerMap.IapLastValidatedAt + 1).setValue(nowIso);
+}
+
 function _computeUnifiedAccessState_(row, headerMap) {
   const entitlements = computeEntitlementsFromRow_(row, headerMap) || {
     acesso_app: false,
@@ -1743,6 +1829,13 @@ function entitlementsStatus_(payload) {
   }
 
   const values = sh.getRange(found.rowIndex, 1, 1, sh.getLastColumn()).getValues()[0];
+  const blockedReason = _getEntitlementBlockReasonFromRow_(values, headerMap);
+  if (blockedReason) {
+    return _buildBlockedEntitlementContract_(blockedReason.reason, Object.assign({
+      userId: String(payload.userId || payload.id || values[0] || "").trim()
+    }, blockedReason.extras || {}));
+  }
+
   const unified = _computeUnifiedAccessState_(values, headerMap);
   const entitlements = unified.entitlements;
   const produto = String(values[headerMap.Produto] || "").toLowerCase().trim();

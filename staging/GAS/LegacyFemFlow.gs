@@ -54,6 +54,23 @@ function legacyUpgrade_(id, nivel, origem, token, platformHint) {
       sh.getRange(row, 7).setValue(new Date()); // DataCompra
       sh.getRange(row, 8).setValue(true); // LicencaAtiva
       sh.getRange(row, 9).setValue(nivelNorm); // Nivel
+      _applyManualAccessMetadata_(sh, row, headerMap, {
+        source: "manual_legacy",
+        plan: "access",
+        personal: false,
+        flow: "legacy_upgrade"
+      });
+      _logManualGrant_({
+        userId: idNorm,
+        email: values[i][2],
+        source: "manual_legacy",
+        flow: "legacy_upgrade",
+        product: values[i][5] || "",
+        plan: "access",
+        personal: false,
+        actor: origem || "legacy",
+        result: "granted"
+      });
       _logUpgrade({ id: idNorm, nivel: nivelNorm, origem, status: "ok" });
       return { status: "upgraded", id: idNorm, nivel: nivelNorm };
     }
