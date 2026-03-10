@@ -126,11 +126,23 @@
   <!-- FORM -->
   <div class="card">
     <form id="form">
-      <label>Título</label>
-      <input name="title" required />
+      <label>Título (PT)</label>
+      <input name="titlePt" required />
 
-      <label>Mensagem</label>
-      <textarea name="message" required></textarea>
+      <label>Título (EN)</label>
+      <input name="titleEn" placeholder="Opcional" />
+
+      <label>Título (FR)</label>
+      <input name="titleFr" placeholder="Opcional" />
+
+      <label>Mensagem (PT)</label>
+      <textarea name="messagePt" required></textarea>
+
+      <label>Mensagem (EN)</label>
+      <textarea name="messageEn" placeholder="Opcional"></textarea>
+
+      <label>Mensagem (FR)</label>
+      <textarea name="messageFr" placeholder="Opcional"></textarea>
 
       <label>Tipo</label>
       <select name="type">
@@ -244,7 +256,8 @@ function callSend(id) {
       const el = document.createElement("div");
       el.className = "notification";
       el.innerHTML = `
-        <strong>${n.title}</strong><br/>
+        <strong>${n.titlePt || n.title}</strong><br/>
+        <small>EN: ${n.titleEn || "—"} • FR: ${n.titleFr || "—"}</small><br/>
         <span class="status ${n.status}">${n.status}</span><br/>
         <small>${new Date(n.createdAt).toLocaleString()}</small>
 

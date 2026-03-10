@@ -17,7 +17,7 @@ function registerPushToken_(data) {
   const userId = String(data.userId || "").trim();
   const deviceId = String(data.deviceId || "").trim();
   const platform = String(data.platform || "web").trim();
-  const lang = String(data.lang || "pt").trim().toLowerCase();
+  const lang = normalizePushLang_(data.lang);
   const pushToken = String(data.pushToken || "").trim();
 
   if (!userId || !deviceId || !pushToken) {
@@ -81,15 +81,32 @@ function sendPush_(data) {
   const url = String(data.url || "").trim();
   const overrideTitle = String(data.title || "").trim();
   const overrideBody = String(data.body || "").trim();
+  const overrideCopyByLang = {
+    pt: {
+      title: String(data.titlePt || data.title_pt || overrideTitle || "").trim(),
+      body: String(data.bodyPt || data.body_pt || overrideBody || "").trim()
+    },
+    en: {
+      title: String(data.titleEn || data.title_en || "").trim(),
+      body: String(data.bodyEn || data.body_en || "").trim()
+    },
+    fr: {
+      title: String(data.titleFr || data.title_fr || "").trim(),
+      body: String(data.bodyFr || data.body_fr || "").trim()
+    }
+  };
 
   const results = [];
   const maxTokens = 500;
   const targetsByLang = groupTargetsByLang_(allowedTargets);
 
-  Object.keys(targetsByLang).forEach((langKey) => {
+  Object.keys(targetsByLang).forEach((langKeyRaw) => {
+    const langKey = normalizePushLang_(langKeyRaw);
     const copy = resolvePushCopy_(event, langKey);
-    const title = overrideTitle || copy.title || "";
-    const body = overrideBody || copy.body || "";
+    const fallbackOverride = overrideCopyByLang.pt || { title: "", body: "" };
+    const langOverride = overrideCopyByLang[langKey] || {};
+    const title = langOverride.title || fallbackOverride.title || copy.title || "";
+    const body = langOverride.body || fallbackOverride.body || copy.body || "";
 
     if (!title || !body) {
       results.push({ status: "error", msg: "missing_title_body", lang: langKey });
@@ -116,9 +133,10 @@ function sendPush_(data) {
 
 function resolvePushTargets_(data) {
   const explicitToken = String(data.pushToken || "").trim();
-  const filterLang = String(data.lang || "").trim().toLowerCase();
+  const filterLangRaw = String(data.lang || "").trim();
+  const filterLang = filterLangRaw ? normalizePushLang_(filterLangRaw) : "";
   if (explicitToken) {
-    const explicitLang = filterLang || lookupLangByToken_(explicitToken) || "pt";
+    const explicitLang = normalizePushLang_(filterLang || lookupLangByToken_(explicitToken) || "pt");
     return [{ token: explicitToken, lang: explicitLang }];
   }
 
@@ -133,7 +151,7 @@ function resolvePushTargets_(data) {
   for (let i = 1; i < values.length; i += 1) {
     const rowUserId = String(values[i][0] || "").trim();
     const rowDeviceId = String(values[i][1] || "").trim();
-    const rowLang = String(values[i][3] || "").trim().toLowerCase() || "pt";
+    const rowLang = normalizePushLang_(values[i][3]);
     const rowToken = String(values[i][4] || "").trim();
 
     if (!rowToken) continue;
@@ -194,6 +212,7 @@ function filterTargetsByDailyLimit_(targets) {
 }
 
 function resolvePushCopy_(event, lang) {
+  const normalizedEvent = normalizePushEvent_(event);
   const copyMap = {
     treino_disponivel: {
       pt: {
@@ -206,10 +225,27 @@ function resolvePushCopy_(event, lang) {
         body: "Open FemFlow to see today’s training.",
         action: "open_treino"
       },
-      es: {
-        title: "💪 Tu entrenamiento ya está disponible",
-        body: "Abre FemFlow para ver tu entrenamiento de hoy.",
+      fr: {
+        title: "💪 Votre entraînement du jour est prêt",
+        body: "Ouvrez FemFlow pour voir votre séance d’aujourd’hui.",
         action: "open_treino"
+      }
+    },
+    lembrete_respiracao: {
+      pt: {
+        title: "🫁 Faça uma respiração hoje",
+        body: "Reserve alguns minutos para respirar com o FemFlow.",
+        action: "open_respiracao"
+      },
+      en: {
+        title: "🫁 Do a breathing session today",
+        body: "Take a few minutes to breathe with FemFlow.",
+        action: "open_respiracao"
+      },
+      fr: {
+        title: "🫁 Faites une séance de respiration aujourd’hui",
+        body: "Prenez quelques minutes pour respirer avec FemFlow.",
+        action: "open_respiracao"
       }
     },
     mudanca_fase: {
@@ -223,9 +259,9 @@ function resolvePushCopy_(event, lang) {
         body: "Check FlowCenter to adjust your training.",
         action: "open_flowcenter"
       },
-      es: {
-        title: "🌙 Hoy tu cuerpo pide más suavidad",
-        body: "Mira el FlowCenter para ajustar tu entrenamiento.",
+      fr: {
+        title: "🌙 Aujourd’hui votre corps demande plus de douceur",
+        body: "Consultez votre FlowCenter pour ajuster votre entraînement.",
         action: "open_flowcenter"
       }
     },
@@ -240,17 +276,29 @@ function resolvePushCopy_(event, lang) {
         body: "Open the app to see what’s new.",
         action: "open_home"
       },
-      es: {
-        title: "✨ FemFlow tiene mejoras nuevas",
-        body: "Abre la app para ver las novedades.",
+      fr: {
+        title: "✨ FemFlow a de nouvelles améliorations",
+        body: "Ouvrez l’app pour découvrir les nouveautés.",
         action: "open_home"
       }
     }
   };
 
-  const group = copyMap[event];
+  const group = copyMap[normalizedEvent];
   if (!group) return {};
-  return group[lang] || group.pt || {};
+  const normalizedLang = normalizePushLang_(lang);
+  return group[normalizedLang] || group.pt || {};
+}
+
+function normalizePushEvent_(eventRaw) {
+  const normalized = String(eventRaw || "").trim().toLowerCase();
+  const aliases = {
+    respiracao_hoje: "lembrete_respiracao",
+    respirar_hoje: "lembrete_respiracao",
+    respiracao: "lembrete_respiracao",
+    breathing_reminder: "lembrete_respiracao"
+  };
+  return aliases[normalized] || normalized;
 }
 
 function buildFcmPayload_(title, body, action, url) {
@@ -294,11 +342,17 @@ function chunkArray_(list, size) {
 function groupTargetsByLang_(targets) {
   const grouped = {};
   targets.forEach((target) => {
-    const lang = target.lang || "pt";
+    const lang = normalizePushLang_(target.lang);
     if (!grouped[lang]) grouped[lang] = [];
     grouped[lang].push(target.token);
   });
   return grouped;
+}
+
+function normalizePushLang_(langRaw) {
+  const lang = String(langRaw || "pt").trim().toLowerCase();
+  if (lang === "en" || lang === "fr") return lang;
+  return "pt";
 }
 
 function lookupLangByToken_(token) {
@@ -308,7 +362,7 @@ function lookupLangByToken_(token) {
   for (let i = 1; i < values.length; i += 1) {
     const rowToken = String(values[i][4] || "").trim();
     if (rowToken === token) {
-      return String(values[i][3] || "").trim().toLowerCase();
+      return normalizePushLang_(values[i][3]);
     }
   }
 
