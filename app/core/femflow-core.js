@@ -4,6 +4,101 @@
 ======================================================================= */
 
 window.FEMFLOW = window.FEMFLOW || {};
+FEMFLOW.ENTITLEMENTS_CACHE_KEY = "femflow_entitlements_snapshot";
+
+FEMFLOW._normalizeEntitlements = function (data = {}, base = null) {
+  const source = data && typeof data === "object" ? data : {};
+  const fallback = base && typeof base === "object" ? base : {};
+  const pick = (...values) => values.find((value) => value !== undefined);
+  const toBool = (value, defaultValue = false) => {
+    if (value === undefined || value === null || value === "") return defaultValue;
+    if (typeof value === "boolean") return value;
+    const normalized = String(value).trim().toLowerCase();
+    return ["true", "1", "yes", "sim", "y"].includes(normalized);
+  };
+
+  const product = String(
+    pick(source.product, source.produto, source.produto_perfil, fallback.product, "") || ""
+  ).trim().toLowerCase();
+  const vip = toBool(pick(source.vip, fallback.vip, product === "vip"), product === "vip");
+
+  const active = toBool(
+    pick(source.active, source.ativa, source.acesso_app, fallback.active, false),
+    false
+  ) || vip;
+
+  const hasPersonal = toBool(
+    pick(source.hasPersonal, source.has_personal, source.personal, fallback.hasPersonal, false),
+    false
+  ) || vip;
+
+  const freeAccess = pick(source.freeAccess, source.free_access, fallback.freeAccess, null);
+  const expiresAtRaw = pick(source.expiresAt, source.expires_at, source.expira_em, fallback.expiresAt, null);
+  const expiresAt = expiresAtRaw == null || String(expiresAtRaw).trim() === "" ? null : String(expiresAtRaw).trim();
+
+  return {
+    product,
+    active,
+    hasPersonal,
+    vip,
+    freeAccess: freeAccess == null || freeAccess === "" ? null : freeAccess,
+    expiresAt
+  };
+};
+
+FEMFLOW.entitlements = FEMFLOW._normalizeEntitlements({});
+
+FEMFLOW.getEntitlements = function () {
+  FEMFLOW.entitlements = FEMFLOW._normalizeEntitlements(FEMFLOW.entitlements);
+  return { ...FEMFLOW.entitlements };
+};
+
+FEMFLOW.setEntitlements = function (data = {}) {
+  FEMFLOW.entitlements = FEMFLOW._normalizeEntitlements(data, FEMFLOW.entitlements);
+  return FEMFLOW.getEntitlements();
+};
+
+FEMFLOW.persistEntitlementsToCache = function () {
+  try {
+    localStorage.setItem(
+      FEMFLOW.ENTITLEMENTS_CACHE_KEY,
+      JSON.stringify(FEMFLOW.getEntitlements())
+    );
+    return true;
+  } catch (e) {
+    return false;
+  }
+};
+
+FEMFLOW.hydrateEntitlementsFromCache = function () {
+  try {
+    const raw = localStorage.getItem(FEMFLOW.ENTITLEMENTS_CACHE_KEY);
+    if (raw) {
+      const parsed = JSON.parse(raw);
+      FEMFLOW.setEntitlements(parsed);
+      return FEMFLOW.getEntitlements();
+    }
+
+    const legacyProduct = String(localStorage.getItem("femflow_produto") || "").toLowerCase().trim();
+    const legacyActive = localStorage.getItem("femflow_ativa") === "true";
+    const legacyHasPersonal = localStorage.getItem("femflow_has_personal") === "true";
+    const legacyFreeAccess = localStorage.getItem("femflow_free_access") || null;
+
+    FEMFLOW.setEntitlements({
+      product: legacyProduct,
+      active: legacyActive,
+      hasPersonal: legacyHasPersonal,
+      vip: legacyProduct === "vip",
+      freeAccess: legacyFreeAccess,
+      expiresAt: null
+    });
+    return FEMFLOW.getEntitlements();
+  } catch (e) {
+    return FEMFLOW.getEntitlements();
+  }
+};
+
+FEMFLOW.hydrateEntitlementsFromCache();
 const FEMFLOW_ENV = window.FEMFLOW_ENV || "prod";
 const FEMFLOW_ACTIVE = window.FEMFLOW_ACTIVE || {};
 const FEMFLOW_CONFIG = window.FEMFLOW_CONFIG || {};
@@ -122,7 +217,7 @@ FEMFLOW.getSessionExpira = function () {
 
 FEMFLOW.temTreinoOuContextoAtivo = function () {
   const enfase = String(localStorage.getItem("femflow_enfase") || "").trim().toLowerCase();
-  const hasPersonal = localStorage.getItem("femflow_has_personal") === "true";
+  const hasPersonal = FEMFLOW.getEntitlements().hasPersonal;
   const enduranceReady =
     localStorage.getItem("femflow_endurance_setup_done") === "true" ||
     Boolean(localStorage.getItem("femflow_endurance_config"));
@@ -753,9 +848,10 @@ FEMFLOW.checkout = FEMFLOW.checkout || {
 
 
 FEMFLOW.canAccessEbooks = function () {
-  const produto = String(localStorage.getItem("femflow_produto") || "").toLowerCase().trim();
-  const ativa = localStorage.getItem("femflow_ativa") === "true";
-  const vip = produto === "vip";
+  const entitlements = FEMFLOW.getEntitlements();
+  const produto = String(entitlements.product || "").toLowerCase().trim();
+  const ativa = entitlements.active;
+  const vip = entitlements.vip;
 
   if (produto === "trial_app") return false;
   return ativa || vip;
@@ -1510,9 +1606,10 @@ FEMFLOW.smartPush = {
     const lastTreinoIso = localStorage.getItem("femflow_last_treino") || "";
     const lastTreinoKey = lastTreinoIso ? FEMFLOW.getLocalDateKey(lastTreinoIso) : "";
     const fase = localStorage.getItem("femflow_fase") || "";
-    const produto = localStorage.getItem("femflow_produto") || "";
+    const entitlements = FEMFLOW.getEntitlements();
+    const produto = entitlements.product || "";
     const enfase = localStorage.getItem("femflow_enfase") || "";
-    const hasPersonal = localStorage.getItem("femflow_has_personal") === "true";
+    const hasPersonal = entitlements.hasPersonal;
     const enduranceReady =
       localStorage.getItem("femflow_endurance_setup_done") === "true" ||
       Boolean(localStorage.getItem("femflow_endurance_config"));
@@ -1985,24 +2082,56 @@ FEMFLOW.getNativePurchasesPlugin = function () {
 };
 
 FEMFLOW.updateEntitlementsFromPayload = function (payload = {}) {
-  const acessoApp = payload.acesso_app === true || payload.acesso_app === "true";
-  const modoPersonalPayload = payload.modo_personal === true || payload.modo_personal === "true";
-  const modoPersonal = acessoApp && modoPersonalPayload;
-  const produtoAtual = String(localStorage.getItem("femflow_produto") || "").toLowerCase().trim();
-  const produtoPerfil = String(payload.produto || payload.produto_perfil || "").toLowerCase().trim();
+  const toBool = (value, fallback = false) => {
+    if (value === undefined || value === null || value === "") return fallback;
+    if (typeof value === "boolean") return value;
+    const normalized = String(value).trim().toLowerCase();
+    return ["true", "1", "yes", "sim", "y"].includes(normalized);
+  };
 
-  localStorage.setItem("femflow_ativa", acessoApp ? "true" : "false");
+  const acessoApp = toBool(payload.acesso_app, false);
+  const modoPersonalPayload = toBool(payload.modo_personal, false);
+  const modoPersonal = acessoApp && modoPersonalPayload;
+
+  const entitlementsAtual = FEMFLOW.getEntitlements();
+  const produtoAtual = String(entitlementsAtual.product || "").toLowerCase().trim();
+  const produtoPerfil = String(payload.produto || payload.produto_perfil || "").toLowerCase().trim();
+  let produtoFinal = produtoAtual;
 
   if (acessoApp) {
-    localStorage.setItem("femflow_produto", "acesso_app");
+    produtoFinal = "acesso_app";
   } else if (produtoPerfil === "trial_app") {
-    localStorage.setItem("femflow_produto", "trial_app");
+    produtoFinal = "trial_app";
   } else if (!produtoAtual) {
-    localStorage.setItem("femflow_produto", "trial_app");
+    produtoFinal = "trial_app";
   }
 
+  const hasPersonalPayloadRaw =
+    payload.has_personal ??
+    payload.hasPersonal ??
+    payload.personal;
+  const hasPersonalAnterior =
+    entitlementsAtual.hasPersonal === true ||
+    localStorage.getItem("femflow_has_personal") === "true";
+  const hasPersonalFinal =
+    hasPersonalPayloadRaw === undefined
+      ? hasPersonalAnterior
+      : toBool(hasPersonalPayloadRaw, hasPersonalAnterior);
+
+  FEMFLOW.setEntitlements({
+    product: produtoFinal,
+    active: acessoApp,
+    hasPersonal: hasPersonalFinal,
+    vip: produtoFinal === "vip",
+    freeAccess: entitlementsAtual.freeAccess,
+    expiresAt: entitlementsAtual.expiresAt
+  });
+  FEMFLOW.persistEntitlementsToCache();
+
+  localStorage.setItem("femflow_ativa", acessoApp ? "true" : "false");
+  localStorage.setItem("femflow_produto", produtoFinal);
   localStorage.setItem("femflow_mode_personal", modoPersonal ? "true" : "false");
-  localStorage.setItem("femflow_has_personal", modoPersonal ? "true" : "false");
+  localStorage.setItem("femflow_has_personal", hasPersonalFinal ? "true" : "false");
 };
 
 FEMFLOW.refreshEntitlements = async function () {
@@ -2473,8 +2602,8 @@ document.addEventListener("DOMContentLoaded", () => {
 
 FEMFLOW.renderVipBadge = function () {
   const id = localStorage.getItem("femflow_id");
-  const produto = localStorage.getItem("femflow_produto");
-  const isVip = Boolean(id) && String(produto || "").toLowerCase() === "vip";
+  const entitlements = FEMFLOW.getEntitlements();
+  const isVip = Boolean(id) && entitlements.vip;
   const existing = document.getElementById("ffVipBadge");
 
   if (!isVip) {
@@ -3372,6 +3501,15 @@ FEMFLOW.carregarPerfil = async function () {
       personalRaw === "1" ||
       isVip;
     localStorage.setItem("femflow_has_personal", hasPersonal ? "true" : "false");
+    FEMFLOW.setEntitlements({
+      product: produtoRaw,
+      active: ativaRaw,
+      hasPersonal,
+      vip: isVip,
+      freeAccess: localStorage.getItem("femflow_free_access") || null,
+      expiresAt: r.expiresAt || r.expires_at || null
+    });
+    FEMFLOW.persistEntitlementsToCache();
     localStorage.removeItem("femflow_personal");
     FEMFLOW.renderVipBadge?.();
 
