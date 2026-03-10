@@ -1712,7 +1712,11 @@ async function handleCardClick(enfase, locked) {
       : "app";
 
   if (locked) {
-    await openBlockedFlow({ enfase, checkoutTipo });
+    await openBlockedFlow({
+      enfase,
+      checkoutTipo,
+      isAccessAppIncludedContext: enfase === "monte_seu_treino"
+    });
     return;
   }
 

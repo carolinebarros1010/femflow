@@ -49,6 +49,40 @@ function executarBlockedAction(context = {}, options = {}) {
   return action;
 }
 
+function executarBlockedAction(context = {}, options = {}) {
+  const { source = "flowcenter_blocked_flow", forceSkipCheckout = false } = options;
+
+  if (!FEMFLOW.blockedActionPolicy) {
+    console.error("blockedActionPolicy missing");
+    FEMFLOW.toast("Recurso indisponível.");
+    return null;
+  }
+
+  const action = FEMFLOW.blockedActionPolicy.resolveBlockedCardAction(context);
+
+  FEMFLOW.toast(
+    FEMFLOW.blockedActionPolicy.getBlockedActionToast(action.toastKey)
+  );
+
+  if (forceSkipCheckout || action.skipCheckout || !action.checkoutPlanId) {
+    return action;
+  }
+
+  const allowedPlans = ["access", "personal"];
+
+  if (!allowedPlans.includes(action.checkoutPlanId)) {
+    console.warn("Invalid planId from policy:", action.checkoutPlanId);
+    return action;
+  }
+
+  FEMFLOW.billing?.openPaywall?.(action.checkoutPlanId, {
+    reason: action.reasonCode || "locked_card",
+    source
+  });
+
+  return action;
+}
+
 
 function renderFlowcenterSkeleton() {
   const mount = document.body;
@@ -1998,6 +2032,14 @@ async function initFlowCenter() {
     if (bloquearEnduranceApp) {
       bloquearBotao(enduranceBtn, "app", {
         impedirCheckout: true,
+        blockedContext: {
+          categoria: "app",
+          produto: produtoRaw,
+          ativa: acessoAtivo,
+          hasPersonal,
+          enfase: "endurance",
+          isAccessAppIncludedContext: true
+        },
         aoBloquear: () => {
           FEMFLOW.toast("Selecione uma planilha de 30 dias na Home para liberar o Endurance.");
         }
