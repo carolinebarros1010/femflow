@@ -1317,13 +1317,6 @@ function renderRail(el, lista) {
   );
 }
 
-function getFollowmeEmBreveMessage() {
-  const lang = FEMFLOW.lang || "pt";
-  const mensagem = FEMFLOW.langs?.[lang]?.home?.followmeEmBreve;
-  if (mensagem) return mensagem;
-  return `${getComingSoonLabel()}...`;
-}
-
 function getComingSoonLabel() {
   const lang = FEMFLOW.lang || "pt";
   const labels = {
@@ -1337,96 +1330,32 @@ function getComingSoonLabel() {
   return labels[lang] || labels.pt;
 }
 
-function msgCheckout(tipo) {
-  const lang = FEMFLOW.lang || "pt";
-  const mensagens = {
-    personal: {
-      pt: "Este recurso faz parte do Personal. Para liberar, assine o Personal.",
-      en: "This feature is part of Personal. Subscribe to Personal to unlock it.",
-      fr: "Cette fonctionnalité fait partie du Personal. Abonnez-vous au Personal pour la débloquer."
-    },
-    app: {
-      pt: "Seu acesso está bloqueado. Para liberar, adquira o Acesso ao App.",
-      en: "Your access is locked. Purchase App Access to unlock it.",
-      fr: "Votre accès est bloqué. Achetez l’Accès à l’app pour le débloquer."
-    }
-  };
-  return mensagens[tipo]?.[lang] || mensagens[tipo]?.pt || "";
-}
+async function openBlockedFlow({ enfase = "", checkoutTipo = "app" } = {}) {
+  const produto = (localStorage.getItem("femflow_produto") || "").toLowerCase();
+  const ativa = localStorage.getItem("femflow_ativa") === "true";
+  const hasPersonal = localStorage.getItem("femflow_has_personal") === "true";
+  const categoria = inferirCategoria(enfase);
 
-function resolveBlockedCardAction(context = {}) {
-  const {
-    enfase = "",
-    categoria = "",
-    produto = "",
-    ativa = false,
-    hasPersonal = false
-  } = context;
-
-  void produto;
-  void ativa;
-  void hasPersonal;
-
-  if (categoria === "followme") {
-    return {
-      toastKey: "followme_em_breve",
-      checkoutPlanId: null,
-      skipCheckout: true
-    };
-  }
-
-  if (enfase === "personal" || enfase === "bodyinsight") {
-    return {
-      toastKey: "personal_required",
-      checkoutPlanId: "personal",
-      skipCheckout: false
-    };
-  }
-
-  return {
-    toastKey: "access_required",
-    checkoutPlanId: "access",
-    skipCheckout: false
-  };
-}
-
-function abrirCheckout(tipo = "app") {
-  const planId = tipo === "personal" ? "personal" : "access";
-  FEMFLOW.billing?.openPaywall?.(planId, {
-    reason: "locked_card",
-    source: "home_blocked_flow"
+  const blockedAction = FEMFLOW.blockedActionPolicy.resolveBlockedCardAction({
+    enfase,
+    categoria,
+    produto,
+    ativa,
+    hasPersonal,
+    isAccessAppIncludedContext:
+      produto === "acesso_app" &&
+      ativa &&
+      categoriaSegueRegrasAcessoApp(categoria)
   });
-}
 
-async function abrirCheckoutOuIap(tipo) {
-  abrirCheckout(tipo);
-}
+  void checkoutTipo;
 
-async function openBlockedFlow({ enfase = "", checkoutTipo = "app", isAccessAppIncludedContext = false } = {}) {
-  if (isAccessAppIncludedContext === true || isAccessAppIncludedContext === "true") {
-    const lang = FEMFLOW.lang || "pt";
-    const mensagens = {
-      pt: "Selecione o novo treino em Home em Monte seu treino",
-      en: "Select your new workout in Home under Build your workout",
-      fr: "Sélectionnez votre nouvel entraînement dans Accueil → Créer votre entraînement"
-    };
-
-    FEMFLOW.toast(mensagens[lang] || mensagens.pt);
-    return;
-  }
-
-  const toastByKey = {
-    followme_em_breve: getFollowmeEmBreveMessage(),
-    personal_required: msgCheckout("personal"),
-    access_required: msgCheckout("app")
-  };
-
-  FEMFLOW.toast(toastByKey[blockedAction.toastKey] || toastByKey.access_required);
+  FEMFLOW.toast(FEMFLOW.blockedActionPolicy.getBlockedActionToast(blockedAction.toastKey));
 
   if (blockedAction.skipCheckout) return;
 
   FEMFLOW.billing?.openPaywall?.(blockedAction.checkoutPlanId, {
-    reason: "locked_card",
+    reason: blockedAction.reasonCode || "locked_card",
     source: "home_blocked_flow"
   });
 }
