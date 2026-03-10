@@ -145,6 +145,7 @@ function adminUpdateAluna_(data) {
   if (!id && !email) return { status: "error", msg: "missing_id" };
 
   const rows = sh.getDataRange().getValues();
+  const headerMap = _ensureIapColumns_(sh);
   for (let i = 1; i < rows.length; i++) {
     const row = rows[i];
     const rowId = String(row[0] || "").trim();
@@ -172,6 +173,37 @@ function adminUpdateAluna_(data) {
           sh.getRange(linha, 7).setValue(parsed);
         } else {
           sh.getRange(linha, 7).setValue(String(data.dataCompra || ""));
+        }
+      }
+
+      const changedAccessFields =
+        data.produto !== undefined ||
+        data.licencaAtiva !== undefined ||
+        data.acessoPersonal !== undefined;
+
+      if (changedAccessFields) {
+        const rowFresh = sh.getRange(linha, 1, 1, sh.getLastColumn()).getValues()[0];
+        const licencaAtivaFinal = rowFresh[7] === true || String(rowFresh[7] || "").toLowerCase() === "true";
+        const sourceFinal = String((headerMap.IapSource == null ? "" : rowFresh[headerMap.IapSource]) || "").toLowerCase().trim();
+        const personalFinal = rowFresh[COL_ACESSO_PERSONAL] === true || String(rowFresh[COL_ACESSO_PERSONAL] || "").toLowerCase() === "true";
+        if (licencaAtivaFinal && sourceFinal !== "apple_iap" && sourceFinal !== "hotmart") {
+          _applyManualAccessMetadata_(sh, linha, headerMap, {
+            source: "manual_admin",
+            plan: personalFinal ? "personal" : "access",
+            personal: personalFinal,
+            flow: "admin_update"
+          });
+          _logManualGrant_({
+            userId: rowId,
+            email: rowEmail,
+            source: "manual_admin",
+            flow: "admin_update",
+            product: String(rowFresh[5] || ""),
+            plan: personalFinal ? "personal" : "access",
+            personal: personalFinal,
+            actor: "admin_update_aluna",
+            result: "granted"
+          });
         }
       }
 
@@ -226,6 +258,29 @@ function adminCreateAluna_(data) {
   }
 
   sh.appendRow(row);
+
+  const headerMap = _ensureIapColumns_(sh);
+  const rowIndex = sh.getLastRow();
+  if (_parseBoolean_(data.licencaAtiva)) {
+    const personal = _parseBoolean_(data.acessoPersonal);
+    _applyManualAccessMetadata_(sh, rowIndex, headerMap, {
+      source: "manual_admin",
+      plan: personal ? "personal" : "access",
+      personal: personal,
+      flow: "admin_create"
+    });
+    _logManualGrant_({
+      userId: id,
+      email: email,
+      source: "manual_admin",
+      flow: "admin_create",
+      product: String(data.produto || ""),
+      plan: personal ? "personal" : "access",
+      personal: personal,
+      actor: "admin_create_aluna",
+      result: "granted"
+    });
+  }
 
   return { status: "ok", id };
 }
