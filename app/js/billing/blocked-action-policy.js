@@ -43,8 +43,9 @@
     const enfase = String(context.enfase || "").toLowerCase();
     const categoria = String(context.categoria || "").toLowerCase();
     const checkoutTipo = String(context.checkoutTipo || (categoria === "personal" ? "personal" : "app")).toLowerCase();
-    const produto = String(context.produto || "").toLowerCase();
-    const ativa = context.ativa === true || context.ativa === "true";
+    const isAccessAppIncludedContext =
+      context.isAccessAppIncludedContext === true ||
+      context.isAccessAppIncludedContext === "true";
 
     if (enfase.startsWith("followme_") || categoria === "followme") {
       return {
@@ -55,7 +56,7 @@
       };
     }
 
-    if (produto === "acesso_app" && ativa && checkoutTipo !== "personal") {
+    if (isAccessAppIncludedContext) {
       return {
         toastKey: "blocked_app_pick_home",
         skipCheckout: true,

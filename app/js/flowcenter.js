@@ -2054,7 +2054,8 @@ async function initFlowCenter() {
           produto: produtoRaw,
           ativa: acessoAtivo,
           hasPersonal,
-          enfase: "monte_seu_treino"
+          enfase: "monte_seu_treino",
+          isAccessAppIncludedContext: true
         },
         aoBloquear: () => {
           if (temAcessoCustomSemCheckout) {
@@ -2082,7 +2083,8 @@ async function initFlowCenter() {
           produto: produtoRaw,
           ativa: acessoAtivo,
           hasPersonal,
-          enfase: "endurance"
+          enfase: "endurance",
+          isAccessAppIncludedContext: true
         },
         aoBloquear: () => {
           FEMFLOW.toast("Selecione uma planilha de 30 dias na Home para liberar o Endurance.");
