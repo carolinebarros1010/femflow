@@ -1354,6 +1354,42 @@ function msgCheckout(tipo) {
   return mensagens[tipo]?.[lang] || mensagens[tipo]?.pt || "";
 }
 
+function resolveBlockedCardAction(context = {}) {
+  const {
+    enfase = "",
+    categoria = "",
+    produto = "",
+    ativa = false,
+    hasPersonal = false
+  } = context;
+
+  void produto;
+  void ativa;
+  void hasPersonal;
+
+  if (categoria === "followme") {
+    return {
+      toastKey: "followme_em_breve",
+      checkoutPlanId: null,
+      skipCheckout: true
+    };
+  }
+
+  if (enfase === "personal" || enfase === "bodyinsight") {
+    return {
+      toastKey: "personal_required",
+      checkoutPlanId: "personal",
+      skipCheckout: false
+    };
+  }
+
+  return {
+    toastKey: "access_required",
+    checkoutPlanId: "access",
+    skipCheckout: false
+  };
+}
+
 function abrirCheckout(tipo = "app") {
   const planId = tipo === "personal" ? "personal" : "access";
   FEMFLOW.billing?.openPaywall?.(planId, {
@@ -1379,13 +1415,20 @@ async function openBlockedFlow({ enfase = "", checkoutTipo = "app", isAccessAppI
     return;
   }
 
-  if (enfase && enfase.startsWith("followme_")) {
-    FEMFLOW.toast(getFollowmeEmBreveMessage());
-    return;
-  }
+  const toastByKey = {
+    followme_em_breve: getFollowmeEmBreveMessage(),
+    personal_required: msgCheckout("personal"),
+    access_required: msgCheckout("app")
+  };
 
-  FEMFLOW.toast(msgCheckout(checkoutTipo));
-  await abrirCheckoutOuIap(checkoutTipo);
+  FEMFLOW.toast(toastByKey[blockedAction.toastKey] || toastByKey.access_required);
+
+  if (blockedAction.skipCheckout) return;
+
+  FEMFLOW.billing?.openPaywall?.(blockedAction.checkoutPlanId, {
+    reason: "locked_card",
+    source: "home_blocked_flow"
+  });
 }
 
 function limparEstadoCustomTreino() {
