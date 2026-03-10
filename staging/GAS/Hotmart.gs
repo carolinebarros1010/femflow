@@ -122,6 +122,23 @@ function _resolverPlanoHotmart(planId, planName) {
 
 function _processarHotmart(data) {
 
+  const platform = _resolvePlatformFromPayload_(data || {}, "");
+  const iosLike = platform === "ios" || _isIosLikeSource_(data || {});
+  if (iosLike) {
+    Logger.log("[Hotmart][blocked_ios] " + JSON.stringify({
+      email: String((data && data.email) || "").toLowerCase().trim(),
+      platform: platform || "ios",
+      result: "error",
+      reason: "hotmart_blocked_for_ios"
+    }));
+    return {
+      status: "error",
+      msg: "hotmart_blocked_for_ios",
+      platform: "ios",
+      sourceOfTruth: "server"
+    };
+  }
+
   /* ======================================================
      1) EVENTO
   ====================================================== */
@@ -209,6 +226,8 @@ function _processarHotmart(data) {
   ====================================================== */
   if (eventoCanon === "compra_aprovada") {
 
+    const iapHeaderMap = _ensureIapColumns_(sh);
+
     const row = findRowByEmail(email);
     let idAluno = "";
 
@@ -225,6 +244,11 @@ function _processarHotmart(data) {
       if (typeof COL_ACESSO_PERSONAL === "number") {
         sh.getRange(row, COL_ACESSO_PERSONAL + 1).setValue(plano.personal);
       }
+      if (iapHeaderMap.IapSource != null) sh.getRange(row, iapHeaderMap.IapSource + 1).setValue("hotmart");
+      if (iapHeaderMap.IapStatus != null) sh.getRange(row, iapHeaderMap.IapStatus + 1).setValue("active");
+      if (iapHeaderMap.IapPlan != null) sh.getRange(row, iapHeaderMap.IapPlan + 1).setValue(plano.personal ? "personal" : "access");
+      if (iapHeaderMap.IapLastSource != null) sh.getRange(row, iapHeaderMap.IapLastSource + 1).setValue("hotmart");
+      if (iapHeaderMap.IapLastValidatedAt != null) sh.getRange(row, iapHeaderMap.IapLastValidatedAt + 1).setValue(new Date().toISOString());
 
       if (telefone) sh.getRange(row, 4).setValue(telefone);
 
@@ -250,6 +274,11 @@ function _processarHotmart(data) {
       if (typeof COL_ACESSO_PERSONAL === "number") {
         const newRow = sh.getLastRow();
         sh.getRange(newRow, COL_ACESSO_PERSONAL + 1).setValue(plano.personal);
+        if (iapHeaderMap.IapSource != null) sh.getRange(newRow, iapHeaderMap.IapSource + 1).setValue("hotmart");
+        if (iapHeaderMap.IapStatus != null) sh.getRange(newRow, iapHeaderMap.IapStatus + 1).setValue("active");
+        if (iapHeaderMap.IapPlan != null) sh.getRange(newRow, iapHeaderMap.IapPlan + 1).setValue(plano.personal ? "personal" : "access");
+        if (iapHeaderMap.IapLastSource != null) sh.getRange(newRow, iapHeaderMap.IapLastSource + 1).setValue("hotmart");
+        if (iapHeaderMap.IapLastValidatedAt != null) sh.getRange(newRow, iapHeaderMap.IapLastValidatedAt + 1).setValue(new Date().toISOString());
       }
     }
 

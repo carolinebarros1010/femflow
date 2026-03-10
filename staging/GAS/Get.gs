@@ -28,7 +28,7 @@ function doGet(e) {
 }
 
   if (action === "upgrade") {
-    return _json(legacyUpgrade_(params.id, params.nivel, "GET", params.token));
+    return _json(legacyUpgrade_(params.id, params.nivel, "GET", params.token, params.platform));
   }
 
 
@@ -160,6 +160,16 @@ function _validarPerfil_(params) {
         return {
           status: "blocked",
           reason: "delete_requested",
+          isActive: false,
+          acesso_app: false,
+          modo_personal: false,
+          entitlementStatus: "blocked",
+          source: "unknown",
+          provider: "internal",
+          platform: "cross_platform",
+          plan: "access",
+          expiresAt: "",
+          sourceOfTruth: "server",
           accountStatus: "delete_requested",
           deleteRequestedAt: row[COL_DELETE_REQUESTED_AT] || "",
           messageLocalized: _getDeleteRequestedCopyByLang_(lang),
@@ -167,7 +177,19 @@ function _validarPerfil_(params) {
         };
       }
       if (statusConta !== "ativa") {
-        return { status: "blocked" };
+        return {
+          status: "blocked",
+          isActive: false,
+          acesso_app: false,
+          modo_personal: false,
+          entitlementStatus: "blocked",
+          source: "unknown",
+          provider: "internal",
+          platform: "cross_platform",
+          plan: "access",
+          expiresAt: "",
+          sourceOfTruth: "server"
+        };
       }
 
       const syncResult = id ? sync(rowId) : null;
@@ -178,15 +200,35 @@ function _validarPerfil_(params) {
       if (produtoRaw === "exclusao_solicitada") {
         return {
           status: "blocked",
-          produto: "exclusao_solicitada"
+          produto: "exclusao_solicitada",
+          isActive: false,
+          acesso_app: false,
+          modo_personal: false,
+          entitlementStatus: "blocked",
+          source: "unknown",
+          provider: "internal",
+          platform: "cross_platform",
+          plan: "access",
+          expiresAt: "",
+          sourceOfTruth: "server"
         };
       }
 
-      const isVip = produtoRaw === "vip";
-
       const freeAccess = _buildFreeAccess_(row);
-      const entitlements = computeEntitlementsFromRow_(row, headerMap);
-      const ativa = isVip ? true : entitlements.acesso_app;
+      const unified = _computeUnifiedAccessState_(row, headerMap);
+      const entitlements = unified.entitlements;
+      const ativa = unified.ativa;
+      if (ativa !== !!entitlements.acesso_app) {
+        console.log("[ENTITLEMENT][inconsistency]" + JSON.stringify({
+          userId: rowId,
+          result: "warning",
+          reason: "ativa_differs_from_acesso_app",
+          ativa: ativa,
+          acesso_app: !!entitlements.acesso_app,
+          source: entitlements.source,
+          plan: entitlements.plan
+        }));
+      }
 
       return {
         perfilHormonal: _normalizarPerfilHormonal_(row[COL_PERFIL_HORMONAL] || "") || "regular",
@@ -195,12 +237,17 @@ function _validarPerfil_(params) {
         nome: row[1] || "",
         email: rowEmail,
         produto: row[5] || "",
+        isActive: ativa,
         ativa,
-        acesso_app: entitlements.acesso_app,
+        acesso_app: ativa,
         modo_personal: entitlements.modo_personal,
+        entitlementStatus: entitlements.status,
         expiresAt: entitlements.expiresAt,
         source: entitlements.source,
+        provider: entitlements.provider || (entitlements.source === "apple_iap" ? "apple_iap" : (entitlements.source === "hotmart" ? "hotmart" : "internal")),
+        platform: entitlements.platform || (entitlements.source === "apple_iap" ? "ios" : "cross_platform"),
         plan: entitlements.plan,
+        sourceOfTruth: "server",
         nivel: String(row[8] || "iniciante").toLowerCase(),
         enfase: String(row[12] || "nenhuma").toLowerCase(),
         fase: String(faseSync || "follicular").toLowerCase(),
@@ -214,7 +261,7 @@ function _validarPerfil_(params) {
         dataInicioPrograma: row[COL_DATA_INICIO_PROGRAMA] || "",
         novo_treino_endurance: row[COL_NOVO_TREINO_ENDURANCE] || "",
         acessos: {
-          personal: row[COL_ACESSO_PERSONAL] === true || isVip
+          personal: entitlements.modo_personal
         },
         free_access: freeAccess,
         FreeEnabled: row[COL_FREE_ENABLED],
@@ -224,7 +271,19 @@ function _validarPerfil_(params) {
     }
   }
 
-  return { status: "notfound" };
+  return {
+    status: "notfound",
+    isActive: false,
+    acesso_app: false,
+    modo_personal: false,
+    entitlementStatus: "notfound",
+    source: "unknown",
+    provider: "internal",
+    platform: "cross_platform",
+    plan: "access",
+    expiresAt: "",
+    sourceOfTruth: "server"
+  };
 }
 
 function getEndurancePlanToken_(params) {

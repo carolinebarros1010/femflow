@@ -3,6 +3,157 @@ const IAP_APPLE_PRODUCT_IDS = [
   "com.femflow.app.personal.pro.monthly"
 ];
 
+function _normalizePlatform_(value) {
+  const raw = String(value || "").toLowerCase().trim();
+  if (!raw) return "";
+  if (raw === "ios" || raw === "iphone" || raw === "ipad" || raw === "apple") return "ios";
+  if (raw === "android") return "android";
+  if (raw === "pwa" || raw === "web") return "web";
+  return raw;
+}
+
+function _resolvePlatformFromPayload_(payload, defaultPlatform) {
+  const p = payload || {};
+  const candidates = [
+    p.platform,
+    p.clientPlatform,
+    p.sourcePlatform,
+    p.devicePlatform,
+    p.os,
+    p.appPlatform
+  ];
+  for (var i = 0; i < candidates.length; i++) {
+    const normalized = _normalizePlatform_(candidates[i]);
+    if (normalized) return normalized;
+  }
+  return _normalizePlatform_(defaultPlatform || "");
+}
+
+function _isIosLikeSource_(payload) {
+  const p = payload || {};
+  const platform = _resolvePlatformFromPayload_(p, "");
+  if (platform === "ios") return true;
+
+  const provider = String(p.provider || p.source || "").toLowerCase().trim();
+  if (provider === "apple_iap" || provider === "app_store") return true;
+
+  return false;
+}
+
+function _isStrongAppleValidation_(validationResult) {
+  const result = validationResult || {};
+  const method = String(result.validationMethod || "").trim();
+  const level = String(result.validationLevel || "").trim();
+  return method === "verifyReceipt" && level === "pragmatic_remote";
+}
+
+function _maskTxForLog_(value) {
+  const raw = String(value || "").trim();
+  if (!raw) return "";
+  if (raw.length <= 8) return raw;
+  return raw.slice(0, 4) + "..." + raw.slice(-4);
+}
+
+function _buildEntitlementContract_(base) {
+  const b = base || {};
+  const isActive = !!b.isActive;
+  return {
+    status: String(b.status || "ok"),
+    isActive: isActive,
+    acesso_app: isActive,
+    modo_personal: !!b.modo_personal,
+    entitlementStatus: String(b.entitlementStatus || (isActive ? "active" : "expired")),
+    source: String(b.source || "unknown"),
+    provider: String(b.provider || "internal"),
+    platform: String(b.platform || "cross_platform"),
+    plan: String(b.plan || "access"),
+    expiresAt: String(b.expiresAt || ""),
+    sourceOfTruth: String(b.sourceOfTruth || "server")
+  };
+}
+
+function _computeUnifiedAccessState_(row, headerMap) {
+  const entitlements = computeEntitlementsFromRow_(row, headerMap) || {
+    acesso_app: false,
+    modo_personal: false,
+    expiresAt: "",
+    source: "unknown",
+    plan: "access",
+    status: "expired",
+    productId: "",
+    originalTransactionId: "",
+    lastValidatedAt: ""
+  };
+
+  const produto = String(row[headerMap.Produto] || "").toLowerCase().trim();
+  const isVip = produto === "vip";
+
+  if (isVip) {
+    return {
+      ativa: true,
+      entitlements: {
+        acesso_app: true,
+        modo_personal: true,
+        expiresAt: "",
+        source: "vip",
+        provider: "internal",
+        platform: "cross_platform",
+        plan: "vip",
+        status: "active",
+        productId: "",
+        originalTransactionId: "",
+        lastValidatedAt: ""
+      }
+    };
+  }
+
+  const sourceNorm = String(entitlements.source || "").trim().toLowerCase();
+  let provider = sourceNorm === "apple_iap" ? "apple_iap" : (sourceNorm === "hotmart" ? "hotmart" : "internal");
+  let platform = sourceNorm === "apple_iap" ? "ios" : (sourceNorm === "hotmart" ? "cross_platform" : "cross_platform");
+  let source = sourceNorm || "unknown";
+  if (!sourceNorm && _isTruthy_(row[headerMap.LicencaAtiva]) && produto && produto !== "trial_app") {
+    source = "manual";
+    provider = "internal";
+    platform = "cross_platform";
+  }
+
+  return {
+    ativa: !!entitlements.acesso_app,
+    entitlements: Object.assign({}, entitlements, {
+      source: source,
+      provider: provider,
+      platform: platform
+    })
+  };
+}
+
+function _hasSufficientAppleEvidenceForRestore_(tx) {
+  const item = tx || {};
+  const productId = String(item.productId || "").trim();
+  const transactionId = String(item.transactionId || "").trim();
+  if (!productId || !transactionId) {
+    return { ok: false, reason: "missing_product_or_transaction" };
+  }
+  if (IAP_APPLE_PRODUCT_IDS.indexOf(productId) < 0) {
+    return { ok: false, reason: "product_not_allowed" };
+  }
+  if (!_isLikelyAppleTransactionId_(transactionId)) {
+    return { ok: false, reason: "invalid_transaction_id" };
+  }
+
+  const receipt = String(item.receipt || item.transactionReceipt || "").trim();
+  if (receipt) return { ok: true, mode: "receipt" };
+
+  const signedPayload = String(item.signedPayload || "").trim();
+  if (!signedPayload) return { ok: false, reason: "missing_apple_evidence" };
+
+  const parsedJws = _parseJwsWithHeader_(signedPayload);
+  const envelope = _evaluateAppleJwsEnvelope_(parsedJws, "JWT");
+  if (!envelope.ok) return { ok: false, reason: "insufficient_signed_payload_evidence" };
+
+  return { ok: true, mode: "signed_payload_pragmatic" };
+}
+
 function _getHeaderMap_(sh) {
   const lastCol = Math.max(1, sh.getLastColumn());
   const header = sh.getRange(1, 1, 1, lastCol).getValues()[0].map(function (v) {
@@ -738,28 +889,37 @@ function _persistAppleValidationToRow_(sh, rowIndex, headerMap, payload, validat
   sh.getRange(rowIndex, headerMap.IapCorrelationId + 1).setValue(String(payload.correlationId || ""));
   sh.getRange(rowIndex, headerMap.IapIdempotencyKey + 1).setValue(String(payload.idempotencyKey || ""));
 
-  return {
+  const base = _buildEntitlementContract_({
     status: "ok",
-    source: "apple_iap",
-    plan: planData.plan,
-    acesso_app: active,
+    isActive: active,
     modo_personal: active && planData.modoPersonal,
-    expiresAt: validationResult.expiresDate || "",
+    entitlementStatus: finalStatus,
+    source: "apple_iap",
     provider: "apple_iap",
     platform: "ios",
+    plan: planData.plan,
+    expiresAt: validationResult.expiresDate || "",
+    sourceOfTruth: "server"
+  });
+
+  return Object.assign(base, {
+    status: "ok",
     productId: validationResult.productId || "",
     transactionId: validationResult.transactionId || "",
     originalTransactionId: validationResult.originalTransactionId || "",
-    entitlementStatus: finalStatus,
     lastValidatedAt: _getCurrentIsoNow_(),
-    sourceOfTruth: "server",
     validationLevel: validationResult.validationLevel || "unverified",
     validationMethod: validationResult.validationMethod || "none",
     verificationMode: validationResult.verificationMode || "server"
-  };
+  });
 }
 
 function _processIapAppleActivationCore_(payload, source) {
+  const platform = _resolvePlatformFromPayload_(payload || {}, "ios");
+  if (platform && platform !== "ios") {
+    return { status: "error", msg: "invalid_platform_for_apple_iap", platform: platform };
+  }
+
   const sh = ensureAlunasHasColumns_();
   if (!sh) return { status: "error", msg: "sheet_not_found" };
 
@@ -816,17 +976,33 @@ function _processIapAppleActivationCore_(payload, source) {
   }));
 
   if (!validation.ok) {
-    return {
+    return Object.assign(_buildEntitlementContract_({
+      status: "error",
+      isActive: false,
+      modo_personal: false,
+      entitlementStatus: validation.status || "pending_validation",
+      source: "apple_iap",
+      provider: "apple_iap",
+      platform: "ios",
+      plan: "access",
+      expiresAt: "",
+      sourceOfTruth: "server"
+    }), {
       status: "error",
       msg: "apple_validation_failed",
       reason: validation.reason || "validation_failed",
-      entitlementStatus: validation.status || "pending_validation",
-      isActive: false,
-      sourceOfTruth: "server",
       validationLevel: validation.validationLevel || "unverified",
       validationMethod: validation.validationMethod || "none",
       verificationMode: validation.verificationMode || "server"
-    };
+    });
+  }
+
+  if (!_isStrongAppleValidation_(validation)) {
+    const downgraded = Object.assign({}, validation, {
+      status: "pending_validation",
+      reason: "validation_not_strong_enough_for_active"
+    });
+    return _persistAppleValidationToRow_(sh, found.rowIndex, headerMap, payload, downgraded);
   }
 
   return _persistAppleValidationToRow_(sh, found.rowIndex, headerMap, payload, validation);
@@ -853,8 +1029,8 @@ function _buildAppleIapLogContext_(payload, extra) {
     notificationType: String(merged.notificationType || "").trim(),
     subtype: String(merged.subtype || "").trim(),
     productId: String(merged.productId || "").trim(),
-    transactionId: String(merged.transactionId || "").trim(),
-    originalTransactionId: String(merged.originalTransactionId || "").trim(),
+    transactionId: _maskTxForLog_(merged.transactionId),
+    originalTransactionId: _maskTxForLog_(merged.originalTransactionId),
     correlationId: String(merged.correlationId || merged.notificationId || "").trim(),
     status: String(merged.status || merged.result || "").trim(),
     result: String(merged.result || merged.status || "").trim(),
@@ -1054,9 +1230,25 @@ function _validateParsedAppleNotification_(parsed, targetRow, headerMap) {
 
 
 function iapAppleRestore_(payload) {
+  const platform = _resolvePlatformFromPayload_(payload || {}, "ios");
+  if (platform && platform !== "ios") {
+    return { status: "error", msg: "invalid_platform_for_apple_restore", platform: platform };
+  }
+
   const list = Array.isArray(payload && payload.transactions) ? payload.transactions : [];
 
   if (!list.length) {
+    const singleEvidence = _hasSufficientAppleEvidenceForRestore_(payload || {});
+    if (!singleEvidence.ok) {
+      return {
+        status: "error",
+        msg: "restore_item_rejected",
+        reason: singleEvidence.reason,
+        sourceOfTruth: "server",
+        validationMode: "precheck"
+      };
+    }
+
     const single = _processIapAppleActivationCore_(Object.assign({}, payload || {}, {
       source: "restore"
     }), "restore");
@@ -1079,6 +1271,30 @@ function iapAppleRestore_(payload) {
 
   for (var i = 0; i < list.length; i++) {
     const tx = list[i] || {};
+    const evidenceCheck = _hasSufficientAppleEvidenceForRestore_(tx);
+    if (!evidenceCheck.ok) {
+      const rejected = {
+        status: "error",
+        msg: "restore_item_rejected",
+        reason: evidenceCheck.reason,
+        productId: String(tx.productId || ""),
+        transactionId: String(tx.transactionId || ""),
+        originalTransactionId: String(tx.originalTransactionId || ""),
+        sourceOfTruth: "server",
+        validationMode: "precheck"
+      };
+      results.push(rejected);
+      console.log("[IAP][restore]", JSON.stringify(_buildAppleIapLogContext_(tx, {
+        status: "error",
+        result: "error",
+        reason: evidenceCheck.reason,
+        validationLevel: "unverified",
+        validationMethod: "none",
+        verificationMode: "server"
+      })));
+      continue;
+    }
+
     const merged = Object.assign({}, payload || {}, tx, { source: "restore" });
     const resp = _processIapAppleActivationCore_(merged, "restore");
     results.push(resp);
@@ -1465,10 +1681,36 @@ function computeEntitlementsFromRow_(row, headerMap) {
 
 function entitlementsStatus_(payload) {
   const sh = ensureAlunasHasColumns_();
-  if (!sh) return { status: "error", msg: "sheet_not_found" };
+  if (!sh) {
+    return Object.assign(_buildEntitlementContract_({
+      status: "error",
+      isActive: false,
+      modo_personal: false,
+      entitlementStatus: "error",
+      source: "unknown",
+      provider: "internal",
+      platform: "cross_platform",
+      plan: "access",
+      expiresAt: "",
+      sourceOfTruth: "server"
+    }), { status: "error", msg: "sheet_not_found" });
+  }
 
   const found = _findAlunaRowByIdOrEmail_(sh, payload || {});
-  if (!found) return { status: "notfound", msg: "aluna_not_found" };
+  if (!found) {
+    return Object.assign(_buildEntitlementContract_({
+      status: "notfound",
+      isActive: false,
+      modo_personal: false,
+      entitlementStatus: "notfound",
+      source: "unknown",
+      provider: "internal",
+      platform: "cross_platform",
+      plan: "access",
+      expiresAt: "",
+      sourceOfTruth: "server"
+    }), { status: "notfound", msg: "aluna_not_found" });
+  }
 
   _ensureIapColumns_(sh);
   const header = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0];
@@ -1486,31 +1728,46 @@ function entitlementsStatus_(payload) {
   };
 
   if (headerMap.Produto < 0 || headerMap.LicencaAtiva < 0 || headerMap.acesso_personal < 0) {
-    return { status: "error", msg: "missing_required_columns" };
+    return Object.assign(_buildEntitlementContract_({
+      status: "error",
+      isActive: false,
+      modo_personal: false,
+      entitlementStatus: "error",
+      source: "unknown",
+      provider: "internal",
+      platform: "cross_platform",
+      plan: "access",
+      expiresAt: "",
+      sourceOfTruth: "server"
+    }), { status: "error", msg: "missing_required_columns" });
   }
 
   const values = sh.getRange(found.rowIndex, 1, 1, sh.getLastColumn()).getValues()[0];
-  const entitlements = computeEntitlementsFromRow_(values, headerMap);
+  const unified = _computeUnifiedAccessState_(values, headerMap);
+  const entitlements = unified.entitlements;
   const produto = String(values[headerMap.Produto] || "").toLowerCase().trim();
   const userId = String(payload.userId || payload.id || values[0] || "").trim();
 
-  return {
+  const contract = _buildEntitlementContract_({
+    status: "ok",
+    isActive: unified.ativa,
+    modo_personal: entitlements.modo_personal,
+    entitlementStatus: entitlements.status,
+    source: entitlements.source,
+    provider: entitlements.provider,
+    platform: entitlements.platform,
+    plan: entitlements.plan,
+    expiresAt: entitlements.expiresAt,
+    sourceOfTruth: "server"
+  });
+
+  return Object.assign(contract, {
     status: "ok",
     userId: userId,
-    provider: entitlements.source === "apple_iap" ? "apple_iap" : "hotmart",
-    platform: entitlements.source === "apple_iap" ? "ios" : "cross_platform",
-    isActive: entitlements.acesso_app,
-    entitlementStatus: entitlements.status,
-    acesso_app: entitlements.acesso_app,
-    modo_personal: entitlements.modo_personal,
-    expiresAt: entitlements.expiresAt,
     periodEnd: entitlements.expiresAt,
-    source: entitlements.source,
-    sourceOfTruth: "server",
-    plan: entitlements.plan,
     productId: entitlements.productId,
     originalTransactionId: entitlements.originalTransactionId,
     lastValidatedAt: entitlements.lastValidatedAt,
     produto: produto
-  };
+  });
 }

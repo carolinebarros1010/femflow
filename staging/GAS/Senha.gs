@@ -570,6 +570,42 @@ function _fazerLogin(data) {
       Logger.log('[Auth2] LRU evict no login id=' + row[0] + ' evicted=' + upsert.evictedDeviceId);
     }
 
+    let acesso = null;
+    try {
+      _ensureIapColumns_(sh);
+      const header = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0];
+      const headerMap = {
+        Produto: header.indexOf("Produto"),
+        LicencaAtiva: header.indexOf("LicencaAtiva"),
+        acesso_personal: header.indexOf("acesso_personal"),
+        IapSource: header.indexOf("IapSource"),
+        IapExpiresAt: header.indexOf("IapExpiresAt"),
+        IapPlan: header.indexOf("IapPlan"),
+        IapStatus: header.indexOf("IapStatus"),
+        IapProductId: header.indexOf("IapProductId"),
+        IapOriginalTransactionId: header.indexOf("IapOriginalTransactionId"),
+        IapLastValidatedAt: header.indexOf("IapLastValidatedAt")
+      };
+      if (headerMap.Produto >= 0 && headerMap.LicencaAtiva >= 0 && headerMap.acesso_personal >= 0) {
+        const rowFresh = sh.getRange(linha, 1, 1, sh.getLastColumn()).getValues()[0];
+        const unified = _computeUnifiedAccessState_(rowFresh, headerMap);
+        acesso = {
+          ativa: unified.ativa,
+          isActive: unified.ativa,
+          acesso_app: unified.ativa,
+          modo_personal: !!(unified.entitlements && unified.entitlements.modo_personal),
+          entitlementStatus: String(unified.entitlements && unified.entitlements.status || ""),
+          source: String(unified.entitlements && unified.entitlements.source || ""),
+          provider: String(unified.entitlements && unified.entitlements.provider || "internal"),
+          platform: String(unified.entitlements && unified.entitlements.platform || "cross_platform"),
+          plan: String(unified.entitlements && unified.entitlements.plan || ""),
+          expiresAt: String(unified.entitlements && unified.entitlements.expiresAt || "")
+        };
+      }
+    } catch (err) {
+      Logger.log('[Auth2] Login entitlement snapshot falhou id=' + row[0] + ' err=' + String(err));
+    }
+
     return {
       status: "ok",
       id: row[0],
@@ -577,6 +613,17 @@ function _fazerLogin(data) {
       deviceId,
       sessionToken,
       sessionExpira: sessionExpiraIso,
+      acesso,
+      isActive: !!(acesso && acesso.isActive),
+      acesso_app: !!(acesso && acesso.acesso_app),
+      modo_personal: !!(acesso && acesso.modo_personal),
+      entitlementStatus: String(acesso && acesso.entitlementStatus || ""),
+      source: String(acesso && acesso.source || "unknown"),
+      provider: String(acesso && acesso.provider || "internal"),
+      platform: String(acesso && acesso.platform || "cross_platform"),
+      plan: String(acesso && acesso.plan || "access"),
+      expiresAt: String(acesso && acesso.expiresAt || ""),
+      sourceOfTruth: "server",
       slots: { limit: DEVICE_SLOTS, used: upsert.used },
       evictedDeviceId: upsert.evictedDeviceId || ""
     };
