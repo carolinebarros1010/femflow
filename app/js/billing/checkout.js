@@ -26,7 +26,9 @@
     const platform = FEMFLOW.platform?.getPlatform?.() || "web";
     console.info("[FEMFLOW.checkout] openCheckout", { planId: targetPlan, platform, context: ctx });
 
-    if (platform === "ios") {
+    const isNativeIOS = FEMFLOW.platform?.isNativeIOS?.() === true;
+
+    if (isNativeIOS) {
       const iapProductId = FEMFLOW.iapIOS?.catalog?.[targetPlan] || "";
       if (typeof FEMFLOW.iap?.purchase === "function") {
         console.info("[FEMFLOW.checkout] iOS convergido para trilha server-authoritative.", {
@@ -49,7 +51,7 @@
       return { ok: false, code: "ios_iap_unavailable", planId: targetPlan, platform };
     }
 
-    if (platform === "android" || platform === "web") {
+    if (!isNativeIOS) {
       const openHotmartExternal = FEMFLOW.checkout._openHotmartExternal;
       if (typeof openHotmartExternal === "function") {
         return openHotmartExternal(targetPlan, Object.assign({}, ctx, { __fromOpenCheckout: true }));
