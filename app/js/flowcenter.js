@@ -353,6 +353,8 @@ async function initFlowCenter() {
   if (!handoff) FEMFLOW.loading.show();
   renderFlowcenterSkeleton();
 
+  await FEMFLOW.billing?.bootstrap?.init?.();
+
   const autoLoginPromise = Promise.resolve()
     .then(() => FEMFLOW.autoLoginSilencioso?.())
     .catch((e) => {
