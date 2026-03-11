@@ -4,7 +4,12 @@
   FEMFLOW.billing = FEMFLOW.billing || {};
 
   // DEPRECATED compat layer: manter aliases legados (LINK_*) até migração total do billing.
-  // Compliance iOS: evitar defaults hardcoded no bundle; manter URLs apenas via configuração externa.
+  // Canonical map obrigatório: garante checkout comercial mesmo sem configuração externa.
+  const HOTMART_CANONICAL_URLS = {
+    access: "https://pay.hotmart.com/T103984580L?off=ifcs6h6n&checkoutMode=6",
+    personal: "https://pay.hotmart.com/T103984580L?off=sybtfokt&checkoutMode=6"
+  };
+
   function resolveHotmartPlanUrls() {
     const configuredHotmartUrls = FEMFLOW.checkout.hotmartPlanUrls
       || FEMFLOW.billing.hotmartPlanUrls
@@ -12,8 +17,8 @@
       || {};
 
     return {
-      access: String(configuredHotmartUrls.access || FEMFLOW.LINK_ACESSO_APP || "").trim(),
-      personal: String(configuredHotmartUrls.personal || FEMFLOW.LINK_PERSONAL || "").trim()
+      access: String(configuredHotmartUrls.access || FEMFLOW.LINK_ACESSO_APP || HOTMART_CANONICAL_URLS.access).trim(),
+      personal: String(configuredHotmartUrls.personal || FEMFLOW.LINK_PERSONAL || HOTMART_CANONICAL_URLS.personal).trim()
     };
   }
 
@@ -27,7 +32,10 @@
   function normalizePlanId(planId) {
     const text = String(planId || "").toLowerCase().trim();
     if (text === "personal") return "personal";
-    return "access";
+    if (text === "access" || !text) return "access";
+
+    console.error("[FEMFLOW.checkout] planId inválido recebido.", { planId });
+    return null;
   }
 
   function openExternalSafely(url) {
@@ -46,10 +54,9 @@
   }
 
   function openHotmartExternal(planId, context) {
-    const isIOS = FEMFLOW.platform?.isIOS?.() === true
-      || String(global.Capacitor?.getPlatform?.() || "").toLowerCase() === "ios";
+    const isNativeIOS = FEMFLOW.platform?.isNativeIOS?.() === true;
 
-    if (isIOS) {
+    if (isNativeIOS) {
       const lang = String(FEMFLOW.lang || "pt").slice(0, 2).toLowerCase();
       const mensagens = {
         pt: "Assine no app para continuar",
@@ -62,15 +69,25 @@
     }
 
     const targetPlan = normalizePlanId(planId);
+    if (!targetPlan) {
+      return { ok: false, code: "invalid_planId", planId: String(planId || "") };
+    }
+
     const hotmartUrls = resolveHotmartPlanUrls();
     FEMFLOW.billing.hotmartPlanUrls = hotmartUrls;
     FEMFLOW.checkout.hotmartPlanUrls = hotmartUrls;
     const targetUrl = hotmartUrls[targetPlan];
 
     if (!targetUrl) {
-      console.error("[FEMFLOW.checkout] URL Hotmart não configurada para plano.", { planId, targetPlan, context });
-      FEMFLOW.toast?.("Não foi possível abrir o checkout agora. Tente novamente.");
-      return { ok: false, code: "hotmart_url_not_found", planId: targetPlan };
+      console.error("[FEMFLOW.checkout] URL Hotmart ausente para plano.", {
+        planId,
+        targetPlan,
+        context,
+        hotmartUrls,
+        canonical: HOTMART_CANONICAL_URLS
+      });
+      FEMFLOW.toast?.(`Checkout indisponível (${targetPlan}).`);
+      return { ok: false, code: "hotmart_url_not_found", planId: targetPlan, hotmartUrls };
     }
 
     try {

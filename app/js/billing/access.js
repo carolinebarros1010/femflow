@@ -12,6 +12,10 @@
   FEMFLOW.platform.isIOS = FEMFLOW.platform.isIOS || function isIOS() {
     return FEMFLOW.platform.getPlatform() === "ios";
   };
+  FEMFLOW.platform.isNativeIOS = FEMFLOW.platform.isNativeIOS || function isNativeIOS() {
+    const nativePlatform = String(FEMFLOW.platform.getNativePlatform?.() || global.Capacitor?.getPlatform?.() || "").toLowerCase();
+    return nativePlatform === "ios";
+  };
 
   function normalizeBoolean(value) {
     if (typeof value === "boolean") return value;
@@ -83,7 +87,7 @@
 
   FEMFLOW.billing = FEMFLOW.billing || {};
   FEMFLOW.billing.getProducts = async function getProducts() {
-    if (!FEMFLOW.platform.isIOS()) {
+    if (!FEMFLOW.platform.isNativeIOS()) {
       return { ok: false, code: "not_ios", products: [] };
     }
 
@@ -97,7 +101,7 @@
   FEMFLOW.billing.openPaywall = async function openPaywall(planId = "access", context = {}) {
     const targetPlan = String(planId || "access").toLowerCase() === "personal" ? "personal" : "access";
 
-    if (FEMFLOW.platform.isIOS()) {
+    if (FEMFLOW.platform.isNativeIOS()) {
       const nativeResp = postToNative({ event: "openPaywall", planId: targetPlan, context });
       if (nativeResp.ok) return { ok: true, source: "native_bridge", planId: targetPlan };
       return FEMFLOW.checkout?.openCheckout?.(targetPlan, Object.assign({}, context, { source: "billing_openPaywall" }));
@@ -107,7 +111,7 @@
   };
 
   FEMFLOW.billing.purchase = async function purchase(productId, context = {}) {
-    if (!FEMFLOW.platform.isIOS()) {
+    if (!FEMFLOW.platform.isNativeIOS()) {
       return { ok: false, code: "not_ios" };
     }
 
@@ -119,7 +123,7 @@
   };
 
   FEMFLOW.billing.restorePurchases = async function restorePurchases(context = {}) {
-    if (!FEMFLOW.platform.isIOS()) {
+    if (!FEMFLOW.platform.isNativeIOS()) {
       return { ok: false, code: "not_ios" };
     }
 

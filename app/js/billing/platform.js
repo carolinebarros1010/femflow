@@ -12,6 +12,12 @@
     return "";
   }
 
+  function getNativePlatform() {
+    const cap = getCapacitorPlatform();
+    if (cap === "ios" || cap === "android") return cap;
+    return "web";
+  }
+
   function getPlatform() {
     const cap = getCapacitorPlatform();
     if (cap === "ios") return "ios";
@@ -25,6 +31,13 @@
 
   FEMFLOW.platform = FEMFLOW.platform || {};
   FEMFLOW.platform.getPlatform = getPlatform;
+  FEMFLOW.platform.getNativePlatform = getNativePlatform;
+  FEMFLOW.platform.isNativeIOS = function isNativeIOS() {
+    return getNativePlatform() === "ios";
+  };
+  FEMFLOW.platform.isNativeAndroid = function isNativeAndroid() {
+    return getNativePlatform() === "android";
+  };
   FEMFLOW.platform.isIOS = function isIOS() {
     return getPlatform() === "ios";
   };
