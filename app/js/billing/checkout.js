@@ -26,9 +26,17 @@
     const platform = FEMFLOW.platform?.getPlatform?.() || "web";
     console.info("[FEMFLOW.checkout] openCheckout", { planId: targetPlan, platform, context: ctx });
 
-    const isNativeIOS = FEMFLOW.platform?.isNativeIOS?.() === true;
+    function hotmartUnavailableResult() {
+      console.error("[billing] hotmart checkout unavailable", {
+        planId: targetPlan,
+        platform
+      });
+      return { ok: false, code: "hotmart_checkout_unavailable", planId: targetPlan, platform };
+    }
 
-    if (isNativeIOS) {
+    const isNativeIOS = () => FEMFLOW.platform?.isNativeIOS?.() === true;
+
+    if (isNativeIOS()) {
       const iapProductId = FEMFLOW.iapIOS?.catalog?.[targetPlan] || "";
       if (typeof FEMFLOW.iap?.purchase === "function") {
         console.info("[FEMFLOW.checkout] iOS convergido para trilha server-authoritative.", {
@@ -51,25 +59,43 @@
       return { ok: false, code: "ios_iap_unavailable", planId: targetPlan, platform };
     }
 
-    if (!isNativeIOS) {
+    if (!isNativeIOS()) {
       const openHotmartExternal = FEMFLOW.checkout._openHotmartExternal;
       if (typeof openHotmartExternal === "function") {
         return openHotmartExternal(targetPlan, Object.assign({}, ctx, { __fromOpenCheckout: true }));
       }
 
-      if (typeof FEMFLOW.checkout.ensureHotmartModule === "function") {
-        return FEMFLOW.checkout.ensureHotmartModule().then(() =>
-          FEMFLOW.checkout._openHotmartExternal?.(targetPlan, Object.assign({}, ctx, { __fromOpenCheckout: true }))
-          || { ok: false, code: "hotmart_checkout_unavailable", planId: targetPlan, platform }
-        );
+      const ensureBootstrap = FEMFLOW.billing?.bootstrap?.init;
+      const ensureHotmartModule = FEMFLOW.checkout.ensureHotmartModule;
+
+      if (typeof ensureBootstrap === "function" || typeof ensureHotmartModule === "function") {
+        return Promise.resolve()
+          .then(() => {
+            if (typeof FEMFLOW.checkout._openHotmartExternal === "function") return null;
+            if (typeof ensureBootstrap === "function") {
+              return ensureBootstrap();
+            }
+            return null;
+          })
+          .then(() => {
+            if (typeof FEMFLOW.checkout._openHotmartExternal === "function") return null;
+            if (typeof ensureHotmartModule === "function") {
+              return ensureHotmartModule();
+            }
+            return null;
+          })
+          .then(() =>
+            FEMFLOW.checkout._openHotmartExternal?.(targetPlan, Object.assign({}, ctx, { __fromOpenCheckout: true }))
+            || hotmartUnavailableResult()
+          );
       }
 
-      return { ok: false, code: "hotmart_checkout_unavailable", planId: targetPlan, platform };
+      return hotmartUnavailableResult();
     }
 
     console.warn("[FEMFLOW.checkout] Plataforma não reconhecida; usando fallback web.", { platform, planId: targetPlan, context: ctx });
     return FEMFLOW.checkout._openHotmartExternal?.(targetPlan, Object.assign({}, ctx, { __fromOpenCheckout: true }))
-      || { ok: false, code: "hotmart_checkout_unavailable", planId: targetPlan, platform };
+      || hotmartUnavailableResult();
   }
 
   FEMFLOW.checkout.openCheckout = openCheckout;

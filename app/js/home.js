@@ -2052,6 +2052,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   renderHomeSkeleton();
   configurarVideoHome();
 
+  await FEMFLOW.billing?.bootstrap?.init?.();
   await FEMFLOW.autoLoginSilencioso?.();
 
   try {
