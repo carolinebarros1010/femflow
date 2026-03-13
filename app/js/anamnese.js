@@ -544,7 +544,7 @@ if (loginResp?.status === "ok") {
       perguntas = getPerguntasTraduzidas();
 
 if (!perguntas.length) {
-  FEMFLOW.toast?.("Preparando perguntas…");
+  FEMFLOW.toast?.(FEMFLOW.t("geral.loadingQuestions"));
   setTimeout(() => window.iniciarQuizFemFlow?.(), 250);
   return;
 }

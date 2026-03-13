@@ -2086,7 +2086,8 @@ FEMFLOW.toggleBodyScroll = function (locked) {
 (function () {
   let lockCount = 0;
   let lastScrollY = 0;
-  const DEFAULT_LOADING_TEXT = "Carregando...";
+  const DEFAULT_LOADING_KEY = "geral.loading";
+  const DEFAULT_LOADING_TEXT = "Carregando…";
 
   function blockEvent(e) {
     e.preventDefault();
@@ -2252,12 +2253,30 @@ FEMFLOW.toggleBodyScroll = function (locked) {
     document.body.setAttribute("aria-busy", isBusy ? "true" : "false");
   }
 
+  function resolveLoadingText(text) {
+    const fallback = FEMFLOW.t?.(DEFAULT_LOADING_KEY) || DEFAULT_LOADING_TEXT;
+    const raw = String(text || "").trim();
+    if (!raw) return fallback;
+
+    const normalizedKey = raw.startsWith("general.") ? `geral.${raw.slice("general.".length)}` : raw;
+    const maybeI18nKey = /^(geral|general)\.[\w-]+$/.test(raw);
+
+    if (!maybeI18nKey) return raw;
+
+    const translated = FEMFLOW.t?.(normalizedKey) || normalizedKey;
+    if (!translated || translated === normalizedKey || translated === raw) {
+      return fallback;
+    }
+
+    return translated;
+  }
+
   FEMFLOW.loading = {
     show(text) {
       const box = ensureBox();
       const textEl = box.querySelector(".ff-loading-text");
       if (textEl) {
-        textEl.textContent = String(text || DEFAULT_LOADING_TEXT).trim() || DEFAULT_LOADING_TEXT;
+        textEl.textContent = resolveLoadingText(text);
       }
 
       lockCount += 1;
