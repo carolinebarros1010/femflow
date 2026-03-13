@@ -225,7 +225,7 @@ document.addEventListener("DOMContentLoaded", async () => {
     if (ctx.nome) anamneseParams.set("nome", ctx.nome);
     if (ctx.telefone) anamneseParams.set("telefone", ctx.telefone);
 
-    FEMFLOW.loading.show();
+    FEMFLOW.loading.show("Verificando...");
     setMsg("Redirecionando para completar sua anamnese...");
     setTimeout(() => {
       FEMFLOW.navegarUltra(`anamnese_deluxe.html?${anamneseParams.toString()}`);
@@ -426,7 +426,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   async function entrar(){
     if (loginInProgress) return;
     loginInProgress = true;
-    FEMFLOW.loading.show();
+    FEMFLOW.loading.show("Verificando...");
 
     try {
       const email = $("#loginEmail").value.trim().toLowerCase();
@@ -437,8 +437,6 @@ document.addEventListener("DOMContentLoaded", async () => {
         FEMFLOW.loading.hide();
         return;
       }
-
-      setMsg("Verificando...");
 
       let res;
       try {
@@ -608,8 +606,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       return;
     }
 
-    setMsg("Iniciando login com Apple...");
-    FEMFLOW.loading.show();
+    FEMFLOW.loading.show("Verificando...");
 
     try {
       await appleAuth.signIn();
@@ -621,7 +618,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   };
 
   async function preencherComGoogle(response){
-    FEMFLOW.loading.show();
+    FEMFLOW.loading.show("Verificando...");
     try {
       const data = jwt_decode(response.credential);
       if (!data?.email) return;
@@ -679,7 +676,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   })();
 
   bio.onclick = async () => {
-    FEMFLOW.loading.show();
+    FEMFLOW.loading.show("Verificando...");
     try {
       const email = $("#loginEmail").value.trim();
       if (!email){

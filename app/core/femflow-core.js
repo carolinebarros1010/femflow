@@ -1872,28 +1872,146 @@ FEMFLOW.toggleBodyScroll = function (locked) {
 (function () {
   let lockCount = 0;
   let lastScrollY = 0;
+  const DEFAULT_LOADING_TEXT = "Carregando...";
+
+  function blockEvent(e) {
+    e.preventDefault();
+  }
+
+  function setInteractionBlock(active) {
+    const method = active ? "addEventListener" : "removeEventListener";
+    document[method]("touchmove", blockEvent, { passive: false });
+    document[method]("wheel", blockEvent, { passive: false });
+  }
+
+  function ensureStyles() {
+    if (document.getElementById("ff-loading-style")) return;
+
+    const style = document.createElement("style");
+    style.id = "ff-loading-style";
+    style.textContent = `
+      #ff-loading.ff-loading {
+        position: fixed;
+        inset: 0;
+        z-index: 2147483000;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        padding: max(20px, env(safe-area-inset-top)) max(20px, env(safe-area-inset-right)) max(20px, env(safe-area-inset-bottom)) max(20px, env(safe-area-inset-left));
+        background: rgba(20, 23, 26, 0.36);
+        backdrop-filter: blur(10px);
+        -webkit-backdrop-filter: blur(10px);
+        opacity: 0;
+        pointer-events: auto;
+        touch-action: none;
+        transition: opacity 240ms ease;
+      }
+
+      #ff-loading.ff-loading.ff-show {
+        opacity: 1;
+      }
+
+      #ff-loading.ff-loading.ff-hidden {
+        display: none;
+      }
+
+      #ff-loading .ff-loading-content {
+        min-width: min(280px, calc(100vw - 40px));
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        justify-content: center;
+        gap: 12px;
+      }
+
+      #ff-loading .ff-loading-logo {
+        width: 64px;
+        height: 64px;
+        object-fit: contain;
+      }
+
+      #ff-loading .ff-loading-spinner {
+        width: 34px;
+        height: 34px;
+        border: 3px solid rgba(255,255,255,.45);
+        border-top-color: #ffffff;
+        border-radius: 50%;
+        animation: ffSpin 900ms linear infinite;
+      }
+
+      #ff-loading .ff-loading-text {
+        font-family: "Lato", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+        font-size: 15px;
+        font-weight: 700;
+        color: #fff;
+        text-align: center;
+      }
+
+      html.ff-scroll-lock,
+      body.ff-scroll-lock,
+      body.ff-modal-open {
+        overflow: hidden !important;
+      }
+
+      body.ff-scroll-lock {
+        position: fixed;
+        left: 0;
+        right: 0;
+        width: 100%;
+        touch-action: none;
+      }
+
+      @keyframes ffSpin {
+        to { transform: rotate(360deg); }
+      }
+    `;
+    document.head.appendChild(style);
+  }
+
+  function ensureLoadingMarkup(box) {
+    if (!box.querySelector(".ff-loading-text") || !box.querySelector(".ff-loading-spinner")) {
+      box.innerHTML = `
+        <div class="ff-loading-content ff-pulse">
+          <img class="ff-loading-logo"
+               src="assets/logofemflowterracotasf.png"
+               alt="FemFlow"/>
+          <div class="ff-loading-spinner" aria-hidden="true"></div>
+          <div class="ff-loading-text">${DEFAULT_LOADING_TEXT}</div>
+        </div>
+      `;
+    }
+  }
 
   function lockScroll() {
     // Guarda posição e trava o body sem “pular”
     lastScrollY = window.scrollY || window.pageYOffset || 0;
     document.documentElement.classList.add("ff-scroll-lock");
     document.body.classList.add("ff-scroll-lock");
+    document.body.style.overflow = "hidden";
     document.body.style.top = `-${lastScrollY}px`;
+    setInteractionBlock(true);
   }
 
   function unlockScroll() {
     document.documentElement.classList.remove("ff-scroll-lock");
     document.body.classList.remove("ff-scroll-lock");
     const top = document.body.style.top;
+    document.body.style.overflow = "";
     document.body.style.top = "";
+    setInteractionBlock(false);
     // restaura posição
     const y = top ? Math.abs(parseInt(top, 10) || 0) : lastScrollY;
     window.scrollTo(0, y);
   }
 
   function ensureBox() {
+    ensureStyles();
+
     let box = document.getElementById("ff-loading");
-    if (box) return box;
+    if (box) {
+      ensureLoadingMarkup(box);
+      return box;
+    }
 
     box = document.createElement("div");
     box.id = "ff-loading";
@@ -1906,7 +2024,8 @@ FEMFLOW.toggleBodyScroll = function (locked) {
         <img class="ff-loading-logo"
              src="assets/logofemflowterracotasf.png"
              alt="FemFlow"/>
-        <div class="ff-loading-tagline">Train with Flow</div>
+        <div class="ff-loading-spinner" aria-hidden="true"></div>
+        <div class="ff-loading-text">${DEFAULT_LOADING_TEXT}</div>
       </div>
     `;
 
@@ -1920,8 +2039,12 @@ FEMFLOW.toggleBodyScroll = function (locked) {
   }
 
   FEMFLOW.loading = {
-    show() {
+    show(text) {
       const box = ensureBox();
+      const textEl = box.querySelector(".ff-loading-text");
+      if (textEl) {
+        textEl.textContent = String(text || DEFAULT_LOADING_TEXT).trim() || DEFAULT_LOADING_TEXT;
+      }
 
       lockCount += 1;
       if (lockCount > 1) {
@@ -1938,8 +2061,6 @@ FEMFLOW.toggleBodyScroll = function (locked) {
       box.classList.remove("ff-hidden", "ff-hiding");
       box.classList.add("ff-show");
 
-      // garantir pointer events sempre
-      box.style.pointerEvents = "auto";
     },
 
     hide() {
