@@ -85,10 +85,19 @@ const modalLang = document.getElementById("ff-lang-modal");
 
 document.getElementById("btnLang").onclick = () => {
   modalLang?.classList.add("ff-open");
+  document.body.style.overflow = "hidden";
 };
 
 document.getElementById("ff-lang-close")?.addEventListener("click", () => {
   modalLang?.classList.remove("ff-open");
+  document.body.style.overflow = "";
+});
+
+modalLang?.addEventListener("click", (e) => {
+  if (e.target === modalLang) {
+    modalLang.classList.remove("ff-open");
+    document.body.style.overflow = "";
+  }
 });
 
 document.querySelectorAll("#ff-lang-modal button[data-lang]").forEach(btn => {
@@ -96,6 +105,7 @@ document.querySelectorAll("#ff-lang-modal button[data-lang]").forEach(btn => {
     const lang = btn.dataset.lang;
     FEMFLOW.setLang?.(lang);
     modalLang?.classList.remove("ff-open");
+    document.body.style.overflow = "";
   });
 });
 
