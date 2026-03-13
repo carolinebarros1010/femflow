@@ -81,9 +81,23 @@ function aplicarIdiomaCadastro() {
 document.addEventListener("femflow:langReady", aplicarIdiomaCadastro);
 document.addEventListener("femflow:langChange", aplicarIdiomaCadastro);
 
+const modalLang = document.getElementById("ff-lang-modal");
+
 document.getElementById("btnLang").onclick = () => {
-  document.getElementById("ff-lang-modal")?.classList.remove("hidden");
+  modalLang?.classList.add("ff-open");
 };
+
+document.getElementById("ff-lang-close")?.addEventListener("click", () => {
+  modalLang?.classList.remove("ff-open");
+});
+
+document.querySelectorAll("#ff-lang-modal button[data-lang]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const lang = btn.dataset.lang;
+    FEMFLOW.setLang?.(lang);
+    modalLang?.classList.remove("ff-open");
+  });
+});
 
 // ============================================================
 //  3) PERGUNTAS (multilíngue)
