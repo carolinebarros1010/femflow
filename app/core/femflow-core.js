@@ -121,6 +121,220 @@ FEMFLOW.IAP_PRODUCT_IDS = [
 ];
 
 FEMFLOW.lang = localStorage.getItem("femflow_lang") || "pt";
+
+const FEMFLOW_BILLING_DEBUG_KEY = "femflow_billing_debug_log";
+const FEMFLOW_BILLING_DEBUG_LIMIT = 100;
+
+function maskEmailForDebug(value) {
+  const text = String(value || "");
+  const [user, domain] = text.split("@");
+  if (!user || !domain) return "***";
+  const safeUser = user.length <= 2 ? "**" : `${user.slice(0, 2)}***`;
+  return `${safeUser}@${domain}`;
+}
+
+function sanitizeBillingDebugValue(value, key = "", depth = 0) {
+  if (depth > 4) return "[truncated_depth]";
+  if (value === null || value === undefined) return value;
+
+  const keyText = String(key || "").toLowerCase();
+  const isSensitiveKey = ["password", "senha", "token", "receipt", "session", "auth", "cookie"].some((term) => keyText.includes(term));
+  if (isSensitiveKey) return "***";
+
+  if (typeof value === "string") {
+    const text = value.trim();
+    if (!text) return "";
+    if (keyText.includes("email") || /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(text)) {
+      return maskEmailForDebug(text);
+    }
+    if (text.length > 200) return `${text.slice(0, 200)}…`;
+    return text;
+  }
+
+  if (typeof value === "number" || typeof value === "boolean") return value;
+
+  if (Array.isArray(value)) {
+    return value.slice(0, 25).map((item) => sanitizeBillingDebugValue(item, key, depth + 1));
+  }
+
+  if (typeof value === "object") {
+    const out = {};
+    Object.keys(value).slice(0, 30).forEach((objKey) => {
+      out[objKey] = sanitizeBillingDebugValue(value[objKey], objKey, depth + 1);
+    });
+    return out;
+  }
+
+  return String(value);
+}
+
+function readBillingDebugLogStorage() {
+  try {
+    const raw = localStorage.getItem(FEMFLOW_BILLING_DEBUG_KEY);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed.slice(-FEMFLOW_BILLING_DEBUG_LIMIT) : [];
+  } catch (err) {
+    return [];
+  }
+}
+
+FEMFLOW._billingDebugLog = Array.isArray(FEMFLOW._billingDebugLog) && FEMFLOW._billingDebugLog.length
+  ? FEMFLOW._billingDebugLog.slice(-FEMFLOW_BILLING_DEBUG_LIMIT)
+  : readBillingDebugLogStorage();
+
+FEMFLOW.billingDebugLog = function billingDebugLog(event, data = {}) {
+  const entry = {
+    timestamp: new Date().toISOString(),
+    event: String(event || "unknown_event"),
+    data: sanitizeBillingDebugValue(data)
+  };
+
+  FEMFLOW._billingDebugLog.push(entry);
+  if (FEMFLOW._billingDebugLog.length > FEMFLOW_BILLING_DEBUG_LIMIT) {
+    FEMFLOW._billingDebugLog = FEMFLOW._billingDebugLog.slice(-FEMFLOW_BILLING_DEBUG_LIMIT);
+  }
+
+  try {
+    localStorage.setItem(FEMFLOW_BILLING_DEBUG_KEY, JSON.stringify(FEMFLOW._billingDebugLog));
+  } catch (err) {
+    // noop
+  }
+
+  try {
+    console.info("[FEMFLOW.billing.debug]", entry.event, entry.data);
+  } catch (err) {
+    // noop
+  }
+
+  return entry;
+};
+
+FEMFLOW.getBillingDebugLog = function getBillingDebugLog() {
+  return Array.isArray(FEMFLOW._billingDebugLog) ? [...FEMFLOW._billingDebugLog] : [];
+};
+
+FEMFLOW.clearBillingDebugLog = function clearBillingDebugLog() {
+  FEMFLOW._billingDebugLog = [];
+  try {
+    localStorage.removeItem(FEMFLOW_BILLING_DEBUG_KEY);
+  } catch (err) {
+    // noop
+  }
+  return [];
+};
+
+FEMFLOW.dumpBillingDebugLog = function dumpBillingDebugLog() {
+  return FEMFLOW.getBillingDebugLog();
+};
+
+window.FEMFLOW_BILLING_DEBUG = function FEMFLOW_BILLING_DEBUG() {
+  return FEMFLOW.getBillingDebugLog();
+};
+
+FEMFLOW._billingDebugTap = {
+  count: 0,
+  timer: null
+};
+
+FEMFLOW._getBillingDebugModalCopy = function () {
+  const lang = String(FEMFLOW.lang || "pt").slice(0, 2).toLowerCase();
+  const copy = {
+    pt: { title: "Billing Debug (temporário)", subtitle: "Eventos recentes do billing/iOS", refresh: "Atualizar", clear: "Limpar", close: "Fechar" },
+    en: { title: "Billing Debug (temporary)", subtitle: "Recent billing/iOS events", refresh: "Refresh", clear: "Clear", close: "Close" },
+    fr: { title: "Billing Debug (temporaire)", subtitle: "Événements récents billing/iOS", refresh: "Actualiser", clear: "Vider", close: "Fermer" }
+  };
+  return copy[lang] || copy.pt;
+};
+
+FEMFLOW._ensureBillingDebugModal = function () {
+  let modal = document.getElementById("ffBillingDebugModal");
+  if (modal) return modal;
+
+  modal = document.createElement("div");
+  modal.id = "ffBillingDebugModal";
+  modal.className = "ff-billing-debug-overlay hidden";
+  modal.innerHTML = `
+    <div class="ff-billing-debug-modal" role="dialog" aria-modal="true" aria-label="Billing Debug">
+      <h3 data-billing-debug-title>Billing Debug</h3>
+      <p data-billing-debug-subtitle>Recent events</p>
+      <pre id="ffBillingDebugContent"></pre>
+      <div class="ff-billing-debug-actions">
+        <button type="button" data-billing-debug-action="refresh">Atualizar</button>
+        <button type="button" data-billing-debug-action="clear">Limpar</button>
+        <button type="button" data-billing-debug-action="close">Fechar</button>
+      </div>
+    </div>
+  `;
+
+  const style = document.createElement("style");
+  style.id = "ffBillingDebugStyle";
+  style.textContent = `.ff-billing-debug-overlay{position:fixed;inset:0;background:rgba(0,0,0,.68);z-index:99999;display:flex;align-items:center;justify-content:center;padding:16px}.ff-billing-debug-overlay.hidden{display:none}.ff-billing-debug-modal{width:min(860px,100%);max-height:85vh;background:#1d1624;color:#f4eef7;border:1px solid rgba(255,255,255,.14);border-radius:12px;padding:14px;display:flex;flex-direction:column;gap:10px}.ff-billing-debug-modal h3{margin:0;font-size:16px}.ff-billing-debug-modal p{margin:0;font-size:12px;opacity:.9}#ffBillingDebugContent{margin:0;background:#110d15;border:1px solid rgba(255,255,255,.1);border-radius:8px;padding:10px;overflow:auto;white-space:pre-wrap;word-break:break-word;font-size:11px;line-height:1.35;max-height:55vh}.ff-billing-debug-actions{display:flex;justify-content:flex-end;gap:8px}.ff-billing-debug-actions button{border:0;border-radius:8px;padding:9px 12px;font-size:12px;cursor:pointer;background:#ece6f2;color:#2a2232}`;
+  if (!document.getElementById(style.id)) document.head.appendChild(style);
+
+  const updateModalCopy = () => {
+    const copy = FEMFLOW._getBillingDebugModalCopy();
+    modal.querySelector("[data-billing-debug-title]").textContent = copy.title;
+    modal.querySelector("[data-billing-debug-subtitle]").textContent = copy.subtitle;
+    modal.querySelector('[data-billing-debug-action="refresh"]').textContent = copy.refresh;
+    modal.querySelector('[data-billing-debug-action="clear"]').textContent = copy.clear;
+    modal.querySelector('[data-billing-debug-action="close"]').textContent = copy.close;
+  };
+
+  const renderDebugContent = () => {
+    const content = modal.querySelector("#ffBillingDebugContent");
+    content.textContent = JSON.stringify(FEMFLOW.getBillingDebugLog?.() || [], null, 2);
+  };
+
+  modal.addEventListener("click", (event) => {
+    if (event.target === modal) modal.classList.add("hidden");
+  });
+  modal.querySelector('[data-billing-debug-action="refresh"]').addEventListener("click", renderDebugContent);
+  modal.querySelector('[data-billing-debug-action="clear"]').addEventListener("click", () => {
+    FEMFLOW.clearBillingDebugLog?.();
+    renderDebugContent();
+  });
+  modal.querySelector('[data-billing-debug-action="close"]').addEventListener("click", () => modal.classList.add("hidden"));
+
+  FEMFLOW.openBillingDebugModal = function openBillingDebugModal() {
+    updateModalCopy();
+    renderDebugContent();
+    modal.classList.remove("hidden");
+  };
+
+  document.body.appendChild(modal);
+  return modal;
+};
+
+FEMFLOW.bindBillingDebugGesture = function bindBillingDebugGesture(target) {
+  if (!target || target.dataset.ffBillingDebugGestureBound === "true") return;
+  target.dataset.ffBillingDebugGestureBound = "true";
+
+  const onTap = () => {
+    FEMFLOW._billingDebugTap.count += 1;
+    if (FEMFLOW._billingDebugTap.timer) clearTimeout(FEMFLOW._billingDebugTap.timer);
+    FEMFLOW._billingDebugTap.timer = setTimeout(() => {
+      FEMFLOW._billingDebugTap.count = 0;
+      FEMFLOW._billingDebugTap.timer = null;
+    }, 2200);
+
+    if (FEMFLOW._billingDebugTap.count >= 5) {
+      FEMFLOW._billingDebugTap.count = 0;
+      if (FEMFLOW._billingDebugTap.timer) clearTimeout(FEMFLOW._billingDebugTap.timer);
+      FEMFLOW._billingDebugTap.timer = null;
+      FEMFLOW._ensureBillingDebugModal?.();
+      FEMFLOW.openBillingDebugModal?.();
+    }
+  };
+
+  target.addEventListener("click", onTap);
+};
+
+document.addEventListener("femflow:langChange", () => {
+  const modal = document.getElementById("ffBillingDebugModal");
+  if (!modal || modal.classList.contains("hidden")) return;
+  FEMFLOW.openBillingDebugModal?.();
+});
+
 FEMFLOW.setLang = function (lang) {
   FEMFLOW.lang = lang;
   localStorage.setItem("femflow_lang", lang);
@@ -2132,11 +2346,21 @@ FEMFLOW.updateEntitlementsFromPayload = function (payload = {}) {
   localStorage.setItem("femflow_produto", produtoFinal);
   localStorage.setItem("femflow_mode_personal", modoPersonal ? "true" : "false");
   localStorage.setItem("femflow_has_personal", hasPersonalFinal ? "true" : "false");
+
+  FEMFLOW.billingDebugLog?.("entitlements_update_from_payload", {
+    produto: produtoFinal,
+    active: acessoApp,
+    hasPersonal: hasPersonalFinal
+  });
 };
 
 FEMFLOW.refreshEntitlements = async function () {
   const id = localStorage.getItem("femflow_id") || "";
   const email = localStorage.getItem("femflow_email") || "";
+  FEMFLOW.billingDebugLog?.("entitlements_refresh_called", {
+    hasId: Boolean(id),
+    hasEmail: Boolean(email)
+  });
   if (!id && !email) return { status: "ignored", msg: "missing_user" };
 
   const resp = await FEMFLOW.post({
@@ -2149,6 +2373,11 @@ FEMFLOW.refreshEntitlements = async function () {
     FEMFLOW.updateEntitlementsFromPayload(resp);
     document.dispatchEvent(new CustomEvent("femflow:entitlementsUpdated", { detail: resp }));
   }
+
+  FEMFLOW.billingDebugLog?.("entitlements_refresh_result", {
+    status: resp?.status || "",
+    msg: resp?.msg || resp?.message || ""
+  });
 
   return resp;
 };
@@ -2180,12 +2409,19 @@ FEMFLOW.iap = Object.assign(FEMFLOW.iap || {}, {
   },
 
   async init() {
+    FEMFLOW.billingDebugLog?.("iap_init_called", { layer: "core_legacy" });
     if (!FEMFLOW.isNativeIOS()) return { status: "error", message: "Somente disponível no iOS nativo." };
     if (this.initialized) return { status: "ok", message: "IAP inicializado." };
 
     const plugin = FEMFLOW.getNativePurchasesPlugin();
+    FEMFLOW.billingDebugLog?.("iap_getPlugin_checked", {
+      layer: "core_legacy",
+      plugin_found: Boolean(plugin),
+      source: window.NativePurchases ? "window.NativePurchases" : window.Capacitor?.Plugins?.NativePurchases ? "Capacitor.Plugins.NativePurchases" : "none"
+    });
     if (!plugin) {
       FEMFLOW.toast?.("IAP em configuração");
+      FEMFLOW.billingDebugLog?.("iap_init_result", { layer: "core_legacy", ok: false, code: "plugin_not_installed" });
       return { status: "error", message: "IAP em configuração" };
     }
 
@@ -2197,6 +2433,7 @@ FEMFLOW.iap = Object.assign(FEMFLOW.iap || {}, {
 
     this.pluginReady = true;
     this.initialized = true;
+    FEMFLOW.billingDebugLog?.("iap_init_result", { layer: "core_legacy", ok: true, code: "ok" });
     return { status: "ok", message: "IAP pronto." };
   },
 
@@ -2266,6 +2503,7 @@ FEMFLOW.iap = Object.assign(FEMFLOW.iap || {}, {
   },
 
   async purchase(productId) {
+    FEMFLOW.billingDebugLog?.("iap_purchase_called", { layer: "core_legacy", productId });
     if (!FEMFLOW.isNativeIOS()) {
       return { status: "error", message: "Somente disponível no iOS nativo." };
     }
@@ -2278,18 +2516,27 @@ FEMFLOW.iap = Object.assign(FEMFLOW.iap || {}, {
     try {
       await this.init();
       const plugin = FEMFLOW.getNativePurchasesPlugin();
+      FEMFLOW.billingDebugLog?.("iap_getPlugin_checked", {
+        layer: "core_legacy",
+        plugin_found: Boolean(plugin),
+        source: window.NativePurchases ? "window.NativePurchases" : window.Capacitor?.Plugins?.NativePurchases ? "Capacitor.Plugins.NativePurchases" : "none"
+      });
       if (!plugin) {
         FEMFLOW.toast?.("IAP em configuração");
+        FEMFLOW.billingDebugLog?.("iap_purchase_error", { layer: "core_legacy", code: "plugin_not_installed", message: "IAP em configuração" });
         return { status: "error", message: "IAP em configuração" };
       }
 
       let rawTx = null;
       if (typeof plugin.purchaseProduct === "function") {
+        FEMFLOW.billingDebugLog?.("iap_purchase_method_selected", { layer: "core_legacy", method: "purchaseProduct", productId });
         rawTx = await plugin.purchaseProduct({ productId });
       } else if (typeof plugin.purchase === "function") {
+        FEMFLOW.billingDebugLog?.("iap_purchase_method_selected", { layer: "core_legacy", method: "purchase", productId });
         rawTx = await plugin.purchase({ productId });
       } else {
         FEMFLOW.toast?.("IAP em configuração");
+        FEMFLOW.billingDebugLog?.("iap_purchase_error", { layer: "core_legacy", code: "ios_iap_unavailable", message: "IAP em configuração" });
         return { status: "error", message: "IAP em configuração" };
       }
 
@@ -2298,6 +2545,11 @@ FEMFLOW.iap = Object.assign(FEMFLOW.iap || {}, {
         const cancelCode = String(rawTx?.code || rawTx?.errorCode || rawTx?.status || "").toLowerCase();
         const cancelMsg = String(rawTx?.message || rawTx?.errorMessage || "").toLowerCase();
         const wasCancelled = cancelCode.includes("cancel") || cancelMsg.includes("cancel");
+        FEMFLOW.billingDebugLog?.("iap_purchase_error", {
+          layer: "core_legacy",
+          code: wasCancelled ? "purchase_cancelled" : "transaction_invalid",
+          message: wasCancelled ? "purchase_cancelled" : "Transação inválida."
+        });
         if (wasCancelled) return { status: "cancelled", message: this._statusCopy().cancelled };
         return { status: "error", message: "Transação inválida." };
       }
@@ -2306,6 +2558,12 @@ FEMFLOW.iap = Object.assign(FEMFLOW.iap || {}, {
       const backendOk = backendActivation && String(backendActivation.status || "").toLowerCase() === "ok";
 
       if (!backendOk) {
+        FEMFLOW.billingDebugLog?.("iap_purchase_result", {
+          layer: "core_legacy",
+          ok: false,
+          code: backendActivation?.code || backendActivation?.msg || "iap_backend_activation_failed",
+          productId: tx.productId
+        });
         return {
           status: "error",
           transactionId: tx.transactionId,
@@ -2319,6 +2577,13 @@ FEMFLOW.iap = Object.assign(FEMFLOW.iap || {}, {
 
       await FEMFLOW.refreshEntitlements();
       document.dispatchEvent(new CustomEvent("femflow:entitlementsUpdated", { detail: { source: "iap_purchase", transactionId: tx.transactionId, backend: backendActivation } }));
+      FEMFLOW.billingDebugLog?.("iap_purchase_result", {
+        layer: "core_legacy",
+        ok: true,
+        code: "ok",
+        productId: tx.productId,
+        transactionId: tx.transactionId
+      });
       return {
         status: "ok",
         transactionId: tx.transactionId,
@@ -2331,6 +2596,11 @@ FEMFLOW.iap = Object.assign(FEMFLOW.iap || {}, {
       const code = String(err?.code || err?.errorCode || "").toLowerCase();
       const msg = String(err?.message || "").toLowerCase();
       const wasCancelled = code.includes("cancel") || msg.includes("cancel");
+      FEMFLOW.billingDebugLog?.("iap_purchase_error", {
+        layer: "core_legacy",
+        code: wasCancelled ? "purchase_cancelled" : "purchase_failed",
+        message: err?.message || this._statusCopy().genericError
+      });
       if (wasCancelled) return { status: "cancelled", message: this._statusCopy().cancelled };
       return { status: "error", message: this._statusCopy().genericError };
     } finally {
@@ -2339,6 +2609,7 @@ FEMFLOW.iap = Object.assign(FEMFLOW.iap || {}, {
   },
 
   async restore() {
+    FEMFLOW.billingDebugLog?.("iap_restore_called", { layer: "core_legacy" });
     if (!FEMFLOW.isNativeIOS()) {
       return { status: "error", restoredCount: 0, message: "Somente disponível no iOS nativo." };
     }
@@ -2351,8 +2622,14 @@ FEMFLOW.iap = Object.assign(FEMFLOW.iap || {}, {
     try {
       await this.init();
       const plugin = FEMFLOW.getNativePurchasesPlugin();
+      FEMFLOW.billingDebugLog?.("iap_getPlugin_checked", {
+        layer: "core_legacy",
+        plugin_found: Boolean(plugin),
+        source: window.NativePurchases ? "window.NativePurchases" : window.Capacitor?.Plugins?.NativePurchases ? "Capacitor.Plugins.NativePurchases" : "none"
+      });
       if (!plugin) {
         FEMFLOW.toast?.("IAP em configuração");
+        FEMFLOW.billingDebugLog?.("iap_restore_error", { layer: "core_legacy", code: "plugin_not_installed", message: "IAP em configuração" });
         return { status: "error", restoredCount: 0, message: "IAP em configuração" };
       }
 
@@ -2363,6 +2640,7 @@ FEMFLOW.iap = Object.assign(FEMFLOW.iap || {}, {
         restoredRaw = await plugin.restore();
       } else {
         FEMFLOW.toast?.("IAP em configuração");
+        FEMFLOW.billingDebugLog?.("iap_restore_error", { layer: "core_legacy", code: "ios_iap_unavailable", message: "IAP em configuração" });
         return { status: "error", restoredCount: 0, message: "IAP em configuração" };
       }
 
@@ -2398,12 +2676,22 @@ FEMFLOW.iap = Object.assign(FEMFLOW.iap || {}, {
 
       await FEMFLOW.refreshEntitlements();
       document.dispatchEvent(new CustomEvent("femflow:entitlementsUpdated", { detail: { source: "iap_restore", restoredCount: activeTransactions.length } }));
+      FEMFLOW.billingDebugLog?.("iap_restore_result", {
+        layer: "core_legacy",
+        ok: true,
+        restoredCount: activeTransactions.length
+      });
       return {
         status: "ok",
         restoredCount: activeTransactions.length,
         message: this._statusCopy().success
       };
     } catch (err) {
+      FEMFLOW.billingDebugLog?.("iap_restore_error", {
+        layer: "core_legacy",
+        code: "restore_failed",
+        message: err?.message || this._statusCopy().genericError
+      });
       return { status: "error", restoredCount: 0, message: this._statusCopy().genericError };
     } finally {
       this._restoreInFlight = false;
@@ -2677,6 +2965,8 @@ FEMFLOW.inserirHeaderApp = function () {
   document.body.prepend(h);
   document.body.classList.add("ff-has-header");
   FEMFLOW.renderVipBadge?.();
+  FEMFLOW.bindBillingDebugGesture?.(h.querySelector(".ff-logo"));
+  FEMFLOW._ensureBillingDebugModal?.();
 
   h.querySelector("#ffMenuBtn").onclick = () =>
     document.querySelector(".ff-menu-modal")?.classList.add("active");
