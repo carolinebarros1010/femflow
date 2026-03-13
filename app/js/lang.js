@@ -371,9 +371,14 @@ pt: {
 
   geral: {
     loading: "Carregando…",
+    verifying: "Verificando…",
     preparing: "Preparando…",
     preparingPanel: "Preparando seu painel…",
     preparingProgram: "Preparando novo programa…",
+    configuringCycle: "Configurando seu ciclo…",
+    loadingWorkout: "Carregando treino…",
+    loadingQuestions: "Carregando perguntas…",
+    redirectingToAnamnesis: "Redirecionando para completar sua anamnese…",
     salvar: "Salvar",
     cancelar: "Cancelar",
     voltar: "Voltar",
@@ -857,9 +862,14 @@ en: {
 
   geral: {
     loading: "Loading…",
+    verifying: "Verifying…",
     preparing: "Preparing…",
     preparingPanel: "Preparing your dashboard…",
-    preparingProgram: "Preparing new program…",
+    preparingProgram: "Preparing your new program…",
+    configuringCycle: "Setting up your cycle…",
+    loadingWorkout: "Loading workout…",
+    loadingQuestions: "Loading questions…",
+    redirectingToAnamnesis: "Redirecting to complete your anamnesis…",
     salvar: "Save",
     cancelar: "Cancel",
     voltar: "Back",
@@ -1328,9 +1338,14 @@ fr: {
 
   geral: {
     loading: "Chargement…",
+    verifying: "Vérification…",
     preparing: "Préparation…",
     preparingPanel: "Préparation de votre tableau de bord…",
-    preparingProgram: "Préparation d’un nouveau programme…",
+    preparingProgram: "Préparation de votre nouveau programme…",
+    configuringCycle: "Configuration de votre cycle…",
+    loadingWorkout: "Chargement de l’entraînement…",
+    loadingQuestions: "Chargement des questions…",
+    redirectingToAnamnesis: "Redirection pour compléter votre anamnèse…",
     salvar: "Enregistrer",
     cancelar: "Annuler",
     voltar: "Retour",

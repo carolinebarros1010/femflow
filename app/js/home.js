@@ -1797,7 +1797,7 @@ async function handleCardClick(enfase, locked) {
   ========================================= */
   if (localStorage.getItem("femflow_cycle_configured") !== "yes") {
 
-    FEMFLOW.loading.show("Configurando seu ciclo…");
+    FEMFLOW.loading.show(FEMFLOW.t("geral.configuringCycle"));
 
     localStorage.setItem("femflow_enfase", enfase);
 
