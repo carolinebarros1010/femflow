@@ -86,6 +86,10 @@
   }
 
   FEMFLOW.billing = FEMFLOW.billing || {};
+  const billingDebugLog = (event, data = {}) => {
+    FEMFLOW.billingDebugLog?.(event, data);
+  };
+
   FEMFLOW.billing.getProducts = async function getProducts() {
     if (!FEMFLOW.platform.isNativeIOS()) {
       return { ok: false, code: "not_ios", products: [] };
@@ -100,14 +104,53 @@
 
   FEMFLOW.billing.openPaywall = async function openPaywall(planId = "access", context = {}) {
     const targetPlan = String(planId || "access").toLowerCase() === "personal" ? "personal" : "access";
+    const nativeIOS = FEMFLOW.platform.isNativeIOS();
 
-    if (FEMFLOW.platform.isNativeIOS()) {
+    billingDebugLog("billing_openPaywall_called", {
+      planId: targetPlan,
+      context,
+      isNativeIOS: nativeIOS
+    });
+
+    if (nativeIOS) {
+      billingDebugLog("billing_openPaywall_native_bridge_attempt", {
+        planId: targetPlan
+      });
       const nativeResp = postToNative({ event: "openPaywall", planId: targetPlan, context });
-      if (nativeResp.ok) return { ok: true, source: "native_bridge", planId: targetPlan };
-      return FEMFLOW.checkout?.openCheckout?.(targetPlan, Object.assign({}, context, { source: "billing_openPaywall" }));
+      billingDebugLog("billing_openPaywall_native_bridge_result", {
+        ok: nativeResp?.ok === true,
+        code: nativeResp?.code || ""
+      });
+      if (nativeResp.ok) {
+        const finalResult = { ok: true, source: "native_bridge", planId: targetPlan };
+        billingDebugLog("billing_openPaywall_result_final", {
+          source: finalResult.source,
+          planId: finalResult.planId,
+          ok: finalResult.ok
+        });
+        return finalResult;
+      }
+
+      billingDebugLog("billing_openPaywall_fallback_checkout", {
+        planId: targetPlan,
+        reason: nativeResp?.code || "native_bridge_unavailable"
+      });
+      const fallbackResult = await FEMFLOW.checkout?.openCheckout?.(targetPlan, Object.assign({}, context, { source: "billing_openPaywall" }));
+      billingDebugLog("billing_openPaywall_result_final", {
+        source: "checkout_fallback",
+        planId: targetPlan,
+        resultStatus: fallbackResult?.status || fallbackResult?.code || ""
+      });
+      return fallbackResult;
     }
 
-    return FEMFLOW.checkout?.openCheckout?.(targetPlan, Object.assign({}, context, { source: "billing_openPaywall" }));
+    const webResult = await FEMFLOW.checkout?.openCheckout?.(targetPlan, Object.assign({}, context, { source: "billing_openPaywall" }));
+    billingDebugLog("billing_openPaywall_result_final", {
+      source: "direct_checkout",
+      planId: targetPlan,
+      resultStatus: webResult?.status || webResult?.code || ""
+    });
+    return webResult;
   };
 
   FEMFLOW.billing.purchase = async function purchase(productId, context = {}) {

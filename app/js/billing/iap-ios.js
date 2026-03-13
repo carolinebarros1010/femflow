@@ -14,6 +14,9 @@
   }, {});
 
   let initialized = false;
+  const billingDebugLog = (event, data = {}) => {
+    FEMFLOW.billingDebugLog?.(event, data);
+  };
 
   function getPlatform() {
     return String(FEMFLOW.platform?.getPlatform?.() || global.Capacitor?.getPlatform?.() || "web").toLowerCase();
@@ -24,7 +27,14 @@
   }
 
   function getPlugin() {
-    return global.NativePurchases || global.Capacitor?.Plugins?.NativePurchases || null;
+    const windowPlugin = global.NativePurchases || null;
+    const capacitorPlugin = global.Capacitor?.Plugins?.NativePurchases || null;
+    const plugin = windowPlugin || capacitorPlugin || null;
+    billingDebugLog("iap_getPlugin_checked", {
+      plugin_found: Boolean(plugin),
+      source: windowPlugin ? "window.NativePurchases" : capacitorPlugin ? "Capacitor.Plugins.NativePurchases" : "none"
+    });
+    return plugin;
   }
 
   function baseError(code, extra) {
@@ -67,22 +77,30 @@
   }
 
   async function initPluginIfNeeded(plugin) {
+    billingDebugLog("iap_init_called", {
+      alreadyInitialized: initialized,
+      hasInitialize: typeof plugin?.initialize === "function",
+      hasInit: typeof plugin?.init === "function"
+    });
     if (initialized) return;
 
     if (typeof plugin.initialize === "function") {
       await plugin.initialize({ storekit: 2 });
       initialized = true;
+      billingDebugLog("iap_init_result", { ok: true, method: "initialize", storekit: 2 });
       return;
     }
 
     if (typeof plugin.init === "function") {
       await plugin.init({ storekit: 2 });
       initialized = true;
+      billingDebugLog("iap_init_result", { ok: true, method: "init", storekit: 2 });
       return;
     }
 
     // Alguns bridges já vêm inicializados sem método explícito.
     initialized = true;
+    billingDebugLog("iap_init_result", { ok: true, method: "implicit", storekit: 2 });
   }
 
   function normalizeProducts(rawProducts, requestedProductIds) {
@@ -129,12 +147,28 @@
       ? planIdsOrProductIds
       : Object.keys(IOS_PRODUCT_MAP);
 
+    billingDebugLog("iap_listProducts_called", {
+      productIds: requested
+    });
+
     if (!isIOSNative()) {
+      billingDebugLog("iap_listProducts_result", {
+        ok: false,
+        code: "not_ios",
+        returnedCount: 0,
+        returnedIds: []
+      });
       return baseError("not_ios", { requested });
     }
 
     const plugin = getPlugin();
     if (!plugin) {
+      billingDebugLog("iap_listProducts_result", {
+        ok: false,
+        code: "plugin_not_installed",
+        returnedCount: 0,
+        returnedIds: []
+      });
       return baseError("plugin_not_installed", { requested });
     }
 
@@ -146,6 +180,12 @@
         .filter(Boolean);
 
       if (!requestedProductIds.length) {
+        billingDebugLog("iap_listProducts_result", {
+          ok: false,
+          code: "product_not_found",
+          returnedCount: 0,
+          returnedIds: []
+        });
         return baseError("product_not_found", { requested });
       }
 
@@ -155,17 +195,38 @@
       } else if (typeof plugin.products === "function") {
         rawProducts = await plugin.products({ productIds: requestedProductIds });
       } else {
+        billingDebugLog("iap_listProducts_result", {
+          ok: false,
+          code: "ios_iap_unavailable",
+          returnedCount: 0,
+          returnedIds: []
+        });
         return baseError("ios_iap_unavailable", { requested: requestedProductIds });
       }
+
+      const normalized = normalizeProducts(rawProducts, requestedProductIds);
+      billingDebugLog("iap_listProducts_result", {
+        ok: true,
+        returnedCount: normalized.length,
+        returnedIds: normalized.filter((item) => item?.raw).map((item) => item.productId),
+        requestedIds: requestedProductIds
+      });
 
       return {
         ok: true,
         provider: "apple_iap",
         platform: "ios",
         requested: requestedProductIds,
-        products: normalizeProducts(rawProducts, requestedProductIds)
+        products: normalized
       };
     } catch (err) {
+      billingDebugLog("iap_listProducts_result", {
+        ok: false,
+        code: "ios_iap_unavailable",
+        returnedCount: 0,
+        returnedIds: [],
+        message: err?.message || ""
+      });
       return baseError("ios_iap_unavailable", { requested, message: err?.message || "" });
     }
   }
@@ -173,17 +234,47 @@
   async function purchaseIOS(planId, context) {
     const targetPlan = normalizePlanId(planId);
     const productId = resolveProductId(targetPlan);
+    billingDebugLog("iap_purchase_called", {
+      planId: targetPlan,
+      productId,
+      context: context || {}
+    });
+
+    billingDebugLog("iap_preflight_products_called", {
+      productIds: Object.values(IOS_PRODUCT_MAP)
+    });
+    const preflight = await listProducts(Object.values(IOS_PRODUCT_MAP));
+    billingDebugLog("iap_preflight_products_result", {
+      ok: preflight?.ok === true,
+      code: preflight?.code || "",
+      returnedCount: Array.isArray(preflight?.products) ? preflight.products.length : 0,
+      returnedIds: Array.isArray(preflight?.products)
+        ? preflight.products.filter((item) => item?.raw).map((item) => item.productId)
+        : []
+    });
 
     if (!isIOSNative()) {
+      billingDebugLog("iap_purchase_error", {
+        code: "not_ios",
+        message: "not_ios"
+      });
       return baseError("not_ios", { planId: targetPlan, context: context || {} });
     }
 
     if (!productId) {
+      billingDebugLog("iap_purchase_error", {
+        code: "product_not_found",
+        message: "product_not_found"
+      });
       return baseError("product_not_found", { planId: targetPlan, context: context || {} });
     }
 
     const plugin = getPlugin();
     if (!plugin) {
+      billingDebugLog("iap_purchase_error", {
+        code: "plugin_not_installed",
+        message: "plugin_not_installed"
+      });
       return baseError("plugin_not_installed", { planId: targetPlan, productId, context: context || {} });
     }
 
@@ -192,21 +283,43 @@
 
       let rawTx = null;
       if (typeof plugin.purchaseProduct === "function") {
+        billingDebugLog("iap_purchase_method_selected", { method: "purchaseProduct", productId });
         rawTx = await plugin.purchaseProduct({ productId });
       } else if (typeof plugin.purchase === "function") {
+        billingDebugLog("iap_purchase_method_selected", { method: "purchase", productId });
         rawTx = await plugin.purchase({ productId });
       } else {
+        billingDebugLog("iap_purchase_error", {
+          code: "ios_iap_unavailable",
+          message: "ios_iap_unavailable"
+        });
         return baseError("ios_iap_unavailable", { planId: targetPlan, productId, context: context || {} });
       }
 
       const tx = normalizeTransaction(rawTx, targetPlan, productId);
       if (!tx.transactionId) {
+        billingDebugLog("iap_purchase_result", {
+          ok: false,
+          code: "purchase_failed",
+          productId
+        });
         return baseError("purchase_failed", { planId: targetPlan, productId, context: context || {} });
       }
 
+      billingDebugLog("iap_purchase_result", {
+        ok: true,
+        code: "ok",
+        productId: tx.productId,
+        transactionId: tx.transactionId
+      });
       return Object.assign({ ok: true, provider: "apple_iap" }, tx, { context: context || {} });
     } catch (err) {
       const code = normalizeErrorCode(err, "purchase_failed");
+      billingDebugLog("iap_purchase_error", {
+        code,
+        message: err?.message || "",
+        stack: err?.stack ? String(err.stack).split("\n").slice(0, 3).join(" | ") : ""
+      });
       return baseError(code, {
         planId: targetPlan,
         productId,
@@ -217,12 +330,24 @@
   }
 
   async function restoreIOS(context) {
+    billingDebugLog("iap_restore_called", {
+      context: context || {}
+    });
+
     if (!isIOSNative()) {
+      billingDebugLog("iap_restore_error", {
+        code: "not_ios",
+        message: "not_ios"
+      });
       return baseError("not_ios", { restored: [], restoredCount: 0, context: context || {} });
     }
 
     const plugin = getPlugin();
     if (!plugin) {
+      billingDebugLog("iap_restore_error", {
+        code: "plugin_not_installed",
+        message: "plugin_not_installed"
+      });
       return baseError("plugin_not_installed", { restored: [], restoredCount: 0, context: context || {} });
     }
 
@@ -235,6 +360,10 @@
       } else if (typeof plugin.restore === "function") {
         restoredRaw = await plugin.restore();
       } else {
+        billingDebugLog("iap_restore_error", {
+          code: "ios_iap_unavailable",
+          message: "ios_iap_unavailable"
+        });
         return baseError("ios_iap_unavailable", { restored: [], restoredCount: 0, context: context || {} });
       }
 
@@ -245,6 +374,11 @@
           : [];
 
       const restored = entries.map((tx) => normalizeTransaction(tx));
+      billingDebugLog("iap_restore_result", {
+        ok: true,
+        restoredCount: restored.length,
+        restoredIds: restored.map((item) => item.productId).filter(Boolean)
+      });
       return {
         ok: true,
         provider: "apple_iap",
@@ -254,6 +388,11 @@
         context: context || {}
       };
     } catch (err) {
+      billingDebugLog("iap_restore_error", {
+        code: "restore_failed",
+        message: err?.message || "",
+        stack: err?.stack ? String(err.stack).split("\n").slice(0, 3).join(" | ") : ""
+      });
       return baseError("restore_failed", {
         restored: [],
         restoredCount: 0,
@@ -297,9 +436,34 @@
           : { status: "error", message: "not_ios" };
       }
 
+      billingDebugLog("iap_purchase_called", {
+        planIdOrProductId,
+        context: context || {}
+      });
+
+      billingDebugLog("iap_preflight_products_called", {
+        productIds: Object.values(IOS_PRODUCT_MAP)
+      });
+      const preflight = await listProducts(Object.values(IOS_PRODUCT_MAP));
+      billingDebugLog("iap_preflight_products_result", {
+        ok: preflight?.ok === true,
+        code: preflight?.code || "",
+        returnedCount: Array.isArray(preflight?.products) ? preflight.products.length : 0,
+        returnedIds: Array.isArray(preflight?.products)
+          ? preflight.products.filter((item) => item?.raw).map((item) => item.productId)
+          : []
+      });
+
       if (typeof legacyPurchase === "function") {
         const productIdFromInput = resolveProductId(planIdOrProductId) || planIdOrProductId;
-        return legacyPurchase.call(this, productIdFromInput, context);
+        billingDebugLog("iap_purchase_method_selected", { method: "legacy", productId: productIdFromInput });
+        const legacyResult = await legacyPurchase.call(this, productIdFromInput, context);
+        billingDebugLog("iap_purchase_result", {
+          ok: String(legacyResult?.status || "").toLowerCase() === "ok",
+          code: legacyResult?.code || legacyResult?.status || "",
+          productId: legacyResult?.productId || productIdFromInput
+        });
+        return legacyResult;
       }
 
       const productId = resolveProductId(planIdOrProductId);
@@ -307,6 +471,12 @@
       const result = await purchaseIOS(planId, context);
 
       if (result.ok) {
+        billingDebugLog("iap_purchase_result", {
+          ok: true,
+          code: "ok",
+          productId: result.productId,
+          transactionId: result.transactionId
+        });
         return {
           status: "ok",
           transactionId: result.transactionId,
@@ -316,9 +486,17 @@
       }
 
       if (result.code === "purchase_cancelled") {
+        billingDebugLog("iap_purchase_error", {
+          code: result.code,
+          message: "purchase_cancelled"
+        });
         return { status: "cancelled", message: "purchase_cancelled", code: result.code };
       }
 
+      billingDebugLog("iap_purchase_error", {
+        code: result.code || "purchase_failed",
+        message: result.message || "purchase_failed"
+      });
       return { status: "error", message: result.code, code: result.code };
     },
 
