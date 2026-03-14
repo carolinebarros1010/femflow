@@ -187,7 +187,7 @@
   };
 
   const handleLoadNew = async () => {
-    setStatus("Carregando lista...");
+    setStatus("Atualizando lista...");
     const token = collectToken();
     const sinceDays = el("sinceDays").value;
     const includeSemData = el("includeSemData").checked;

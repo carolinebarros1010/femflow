@@ -7,7 +7,7 @@
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="format-detection" content="telephone=no" />
-  <script src="./config/config.js"></script>
+  <script src="./config/config.js" defer></script>
   <title>FemFlow — Dashboard</title>
   <style>
     body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial;margin:0;background:#0f0f10;color:#f3f3f3}
@@ -154,7 +154,7 @@
   }
 
   async function loadAlertas(){
-    setPill("Carregando…");
+    setPill("Atualizando…");
     const resp = await api("dashboard_alertas");
     if (resp.status !== "ok"){ setPill("Erro", "bad"); return; }
     el("kpiAlertas").textContent = resp.total || 0;
@@ -167,7 +167,7 @@
     const id = el("id").value.trim();
     if (!id) return;
 
-    setPill("Carregando…");
+    setPill("Atualizando…");
     // usa sua action validar (fonte única)
     const url = new URL(BASE);
     url.searchParams.set("action", "validar");

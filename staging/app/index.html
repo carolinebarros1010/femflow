@@ -2,14 +2,14 @@
 <html lang="pt-BR">
 
 <head>
-<base href="/staging/app/" />
+<base href="./" />
 
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="format-detection" content="telephone=no" />
-  <script src="./config/config.js"></script>
+  <script src="./config/config.js" defer></script>
   <title>Entrar no FemFlow</title>
 
   <link rel="icon" type="image/x-icon" href="favicon.ico">
@@ -26,14 +26,13 @@
 
 
   <script>window.FEMFLOW_DISABLE_UI = true;</script>
-  <script defer src="./core/femflow-core.js"></script>
-
-  <script src="https://accounts.google.com/gsi/client" async defer></script>
+  <script src="https://accounts.google.com/gsi/client" defer></script>
   <script defer src="https://cdn.jsdelivr.net/npm/jwt-decode@3.1.2/build/jwt-decode.min.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
   <script defer src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
   <script defer src="services/firebase-init.js?v=20250127"></script>
+  <script defer src="./core/femflow-core.js"></script>
 
   <link rel="stylesheet" href="css/style.css">
   <link rel="stylesheet" href="css/core.css">
@@ -53,7 +52,7 @@
       <h2 id="tLoginBemVinda">Bem-vinda</h2>
       <p class="subtitle" id="tLoginSub">Acesse ou crie sua conta para iniciar seu ciclo</p>
 
-      <button id="btnLoginLang" class="login-lang-btn">🌐 Português</button>
+      <button id="btnLoginLang" class="login-lang-btn">Idioma: Português</button>
 
       <input id="loginEmail" type="email" placeholder="Seu e-mail"/>
 
@@ -70,6 +69,7 @@
 
       <a id="linkCadastro" class="toggle" href="anamnese_deluxe.html">Ainda não tem conta? Cadastre-se</a>
       <p id="goRecuperar" class="toggle">Esqueci minha senha</p>
+      <p id="loginLegalText" class="login-legal"></p>
 
       <div class="social-row boho">
         <div class="social-icon boho google" id="googleSignIn">
@@ -80,14 +80,14 @@
           <img src="assets/icons/apple.svg">
         </div>
 
-        <div class="social-icon boho bio" id="bioSignIn">🔒</div>
+        <div class="social-icon boho bio" id="bioSignIn" aria-label="Login seguro"><svg viewBox="0 0 24 24" width="20" height="20" aria-hidden="true"><path fill="currentColor" d="M17 10h-1V8a4 4 0 1 0-8 0v2H7a2 2 0 0 0-2 2v8a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2v-8a2 2 0 0 0-2-2Zm-7-2a2 2 0 1 1 4 0v2h-4V8Zm2 9a2 2 0 0 1-1-3.73V12h2v1.27A2 2 0 0 1 12 17Z"/></svg></div>
       </div>
 
     </div>
   </div>
 
 <script>
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
 
   window.FEMFLOW = window.FEMFLOW || {};
 
@@ -107,16 +107,19 @@ document.addEventListener("DOMContentLoaded", () => {
   const LOGIN_MSG = {
     pt: {
       blocked: "Esta conta já está conectada em outro dispositivo.",
+      deleteRequested: "Você solicitou a exclusão da sua conta. Para reverter, entre em contato: femflow.consultoria@gmail.com",
       wrongPass: "Senha incorreta.",
       emailNotFound: "E-mail não encontrado."
     },
     en: {
       blocked: "This account is already connected on another device.",
+      deleteRequested: "You requested account deletion. To revert, contact: femflow.consultoria@gmail.com",
       wrongPass: "Incorrect password.",
       emailNotFound: "Email not found."
     },
     fr: {
       blocked: "Ce compte est déjà connecté sur un autre appareil.",
+      deleteRequested: "Vous avez demandé la suppression du compte. Pour annuler, contactez : femflow.consultoria@gmail.com",
       wrongPass: "Mot de passe incorrect.",
       emailNotFound: "E-mail introuvable."
     }
@@ -124,13 +127,122 @@ document.addEventListener("DOMContentLoaded", () => {
 
   const getLoginMsg = () => LOGIN_MSG[currentLoginLang()] || LOGIN_MSG.pt;
 
+  const getDeleteRequestedMessage = (res) =>
+    String(res?.messageLocalized || "").trim() || getLoginMsg().deleteRequested;
+
+  function getHotmartContext() {
+    const params = new URLSearchParams(window.location.search);
+    const origem = String(
+      params.get("origem") ||
+      params.get("source") ||
+      params.get("utm_source") ||
+      ""
+    ).toLowerCase();
+
+    const email = String(
+      params.get("email") ||
+      params.get("user_email") ||
+      params.get("buyer_email") ||
+      ""
+    ).trim().toLowerCase();
+
+    const id = String(
+      params.get("id") ||
+      params.get("hotmart_id") ||
+      params.get("subscriber_id") ||
+      ""
+    ).trim();
+
+    const nome = String(
+      params.get("nome") ||
+      params.get("name") ||
+      params.get("buyer_name") ||
+      params.get("user_name") ||
+      ""
+    ).trim();
+
+    const telefone = String(
+      params.get("telefone") ||
+      params.get("phone") ||
+      params.get("buyer_phone") ||
+      params.get("user_phone") ||
+      ""
+    ).trim();
+
+    const cameFromHotmart = origem.includes("hotmart") || params.has("hotmart") || params.has("hotmart_id");
+    return { cameFromHotmart, email, id, nome, telefone };
+  }
+
+  const hotmartCtx = getHotmartContext();
+  if (!hotmartCtx.cameFromHotmart) {
+    const loginSilenciosoOk = await FEMFLOW.autoLoginSilencioso?.();
+    if (loginSilenciosoOk) {
+      const idSalvo = String(localStorage.getItem("femflow_id") || "").trim();
+      const emailSalvo = String(localStorage.getItem("femflow_email") || "").trim();
+      const tokenSalvo = String(localStorage.getItem("femflow_session_token") || "").trim();
+      const expiraRaw = String(localStorage.getItem("femflow_session_expira") || "").trim();
+
+      const possuiIdentidade = Boolean(idSalvo || emailSalvo);
+      const possuiToken = Boolean(tokenSalvo);
+      const expiraMs = Date.parse(expiraRaw);
+      const tokenValido = !expiraRaw || !Number.isFinite(expiraMs) || expiraMs > Date.now();
+
+      if (possuiIdentidade && possuiToken && tokenValido) {
+        FEMFLOW.loading.show();
+        await FEMFLOW.navegarUltra(FEMFLOW.decidirRotaInicial?.() || "home.html");
+        return;
+      }
+    }
+  }
+
+  function encaminharHotmartParaAnamnese() {
+    const ctx = getHotmartContext();
+    if (!ctx.cameFromHotmart) return;
+
+    if (ctx.email) {
+      $("#loginEmail").value = ctx.email;
+      localStorage.setItem("femflow_email", ctx.email);
+      localStorage.setItem("lead_email", ctx.email);
+    }
+
+    if (ctx.id) {
+      localStorage.setItem("femflow_id", ctx.id);
+      localStorage.setItem("femflow_hotmart_id", ctx.id);
+    }
+
+    if (ctx.nome) {
+      localStorage.setItem("lead_nome", ctx.nome);
+    }
+
+    if (ctx.telefone) {
+      localStorage.setItem("lead_telefone", ctx.telefone);
+    }
+
+    const anamneseParams = new URLSearchParams();
+    anamneseParams.set("origem", "hotmart");
+    if (ctx.email) anamneseParams.set("email", ctx.email);
+    if (ctx.id) anamneseParams.set("id", ctx.id);
+    if (ctx.nome) anamneseParams.set("nome", ctx.nome);
+    if (ctx.telefone) anamneseParams.set("telefone", ctx.telefone);
+
+    FEMFLOW.loading.show(FEMFLOW.t("geral.verifying"));
+    setMsg(FEMFLOW.t("geral.redirectingToAnamnesis"));
+    setTimeout(() => {
+      FEMFLOW.navegarUltra(`anamnese_deluxe.html?${anamneseParams.toString()}`);
+    }, 300);
+  }
+
   let firebaseAuthUser = null;
   let firebaseAuthObserverStarted = false;
   let loginInProgress = false;
 
-  function isStagingRuntime() {
-    const env = String(window.FEMFLOW_ENV || "").toLowerCase();
-    return env === "staging" || location.pathname.includes("/staging/");
+  function marcarFallbackFirebaseAuth(causa = "") {
+    try {
+      localStorage.setItem("femflow_firebase_auth_fallback", "1");
+      if (causa) {
+        localStorage.setItem("femflow_firebase_auth_fallback_reason", String(causa));
+      }
+    } catch (_) {}
   }
 
   function startFirebaseAuthObserver() {
@@ -160,13 +272,11 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
   async function syncFirebaseAuthSession(email, senha) {
-    if (isStagingRuntime()) {
-      console.info("[Login] Staging detectado: ignorando sync de Firebase Auth.");
-      return;
-    }
-
     if (!window.firebase || !firebase.auth) {
       console.warn("[Login] Firebase Auth indisponível. Login seguirá apenas com sessão do backend.");
+      try {
+        localStorage.setItem("firebase_sync_failed", "true");
+      } catch (_) {}
       return;
     }
 
@@ -187,6 +297,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
     try {
       await auth.signInWithEmailAndPassword(emailNorm, senhaNorm);
+      try {
+        localStorage.removeItem("firebase_sync_failed");
+      } catch (_) {}
       return;
     } catch (error) {
       if (error && error.code === "auth/operation-not-allowed") {
@@ -207,10 +320,52 @@ document.addEventListener("DOMContentLoaded", () => {
         if (gasResponse && gasResponse.status === "ok") {
           await auth.createUserWithEmailAndPassword(emailNorm, senhaNorm);
           await auth.signInWithEmailAndPassword(emailNorm, senhaNorm);
+          try {
+            localStorage.removeItem("firebase_sync_failed");
+          } catch (_) {}
           return;
         }
 
         throw new Error((gasResponse && gasResponse.msg) || "E-mail ou senha incorretos.");
+      }
+
+      if (error && error.code === "auth/invalid-login-credentials") {
+        const gasResponse = await validarNoGAS(emailNorm, senhaNorm);
+
+        if (gasResponse && gasResponse.status === "ok") {
+          try {
+            const methods = await auth.fetchSignInMethodsForEmail(emailNorm);
+
+            if (methods && methods.length > 0) {
+              try {
+                await auth.signInWithEmailAndPassword(emailNorm, senhaNorm);
+                return;
+              } catch (_) {
+                // senha divergente — vamos recriar
+              }
+            }
+
+            if (auth.currentUser) {
+              try {
+                await auth.currentUser.delete();
+              } catch (_) {
+                await auth.signOut();
+              }
+            }
+
+            await auth.createUserWithEmailAndPassword(emailNorm, senhaNorm);
+            await auth.signInWithEmailAndPassword(emailNorm, senhaNorm);
+            try {
+              localStorage.removeItem("firebase_sync_failed");
+            } catch (_) {}
+            return;
+          } catch (recreateError) {
+            console.error("[Login] Falha ao recriar usuário Firebase:", recreateError);
+            throw new Error("Erro ao sincronizar credenciais com Firebase.");
+          }
+        }
+
+        throw new Error("Credenciais inválidas.");
       }
 
       if (error && error.code === "auth/wrong-password") {
@@ -271,6 +426,7 @@ document.addEventListener("DOMContentLoaded", () => {
   async function entrar(){
     if (loginInProgress) return;
     loginInProgress = true;
+    FEMFLOW.loading.show(FEMFLOW.t("geral.verifying"));
 
     try {
       const email = $("#loginEmail").value.trim().toLowerCase();
@@ -278,10 +434,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
       if (!email){
         setErr("Digite seu e-mail.");
+        FEMFLOW.loading.hide();
         return;
       }
-
-      setMsg("Verificando...");
 
       let res;
       try {
@@ -294,51 +449,66 @@ document.addEventListener("DOMContentLoaded", () => {
       } catch (e) {
         console.error(e);
         setErr("Erro ao processar resposta do servidor.");
+        FEMFLOW.loading.hide();
         return;
       }
 
       if (res.status !== "ok") {
+        if (res.status === "delete_requested" || (res.status === "blocked" && res.reason === "delete_requested")) {
+          setErr(getDeleteRequestedMessage(res));
+          FEMFLOW.clearSession?.();
+          localStorage.removeItem("femflow_auth");
+          localStorage.removeItem("femflow_id");
+          localStorage.removeItem("femflow_email");
+          FEMFLOW.loading.hide();
+          return;
+        }
+
         if (res.status === "blocked") {
           setErr(getLoginMsg().blocked);
           FEMFLOW.clearSession?.();
+          FEMFLOW.loading.hide();
           return;
         }
 
         if (res.status === "expired") {
           setErr(res.msg || "Sua assinatura expirou.");
+          FEMFLOW.loading.hide();
           return;
         }
 
         if (res.status === "inactive") {
           setErr(res.msg || "Assinatura inativa.");
+          FEMFLOW.loading.hide();
           return;
         }
 
         if (res.status === "error" && res.msg === "device_required") {
           setErr("Não foi possível identificar o dispositivo. Tente novamente.");
+          FEMFLOW.loading.hide();
           return;
         }
 
         if (res.status === "senha_incorreta" || res.status === "not_registered") {
           setMsg("Complete seu cadastro para continuar ✨");
-          setTimeout(() => location.href = "anamnese_deluxe.html", 600);
+          setTimeout(() => FEMFLOW.navegarUltra("anamnese_deluxe.html"), 600);
           return;
         }
 
         setErr(res.msg || "E-mail ou senha incorretos.");
+        FEMFLOW.loading.hide();
         return;
       }
 
       try {
         await syncFirebaseAuthSession(email, senha);
       } catch (firebaseErr) {
-        if (!isStagingRuntime()) {
-          console.error("[Login] Falha ao sincronizar Firebase Auth:", firebaseErr);
-          setErr(firebaseErr?.message || "Conta validada, mas não foi possível iniciar sessão segura. Tente novamente.");
-          return;
-        }
-
-        console.warn("[Login] Erro de Firebase ignorado no staging:", firebaseErr);
+        console.error("[Login] Falha ao sincronizar Firebase Auth:", firebaseErr);
+        try {
+          localStorage.setItem("firebase_sync_failed", "true");
+        } catch (_) {}
+        marcarFallbackFirebaseAuth(firebaseErr?.code || firebaseErr?.message || "unknown");
+        console.warn("[Login] Aplicando fallback: acesso liberado sem sessão Firebase. Recursos que exigem Firebase pedirão novo login.");
       }
 
       /* ===== SESSÃO MÍNIMA ===== */
@@ -347,14 +517,14 @@ document.addEventListener("DOMContentLoaded", () => {
       localStorage.setItem("femflow_email", res.email || email);
 
       if (res.deviceId) {
-        localStorage.setItem(
-    "femflow_device_id",
-    res.deviceId || FEMFLOW.getDeviceId()
-  );
+        FEMFLOW.setDeviceId?.(res.deviceId || FEMFLOW.getDeviceId());
       }
 
       if (res.sessionToken) {
         FEMFLOW.setSessionToken(res.sessionToken);
+      }
+      if (res.sessionExpira) {
+        FEMFLOW.setSessionExpira?.(res.sessionExpira);
       }
 
       await syncCiclo(res.id);
@@ -366,7 +536,20 @@ document.addEventListener("DOMContentLoaded", () => {
   }
 
       setMsg("Acesso liberado ✨", true);
-      setTimeout(() => location.href = "home.html", 500);
+      const redirectParam = new URLSearchParams(location.search).get("redirect");
+      const savedRedirect = localStorage.getItem("post_login_redirect");
+      const shouldRedirectBodyInsight = redirectParam === "body_insight" || savedRedirect === "body_insight.html";
+      const nextPage = FEMFLOW.decidirRotaInicial?.({ preferBodyInsight: shouldRedirectBodyInsight }) || (shouldRedirectBodyInsight ? "body_insight.html" : "home.html");
+
+      if (shouldRedirectBodyInsight) {
+        localStorage.removeItem("post_login_redirect");
+      }
+
+      setTimeout(() => FEMFLOW.navegarUltra(nextPage), 500);
+    } catch (err) {
+      console.error("Erro no login:", err);
+      setErr("Falha ao entrar. Tente novamente.");
+      FEMFLOW.loading.hide();
     } finally {
       loginInProgress = false;
     }
@@ -423,17 +606,19 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    setMsg("Iniciando login com Apple...");
+    FEMFLOW.loading.show(FEMFLOW.t("geral.verifying"));
 
     try {
       await appleAuth.signIn();
     } catch (e) {
       console.warn("Erro Apple:", e);
       setErr("Falha ao iniciar login com Apple.");
+      FEMFLOW.loading.hide();
     }
   };
 
   async function preencherComGoogle(response){
+    FEMFLOW.loading.show(FEMFLOW.t("geral.verifying"));
     try {
       const data = jwt_decode(response.credential);
       if (!data?.email) return;
@@ -446,7 +631,7 @@ document.addEventListener("DOMContentLoaded", () => {
       });
 
       if (res.status !== "ok") {
-        location.href = "anamnese_deluxe.html";
+        await FEMFLOW.navegarUltra("anamnese_deluxe.html");
         return;
       }
 
@@ -455,22 +640,25 @@ document.addEventListener("DOMContentLoaded", () => {
       localStorage.setItem("femflow_email", res.email || data.email);
 
       if (res.deviceId) {
-        localStorage.setItem(
-  "femflow_device_id",
-  res.deviceId || FEMFLOW.getDeviceId()
-);
+        FEMFLOW.setDeviceId?.(res.deviceId || FEMFLOW.getDeviceId());
       }
 
       if (res.sessionToken) {
         FEMFLOW.setSessionToken(res.sessionToken);
       }
+      if (res.sessionExpira) {
+        FEMFLOW.setSessionExpira?.(res.sessionExpira);
+      }
 
       await syncCiclo(res.id);
+      await validarPerfilAposLogin();
 
-      setTimeout(() => location.href = "home.html", 500);
+      setTimeout(() => FEMFLOW.navegarUltra(FEMFLOW.decidirRotaInicial?.() || "home.html"), 500);
 
     } catch (e) {
       console.warn("Erro Google:", e);
+      setErr("Falha ao entrar com Google.");
+      FEMFLOW.loading.hide();
     }
   }
   window.preencherComGoogle = preencherComGoogle;
@@ -488,10 +676,12 @@ document.addEventListener("DOMContentLoaded", () => {
   })();
 
   bio.onclick = async () => {
+    FEMFLOW.loading.show(FEMFLOW.t("geral.verifying"));
     try {
       const email = $("#loginEmail").value.trim();
       if (!email){
         setErr("Digite seu e-mail.");
+        FEMFLOW.loading.hide();
         return;
       }
 
@@ -522,32 +712,37 @@ document.addEventListener("DOMContentLoaded", () => {
         deviceId: FEMFLOW.getDeviceId()
       });
 
-      if (res.status !== "ok") return;
+      if (res.status !== "ok") {
+        FEMFLOW.loading.hide();
+        return;
+      }
 
       localStorage.setItem("femflow_auth", "yes");
       localStorage.setItem("femflow_id", res.id);
       localStorage.setItem("femflow_email", res.email || email);
 
       if (res.deviceId) {
-        localStorage.setItem(
-  "femflow_device_id",
-  res.deviceId || FEMFLOW.getDeviceId()
-);
+        FEMFLOW.setDeviceId?.(res.deviceId || FEMFLOW.getDeviceId());
 
       }
 
       if (res.sessionToken) {
         FEMFLOW.setSessionToken(res.sessionToken);
       }
+      if (res.sessionExpira) {
+        FEMFLOW.setSessionExpira?.(res.sessionExpira);
+      }
 
       await syncCiclo(res.id);
+      await validarPerfilAposLogin();
 
       setMsg("Acesso liberado ✨", true);
-      setTimeout(() => location.href = "home.html", 600);
+      setTimeout(() => FEMFLOW.navegarUltra(FEMFLOW.decidirRotaInicial?.() || "home.html"), 600);
 
     } catch (e) {
       console.warn(e);
       setErr("Falha ao usar biometria.");
+      FEMFLOW.loading.hide();
     }
   };
 
@@ -591,9 +786,9 @@ document.addEventListener("DOMContentLoaded", () => {
 
   function aplicarIdiomaLogin(lang){
     const T = {
-      pt:{ bem:"Bem-vinda", sub:"Acesse ou crie sua conta para iniciar seu ciclo", email:"Seu e-mail", senha:"Sua senha", entrar:"Entrar", cad:"Ainda não tem conta? Cadastre-se", esq:"Esqueci minha senha" },
-      en:{ bem:"Welcome", sub:"Access or create your account to start your cycle", email:"Your email", senha:"Your password", entrar:"Login", cad:"Don’t have an account? Sign up", esq:"Forgot my password" },
-      fr:{ bem:"Bienvenue", sub:"Accédez ou créez votre compte pour commencer votre cycle", email:"Votre e-mail", senha:"Votre mot de passe", entrar:"Entrer", cad:"Pas de compte ? S'inscrire", esq:"J’ai oublié mon mot de passe" }
+      pt:{ bem:"Bem-vinda", sub:"Acesse ou crie sua conta para iniciar seu ciclo", email:"Seu e-mail", senha:"Sua senha", entrar:"Entrar", cad:"Ainda não tem conta? Cadastre-se", esq:"Esqueci minha senha", legalPrefix:"Ao continuar, você concorda com os", terms:"Termos", legalMiddle:"e a", privacy:"Política de Privacidade" },
+      en:{ bem:"Welcome", sub:"Access or create your account to start your cycle", email:"Your email", senha:"Your password", entrar:"Login", cad:"Don’t have an account? Sign up", esq:"Forgot my password", legalPrefix:"By continuing, you agree to the", terms:"Terms", legalMiddle:"and", privacy:"Privacy Policy" },
+      fr:{ bem:"Bienvenue", sub:"Accédez ou créez votre compte pour commencer votre cycle", email:"Votre e-mail", senha:"Votre mot de passe", entrar:"Entrer", cad:"Pas de compte ? S'inscrire", esq:"J’ai oublié mon mot de passe", legalPrefix:"En continuant, vous acceptez les", terms:"Conditions", legalMiddle:"et la", privacy:"Politique de confidentialité" }
     }[lang] || T.pt;
     const labels = {
       pt: "Português",
@@ -608,7 +803,9 @@ document.addEventListener("DOMContentLoaded", () => {
     $("#btnEntrar").textContent      = T.entrar;
     $("#linkCadastro").textContent   = T.cad;
     $("#goRecuperar").textContent    = T.esq;
-    btnLang.textContent              = `🌐 ${labels[lang] || labels.pt}`;
+    btnLang.textContent              = `Idioma: ${labels[lang] || labels.pt}`;
+    const q = `?lang=${lang}`;
+    $("#loginLegalText").innerHTML = `${T.legalPrefix} <a id="loginTermsLink" href="docs/terms.html${q}">${T.terms}</a> ${T.legalMiddle} <a id="loginPrivacyLink" href="docs/privacy.html${q}">${T.privacy}</a>.`;
   }
 
   window.setLoginLang = lang => {
@@ -620,6 +817,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
   aplicarIdiomaLogin(localStorage.getItem("femflow_lang") || "pt");
   startFirebaseAuthObserver();
+  encaminharHotmartParaAnamnese();
 
 });
 </script>
@@ -630,19 +828,19 @@ document.addEventListener("DOMContentLoaded", () => {
 =============================== -->
 <div id="ff-lang-modal" class="ff-lang-modal hidden">
   <div class="ff-lang-box">
-    <h2>🌐 Idioma / Language / Langue</h2>
+    <h2>Idioma / Language / Langue</h2>
 
-    <button onclick="setLoginLang('pt')" class="ff-lang-btn">🇧🇷 Português</button>
-    <button onclick="setLoginLang('en')" class="ff-lang-btn">🇺🇸 English</button>
-    <button onclick="setLoginLang('fr')" class="ff-lang-btn">🇫🇷 Français</button>
+    <button onclick="setLoginLang('pt')" class="ff-lang-btn">Português</button>
+    <button onclick="setLoginLang('en')" class="ff-lang-btn">English</button>
+    <button onclick="setLoginLang('fr')" class="ff-lang-btn">Français</button>
 
     <button class="ff-lang-close"
       onclick="document.getElementById('ff-lang-modal').classList.add('hidden')">
-      ✖ Fechar
+      Fechar
     </button>
   </div>
 </div>
 
-  <script src="/staging/app/js/env-staging.js"></script>
+  <script src="js/env.js" defer></script>
 </body>
 </html>

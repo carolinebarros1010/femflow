@@ -1,17 +1,25 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+  <base href="./" />
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="format-detection" content="telephone=no" />
-  <script src="./config/config.js"></script>
+  <meta name="theme-color" content="#fbf2ee" />
+  <script>document.documentElement.classList.add("ff-page-enter");</script>
+
+  <script src="./config/config.js" defer></script>
 
   <title>FemFlow • Home</title>
 
   <link rel="icon" href="favicon.ico">
   <link rel="manifest" href="manifest.json">
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="preconnect" href="https://www.gstatic.com" crossorigin>
 
   <!-- Fontes -->
   <link href="https://fonts.googleapis.com/css2?family=Lato:wght@300;400;700&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
@@ -21,44 +29,47 @@
   <link rel="stylesheet" href="css/header.css">
   <link rel="stylesheet" href="css/themes.css">
   <link rel="stylesheet" href="css/home.css">
-  <link rel="stylesheet" href="css/home-hero.css">
 </head>
 
 <body>
+
   <!-- FIREBASE (compat) -->
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
-<script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-messaging-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/9.22.2/firebase-messaging-compat.js"></script>
+<script defer src="https://www.gstatic.com/firebasejs/9.22.2/firebase-auth-compat.js"></script>
 
 <!-- INIT DO FIREBASE -->
-<script src="services/firebase-init.js?v=20250127"></script>
+<script defer src="services/firebase-init.js?v=20250127"></script>
 
   
-  <section class="ff-hero">
-  <div class="ff-hero-media">
+  <!-- BEM-VINDA -->
+  <h1 id="bvTexto" class="bemvinda">Bem-vinda!</h1>
+  
+<div class="video">
+  <div class="video-wrapper">
+    <h2 id="homeVideoTitle"></h2>
+    <p id="homeVideoSub"></p>
     <video
-      id="ffHeroVideo"
-      class="ff-hero-video"
-      autoplay
-      muted
+      id="homeVideoPlayer"
+      class="home-video-player"
       playsinline
-      loop
-      preload="metadata">
-      <source id="ffHeroSource" type="video/mp4">
+      muted
+      autoplay
+      preload="metadata"
+      poster="assets/screenshots/femflow-home.avif"
+      aria-label="Vídeo de boas-vindas do FemFlow">
     </video>
-  </div>
-
-  <div class="ff-hero-ui">
-    <div class="ff-hero-welcome">
-      <span class="ff-hero-hello" id="ffHeroHello">Bem-vinda,</span>
-      <span class="ff-hero-name" id="ffHeroName">Aluna</span>
-    </div>
-
-    <button id="ffHeroCTA" class="ff-hero-btn">
-      Continuar seu treino
+    <button id="homeVideoToggle" class="home-video-toggle" type="button" aria-label="Reproduzir vídeo">
+      <span id="homeVideoToggleIcon" aria-hidden="true">▶</span>
     </button>
   </div>
-</section>
+</div>
+
+  <!-- BOTÃO FLOW CENTER -->
+  <div class="home-top-buttons">
+    <button id="btnFlow" class="home-btn">Continue seu treino</button>
+  </div>
 
   <!-- PERSONAL -->
   <h2 class="home-section-title" id="tituloPersonalTopo">Personal</h2>
@@ -79,6 +90,10 @@
   <!-- CASA -->
   <h2 class="home-section-title" id="tituloCasa">Treinar em Casa</h2>
   <div class="rail" id="railCasa"></div>
+
+  <!-- PLANILHAS 30 DIAS -->
+  <h2 class="home-section-title" id="tituloPlanilhas30Dias">Planilhas 30 Dias</h2>
+  <div class="rail" id="railPlanilhas30Dias"></div>
 
   <!-- EBOOKS -->
   <h2 class="home-section-title" id="tituloEbooks">Ebooks</h2>
@@ -102,11 +117,11 @@
   <!-- MODAL CONFIRMAÇÃO NOVO PROGRAMA -->
   <div id="novoProgramaModal" class="ff-modal-overlay hidden" aria-hidden="true">
     <div class="ff-modal-card" role="dialog" aria-modal="true">
-      <h3 class="ff-modal-title">Quer realmente iniciar um novo programa?</h3>
-      <p class="ff-modal-subtitle">
+      <h3 class="ff-modal-title" id="novoProgramaTitulo">Quer realmente iniciar um novo programa?</h3>
+      <p class="ff-modal-subtitle" id="novoProgramaSubtitulo">
         Ao confirmar, o programa atual será reiniciado.
       </p>
-      <p class="ff-modal-note">
+      <p class="ff-modal-note" id="novoProgramaNota">
         Para retomar seu treino clique em "<strong>Continue seu treino</strong>".
       </p>
       <div class="ff-modal-actions">
@@ -116,13 +131,94 @@
     </div>
   </div>
 
+  <!-- MODAL CONFIRMAÇÃO MONTE SEU TREINO -->
+  <div id="customTreinoConfirmModal" class="ff-modal-overlay hidden" aria-hidden="true">
+    <div class="ff-modal-card" role="dialog" aria-modal="true">
+      <h3 class="ff-modal-title" id="customTreinoConfirmText">Deseja montar um novo treino? Isso irá zerar o dia do programa.</h3>
+      <div class="ff-modal-actions">
+        <button class="ff-modal-btn ghost" id="customTreinoConfirmCancelar">Cancelar</button>
+        <button class="ff-modal-btn" id="customTreinoConfirmar">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL MONTE SEU TREINO -->
+  <div id="customTreinoModal" class="ff-modal-overlay hidden" aria-hidden="true">
+    <div class="ff-modal-card" role="dialog" aria-modal="true">
+      <h3 class="ff-modal-title" id="customTreinoTitle">Monte seu treino</h3>
+      <p class="ff-modal-subtitle" id="customTreinoSubtitle">Crie um treino sob medida hoje</p>
+      <div class="ff-modal-form">
+        <div class="ff-modal-field">
+          <label for="customAquecimento" id="customTreinoLabelAquecimento">Aquecimento</label>
+          <select id="customAquecimento" class="ff-modal-select"></select>
+        </div>
+        <div class="ff-modal-field">
+          <label for="customMusculo1" id="customTreinoLabelMusculo1">Músculo 1</label>
+          <select id="customMusculo1" class="ff-modal-select"></select>
+        </div>
+        <div class="ff-modal-field">
+          <label for="customMusculo2" id="customTreinoLabelMusculo2">Músculo 2</label>
+          <select id="customMusculo2" class="ff-modal-select"></select>
+        </div>
+        <div class="ff-modal-field">
+          <label for="customMusculo3" id="customTreinoLabelMusculo3">Músculo 3</label>
+          <select id="customMusculo3" class="ff-modal-select"></select>
+        </div>
+        <div class="ff-modal-field">
+          <label for="customResfriamento" id="customTreinoLabelResfriamento">Resfriamento</label>
+          <select id="customResfriamento" class="ff-modal-select"></select>
+        </div>
+      </div>
+      <div class="ff-modal-actions">
+        <button class="ff-modal-btn ghost" id="customTreinoCancelar">Cancelar</button>
+        <button class="ff-modal-btn" id="customTreinoSalvar">Confirmar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- MODAL LOGIN RÁPIDO BODY INSIGHT -->
+  <div id="bodyInsightAuthModal" class="ff-modal-overlay hidden" aria-hidden="true">
+    <div class="ff-modal-card" role="dialog" aria-modal="true" aria-labelledby="bodyInsightAuthTitle">
+      <h3 class="ff-modal-title" id="bodyInsightAuthTitle">Confirme seu login</h3>
+      <p class="ff-modal-subtitle" id="bodyInsightAuthSubtitle">
+        Para acessar o Body Insight com segurança, confirme seu e-mail e senha.
+      </p>
+      <div class="ff-modal-form">
+        <div class="ff-modal-field">
+          <label for="bodyInsightAuthEmail" id="bodyInsightAuthEmailLabel">E-mail</label>
+          <input id="bodyInsightAuthEmail" class="ff-modal-input" type="email" autocomplete="email" inputmode="email" />
+        </div>
+        <div class="ff-modal-field">
+          <label for="bodyInsightAuthSenha" id="bodyInsightAuthPasswordLabel">Senha</label>
+          <input id="bodyInsightAuthSenha" class="ff-modal-input" type="password" autocomplete="current-password" />
+        </div>
+      </div>
+      <p class="ff-modal-error" id="bodyInsightAuthError" role="alert" aria-live="polite"></p>
+      <div class="ff-modal-actions">
+        <button class="ff-modal-btn ghost" id="bodyInsightAuthCancelar">Cancelar</button>
+        <button class="ff-modal-btn" id="bodyInsightAuthEntrar">Entrar</button>
+      </div>
+    </div>
+  </div>
+
   
- <script src="js/lang.js"></script>
-<script src="core/femflow-core.js"></script>
+ <script defer src="core/femflow-core.js"></script>
+<script defer src="js/billing/platform.js"></script>
+<script defer src="js/billing/bootstrap.js"></script>
+<script defer src="js/billing/iap-ios.js"></script>
+<script defer src="js/billing/checkout.js"></script>
+<script defer src="js/billing/access.js"></script>
+<script defer src="js/billing/blocked-action-policy.js"></script>
+<script defer src="js/lang.js"></script>
 
 <!-- Só agora o home -->
-<script src="js/home.js"></script>
+<script defer src="js/home.js"></script>
 
-  <script src="/staging/app/js/env-staging.js"></script>
+
+  <script>
+    document.getElementById("btnFlow").onclick = () => FEMFLOW.navegarUltra("flowcenter.html");
+  </script>
+
+  <script defer src="js/env.js"></script>
 </body>
 </html>

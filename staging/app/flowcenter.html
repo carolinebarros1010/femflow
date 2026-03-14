@@ -1,12 +1,15 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+  <base href="./" />
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="format-detection" content="telephone=no" />
-  <script src="./config/config.js"></script>
+  <script>document.documentElement.classList.add("ff-page-enter");</script>
+  <script src="./config/config.js" defer></script>
   <title>FemFlow • Flow Center</title>
 
   <link rel="icon" href="favicon.ico">
@@ -61,17 +64,20 @@
 
 <!-- NAV -->
 <div class="toolbar">
-  <button class="tool" id="toBreath">💨 —</button>
-  <button class="tool" id="toTrain">🏃 —</button>
-  <button class="tool" id="toExtraTrain">✨ —</button>
-  <button class="tool" id="toEvolution">📈 —</button>
-  <button class="tool" id="toEndurance">🏃‍♂️ Endurance</button>
+  <button class="tool" id="toTrain">Treino</button>
+  <button class="tool" id="toEndurance">Endurance</button>
+  <button class="tool" id="toBreath">Respiração</button>
+  <button class="tool" id="toExtraTrain">Treino Extra</button>
+  <button class="tool" id="toCustomTrain">Treino Personal</button>
+  <button class="tool" id="toEvolution">Evolução</button>
 </div>
+
+<button class="flowcenter-home-switch" id="toHomeSwitch">Home</button>
 
 <!-- MODAL DE NÍVEL -->
 <div id="modal-nivel" class="modal-nivel oculto">
   <div class="modal-nivel-box">
-    <h2>📊 Selecione seu nível</h2>
+    <h2>Selecione seu nível</h2>
 
     <button class="nivel-btn" data-nivel="iniciante">Iniciante</button>
     <button class="nivel-btn" data-nivel="intermediaria">Intermediária</button>
@@ -88,13 +94,21 @@
 <!-- MODAL DE TREINO EXTRA -->
 <div id="modal-extra" class="modal-extra oculto">
   <div class="modal-extra-box">
-    <h2 id="extraTitle">✨ Treino Extra</h2>
+    <h2 id="extraTitle">Treino Extra</h2>
     <p id="extraSub" class="modal-extra-sub">Escolha a área que deseja focar hoje.</p>
 
     <button class="extra-btn" data-extra-enfase="extra_superior">Superior</button>
     <button class="extra-btn" data-extra-enfase="extra_inferior">Inferior</button>
     <button class="extra-btn" data-extra-enfase="extra_abdomen">Abdômen</button>
     <button class="extra-btn" data-extra-enfase="extra_mobilidade">Mobilidade</button>
+    <button class="extra-btn" data-extra-enfase="extra_biceps">Bíceps</button>
+    <button class="extra-btn" data-extra-enfase="extra_triceps">Tríceps</button>
+    <button class="extra-btn" data-extra-enfase="extra_ombro">Ombro</button>
+    <button class="extra-btn" data-extra-enfase="extra_quadriceps">Quadríceps</button>
+    <button class="extra-btn" data-extra-enfase="extra_posterior">Posteriores</button>
+    <button class="extra-btn" data-extra-enfase="extra_peito">Peito</button>
+    <button class="extra-btn" data-extra-enfase="extra_costas">Costas</button>
+    <button class="extra-btn" data-extra-enfase="extra_gluteo">Glúteo</button>
 
     <button id="fecharExtra" class="extra-close">Fechar</button>
   </div>
@@ -103,18 +117,19 @@
 <!-- MODAL ENDURANCE -->
 <div id="modal-endurance" class="modal-endurance oculto" aria-hidden="true">
   <div class="modal-endurance-box" role="dialog" aria-modal="true">
-    <h2>🏃‍♂️ Defina seu Endurance</h2>
-    <p class="modal-endurance-sub">
+    <h2 id="enduranceModalTitulo">Defina seu Endurance</h2>
+    <p class="modal-endurance-sub" id="enduranceModalSub">
       Responda para personalizarmos o seu treino de cardio.
     </p>
 
-    <label class="endurance-field">
-      <span>Qual modalidade?</span>
-      <input type="text" id="enduranceModalidade" placeholder="Ex: corrida, bike, natação">
-    </label>
+    <div class="endurance-field">
+      <span id="enduranceModalidadeLabel">Qual modalidade?</span>
+      <div id="enduranceModalidadePlaceholder" class="endurance-modalidade-placeholder">Selecione a modalidade</div>
+      <div id="enduranceModalidade" class="endurance-options endurance-modalidade-options" role="group" aria-labelledby="enduranceModalidadeLabel"></div>
+    </div>
 
     <div class="endurance-field">
-      <span>Quantos treinos por semana?</span>
+      <span id="enduranceTreinosLabel">Quantos treinos por semana?</span>
       <div class="endurance-options" id="enduranceTreinosSemana">
         <button type="button" class="endurance-chip" data-value="1">1</button>
         <button type="button" class="endurance-chip" data-value="2">2</button>
@@ -127,7 +142,7 @@
     </div>
 
     <div class="endurance-field">
-      <span>Quais dias da semana?</span>
+      <span id="enduranceDiasLabel">Quais dias da semana?</span>
       <div class="endurance-options" id="enduranceDiasSemana">
         <button type="button" class="endurance-chip" data-value="segunda">Seg</button>
         <button type="button" class="endurance-chip" data-value="terca">Ter</button>
@@ -141,8 +156,14 @@
 
     <label class="endurance-field">
       <span>
-        Qual ritmo médio?
-        <span class="endurance-info" title="Minutos para cada 100m em natação, velocidade média em bike, pace em corrida.">i</span>
+        <span id="enduranceRitmoLabel">Qual ritmo médio?</span>
+        <button
+          type="button"
+          class="endurance-info"
+          id="enduranceRitmoInfo"
+          aria-label="Minutos para cada 100m em natação, velocidade média em bike, pace em corrida."
+          title="Minutos para cada 100m em natação, velocidade média em bike, pace em corrida."
+        >i</button>
       </span>
       <input type="text" id="enduranceRitmo" placeholder="Ex: 2:10/100m, 25 km/h, 5:20 min/km">
     </label>
@@ -157,13 +178,13 @@
 <!-- MODAL ENDURANCE — SELEÇÃO -->
 <div id="modal-endurance-selecao" class="modal-endurance modal-endurance-selecao oculto" aria-hidden="true">
   <div class="modal-endurance-box" role="dialog" aria-modal="true">
-    <h2>🏃‍♂️ Escolha sua sessão</h2>
-    <p class="modal-endurance-sub">
+    <h2 id="enduranceSelecaoTitulo">Escolha sua sessão</h2>
+    <p class="modal-endurance-sub" id="enduranceSelecaoSub">
       Selecione a semana e o dia do treino que você vai realizar.
     </p>
 
     <div class="endurance-field">
-      <span>Semana</span>
+      <span id="enduranceSelecaoSemanaLabel">Semana</span>
       <div class="endurance-options" id="enduranceSemana">
         <button type="button" class="endurance-chip" data-value="1">1</button>
         <button type="button" class="endurance-chip" data-value="2">2</button>
@@ -173,7 +194,7 @@
     </div>
 
     <div class="endurance-field">
-      <span>Dia</span>
+      <span id="enduranceSelecaoDiaLabel">Dia</span>
       <div class="endurance-options endurance-days" id="enduranceDia">
         <button type="button" class="endurance-chip" data-value="segunda">Seg</button>
         <button type="button" class="endurance-chip" data-value="terca">Ter</button>
@@ -192,13 +213,68 @@
   </div>
 </div>
 
+<!-- MODAL ENDURANCE PERSONAL — EXCLUSIVO -->
+<div id="modal-endurance-personal" class="modal-endurance modal-endurance-personal oculto" aria-hidden="true" data-mode="personal">
+  <div class="modal-endurance-box" role="dialog" aria-modal="true">
+    <h2>Endurance Personal</h2>
+    <p class="modal-endurance-sub" id="endurancePersonalSub">
+      Treino individual do seu personal. Selecione apenas opções disponíveis.
+    </p>
 
-<div id="ff-loading" class="ff-loading">
-  <div class="ff-loading-box">
-    <div class="ff-spinner"></div>
-    <p>Carregando…</p>
+    <div class="endurance-personal-modalidade" id="endurancePersonalModalidadeBadge">—</div>
+
+    <div id="endurancePersonalContent">
+      <div class="endurance-field">
+        <span>Semana disponível</span>
+        <div class="endurance-options" id="endurancePersonalSemanas"></div>
+      </div>
+
+      <div class="endurance-field">
+        <span>Dia disponível</span>
+        <div class="endurance-options endurance-days" id="endurancePersonalDias"></div>
+        <small id="endurancePersonalHint" class="endurance-personal-hint">Selecione uma semana para ver os dias.</small>
+      </div>
+    </div>
+
+    <div id="endurancePersonalEmpty" class="endurance-personal-empty oculto">
+      <div class="endurance-personal-empty-icon">•</div>
+      <p>Seu personal ainda não configurou seu endurance.</p>
+      <button type="button" class="endurance-btn ghost" id="endurancePersonalFalar">Falar com meu personal</button>
+    </div>
+
+    <div class="endurance-actions" id="endurancePersonalActions">
+      <button type="button" class="endurance-btn ghost" id="endurancePersonalCancelar">Cancelar</button>
+      <button type="button" class="endurance-btn" id="endurancePersonalConfirmar" disabled>Confirmar treino</button>
+    </div>
   </div>
 </div>
+
+<!-- MODAL CAMINHOS — ESCOLHA -->
+<div id="modalCaminhosEscolha" class="modal-caminhos oculto" aria-hidden="true">
+  <div class="modal-caminhos-box" role="dialog" aria-modal="true">
+    <h3 id="modalCaminhosEscolhaTitulo">Escolha seu treino</h3>
+    <p id="modalCaminhosUltimo" class="modal-caminhos-texto">Seu último treino foi Treino 1</p>
+    <p id="modalCaminhosSugerido" class="modal-caminhos-texto destaque">Comparativo → Sugerimos Treino 1</p>
+    <p id="modalCaminhosFase" class="modal-caminhos-texto">Fase Folicular</p>
+    <div id="modalCaminhosBotoes" class="modal-caminhos-grid"></div>
+    <div class="modal-caminhos-actions">
+      <button type="button" id="modalCaminhosFechar" class="endurance-btn ghost">Fechar</button>
+    </div>
+  </div>
+</div>
+
+<!-- MODAL CAMINHOS — PRÉVIA -->
+<div id="modalCaminhosPreview" class="modal-caminhos oculto" aria-hidden="true">
+  <div class="modal-caminhos-box" role="dialog" aria-modal="true">
+    <h3 id="modalCaminhosPreviewTitulo">Treino 1 — Fase Folicular</h3>
+    <ul id="modalCaminhosPreviewLista" class="modal-caminhos-lista"></ul>
+    <div class="modal-caminhos-actions">
+      <button type="button" id="modalCaminhosMudar" class="endurance-btn ghost">Mudar</button>
+      <button type="button" id="modalCaminhosIniciar" class="endurance-btn">Iniciar treino</button>
+    </div>
+  </div>
+</div>
+
 
 <!-- FIREBASE -->
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-app-compat.js"></script>
@@ -206,20 +282,20 @@
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-firestore-compat.js"></script>
 <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-messaging-compat.js"></script>
 
-<script src="services/firebase-init.js?v=20250127"></script>
-<script>
-  if (firebase.auth) {
-    firebase.auth().signInAnonymously().catch((err) => {
-      console.warn("[FemFlow] Auth anônimo falhou:", err);
-    });
-  }
-</script>
+<script src="services/firebase-init.js?v=20250127" defer></script>
 
-<script src="js/lang.js"></script>
-<script src="core/femflow-core.js"></script>
-<script src="js/treino-engine.js"></script>
-<script src="js/flowcenter.js"></script>
+<script src="core/femflow-core.js" defer></script>
+<script src="js/billing/platform.js" defer></script>
+<script src="js/billing/bootstrap.js" defer></script>
+<script src="js/billing/iap-ios.js" defer></script>
+<script src="js/billing/checkout.js" defer></script>
+<script src="js/billing/access.js" defer></script>
+<script src="js/billing/blocked-action-policy.js" defer></script>
+<script src="js/lang.js" defer></script>
+<script src="js/treino-engine.js" defer></script>
+<script src="js/treino-caminhos.js" defer></script>
+<script src="js/flowcenter.js" defer></script>
 
-  <script src="/staging/app/js/env-staging.js"></script>
+  <script src="js/env.js" defer></script>
 </body>
 </html>

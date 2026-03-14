@@ -186,3 +186,23 @@ Ou seja:
 ## Resumo em uma linha
 
 O card gratuito é liberado quando o backend envia `free_access` com `enabled=true`, `enfases` contendo o card, e `until` válido; o app desbloqueia o card, exibe o badge e permite o acesso normal.
+
+## Card `monte_seu_treino` (regra especial)
+
+Para liberar o card **Monte seu treino** via `free_access`, existem 2 caminhos válidos:
+
+1. Incluir `"monte_seu_treino"` em `free_access.enfases`; ou
+2. Incluir qualquer ênfase das categorias `muscular`, `esportes` ou `casa` (mesma lógica do `acesso_app`).
+
+Exemplo:
+
+```json
+{
+  "enabled": true,
+  "enfases": ["gluteos"],
+  "until": "2026-12-31"
+}
+```
+
+Com esse exemplo, `monte_seu_treino` também fica liberado porque `gluteos` pertence à categoria muscular.
+

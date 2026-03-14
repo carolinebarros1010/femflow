@@ -11,20 +11,121 @@
   top: 0;
   left: 0;
   right: 0;
-  padding-top: env(safe-area-inset-top, 0px);
-  height: calc(56px + env(safe-area-inset-top, 0px));
+  padding-top: var(--safe-top);
+  height: var(--header-total-h);
   background: #fff5ef;
   display: flex;
-  align-items: center;
-  justify-content: space-between;
+  align-items: flex-start;
+  justify-content: center;
   padding-left: 16px;
   padding-right: 16px;
   border-bottom: 1px solid rgba(0,0,0,0.08);
   z-index: 9999;
+  box-sizing: border-box;
+}
+
+#femflowHeader::before {
+  content: "";
+  position: absolute;
+  top: var(--safe-top);
+  left: 16px;
+  right: 16px;
+  height: var(--header-h);
 }
 
 #femflowHeader .ff-logo {
-  height: 28px;
+  position: absolute;
+  top: calc(var(--safe-top) + (var(--header-h) - clamp(22px, 3.2vh, 34px)) / 2);
+  left: 16px;
+  height: clamp(22px, 3.2vh, 34px);
+  width: auto;
+  object-fit: contain;
+}
+
+/* ============================================================
+   🔔 NOTIFICAÇÕES — BOTÃO + BADGE
+============================================================ */
+
+.ff-icon {
+  width: 22px;
+  height: 22px;
+  display: inline-block;
+  background: currentColor;
+  flex-shrink: 0;
+}
+
+.ff-icon-bell {
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Zm7-6.5-1.6-1.6V10a5.4 5.4 0 0 0-4.4-5.3V4a1 1 0 1 0-2 0v.7A5.4 5.4 0 0 0 6.6 10v3.9L5 15.5V17h14v-1.5Z'/%3E%3C/svg%3E") center/contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Zm7-6.5-1.6-1.6V10a5.4 5.4 0 0 0-4.4-5.3V4a1 1 0 1 0-2 0v.7A5.4 5.4 0 0 0 6.6 10v3.9L5 15.5V17h14v-1.5Z'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+
+.ff-icon-menu {
+  -webkit-mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M4 6h16v2H4V6Zm0 5h16v2H4v-2Zm0 5h16v2H4v-2Z'/%3E%3C/svg%3E") center/contain no-repeat;
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24'%3E%3Cpath fill='black' d='M4 6h16v2H4V6Zm0 5h16v2H4v-2Zm0 5h16v2H4v-2Z'/%3E%3C/svg%3E") center/contain no-repeat;
+}
+
+.ff-notifications-btn,
+#ffNotificationsBtn {
+  position: absolute !important;
+  top: calc(var(--safe-top) + (var(--header-h) / 2)) !important;
+  transform: translateY(-50%) !important;
+  right: 64px !important;
+  background: none !important;
+  border: none !important;
+  padding: 0 !important;
+  width: 44px !important;
+  min-width: 44px !important;
+  height: 44px !important;
+  min-height: 44px !important;
+  margin: 0 !important;
+  font-size: 22px !important;
+  line-height: 1 !important;
+  color: var(--teal) !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  border-radius: 12px !important;
+  cursor: pointer !important;
+  z-index: 99998 !important;
+}
+
+.ff-notifications-btn:hover,
+#ffNotificationsBtn:hover {
+  background: rgba(0,0,0,0.03) !important;
+}
+
+.ff-notifications-btn:active,
+#ffNotificationsBtn:active {
+  background: rgba(0,0,0,0.08) !important;
+  transform: translateY(-50%) scale(0.97) !important;
+}
+
+.ff-notifications-badge {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  min-width: 16px;
+  height: 16px;
+  padding: 0 4px;
+  border-radius: 999px;
+  background: #e04a3a;
+  color: #fff;
+  font-size: 10px;
+  font-weight: 700;
+  line-height: 16px;
+  text-align: center;
+  display: none;
+}
+
+.ff-notifications-badge.is-visible {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+}
+
+body.dark #ffNotificationsBtn,
+body.dark .ff-notifications-btn {
+  color: var(--bege) !important;
 }
 
 /* ============================================================
@@ -36,18 +137,20 @@
   position: absolute !important;
 
   /* ⬇⬇ Alinhamento vertical perfeito no header */
-  top: 50% !important;
+  top: calc(var(--safe-top) + (var(--header-h) / 2)) !important;
   transform: translateY(-50%) !important;
 
-  right: 18px !important;
+  right: 12px !important;
 
   background: none !important;
   border: none !important;
 
-  width: auto !important;
-  height: auto !important;
+  width: 44px !important;
+  min-width: 44px !important;
+  height: 44px !important;
+  min-height: 44px !important;
 
-  padding: 6px 10px !important;
+  padding: 0 !important;
   margin: 0 !important;
 
   font-size: 28px !important;
@@ -78,11 +181,18 @@
 }
 
 /* Hard shield contra resets */
-.ff-menu-btn *,
-#ffMenuBtn * {
+.ff-menu-btn *:not(.ff-icon),
+#ffMenuBtn *:not(.ff-icon) {
   width: auto !important;
   max-width: none !important;
   display: inline !important;
+}
+
+.ff-menu-btn .ff-icon,
+#ffMenuBtn .ff-icon {
+  display: inline-block !important;
+  width: 22px !important;
+  height: 22px !important;
 }
 
 /* Tema escuro */
@@ -104,6 +214,7 @@ body.dark .ff-menu-btn {
   bottom: 0;
   background: rgba(0,0,0,0.35);
   backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
   opacity: 0;
   pointer-events: none;
   transition: opacity .30s ease;
@@ -119,11 +230,13 @@ body.dark .ff-menu-btn {
   position: absolute;
   right: 0;
   top: 0;
-  width: 78%;
-  max-width: 330px;
+  width: min(86vw, 340px);
+  max-width: 340px;
   height: 100%;
   background: #fff;
-  padding: 26px;
+  padding: calc(var(--safe-top) + 18px) 18px calc(env(safe-area-inset-bottom, 0px) + 18px);
+  box-sizing: border-box;
+  overflow-y: auto;
   box-shadow: -4px 0 20px rgba(0,0,0,0.2);
   transform: translateX(100%);
   transition: transform .30s ease;
@@ -180,4 +293,187 @@ body.dark .ff-menu-box button {
 body.dark .ff-logout {
   background: #552222 !important;
   color: #ffb3b3 !important;
+}
+
+/* ----------------------------------------
+   NOTIFICAÇÕES — MODAL SIMPLES
+---------------------------------------- */
+.ff-notifications-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.35);
+  backdrop-filter: blur(3px);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity .25s ease;
+  z-index: 150001;
+}
+
+.ff-notifications-modal.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
+.ff-notifications-box {
+  position: absolute;
+  pointer-events: auto;
+  right: 0;
+  top: 0;
+  width: 90%;
+  max-width: 360px;
+  height: 100%;
+  background: #fff;
+  padding: 18px;
+  box-shadow: -4px 0 20px rgba(0,0,0,0.2);
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  transform: translateX(100%);
+  transition: transform .25s ease;
+}
+
+.ff-notifications-modal.active .ff-notifications-box {
+  transform: translateX(0);
+}
+
+.ff-notifications-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.ff-notifications-header h2 {
+  margin: 0;
+  font-size: 18px;
+  color: var(--teal);
+}
+
+.ff-notifications-close {
+  border: none;
+  background: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: var(--teal);
+  min-width: 44px;
+  min-height: 44px;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  line-height: 1;
+  padding: 0;
+  border-radius: 10px;
+}
+
+.ff-notifications-list {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.ff-notification-item {
+  border: 1px solid #e2d5cc;
+  border-radius: 12px;
+  padding: 12px;
+  background: #fff5ef;
+  text-align: left;
+  color: #3a2d2b;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.ff-notification-item.is-unread {
+  border-color: #cc6a5a;
+  box-shadow: 0 0 0 1px rgba(204,106,90,0.35);
+}
+
+.ff-notification-title {
+  font-weight: 700;
+  color: var(--teal);
+}
+
+.ff-notification-message {
+  font-size: 14px;
+  color: #4c3a37;
+}
+
+.ff-notification-date {
+  font-size: 12px;
+  color: #8c7a75;
+}
+
+.ff-notifications-empty {
+  padding: 16px;
+  border-radius: 12px;
+  background: #fff5ef;
+  color: #7a5e58;
+  text-align: center;
+}
+
+body.dark .ff-notifications-box {
+  background: #2b2b2b;
+}
+
+body.dark .ff-notification-item {
+  background: #3b3b3b;
+  border-color: #555;
+  color: #eee;
+}
+
+body.dark .ff-notification-title {
+  color: #fff;
+}
+
+body.dark .ff-notifications-close,
+body.dark .ff-notifications-header h2 {
+  color: #fff;
+}
+
+/* Delete account modal */
+.ff-delete-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.4);
+  z-index: 160000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 16px;
+}
+.ff-delete-modal.hidden { display: none; }
+.ff-delete-box {
+  width: min(480px, 100%);
+  background: #fff;
+  border-radius: 14px;
+  padding: 18px;
+}
+.ff-delete-check { display: block; margin: 12px 0; }
+#ffDeleteReason { width: 100%; min-height: 90px; border-radius: 10px; border: 1px solid #d9ccc6; padding: 10px; }
+.ff-delete-actions { display: flex; gap: 10px; margin-top: 12px; }
+.ff-delete-actions button { flex: 1; border-radius: 10px; border: none; padding: 12px; cursor: pointer; }
+.ff-delete-actions .ghost { background: #eee; }
+#ffDeleteSend { background: #cc6a5a; color: #fff; }
+
+body.dark .ff-delete-box {
+  background: #2b2b2b;
+  color: #f4e7e1;
+}
+
+body.dark #ffDeleteReason {
+  background: #1f1f1f;
+  color: #f5f5f5;
+  border-color: #555;
+}
+
+body.dark .ff-delete-actions .ghost {
+  background: #444;
+  color: #fff;
+}
+
+body.dark #ffDeleteSend {
+  background: #d48473;
+  color: #1b1b1b;
 }

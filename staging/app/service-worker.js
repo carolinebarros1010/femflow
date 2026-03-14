@@ -1,5 +1,6 @@
 // 🌸 FemFlow Service Worker v5.0 (PWA + CORS safe)
-const CACHE_NAME = "femflow-cache-v8";
+const CACHE_VERSION = "v13";
+const CACHE_NAME = `femflow-static-${CACHE_VERSION}`;
 
 // --------------------------------------------------
 // 🔔 Firebase Cloud Messaging (background)
@@ -11,7 +12,7 @@ importScripts(
 
 importScripts("config/config.js");
 
-const ENV = self.FEMFLOW_ENV || "staging";
+const ENV = self.FEMFLOW_ENV || "prod";
 const firebaseConfig =
   self.FEMFLOW_ACTIVE?.firebaseConfig ||
   self.FEMFLOW_CONFIG?.firebaseConfigs?.[ENV];
@@ -49,6 +50,70 @@ const resolvePushUrl = (payload) => {
   return PUSH_ACTION_URLS[action] || data.url || "./home.html";
 };
 
+const NOTIFICATION_DB = "femflow-notifications";
+const NOTIFICATION_STORE = "notifications";
+
+const openNotificationsDb = () =>
+  new Promise((resolve) => {
+    const request = indexedDB.open(NOTIFICATION_DB, 1);
+    request.onupgradeneeded = (event) => {
+      const db = event.target.result;
+      if (!db.objectStoreNames.contains(NOTIFICATION_STORE)) {
+        const store = db.createObjectStore(NOTIFICATION_STORE, { keyPath: "id" });
+        store.createIndex("data", "data");
+        store.createIndex("lida", "lida");
+      }
+    };
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => resolve(null);
+  });
+
+const buildInternalNotification = (payload = {}) => {
+  const data = payload?.data || {};
+  const titulo =
+    payload?.notification?.title ||
+    data.title ||
+    data.titulo ||
+    "FemFlow";
+  const mensagem =
+    payload?.notification?.body ||
+    data.body ||
+    data.mensagem ||
+    "";
+  const tipo = data.tipo || data.type || "sistema";
+  const id =
+    data.id ||
+    payload?.messageId ||
+    `ff-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+
+  return {
+    id: String(id),
+    titulo,
+    mensagem,
+    tipo,
+    origem: "push",
+    data: data.data || new Date().toISOString(),
+    lida: false
+  };
+};
+
+const storeInternalNotification = async (payload) => {
+  if (!("indexedDB" in self)) return null;
+  const db = await openNotificationsDb();
+  if (!db) return null;
+
+  const notification = buildInternalNotification(payload);
+
+  await new Promise((resolve) => {
+    const tx = db.transaction(NOTIFICATION_STORE, "readwrite");
+    tx.objectStore(NOTIFICATION_STORE).put(notification);
+    tx.oncomplete = () => resolve();
+    tx.onerror = () => resolve();
+  });
+
+  return notification;
+};
+
 if (messaging) {
   messaging.onBackgroundMessage((payload) => {
     const data = payload?.data || {};
@@ -69,6 +134,21 @@ if (messaging) {
     };
 
     self.registration.showNotification(title, options);
+
+    storeInternalNotification(payload).then((notification) => {
+      if (!notification) return;
+      self.clients
+        .matchAll({ type: "window", includeUncontrolled: true })
+        .then((clients) => {
+          clients.forEach((client) => {
+            client.postMessage({
+              type: "FEMFLOW_PUSH_STORED",
+              notification
+            });
+          });
+        })
+        .catch(() => {});
+    });
   });
 }
 
@@ -86,6 +166,11 @@ const ASSETS = [
   "./reset.html",
   "./offline.html",
   "./manifest.json",
+  "./docs/privacy.html",
+  "./docs/terms.html",
+  "./docs/delete-account.html",
+  "./docs/legal.css",
+  "./docs/legal.js",
 
   "./css/style.css",
   "./css/core.css",
@@ -96,7 +181,6 @@ const ASSETS = [
   "./config/config.js",
   "./core/femflow-core.js",
   "./services/firebase-init.js",
-  "./js/ciclo.js",
   "./js/treino.js",
   "./js/anamnese.js",
   "./js/painel-admin.js",
@@ -195,31 +279,49 @@ self.addEventListener("fetch", (event) => {
   // Não intercepta chamadas externas (Google Script, Firebase, Hotmart)
   if (url.origin !== self.location.origin) return;
 
+  // Evita cachear endpoints dinâmicos/sensíveis
+  if (url.pathname.endsWith("/proxy.php") || url.pathname.endsWith("/config.js")) return;
+
+  const isNavigation = req.mode === "navigate";
+  const noStore = req.cache === "no-store";
+  const isDocs = url.pathname.includes("/docs/");
+
   // Estratégia cache-first
   event.respondWith(
     (async () => {
       const cache = await caches.open(CACHE_NAME);
-      const cached = await cache.match(req);
+      const cached = noStore ? null : await cache.match(req);
+
+      if (isDocs) {
+        try {
+          const resp = await fetch(req);
+          if (resp && resp.ok && !noStore) cache.put(req, resp.clone());
+          return resp;
+        } catch (err) {
+          if (cached) return cached;
+          throw err;
+        }
+      }
 
       if (cached) {
-        // atualiza silenciosamente
         fetch(req)
           .then((resp) => {
-            if (resp && resp.ok) cache.put(req, resp.clone());
+            if (resp && resp.ok && !noStore) cache.put(req, resp.clone());
           })
           .catch(() => {});
 
         return cached;
       }
 
-      // busca na rede
       try {
         const resp = await fetch(req);
-        if (resp && resp.ok) cache.put(req, resp.clone());
+        if (resp && resp.ok && !noStore) cache.put(req, resp.clone());
         return resp;
       } catch (err) {
         console.warn("[SW] Erro de rede:", err);
-        return caches.match("./offline.html");
+        if (isNavigation) return caches.match("./offline.html");
+        if (req.destination === "image") throw err;
+        return new Response("", { status: 503, statusText: "Offline" });
       }
     })()
   );
