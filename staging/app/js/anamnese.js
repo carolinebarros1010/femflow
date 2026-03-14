@@ -81,9 +81,33 @@ function aplicarIdiomaCadastro() {
 document.addEventListener("femflow:langReady", aplicarIdiomaCadastro);
 document.addEventListener("femflow:langChange", aplicarIdiomaCadastro);
 
+const modalLang = document.getElementById("ff-lang-modal");
+
 document.getElementById("btnLang").onclick = () => {
-  document.getElementById("ff-lang-modal")?.classList.remove("hidden");
+  modalLang?.classList.add("ff-open");
+  document.body.style.overflow = "hidden";
 };
+
+document.getElementById("ff-lang-close")?.addEventListener("click", () => {
+  modalLang?.classList.remove("ff-open");
+  document.body.style.overflow = "";
+});
+
+modalLang?.addEventListener("click", (e) => {
+  if (e.target === modalLang) {
+    modalLang.classList.remove("ff-open");
+    document.body.style.overflow = "";
+  }
+});
+
+document.querySelectorAll("#ff-lang-modal button[data-lang]").forEach(btn => {
+  btn.addEventListener("click", () => {
+    const lang = btn.dataset.lang;
+    FEMFLOW.setLang?.(lang);
+    modalLang?.classList.remove("ff-open");
+    document.body.style.overflow = "";
+  });
+});
 
 // ============================================================
 //  3) PERGUNTAS (multilíngue)
@@ -120,11 +144,52 @@ function getPerguntasTraduzidas() {
         eSenha = $("#eSenha"), eConf = $("#eConf");
 
   const reEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  const query = new URLSearchParams(window.location.search);
 
   const SCRIPT_URL =
     FEMFLOW?.SCRIPT_URL ||
     window.FEMFLOW_ACTIVE?.scriptUrl ||
     "";
+
+  function marcarFallbackFirebaseAuth(causa = "") {
+    try {
+      localStorage.setItem("femflow_firebase_auth_fallback", "1");
+      if (causa) {
+        localStorage.setItem("femflow_firebase_auth_fallback_reason", String(causa));
+      }
+    } catch (_) {}
+  }
+
+  function aplicarDadosHotmartIniciais() {
+    const origem = String(query.get("origem") || "").toLowerCase();
+    if (!origem.includes("hotmart")) return;
+
+    const nomeHotmart = String(query.get("nome") || "").trim();
+    const emailHotmart = String(query.get("email") || "").trim().toLowerCase();
+    const telefoneHotmart = String(query.get("telefone") || "").trim();
+    const idHotmart = String(query.get("id") || "").trim();
+
+    if (nomeHotmart) {
+      nome.value = nomeHotmart;
+      localStorage.setItem("lead_nome", nomeHotmart);
+    }
+
+    if (emailHotmart) {
+      email.value = emailHotmart;
+      localStorage.setItem("lead_email", emailHotmart);
+      localStorage.setItem("femflow_email", emailHotmart);
+    }
+
+    if (telefoneHotmart) {
+      tel.value = telefoneHotmart;
+      localStorage.setItem("lead_telefone", telefoneHotmart);
+    }
+
+    if (idHotmart) {
+      localStorage.setItem("femflow_hotmart_id", idHotmart);
+      localStorage.setItem("femflow_id", idHotmart);
+    }
+  }
 
   async function syncFirebaseAuthAccount(emailRaw, senhaRaw) {
     if (!window.firebase || !firebase.auth) {
@@ -195,6 +260,9 @@ function getPerguntasTraduzidas() {
   ["input","blur"].forEach(evt => {
     [nome,email,tel,dataNascimento,senha,conf].forEach(el => el.addEventListener(evt, validate));
   });
+
+  aplicarDadosHotmartIniciais();
+  validate();
 
   // ------------------------------------------------------------
   // Registrar lead parcial
@@ -270,12 +338,25 @@ function getPerguntasTraduzidas() {
   // ------------------------------------------------------------
   function pegarDadosLead() {
     const lead = FEMFLOW?._leadCadastro || {};
+    const hotmartId = String(
+      new URLSearchParams(window.location.search).get("id") ||
+      localStorage.getItem("femflow_hotmart_id") ||
+      ""
+    ).trim();
+    const origem = String(
+      new URLSearchParams(window.location.search).get("origem") ||
+      localStorage.getItem("lead_origem") ||
+      ""
+    ).trim().toLowerCase();
+
     return {
       nome:     lead.nome     || localStorage.getItem("lead_nome") || "",
       email:    lead.email    || localStorage.getItem("lead_email") || "",
       telefone: lead.telefone || localStorage.getItem("lead_telefone") || "",
       dataNascimento: lead.dataNascimento || localStorage.getItem("lead_data_nascimento") || "",
-      senha:    lead.senha || $("#senha")?.value || ""
+      senha:    lead.senha || $("#senha")?.value || "",
+      hotmartId,
+      origem
     };
   }
 
@@ -337,13 +418,12 @@ async function finalizarAnamnese() {
   });
   const payloadAnamnese = JSON.stringify({ respostas, objetivo: objetivoSelecionado });
 
-  const { nome, email, telefone, dataNascimento, senha } = pegarDadosLead();
+  const { nome, email, telefone, dataNascimento, senha, hotmartId, origem } = pegarDadosLead();
 
   if (!nome || !email || !senha) {
     FEMFLOW.toast?.("Erro ao finalizar", true);
     return;
   }
-
 
   // --------------------------------------------------------
   // 3) LOGIN OU CADASTRO (HOTMART + NOVA ALUNA)
@@ -357,6 +437,8 @@ async function finalizarAnamnese() {
       telefone,
       dataNascimento,
       senha,
+      hotmartId,
+      origem: origem || "anamnese_deluxe",
       objetivo: objetivoSelecionado,
       respostas: JSON.stringify(respostas),
       anamnese: payloadAnamnese,
@@ -388,11 +470,11 @@ const loginResp = await FEMFLOW.post({
 
 if (loginResp?.status === "ok") {
   if (loginResp.deviceId && loginResp.deviceId !== deviceId) {
-    localStorage.setItem("femflow_device_id", loginResp.deviceId);
+    FEMFLOW.setDeviceId?.(loginResp.deviceId);
   }
   FEMFLOW.setSessionToken?.(loginResp.sessionToken);
   if (loginResp.sessionExpira) {
-    localStorage.setItem("femflow_session_expira", String(loginResp.sessionExpira));
+    FEMFLOW.setSessionExpira?.(loginResp.sessionExpira);
   }
 
   try {
@@ -407,9 +489,8 @@ if (loginResp?.status === "ok") {
     await syncAuth(email, senha);
   } catch (firebaseErr) {
     console.error("[Anamnese] Falha ao sincronizar conta no Firebase Auth:", firebaseErr);
-    FEMFLOW.toast?.("Conta criada, mas sessão Firebase falhou.", true);
-    finalMsgEl.textContent = "Erro ao concluir.";
-    return;
+    marcarFallbackFirebaseAuth(firebaseErr?.code || firebaseErr?.message || "unknown");
+    FEMFLOW.toast?.("Conta criada. Você poderá entrar normalmente.");
   }
 } else {
   const msg = loginResp?.msg || "Erro ao concluir.";
@@ -463,7 +544,7 @@ if (loginResp?.status === "ok") {
       perguntas = getPerguntasTraduzidas();
 
 if (!perguntas.length) {
-  FEMFLOW.toast?.("Carregando perguntas…");
+  FEMFLOW.toast?.(FEMFLOW.t("geral.loadingQuestions"));
   setTimeout(() => window.iniciarQuizFemFlow?.(), 250);
   return;
 }

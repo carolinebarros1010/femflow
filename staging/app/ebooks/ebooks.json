@@ -1,11 +1,12 @@
-[  
+[
   {
     "capa": "capafemflow15.png",
     "nome": "FemFlow 15 Dias",
-    "preco": "9,90",
-    "link": "https://pay.hotmart.com/O102103923F",
-    "tipo": "premium",
-    "slug": "femflow15"
+    "preco": "",
+    "link": "../home.html",
+    "tipo": "internal",
+    "slug": "femflow15",
+    "disponibilidade": "app"
   },
   {
     "capa": "capatpmzem.png",
@@ -18,19 +19,21 @@
   {
     "capa": "capaaguaequilibrio.png",
     "nome": "Guia Essencial Hidratação",
-    "preco": "9,90",
-    "link": "https://pay.hotmart.com/E102161861P",
-    "tipo": "premium",
-    "slug": "aguaequilibrio"
+    "preco": "",
+    "link": "../home.html",
+    "tipo": "internal",
+    "slug": "aguaequilibrio",
+    "disponibilidade": "app"
   },
-    {
+  {
     "capa": "capahipopressivos.png",
     "nome": "Exercícios Hipopressivos",
-    "preco": "9,90",
-    "link": "https://pay.hotmart.com/N102180089S",
-    "tipo": "premium",
-    "slug": "hipopressivos"
-  },  
+    "preco": "",
+    "link": "../home.html",
+    "tipo": "internal",
+    "slug": "hipopressivos",
+    "disponibilidade": "app"
+  },
   {
     "capa": "capaefeitoEPOC.png",
     "nome": "Efeito EPOC",

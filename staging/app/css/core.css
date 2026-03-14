@@ -16,13 +16,17 @@
 
   --shadow-soft: 0 4px 12px rgba(0,0,0,0.08);
   --shadow-medium: 0 6px 18px rgba(0,0,0,0.10);
+
+  --safe-top: env(safe-area-inset-top, 0px);
+  --header-h: 64px;
+  --header-total-h: calc(var(--header-h) + var(--safe-top));
 }
 
 /* ---------- RESET ---------- */
 html, body {
   margin: 0;
   padding: 0;
-  font-family: "Lato", sans-serif;
+  font-family: "Lato", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
   color: var(--grafite);
   background: var(--creme);
   -webkit-font-smoothing: antialiased;
@@ -31,7 +35,11 @@ html, body {
 body {
   min-height: 100vh;
   overflow-x: hidden;
-  padding-top: 60px; /* espaço para header fixo */
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+body.ff-has-header {
+  padding-top: var(--header-total-h);
 }
 
 /* ---------- UTILITÁRIOS ---------- */
@@ -157,8 +165,20 @@ input, select {
   color: #777;
 }
 .ff-close {
+  position: absolute;
+  top: 14px;
+  right: 14px;
+  width: 36px !important;
+  height: 36px;
+  margin-top: 0 !important;
+  padding: 0 !important;
+  border-radius: 50% !important;
+  border: 1px solid #e2d5cc;
   background: #eee;
   color: #555;
+  font-size: 1.4rem;
+  line-height: 1;
+  text-align: center !important;
 }
 
 .ff-close:active {
@@ -171,36 +191,39 @@ input, select {
 .ff-lang-modal {
   position: fixed;
   inset: 0;
-  background: rgba(0, 0, 0, 0.45);
-  display: flex;
+  display: none;
   align-items: center;
   justify-content: center;
-  padding: 20px;
-  z-index: 160000;
+  background: rgba(0,0,0,.45);
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+  z-index: 2147483001;
 }
 
-.ff-lang-modal.hidden {
-  display: none;
+.ff-lang-modal.ff-open {
+  display: flex;
 }
 
 .ff-lang-box {
-  width: min(420px, 92vw);
   background: #fff;
+  padding: 24px;
   border-radius: 18px;
-  padding: 22px;
-  box-shadow: 0 16px 40px rgba(0, 0, 0, 0.2);
+  width: min(320px,90%);
   text-align: center;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
 }
 
-.ff-lang-box h2 {
-  margin: 0 0 16px;
+.ff-lang-box h2,
+.ff-lang-box h3 {
+  margin: 0 0 8px;
   color: var(--teal);
   font-family: "Playfair Display", serif;
 }
 
 .ff-lang-btn {
   width: 100%;
-  margin-top: 10px;
   padding: 12px 14px;
   border-radius: 14px;
   border: 1px solid #e2d5cc;
@@ -215,7 +238,7 @@ input, select {
 }
 
 .ff-lang-close {
-  margin-top: 16px;
+  margin-top: 8px;
   width: 100%;
   padding: 12px 14px;
   border-radius: 14px;
@@ -225,6 +248,7 @@ input, select {
   font-weight: 600;
   cursor: pointer;
 }
+
 /* ============================================================
    TOAST FEMFLOW — VISIBILIDADE 2025
 ============================================================ */
@@ -353,3 +377,195 @@ input, select {
 /* utilitário global */
 .oculto { display: none !important; }
 
+/* =========================================
+   FEMFLOW GLOBAL SPLASH (MINIMAL)
+   - fades + scroll lock + reduced motion
+========================================= */
+
+.ff-loading {
+  position: fixed;
+  inset: 0;
+  z-index: 999999;
+
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  background: #F5EDE7;
+
+  opacity: 0;
+  transition: opacity 240ms ease;
+  will-change: opacity;
+}
+
+.ff-loading.ff-show {
+  opacity: 1;
+}
+
+.ff-loading.ff-hidden {
+  display: none;
+}
+
+.ff-loading-content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 6px;
+}
+
+.ff-loading-logo {
+  width: 64px;
+  height: 64px;
+  object-fit: contain;
+}
+
+.ff-loading-tagline {
+  font-family: "Lato", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  font-size: 14px;
+  color: #335953;
+  letter-spacing: 0.3px;
+}
+
+.ff-pulse {
+  animation: femflowPulse 1.4s ease-in-out infinite;
+}
+
+@keyframes femflowPulse {
+  0%   { transform: scale(1); opacity: 0.92; }
+  50%  { transform: scale(1.05); opacity: 1; }
+  100% { transform: scale(1); opacity: 0.92; }
+}
+
+/* Scroll lock sem jump */
+.ff-scroll-lock {
+  overflow: hidden !important;
+}
+
+body.ff-scroll-lock {
+  position: fixed;
+  left: 0; right: 0;
+  width: 100%;
+}
+
+/* Respeitar redução de movimento */
+@media (prefers-reduced-motion: reduce) {
+  .ff-loading {
+    transition: none;
+  }
+  .ff-pulse {
+    animation: none;
+  }
+}
+
+
+/* ================= UX PHASE 2 ================= */
+:root {
+  --ff-z-toast: 180000;
+  --ff-z-modal: 220000;
+  --ff-z-splash: 999999;
+}
+
+/* Page enter/leave — ultra leve */
+html.ff-page-enter body {
+  opacity: 0;
+  transform: translateY(2px);
+}
+html.ff-page-enter.ff-enter-ready body {
+  opacity: 1;
+  transform: none;
+  transition: opacity 160ms ease, transform 160ms ease;
+}
+
+html.ff-page-leave body {
+  opacity: 0;
+  transform: translateY(-2px);
+  transition: opacity 140ms ease, transform 140ms ease;
+}
+
+.ff-skeleton {
+  position: relative;
+  overflow: hidden;
+  border-radius: 14px;
+  background: linear-gradient(90deg, #f5e3db 25%, #fff6f1 37%, #f5e3db 63%);
+  background-size: 400% 100%;
+  animation: ffSkeleton 1.2s ease-in-out infinite;
+}
+.ff-skeleton-card { height: 130px; min-width: 180px; margin: 8px; }
+.ff-skeleton-block { height: 120px; margin: 12px 0; }
+.ff-skeleton-treino { height: 200px; margin: 12px 0; }
+@keyframes ffSkeleton { 0% { background-position: 100% 0; } 100% { background-position: 0 0; } }
+
+button:active, .card:active, .tool:active, .pressed {
+  transform: scale(0.98);
+  opacity: .92;
+  box-shadow: 0 2px 10px rgba(0,0,0,.12);
+}
+
+body.ff-modal-open,
+body.ff-zona-modal-open { overflow: hidden; }
+
+.ff-modal-overlay,
+.ff-lang-modal,
+.ff-sac-modal,
+.modal-nivel,
+.modal-extra,
+.modal-endurance,
+.modal-caminhos,
+.ff-zona-modal {
+  z-index: var(--ff-z-modal) !important;
+  animation: ffModalIn .18s ease;
+}
+
+@keyframes ffModalIn { from { opacity: 0; transform: translateY(8px);} to { opacity: 1; transform: translateY(0);} }
+
+.toast-box {
+  z-index: var(--ff-z-toast);
+  transform: translate(-50%, 10px);
+  transition: opacity .26s ease, transform .26s ease;
+}
+.toast-box.visible {
+  transform: translate(-50%, 0);
+}
+.toast-box.success { background: #335953; }
+.toast-box.error { background: #cc6a5a !important; }
+
+.ff-offline-banner {
+  position: fixed;
+  top: calc(10px + var(--safe-top));
+  left: 50%;
+  transform: translate(-50%, -16px);
+  opacity: 0;
+  pointer-events: none;
+  background: #2a2d2c;
+  color: #fff;
+  border-radius: 999px;
+  padding: 8px 14px;
+  font-size: .85rem;
+  z-index: 230000;
+  transition: opacity .24s ease, transform .24s ease;
+}
+.ff-offline-banner.is-visible {
+  opacity: .95;
+  transform: translate(-50%, 0);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html.ff-page-enter body,
+  html.ff-page-enter.ff-enter-ready body,
+  html.ff-page-leave body,
+  .ff-page-enter,
+  .ff-skeleton,
+  .ff-modal-overlay,
+  .ff-lang-modal,
+  .ff-sac-modal,
+  .modal-nivel,
+  .modal-extra,
+  .modal-endurance,
+  .modal-caminhos,
+  .ff-zona-modal,
+  .toast-box,
+  .ff-offline-banner {
+    animation: none !important;
+    transition: none !important;
+  }
+}

@@ -1,12 +1,14 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+  <base href="./" />
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="format-detection" content="telephone=no" />
-  <script src="./config/config.js"></script>
+  <script src="./config/config.js" defer></script>
 
   <title>FemFlow — Treino Diário</title>
 
@@ -57,7 +59,7 @@
     <div class="carousel-track" id="carouselTrack">
      <div class="carousel-item ff-box">
   <!-- título do box -->
-  <h2 class="ff-ex-titulo">Carregando treino…</h2>
+  <h2 class="ff-ex-titulo">Treino FemFlow</h2>
 
   <!-- 🔥 área reservada para série especial -->
   <div class="ff-serie-info" hidden></div>
@@ -71,7 +73,7 @@
 
   <!-- Rodapé -->
   <div class="fix-footer">
-    <button id="salvarTreinoBtn" class="btn-primary-clean">💾 Salvar treino</button>
+    <button id="salvarTreinoBtn" class="btn-primary-clean">Salvar treino</button>
     <button id="cancelarTreinoBtn" class="btn-tertiary-clean">Cancelar</button>
   </div>
 
@@ -81,9 +83,10 @@
       <h3 class="modal-title" id="pseTitulo">Como foi o treino?</h3>
 
       <label class="modal-label" id="pseLabel">PSE (0 a 10)</label>
+      <p class="modal-helper" id="pseHint">PSE é sua percepção de esforço no treino (0 = muito leve, 10 = máximo).</p>
       <div class="pse-slider-wrapper">
         <div class="pse-emoji" id="pseEmojiWrap" aria-live="polite">
-          <span id="pseEmoji">😴</span>
+          <span id="pseEmoji">Muito leve</span>
           <span class="pse-emoji-value" id="pseEmojiValue">0</span>
         </div>
         <input type="range" min="0" max="10" value="0" id="pseInput" class="modal-slider"/>
@@ -129,26 +132,21 @@
   <script src="https://www.gstatic.com/firebasejs/9.22.2/firebase-messaging-compat.js"></script>
 
 
-<script src="services/firebase-init.js?v=20250127"></script>
-<script>
-  if (firebase.auth) {
-    firebase.auth().signInAnonymously().catch((err) => {
-      console.warn("[FemFlow] Auth anônimo falhou:", err);
-    });
-  }
-</script>
+<script src="services/firebase-init.js?v=20250127" defer></script>
 
 <!-- SCRIPTS FEMFLOW -->
-<script src="js/lang.js"></script>
-<script src="core/femflow-core.js"></script>
-<script src="./js/treino-engine.js"></script>
-<script src="./js/treino.js"></script>
+<script src="core/femflow-core.js" defer></script>
+<script src="js/billing/access.js" defer></script>
+<script src="js/lang.js" defer></script>
+<script src="./js/treino-engine.js" defer></script>
+<script src="./js/treino-caminhos.js" defer></script>
+<script src="./js/treino.js" defer></script>
 
 <script>
 /* ============================================================
    1) DOM READY + FEMFLOW INIT + MIDDLEWARE DE ACESSO
 ============================================================ */
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
 
   /* ------------------------------------------------------------
      🔐 MIDDLEWARE — Impede acesso direto por URL
@@ -160,6 +158,11 @@ document.addEventListener("DOMContentLoaded", () => {
   const hasPersonal  = localStorage.getItem("femflow_has_personal") === "true";
   const modePersonal = localStorage.getItem("femflow_mode_personal") === "true";
   const personal     = hasPersonal && modePersonal;
+  const urlParams = new URLSearchParams(window.location.search);
+  const enduranceFlag =
+    urlParams.get("endurance") === "1" ||
+    localStorage.getItem("femflow_treino_endurance") === "true" ||
+    localStorage.getItem("femflow_endurance_pending") === "true";
   const acessoValido = Boolean(id && produto);
 
   if (!acessoValido) {
@@ -175,7 +178,7 @@ document.addEventListener("DOMContentLoaded", () => {
       return;
     }
 
-    if (!enfase) {
+    if (!enfase && !enduranceFlag) {
       FEMFLOW.toast("Acesse o treino pelo painel do FemFlow.");
       FEMFLOW.router("home.html");
       return;
@@ -186,6 +189,11 @@ document.addEventListener("DOMContentLoaded", () => {
      Inicialização do núcleo
   ------------------------------------------------------------ */
   if (window.FEMFLOW && typeof FEMFLOW.init === "function") {
+    try {
+      await (window.FEMFLOW?.firebaseAuthReady || Promise.resolve());
+    } catch (err) {
+      console.warn("[treino.html] Falha ao aguardar auth Firebase:", err);
+    }
     FEMFLOW.init();
   }
 
@@ -226,6 +234,7 @@ document.addEventListener("DOMContentLoaded", () => {
 
     document.getElementById("pseTitulo").textContent         = L.treino.pseTitulo;
     document.getElementById("pseLabel").textContent          = L.treino.pseLabel;
+    document.getElementById("pseHint").textContent           = L.treino.pseHint;
     document.getElementById("btnConfirmarPSE").textContent   = L.treino.pseSalvar;
     document.getElementById("btnCancelarPSE").textContent    = L.treino.pseCancelar;
     const modalProximoTitulo = document.getElementById("modalProximoTitulo");
@@ -257,7 +266,7 @@ document.addEventListener("DOMContentLoaded", () => {
 <!-- MODAL DE NÍVEL (TREINO) -->
 <div id="modal-nivel" class="modal-nivel oculto">
   <div class="modal-nivel-box">
-    <h2>📊 Selecione seu nível</h2>
+    <h2>Selecione seu nível</h2>
 
     <button class="nivel-btn" data-nivel="iniciante">Iniciante</button>
     <button class="nivel-btn" data-nivel="intermediaria">Intermediária</button>
@@ -272,6 +281,6 @@ document.addEventListener("DOMContentLoaded", () => {
 </div>
 
 
-  <script src="/staging/app/js/env-staging.js"></script>
+  <script src="js/env.js" defer></script>
 </body>
 </html>

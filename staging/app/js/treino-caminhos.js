@@ -1,0 +1,471 @@
+/* ============================================================
+   FEMFLOW • treino-caminhos.js
+   README RÁPIDO
+   ------------------------------------------------------------
+   Este arquivo é o tradutor oficial entre:
+   - faseMetodo: fase mostrada na UI e usada no método hormonal
+   - faseFirestore: fase usada SOMENTE para montar o path do Firebase
+
+   Regra crítica (sem migrar Firestore agora):
+   1) Escolhemos um Caminho (1..5) da fase do método.
+   2) O Caminho resolve um dia real do ciclo.
+   3) A fase de leitura no Firestore é derivada do dia real.
+
+   Exemplo crítico de transição (dia 18):
+   - faseMetodo: ovulatory
+   - caminho: 5
+   - diaUsado: 18
+   - faseFirestore: luteal
+
+   Assim, a UI continua exibindo "Fase Ovulatória", mas a leitura correta
+   no banco ocorre em /fases/luteal/dias/dia_18.
+============================================================ */
+
+window.FEMFLOW = window.FEMFLOW || {};
+
+(() => {
+  const STORAGE_KEY = "femflow_last_caminho";
+  const STORAGE_DISTRIBUICAO_PREFIX = "femflow_distribuicao_cache";
+  const DISTRIBUICAO_FALLBACK = "ABCDE";
+  const DISTRIBUICOES_VALIDAS = new Set(["AB", "ABC", "ABCD", "ABCDE"]);
+  const BASE_FASE = {
+    menstrual: 1,
+    follicular: 6,
+    ovulatory: 14,
+    luteal: 19
+  };
+
+  function normalizarDistribuicao(raw) {
+    const valor = typeof raw === "string" ? raw.trim().toUpperCase() : "";
+    return DISTRIBUICOES_VALIDAS.has(valor) ? valor : DISTRIBUICAO_FALLBACK;
+  }
+
+
+
+  function getDistribuicaoCacheKey(nivelNorm, enfaseNorm) {
+    return `${STORAGE_DISTRIBUICAO_PREFIX}_${nivelNorm}_${enfaseNorm}`;
+  }
+
+  function lerDistribuicaoCache(nivelNorm, enfaseNorm) {
+    try {
+      const key = getDistribuicaoCacheKey(nivelNorm, enfaseNorm);
+      const raw = localStorage.getItem(key);
+      if (typeof raw !== "string") return null;
+      const valor = raw.trim().toUpperCase();
+      return DISTRIBUICOES_VALIDAS.has(valor) ? valor : null;
+    } catch (_) {
+      return null;
+    }
+  }
+
+  function salvarDistribuicaoCache(nivelNorm, enfaseNorm, distribuicao) {
+    try {
+      const valor = normalizarDistribuicao(distribuicao);
+      if (!DISTRIBUICOES_VALIDAS.has(valor)) return false;
+      const key = getDistribuicaoCacheKey(nivelNorm, enfaseNorm);
+      localStorage.setItem(key, valor);
+      return true;
+    } catch (_) {
+      return false;
+    }
+  }
+  function extrairDistribuicaoDeFonte(raw) {
+    if (typeof raw === "string") {
+      const valor = raw.trim().toUpperCase();
+      return DISTRIBUICOES_VALIDAS.has(valor) ? valor : null;
+    }
+
+    if (!raw || typeof raw !== "object") return null;
+
+    const candidatos = [
+      raw.distribuicao,
+      raw.distribuição,
+      raw.tipo_treino,
+      raw.tipoTreino,
+      raw.caminhos,
+      raw.split
+    ];
+
+    for (const candidato of candidatos) {
+      const valor = extrairDistribuicaoDeFonte(candidato);
+      if (valor) return valor;
+    }
+
+    // Fallback resiliente: alguns ambientes aninham a distribuição
+    // em objetos internos (ex.: config.distribuicao, treino.split, etc.).
+    const visitados = new Set();
+    const fila = [raw];
+
+    while (fila.length) {
+      const atual = fila.shift();
+      if (!atual || typeof atual !== "object") continue;
+      if (visitados.has(atual)) continue;
+      visitados.add(atual);
+
+      for (const valor of Object.values(atual)) {
+        if (typeof valor === "string") {
+          const maybe = valor.trim().toUpperCase();
+          if (DISTRIBUICOES_VALIDAS.has(maybe)) return maybe;
+          continue;
+        }
+        if (valor && typeof valor === "object") {
+          fila.push(valor);
+        }
+      }
+    }
+
+    return null;
+  }
+
+  function gerarDiasPorFase(faseMetodo, distribuicao) {
+    const faseNorm = normalizarFaseMetodo(faseMetodo);
+    const inicio = BASE_FASE[faseNorm];
+    if (!Number.isFinite(inicio)) return [];
+    const dist = normalizarDistribuicao(distribuicao);
+    return dist.split("").map((_, idx) => inicio + idx);
+  }
+
+  function distribuirPorTotalDias(totalDias) {
+    const total = Number(totalDias);
+    if (!Number.isFinite(total) || total < 2) return null;
+    if (total >= 5) return "ABCDE";
+    if (total === 4) return "ABCD";
+    if (total === 3) return "ABC";
+    return "AB";
+  }
+
+  function resolverInicioFase(rawFase) {
+    const faseMetodo = normalizarFaseMetodo(rawFase);
+    const inicio = BASE_FASE[faseMetodo];
+    return Number.isFinite(inicio) ? inicio : null;
+  }
+
+  function inferirDistribuicaoPorDiasDisponiveis(faseNorm, diasDisponiveis) {
+    const inicio = resolverInicioFase(faseNorm);
+    if (!Number.isFinite(inicio) || !(diasDisponiveis instanceof Set) || !diasDisponiveis.size) return null;
+
+    let consecutivos = 0;
+    for (let offset = 0; offset < 5; offset += 1) {
+      if (diasDisponiveis.has(inicio + offset)) {
+        consecutivos += 1;
+        continue;
+      }
+      break;
+    }
+
+    const porSequencia = distribuirPorTotalDias(consecutivos);
+    if (porSequencia) return porSequencia;
+
+    const dentroDaJanela = [...diasDisponiveis].filter((dia) => dia >= inicio && dia <= inicio + 4).length;
+    return distribuirPorTotalDias(dentroDaJanela);
+  }
+
+  function inferirDistribuicaoPorDiasDaFase(faseNorm, docsDias = []) {
+    if (!Array.isArray(docsDias) || docsDias.length === 0) return null;
+
+    const diasDisponiveis = new Set();
+    docsDias.forEach((doc) => {
+      const id = String(doc?.id || "").trim().toLowerCase();
+      const match = /^dia_(\d+)$/.exec(id);
+      if (!match) return;
+      const dia = Number(match[1]);
+      if (Number.isFinite(dia)) diasDisponiveis.add(dia);
+    });
+
+    return inferirDistribuicaoPorDiasDisponiveis(faseNorm, diasDisponiveis);
+  }
+
+  async function getDistribuicaoDoTreino(nivel, enfase, contexto = {}) {
+    const nivelNorm = FEMFLOW.engineTreino?.normalizarNivel?.(nivel) || String(nivel || "").trim().toLowerCase();
+    const enfaseNorm = String(enfase || "").trim().toLowerCase();
+
+    if (!nivelNorm || !enfaseNorm || FEMFLOW.engineTreino?.isExtraEnfase?.(enfaseNorm)) {
+      return DISTRIBUICAO_FALLBACK;
+    }
+
+    const distribuicaoCache = lerDistribuicaoCache(nivelNorm, enfaseNorm);
+
+    const faseNorm = FEMFLOW.engineTreino?.normalizarFase?.(contexto?.fase || "") || "";
+    const diaNum = Number(contexto?.diaCiclo);
+    const diaKey = Number.isFinite(diaNum) && diaNum > 0 ? `dia_${diaNum}` : "";
+    const logCtx = { nivel: nivelNorm, enfase: enfaseNorm, fase: faseNorm || null, diaKey: diaKey || null };
+
+    try {
+      const docRef = firebase.firestore()
+        .collection("exercicios")
+        .doc(`${nivelNorm}_${enfaseNorm}`);
+
+      const treinoSnap = await docRef.get();
+      const treinoData = treinoSnap.data() || {};
+      const distribuicaoTreino = extrairDistribuicaoDeFonte(treinoData);
+
+      // Contrato principal: distribuição pode chegar em `distribuicao` ou aliases legados.
+      if (distribuicaoTreino) {
+        console.info("[treino-caminhos] distribuicao lida no documento principal", {
+          ...logCtx,
+          fonte: "doc_principal",
+          distribuicao: distribuicaoTreino
+        });
+        salvarDistribuicaoCache(nivelNorm, enfaseNorm, distribuicaoTreino);
+        return distribuicaoTreino;
+      }
+
+      // Compatibilidade retroativa: alguns ambientes publicaram `distribuicao` no nível de bloco.
+      if (faseNorm && diaKey) {
+        const blocosSnap = await docRef
+          .collection("fases")
+          .doc(faseNorm)
+          .collection("dias")
+          .doc(diaKey)
+          .collection("blocos")
+          .limit(1)
+          .get();
+
+        if (!blocosSnap.empty) {
+          const distribuicaoBloco = extrairDistribuicaoDeFonte(blocosSnap.docs[0]?.data());
+          if (distribuicaoBloco) {
+            console.info("[treino-caminhos] distribuicao lida no bloco legado", {
+              ...logCtx,
+              fonte: "bloco_legado",
+              distribuicao: distribuicaoBloco
+            });
+            salvarDistribuicaoCache(nivelNorm, enfaseNorm, distribuicaoBloco);
+            return distribuicaoBloco;
+          }
+        }
+      }
+
+      // Fallback baseado no próprio Firebase sem listagem de coleção (evita
+      // bloqueio por regras de segurança de `list`): checamos se cada dia da
+      // janela A..E possui ao menos 1 bloco real de treino.
+      if (faseNorm) {
+        const inicioFase = resolverInicioFase(faseNorm);
+        if (Number.isFinite(inicioFase)) {
+          const diasRef = docRef
+            .collection("fases")
+            .doc(faseNorm)
+            .collection("dias");
+
+          const checks = [];
+          for (let offset = 0; offset < 5; offset += 1) {
+            const dia = inicioFase + offset;
+            checks.push(
+              diasRef
+                .doc(`dia_${dia}`)
+                .collection("blocos")
+                .limit(1)
+                .get()
+                .then((snap) => ({ dia, existe: !snap.empty }))
+                .catch((err) => {
+                  console.warn("[treino-caminhos] erro ao verificar blocos do dia no fallback", {
+                    ...logCtx,
+                    dia,
+                    erro: err?.message || String(err)
+                  });
+                  return { dia, existe: false };
+                })
+            );
+          }
+
+          const checksDias = await Promise.all(checks);
+          const diasDisponiveis = new Set(checksDias.filter((item) => item?.existe).map((item) => item.dia));
+          const distribuicaoDias = inferirDistribuicaoPorDiasDisponiveis(faseNorm, diasDisponiveis);
+          if (distribuicaoDias) {
+            console.info("[treino-caminhos] distribuicao inferida por docs dia_X", {
+              ...logCtx,
+              fonte: "fallback_dias",
+              inicioFase,
+              diasDisponiveis: Array.from(diasDisponiveis).sort((a, b) => a - b),
+              distribuicao: distribuicaoDias
+            });
+            salvarDistribuicaoCache(nivelNorm, enfaseNorm, distribuicaoDias);
+            return distribuicaoDias;
+          }
+        }
+      }
+
+      const distribuicaoFinal = distribuicaoCache || DISTRIBUICAO_FALLBACK;
+      console.warn("[treino-caminhos] fallback aplicado (sem leitura de distribuicao no Firebase)", {
+        ...logCtx,
+        fonte: distribuicaoCache ? "cache_local" : "fallback_constante",
+        distribuicao: distribuicaoFinal
+      });
+      return distribuicaoFinal;
+    } catch (err) {
+      const distribuicaoFinal = distribuicaoCache || DISTRIBUICAO_FALLBACK;
+      console.warn("[treino-caminhos] erro na leitura de distribuicao, usando fallback", {
+        ...logCtx,
+        fonte: distribuicaoCache ? "cache_local" : "fallback_constante",
+        distribuicao: distribuicaoFinal,
+        erro: err?.message || String(err)
+      });
+      return distribuicaoFinal;
+    }
+  }
+
+
+  const mapaSequenciaPorFase = {
+    menstrual: gerarDiasPorFase("menstrual", DISTRIBUICAO_FALLBACK),
+    follicular: gerarDiasPorFase("follicular", DISTRIBUICAO_FALLBACK),
+    ovulatory: gerarDiasPorFase("ovulatory", DISTRIBUICAO_FALLBACK),
+    luteal: gerarDiasPorFase("luteal", DISTRIBUICAO_FALLBACK)
+  };
+
+  function normalizarFaseMetodo(raw) {
+    const fase = String(raw || "").toLowerCase().trim();
+    return {
+      ovulatória: "ovulatory",
+      ovulatoria: "ovulatory",
+      ovulação: "ovulatory",
+      ovulation: "ovulatory",
+      folicular: "follicular",
+      follicular: "follicular",
+      lútea: "luteal",
+      lutea: "luteal",
+      luteal: "luteal",
+      menstrual: "menstrual",
+      menstruação: "menstrual",
+      menstruacao: "menstrual",
+      menstruation: "menstrual"
+    }[fase] || fase;
+  }
+
+  function diaParaPasso(faseMetodo, diaCiclo, distribuicao) {
+    const lista = gerarDiasPorFase(faseMetodo, distribuicao);
+    if (!Array.isArray(lista)) return 0;
+    const idx = lista.indexOf(Number(diaCiclo));
+    if (idx === -1) return 0;
+    return idx + 1;
+  }
+
+  function resolverDiaPorCaminho(faseMetodo, caminho, distribuicao) {
+    const faseNorm = normalizarFaseMetodo(faseMetodo);
+    const dias = gerarDiasPorFase(faseNorm, distribuicao);
+    if (!Array.isArray(dias)) {
+      console.warn("[treino-caminhos] faseMetodo inválida em resolverDiaPorCaminho", {
+        faseMetodo,
+        faseNorm,
+        caminho
+      });
+      return null;
+    }
+    const caminhoNum = Number(caminho);
+    if (!Number.isFinite(caminhoNum) || caminhoNum < 1) {
+      console.warn("[treino-caminhos] caminho inválido em resolverDiaPorCaminho", {
+        faseMetodo,
+        caminho
+      });
+      return null;
+    }
+    return dias[caminhoNum - 1] ?? null;
+  }
+
+  function resolverFaseFirestorePorDia(diaCiclo) {
+    const dia = Number(diaCiclo);
+    if (!Number.isFinite(dia) || dia < 1) return null;
+    if (dia >= 1 && dia <= 5) return "menstrual";
+    if (dia >= 6 && dia <= 13) return "follicular";
+    if (dia >= 14 && dia <= 17) return "ovulatory";
+    if (dia >= 18) return "luteal";
+    return null;
+  }
+
+  function resolverContextoDeBusca(faseMetodo, caminho, distribuicao) {
+    const faseMetodoNorm = normalizarFaseMetodo(faseMetodo);
+    const dias = gerarDiasPorFase(faseMetodoNorm, distribuicao);
+    const total = dias.length;
+    let caminhoValido = Number(caminho);
+    if (!Number.isFinite(caminhoValido) || caminhoValido < 1) caminhoValido = 1;
+    if (caminhoValido > total) caminhoValido = 1;
+    const diaUsado = resolverDiaPorCaminho(faseMetodoNorm, caminhoValido, distribuicao);
+    const faseFirestore = resolverFaseFirestorePorDia(diaUsado);
+
+    if (!diaUsado || !faseFirestore) {
+      console.warn("[treino-caminhos] inconsistência ao resolver contexto de busca", {
+        faseMetodo,
+        faseMetodoNorm,
+        caminho: caminhoValido,
+        diaUsado,
+        faseFirestore
+      });
+    }
+
+    // debug explícito para o caso crítico dia 18
+    if (faseMetodoNorm === "ovulatory" && Number(caminhoValido) === 5) {
+      console.log("[treino-caminhos] transição esperada: ovulatory caminho 5 -> dia 18 -> faseFirestore luteal", {
+        faseMetodo: faseMetodoNorm,
+        caminho: Number(caminhoValido),
+        diaUsado,
+        faseFirestore
+      });
+    }
+
+    return { diaUsado, faseFirestore, totalCaminhos: total, caminhoValido };
+  }
+
+  function proximoCaminho(caminhoAtual, total = 5) {
+    const atual = Number(caminhoAtual);
+    const limite = Number(total) || 5;
+    if (!Number.isFinite(atual) || atual < 1 || atual > limite) return 1;
+    return atual >= limite ? 1 : atual + 1;
+  }
+
+  function lerUltimoCaminho() {
+    try {
+      const raw = localStorage.getItem(STORAGE_KEY);
+      if (!raw) return null;
+      const parsed = JSON.parse(raw);
+      if (!parsed || typeof parsed !== "object") return null;
+      const faseMetodo = normalizarFaseMetodo(parsed.faseMetodo);
+      const caminho = Number(parsed.caminho);
+      if (!faseMetodo || !Number.isFinite(caminho) || caminho < 1 || caminho > 5) {
+        return null;
+      }
+      return {
+        faseMetodo,
+        caminho,
+        updatedAt: Number(parsed.updatedAt) || Date.now()
+      };
+    } catch (err) {
+      console.warn("[treino-caminhos] erro ao ler último caminho", err);
+      return null;
+    }
+  }
+
+  function salvarUltimoCaminho({ faseMetodo, caminho }) {
+    const faseMetodoNorm = normalizarFaseMetodo(faseMetodo);
+    const caminhoNum = Number(caminho);
+    if (!faseMetodoNorm || !Number.isFinite(caminhoNum) || caminhoNum < 1 || caminhoNum > 5) {
+      console.warn("[treino-caminhos] não foi possível salvar último caminho (dados inválidos)", {
+        faseMetodo,
+        caminho
+      });
+      return false;
+    }
+
+    const payload = {
+      faseMetodo: faseMetodoNorm,
+      caminho: caminhoNum,
+      updatedAt: Date.now()
+    };
+
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(payload));
+    return true;
+  }
+
+  FEMFLOW.treinoCaminhos = {
+    mapaSequenciaPorFase,
+    DISTRIBUICAO_FALLBACK,
+    normalizarDistribuicao,
+    gerarDiasPorFase,
+    getDistribuicaoDoTreino,
+    normalizarFaseMetodo,
+    diaParaPasso,
+    resolverDiaPorCaminho,
+    resolverFaseFirestorePorDia,
+    resolverContextoDeBusca,
+    proximoCaminho,
+    lerUltimoCaminho,
+    salvarUltimoCaminho
+  };
+})();

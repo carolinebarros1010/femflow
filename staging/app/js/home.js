@@ -4,10 +4,7 @@
    ✅ separa ACESSO (has_personal) de MODO (mode_personal)
 =========================================================== */
 
-/* LINKS */
-const LINK_ACESSO_APP = "https://pay.hotmart.com/T103984580L?off=ifcs6h6n";
-const LINK_PERSONAL   = "https://pay.hotmart.com/T103984580L?off=sybtfokt";
-const EBOOKS_DATA_URL = "ebooks/ebooks.json";
+window.FEMFLOW = window.FEMFLOW || {};
 
 /* FOLLOWME */
 const FOLLOWME_LINKS = {
@@ -20,61 +17,213 @@ const TREINOS_SEMANA_PADRAO = 3;
 let treinosSemanaResolve = null;
 let treinosSemanaSelecionado = null;
 
-function isStagingRuntime() {
-  const env = String(window.FEMFLOW_ENV || "").toLowerCase();
-  return env === "staging" || location.pathname.includes("/staging/");
+const CUSTOM_TREINO_KEY = "femflow_custom_treino";
+const CUSTOM_BLOCOS_KEY = "femflow_custom_blocos";
+const HOME_VIDEO_SOURCES = {
+  pt: "assets/heropt.mp4",
+  en: "assets/heroen.mp4",
+  fr: "assets/herofr.mp4"
+};
+
+
+function getEntitlementsSnapshot() {
+  return (typeof FEMFLOW.getEntitlements === "function")
+    ? FEMFLOW.getEntitlements()
+    : {
+        product: String(localStorage.getItem("femflow_produto") || "").toLowerCase(),
+        active: localStorage.getItem("femflow_ativa") === "true",
+        hasPersonal: localStorage.getItem("femflow_has_personal") === "true",
+        vip: String(localStorage.getItem("femflow_produto") || "").toLowerCase() === "vip",
+        freeAccess: localStorage.getItem("femflow_free_access") || null,
+        expiresAt: null
+      };
 }
 
-function ffHeroInit() {
-  const lang = FEMFLOW.lang || "pt";
+function getEntitlementsFreeAccess() {
+  const entitlements = getEntitlementsSnapshot();
+  const freeAccessRaw = entitlements.freeAccess;
+  if (!freeAccessRaw) return null;
+  if (typeof freeAccessRaw === "object") return freeAccessRaw;
+  try {
+    return JSON.parse(freeAccessRaw);
+  } catch (err) {
+    return null;
+  }
+}
 
-  // nome
-  const nome = (localStorage.getItem("femflow_nome") || "Aluna").trim();
-  const primeiroNome = nome.split(/\s+/)[0] || "Aluna";
+const EBOOKS_HOME = [
+  {
+    nome: {
+      pt: "Leveza no Ciclo: Hipopressivos para dias sem cólica",
+      en: "Cycle Relief: Hypopressive moves for cramp-free days",
+      fr: "Cycle léger : hypopressifs pour des jours sans douleurs"
+    },
+    capa: "capahipopressivos.png",
+    arquivo: "Guia-Completo-de-Exerccios-Hipopressivos-para-Alvio-das-Clicas-Menstruais.pdf"
+  },
+  {
+    nome: {
+      pt: "Glow Feminino: hidratação para equilíbrio hormonal",
+      en: "Feminine Glow: hydration for hormonal balance",
+      fr: "Éclat féminin : hydratation pour l’équilibre hormonal"
+    },
+    capa: "capaaguaequilibrio.png",
+    arquivo: "Guia-Completo-da-Hidratao-Feminina-Saude-Hormnios-e-Bem-Estar.pdf"
+  },
+  {
+    nome: {
+      pt: "FemFlow 15 Dias: seu recomeço ativo e confiante",
+      en: "FemFlow 15 Days: your active, confident reset",
+      fr: "FemFlow 15 jours : votre renouveau actif et confiant"
+    },
+    capa: "capafemflow15.png",
+    arquivo: "FemFlow-jornada-de-empoderamento-de-15-dias-para-mulheres-rumo-a-uma-vida-ativa-.pdf"
+  },
+  {
+    nome: {
+      pt: "TPM Zen: respiração guiada para acalmar e aliviar",
+      en: "Zen PMS: guided breathing to soothe and ease",
+      fr: "SPM Zen : respiration guidée pour apaiser"
+    },
+    capa: "capatpmzem.png",
+    arquivo: "protocolo_tpm_zen.pdf"
+  },
+  {
+    nome: {
+      pt: "Metabolismo Ativo: método FemFlow com efeito EPOC",
+      en: "Active Metabolism: FemFlow's EPOC method",
+      fr: "Métabolisme actif : méthode FemFlow avec effet EPOC"
+    },
+    capa: "capaefeitoEPOC.png",
+    arquivo: "efeito_epoc.pdf"
+  },
+  {
+    nome: {
+      pt: "Nutrição do Ciclo: energia e bem-estar em cada fase",
+      en: "Cycle Nutrition: energy and wellness in every phase",
+      fr: "Nutrition du cycle : énergie et bien-être à chaque phase"
+    },
+    capa: "placeholder.png",
+    arquivo: "nutricao_ciclo_hormonal.pdf"
+  }
+];
 
-  const elHello = document.getElementById("ffHeroHello");
-  const elName = document.getElementById("ffHeroName");
-  if (elHello) elHello.textContent = (lang === "en") ? "Welcome," : (lang === "fr" ? "Bienvenue," : "Bem-vinda,");
-  if (elName) elName.textContent = primeiroNome + "!";
 
-  // vídeo por idioma (GitHub/jsDelivr)
-  const base = "https://cdn.jsdelivr.net/gh/carolinebarros1010/femflow@main/app/assets/";
-  const videos = { pt: "heropt.mp4", en: "heroen.mp4", fr: "herofr.mp4" };
+function renderHomeSkeleton() {
+  const railIds = ["railFollowMe", "railMuscular", "railEsportes", "railCasa", "railPersonal", "railPlanilhas30Dias", "railEbooks"];
+  railIds.forEach((id) => {
+    const rail = document.getElementById(id);
+    if (!rail) return;
+    rail.dataset.ffSkeleton = "true";
+    rail.innerHTML = Array.from({ length: 3 }).map(() => '<div class="ff-skeleton ff-skeleton-card"></div>').join('');
+  });
+}
 
-  const video = document.getElementById("ffHeroVideo");
-  const source = document.getElementById("ffHeroSource");
+function clearHomeSkeleton() {
+  document.querySelectorAll('.rail[data-ff-skeleton="true"]').forEach((el) => {
+    el.removeAttribute('data-ff-skeleton');
+    el.innerHTML = '';
+  });
+}
 
-  if (video && source) {
-    const next = base + (videos[lang] || videos.pt);
-    if (video.dataset.heroSrc !== next) {
-      source.src = next;
-      video.dataset.heroSrc = next;
-      video.load();
+function getHomeVideoSource(lang) {
+  return HOME_VIDEO_SOURCES[lang] || HOME_VIDEO_SOURCES.pt;
+}
+
+function atualizarBotaoVideo(video, toggleBtn, toggleIcon) {
+  if (!video || !toggleBtn || !toggleIcon) return;
+  const reproduzindo = !video.paused && !video.ended;
+  toggleIcon.textContent = reproduzindo ? "❚❚" : "▶";
+  toggleBtn.setAttribute("aria-label", reproduzindo ? "Pausar vídeo" : "Reproduzir vídeo");
+
+  const wrapper = video.closest(".video-wrapper");
+  if (wrapper) wrapper.classList.toggle("is-idle", !reproduzindo);
+}
+
+function aplicarCapaVideoInativo(video, toggleBtn, toggleIcon) {
+  if (!video) return;
+  const srcAtual = video.currentSrc || video.getAttribute("src") || "";
+  if (!srcAtual || video.dataset.previewSrc === srcAtual) return;
+
+  const mostrarFrame = () => {
+    const duracao = Number(video.duration);
+    const destino = Number.isFinite(duracao) && duracao > 0
+      ? Math.max(0, duracao - 1)
+      : 0;
+
+    if (destino <= 0) {
+      atualizarBotaoVideo(video, toggleBtn, toggleIcon);
+      return;
     }
-    video.play().catch(() => {});
-  }
 
-  // CTA
-  const btn = document.getElementById("ffHeroCTA");
-  if (btn && !btn.dataset.bound) {
-    btn.dataset.bound = "1";
-    btn.onclick = () => FEMFLOW.router("flowcenter");
-  }
+    const finalizarPreview = () => {
+      video.pause();
+      atualizarBotaoVideo(video, toggleBtn, toggleIcon);
+    };
 
-  // pausa ao rolar (1x)
-  const hero = document.querySelector(".ff-hero");
-  if (hero && video && !hero.dataset.observed && "IntersectionObserver" in window) {
-    hero.dataset.observed = "1";
-    const obs = new IntersectionObserver(entries => {
-      entries.forEach(e => {
-        if (e.isIntersecting) video.play().catch(() => {});
-        else video.pause();
-      });
-    }, { threshold: 0.2 });
-    obs.observe(hero);
+    video.addEventListener("seeked", finalizarPreview, { once: true });
+    try {
+      video.currentTime = destino;
+    } catch (err) {
+      finalizarPreview();
+    }
+  };
+
+  video.dataset.previewSrc = srcAtual;
+
+  if (video.readyState >= 2) {
+    mostrarFrame();
+  } else {
+    video.addEventListener("loadeddata", mostrarFrame, { once: true });
   }
 }
 
+function configurarVideoHome() {
+  const video = document.getElementById("homeVideoPlayer");
+  const toggleBtn = document.getElementById("homeVideoToggle");
+  const toggleIcon = document.getElementById("homeVideoToggleIcon");
+  if (!video || !toggleBtn || !toggleIcon || video.dataset.bound === "true") return;
+
+  video.dataset.bound = "true";
+
+  const alternar = () => {
+    if (video.paused) {
+      video.play().catch(() => {});
+    } else {
+      video.pause();
+    }
+  };
+
+  toggleBtn.addEventListener("click", alternar);
+  video.addEventListener("click", alternar);
+  ["play", "pause", "ended", "loadeddata"].forEach((evt) => {
+    video.addEventListener(evt, () => atualizarBotaoVideo(video, toggleBtn, toggleIcon));
+  });
+
+  atualizarBotaoVideo(video, toggleBtn, toggleIcon);
+}
+
+const CUSTOM_TREINO_OPCOES = {
+  aquecimento: [
+    { key: "aquecimento_superiores", value: "extra_aquecimento_superiores" },
+    { key: "aquecimento_inferiores", value: "extra_aquecimento_inferiores" }
+  ],
+  musculos: [
+    { key: "mobilidade", value: "extra_mobilidade" },
+    { key: "biceps", value: "extra_biceps" },
+    { key: "triceps", value: "extra_triceps" },
+    { key: "ombro", value: "extra_ombro" },
+    { key: "quadriceps", value: "extra_quadriceps" },
+    { key: "posterior", value: "extra_posterior" },
+    { key: "peito", value: "extra_peito" },
+    { key: "costas", value: "extra_costas" },
+    { key: "gluteo", value: "extra_gluteo" }
+  ],
+  resfriamento: [
+    { key: "resfriamento_superiores", value: "extra_resfriamento_superiores" },
+    { key: "resfriamento_inferiores", value: "extra_resfriamento_inferiores" }
+  ]
+};
 
 function atualizarModalTreinosSemana() {
   const modal = document.getElementById("treinosSemanaModal");
@@ -139,7 +288,7 @@ async function salvarTreinosSemana(valor) {
   const id = localStorage.getItem("femflow_id");
   if (!id) return;
 
-  await fetch(FEMFLOW.SCRIPT_URL, {
+  await FEMFLOW.fetchWithRetry(FEMFLOW.SCRIPT_URL, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({
@@ -183,7 +332,9 @@ async function carregarPerfilEAtualizarStorage() {
   else qs.set("email", email);
 
   const url = `${FEMFLOW.SCRIPT_URL}?${qs.toString()}`;
-  const perfil = await fetch(url).then(r => r.json()).catch(() => ({ status: "error" }));
+  const perfil = await FEMFLOW.fetchWithRetry(url, {}, { critical: true, fallbackMessage: "Sem conexão para validar sessão." })
+    .then(r => r.json())
+    .catch(() => ({ status: "error" }));
 
   return perfil;
 }
@@ -223,20 +374,92 @@ function parseFreeEnfases(raw) {
 
 function parseFreeUntil(raw) {
   if (!raw) return null;
-  if (raw instanceof Date && !isNaN(raw.getTime())) {
-    return raw.toISOString().split("T")[0];
-  }
+  if (raw instanceof Date && !isNaN(raw.getTime())) return raw;
 
   const text = String(raw).trim();
   if (!text) return null;
 
-  const match = text.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
-  if (match) {
-    const [, dd, mm, yyyy] = match;
-    return `${yyyy}-${mm.padStart(2, "0")}-${dd.padStart(2, "0")}`;
+  const isoMatch = text.match(/^(\d{4})-(\d{2})-(\d{2})$/);
+  if (isoMatch) {
+    const [, yyyy, mm, dd] = isoMatch;
+    const parsed = new Date(Number(yyyy), Number(mm) - 1, Number(dd), 23, 59, 59, 999);
+    return isNaN(parsed.getTime()) ? null : parsed;
   }
 
-  return text;
+  const brMatch = text.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (brMatch) {
+    const [, dd, mm, yyyy] = brMatch;
+    const parsed = new Date(Number(yyyy), Number(mm) - 1, Number(dd), 23, 59, 59, 999);
+    return isNaN(parsed.getTime()) ? null : parsed;
+  }
+
+  const parsed = new Date(text);
+  return isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function normKey(str) {
+  const value = String(str || "").trim().toLowerCase();
+  if (!value) return "";
+
+  return value
+    .replace(/^planilha_/, "")
+    .replace(/_+/g, "_")
+    .replace(/corrida_(\d+)_k(m)?\b/g, "corrida_$1k")
+    .replace(/(\d+)\s*_?\s*km\b/g, "$1k")
+    .replace(/_+/g, "_")
+    .replace(/^_+|_+$/g, "");
+}
+
+function isDebugAccessEnabled() {
+  if (window.__FF_DEBUG_ACCESS__ === true) return true;
+  try {
+    return new URLSearchParams(window.location.search).get("debugAccess") === "1";
+  } catch (err) {
+    return false;
+  }
+}
+
+function shouldDebugEnfase(enfase) {
+  const value = String(enfase || "").toLowerCase().trim();
+  return value.startsWith("planilha_") || value === "monte_seu_treino" || value === "bodyinsight";
+}
+
+function logAcessoDebug(enfase, perfil, contexto) {
+  if (!isDebugAccessEnabled() || !shouldDebugEnfase(enfase)) return;
+
+  const freeAccess = perfil?.free_access || null;
+  const enfaseNorm = normKey(enfase);
+  const freeEnfasesNorm = parseFreeEnfases(freeAccess?.enfases).map(item => normKey(item)).filter(Boolean);
+
+  console.log("[FF_ACCESS_DEBUG]", {
+    enfase,
+    categoria: inferirCategoria(enfase),
+    produto: String(perfil?.produto || "").toLowerCase(),
+    ativa: !!perfil?.ativa,
+    hasPersonal: getEntitlementsSnapshot().hasPersonal,
+    free_access_raw: freeAccess,
+    free_enabled: freeAccess?.enabled === true,
+    free_until_raw: freeAccess?.until ?? null,
+    free_until_parsed: contexto.until ? contexto.until.toISOString() : null,
+    free_valid: contexto.freeValid,
+    free_enfases_norm: freeEnfasesNorm,
+    enfase_norm: enfaseNorm,
+    podeAcessarProduto: contexto.podeAcessarProduto,
+    podeAcessarFree: contexto.podeAcessarFree,
+    lockedFinal: contexto.lockedFinal
+  });
+}
+
+function isFreeValid(perfil, enfase) {
+  const freeAccess = perfil?.free_access;
+  if (freeAccess?.enabled !== true) return false;
+
+  const until = parseFreeUntil(freeAccess?.until);
+  if (!until || until.getTime() < Date.now()) return false;
+
+  const enfases = parseFreeEnfases(freeAccess?.enfases);
+  const freeEnfases = enfases.map(item => normKey(item)).filter(Boolean);
+  return freeEnfases.includes(normKey(enfase));
 }
 
 function normalizarFreeAccess(perfil) {
@@ -278,7 +501,7 @@ function normalizarFreeAccess(perfil) {
   return {
     enabled: parseBooleanish(enabledRaw),
     enfases: parseFreeEnfases(enfasesRaw),
-    until: parseFreeUntil(untilRaw)
+    until: String(untilRaw || "").trim() || null
   };
 }
 
@@ -302,21 +525,22 @@ function persistPerfil(perfil) {
 
   // ✅ acesso personal = direito (backend), separado do modo personal (front)
   const acessos = perfil.acessos || {};
-  const personalRaw =
-    acessos.personal ??
-    perfil.personal ??
-    perfil.Personal ??
-    perfil.has_personal ??
-    perfil.hasPersonal;
-  const hasPersonal = parseBooleanish(personalRaw) || isVip;
+  const hasPersonal = acessos.personal === true || isVip;
   localStorage.setItem("femflow_has_personal", String(hasPersonal));
   localStorage.removeItem("femflow_personal"); // legado: nunca usar mais
 
   const freeAccess = normalizarFreeAccess(perfil);
-  localStorage.setItem(
-    "femflow_free_access",
-    freeAccess ? JSON.stringify(freeAccess) : ""
-  );
+  const freeAccessSerialized = freeAccess ? JSON.stringify(freeAccess) : "";
+  localStorage.setItem("femflow_free_access", freeAccessSerialized);
+  FEMFLOW.setEntitlements?.({
+    product: produto,
+    active: isVip || !!perfil.ativa,
+    hasPersonal,
+    vip: isVip,
+    freeAccess: freeAccessSerialized || null,
+    expiresAt: perfil.expiresAt || perfil.expires_at || null
+  });
+  FEMFLOW.persistEntitlementsToCache?.();
 
   // ciclo + programa (CRÍTICO)
   localStorage.setItem("femflow_perfilHormonal", FEMFLOW.normalizePerfilHormonal(perfil.perfilHormonal));
@@ -324,6 +548,8 @@ function persistPerfil(perfil) {
   localStorage.setItem("femflow_fase", String(perfil.fase || "follicular").toLowerCase());
   localStorage.setItem("femflow_diaCiclo", String(perfil.diaCiclo || 1));
   localStorage.setItem("femflow_diaPrograma", String(perfil.diaPrograma || 1));
+
+  FEMFLOW.push?.flushPendingToken?.();
   localStorage.setItem("femflow_dataInicioPrograma", perfil.dataInicioPrograma ? String(perfil.dataInicioPrograma) : "");
 
   localStorage.setItem(
@@ -489,9 +715,16 @@ function inferirCategoria(enfase) {
   if (!enfase) return "esportes";
   if (enfase.startsWith("followme_")) return "followme";
  if (enfase === "personal") return "personal";
+  if (enfase === "monte_seu_treino") return "custom";
+  if (enfase === "bodyinsight") return "custom";
+  if (enfase.startsWith("planilha_")) return "esportes";
   if (enfase.startsWith("casa") || enfase === "20minemcasa") return "casa";
   if (MUSCULAR_ENFASES.has(enfase)) return "muscular";
   return "esportes";
+}
+
+function categoriaSegueRegrasAcessoApp(categoria) {
+  return ["muscular", "esportes", "casa", "custom"].includes(categoria);
 }
 
 function podeAcessar(enfase, perfil) {
@@ -499,31 +732,27 @@ function podeAcessar(enfase, perfil) {
 
   const categoria = inferirCategoria(enfase);
   const produto = (perfil.produto || "").toLowerCase();
-  const isTrial = produto === "trial_app";
-  const isVip = produto === "vip";
+  const hasPersonal = getEntitlementsSnapshot().hasPersonal;
   const ativa = !!perfil.ativa;
- const personal = localStorage.getItem("femflow_has_personal") === "true";
 
-
-  if (!ativa && !isVip) return false;
-
-  if (isVip) return true;
-
-  // 🔥 PERSONAL (direito) = acesso_app + personal
-  if (personal) {
+  if (hasPersonal) {
     if (categoria === "followme") return false;
-    return true; // muscular, esportes, casa e personal
+    return true;
   }
 
-  // 🔹 ACESSO APP
-  if (produto === "acesso_app" || isTrial) {
-    return ["muscular", "esportes", "casa"].includes(categoria);
+  if (produto === "vip") return true;
+
+  if (produto.startsWith("followme_")) return enfase === produto;
+
+  if (produto === "trial_app") return false;
+
+  if (!ativa) return false;
+
+  if (produto === "acesso_app") {
+    return categoriaSegueRegrasAcessoApp(categoria);
   }
 
-  // 🔹 FOLLOWME
-  if (produto.startsWith("followme_")) {
-    return enfase === produto;
-  }
+  if (produto === "trial_app") return false;
 
   return false;
 }
@@ -562,19 +791,35 @@ function normalizarCardFirebase(enfase, data) {
 
 function avaliarAcessoCard(enfase, perfil) {
   const podeAcessarProduto = podeAcessar(enfase, perfil);
+  const freeAccess = perfil?.free_access;
+  const until = parseFreeUntil(freeAccess?.until);
+  const freeValid = isFreeValid(perfil, enfase);
+  const podeAcessarFree = freeValid;
+  const lockedFinal = !(podeAcessarProduto || podeAcessarFree);
 
-  const freeAccessEnfases = (perfil.free_access?.enfases || []).map(item =>
-    String(item || "").toLowerCase()
-  );
-
-  const podeAcessarFree =
-    perfil.free_access?.enabled === true &&
-    freeAccessEnfases.includes(enfase);
+  logAcessoDebug(enfase, perfil, {
+    until,
+    freeValid,
+    podeAcessarProduto,
+    podeAcessarFree,
+    lockedFinal
+  });
 
   return {
-    locked: !(podeAcessarProduto || podeAcessarFree),
-    isFree: !podeAcessarProduto && podeAcessarFree
+    locked: lockedFinal,
+    isFree: (!podeAcessarProduto && podeAcessarFree)
   };
+}
+
+function aplicarAcessoCards(lista, perfil) {
+  return (Array.isArray(lista) ? lista : []).map((card) => {
+    const acesso = avaliarAcessoCard(card?.enfase, perfil);
+    return {
+      ...card,
+      locked: acesso.locked,
+      isFree: acesso.isFree ? true : undefined
+    };
+  });
 }
 
 function injetarCardsPresets(catalogo, perfil, nivelAluno) {
@@ -602,17 +847,13 @@ function injetarCardsPresets(catalogo, perfil, nivelAluno) {
 async function carregarCatalogoFirebase() {
   const nivelAluno = normalizarNivel(localStorage.getItem("femflow_nivel"));
 
-  let freeAccess = null;
-  const freeAccessRaw = localStorage.getItem("femflow_free_access");
-  if (freeAccessRaw) {
-    try { freeAccess = JSON.parse(freeAccessRaw); }
-    catch (err) { freeAccess = null; }
-  }
+  const entitlements = getEntitlementsSnapshot();
+  const freeAccess = getEntitlementsFreeAccess();
 
   const perfil = {
-    produto: localStorage.getItem("femflow_produto"),
-    ativa: localStorage.getItem("femflow_ativa") === "true",
-    personal: localStorage.getItem("femflow_has_personal") === "true",
+    produto: entitlements.product,
+    ativa: entitlements.active,
+    personal: entitlements.hasPersonal,
     free_access: freeAccess
   };
 
@@ -623,17 +864,6 @@ async function carregarCatalogoFirebase() {
     esportes: [],
     casa: []
   };
-
-  const hasFirebaseFirestore =
-    typeof firebase !== "undefined" &&
-    typeof firebase.firestore === "function" &&
-    Array.isArray(firebase.apps) &&
-    firebase.apps.length > 0;
-
-  if (!hasFirebaseFirestore) {
-    console.warn("[HOME] Firebase indisponível, carregando home sem catálogo remoto.");
-    return catalogo;
-  }
 
   const snap = await firebase.firestore().collection("exercicios").get();
   snap.forEach(doc => {
@@ -690,9 +920,217 @@ async function carregarCatalogoFirebase() {
 const CARDS_PERSONAL_SIMBOLICOS = [
   {
     enfase: "personal",
-    titulo: "Treino Personalizado",
-    desc: "Treino feito exclusivamente para você",
+    titulo: {
+      pt: "Treino Personalizado",
+      en: "Personal Training",
+      fr: "Entraînement personnalisé"
+    },
+    desc: {
+      pt: "Treino feito exclusivamente para você",
+      en: "Training built exclusively for you",
+      fr: "Entraînement conçu exclusivement pour vous"
+    },
     color: "#335953",
+    locked: true,
+    simbolico: true
+  },
+  {
+    enfase: "monte_seu_treino",
+    titulo: {
+      pt: "Monte seu treino",
+      en: "Build your workout",
+      fr: "Créez votre entraînement"
+    },
+    desc: {
+      pt: "Crie um treino sob medida hoje",
+      en: "Create a workout tailored for today",
+      fr: "Créez un entraînement sur mesure aujourd’hui"
+    },
+    color: "#f6d5c8",
+    locked: true,
+    simbolico: true
+  }
+];
+
+const CARDS_BODYINSIGHT_SIMBOLICOS = [
+  {
+    enfase: "bodyinsight",
+    titulo: "Body Insight",
+    desc: "Análise visual da sua evolução corporal",
+    color: "#335953",
+    locked: true,
+    simbolico: true
+  }
+];
+
+const CARDS_PLANILHAS_30_DIAS = [
+  {
+    enfase: "planilha_corrida_5k",
+    modalidade: "corrida_5k",
+    titulo: {
+      pt: "Corrida 5K",
+      en: "5K Running",
+      fr: "Course 5K"
+    },
+    desc: {
+      pt: "Planilha de 30 dias para evoluir no 5K",
+      en: "30-day plan to improve your 5K",
+      fr: "Plan de 30 jours pour progresser sur 5K"
+    },
+    color: "#f2c6b4",
+    locked: true,
+    simbolico: true
+  },
+  {
+    enfase: "planilha_corrida_10k",
+    modalidade: "corrida_10k",
+    titulo: {
+      pt: "Corrida 10K",
+      en: "10K Running",
+      fr: "Course 10K"
+    },
+    desc: {
+      pt: "Planilha de 30 dias para seu próximo 10K",
+      en: "30-day plan for your next 10K",
+      fr: "Plan de 30 jours pour votre prochain 10K"
+    },
+    color: "#eab8a8",
+    locked: true,
+    simbolico: true
+  },
+  {
+    enfase: "planilha_corrida_15k",
+    modalidade: "corrida_15k",
+    titulo: {
+      pt: "Corrida 15K",
+      en: "15K Running",
+      fr: "Course 15K"
+    },
+    desc: {
+      pt: "Planilha de 30 dias para resistência avançada",
+      en: "30-day plan for advanced endurance",
+      fr: "Plan de 30 jours pour endurance avancée"
+    },
+    color: "#ddb09f",
+    locked: true,
+    simbolico: true
+  },
+  {
+    enfase: "planilha_corrida_21k",
+    modalidade: "corrida_21k",
+    titulo: {
+      pt: "Meia Maratona",
+      en: "Half Marathon",
+      fr: "Semi-marathon"
+    },
+    desc: {
+      pt: "Planilha de 30 dias para corrida 21K",
+      en: "30-day plan for a 21K race",
+      fr: "Plan de 30 jours pour une course 21K"
+    },
+    color: "#cf9f8f",
+    locked: true,
+    simbolico: true
+  },
+  {
+    enfase: "planilha_corrida_42k",
+    modalidade: "corrida_42k",
+    titulo: {
+      pt: "Maratona",
+      en: "Marathon",
+      fr: "Marathon"
+    },
+    desc: {
+      pt: "Planilha de 30 dias para corrida 42K",
+      en: "30-day plan for a 42K race",
+      fr: "Plan de 30 jours pour une course 42K"
+    },
+    color: "#c28f7f",
+    locked: true,
+    simbolico: true
+  },
+  {
+    enfase: "planilha_bike_20000m",
+    modalidade: "bike_20000m",
+    titulo: {
+      pt: "Ciclismo 20K",
+      en: "Cycling 20K",
+      fr: "Cyclisme 20K"
+    },
+    desc: {
+      pt: "Planilha de 30 dias para ciclismo 20K",
+      en: "30-day plan for a 20K cycling ride",
+      fr: "Plan de 30 jours pour une sortie vélo 20K"
+    },
+    color: "#b7ccd9",
+    locked: true,
+    simbolico: true
+  },
+  {
+    enfase: "planilha_bike_40000m",
+    modalidade: "bike_40000m",
+    titulo: {
+      pt: "Ciclismo 40K",
+      en: "Cycling 40K",
+      fr: "Cyclisme 40K"
+    },
+    desc: {
+      pt: "Planilha de 30 dias para ciclismo 40K",
+      en: "30-day plan for a 40K cycling ride",
+      fr: "Plan de 30 jours pour une sortie vélo 40K"
+    },
+    color: "#9bb6c8",
+    locked: true,
+    simbolico: true
+  },
+  {
+    enfase: "planilha_natacao_750m",
+    modalidade: "natacao_750m",
+    titulo: {
+      pt: "Natação 750m",
+      en: "Swimming 750m",
+      fr: "Natation 750m"
+    },
+    desc: {
+      pt: "Planilha de 30 dias para natação 750m",
+      en: "30-day plan for a 750m swim",
+      fr: "Plan de 30 jours pour une nage de 750m"
+    },
+    color: "#9fd2df",
+    locked: true,
+    simbolico: true
+  },
+  {
+    enfase: "planilha_natacao_1500m",
+    modalidade: "natacao_1500m",
+    titulo: {
+      pt: "Natação 1500m",
+      en: "Swimming 1500m",
+      fr: "Natation 1500m"
+    },
+    desc: {
+      pt: "Planilha de 30 dias para natação 1500m",
+      en: "30-day plan for a 1500m swim",
+      fr: "Plan de 30 jours pour une nage de 1500m"
+    },
+    color: "#84c4d5",
+    locked: true,
+    simbolico: true
+  },
+  {
+    enfase: "planilha_natacao_2000m",
+    modalidade: "natacao_2000m",
+    titulo: {
+      pt: "Natação 2000m",
+      en: "Swimming 2000m",
+      fr: "Natation 2000m"
+    },
+    desc: {
+      pt: "Planilha de 30 dias para natação 2000m",
+      en: "30-day plan for a 2000m swim",
+      fr: "Plan de 30 jours pour une nage de 2000m"
+    },
+    color: "#6fb7cc",
     locked: true,
     simbolico: true
   }
@@ -750,15 +1188,31 @@ const CARD_THUMBS = {
   planilha_corrida_5k: "corrida_5k.jpg",
   planilha_corrida_10k: "corrida_10k.jpg",
   planilha_corrida_15k: "corrida_15k.jpg",
+  planilha_corrida_21k: "corrida_21k.jpg",
+  planilha_corrida_42k: "corrida_42k.jpg",
+  planilha_bike_20000m: "bike_20000m.jpg",
+  planilha_bike_40000m: "bike_40000m.jpg",
+  planilha_natacao_750m: "natacao_750m.jpg",
+  planilha_natacao_1500m: "natacao_1500m.jpg",
+  planilha_natacao_2000m: "natacao_2000m.jpg",
   corrida_5k: "corrida_5k.jpg",
   corrida_10k: "corrida_10k.jpg",
-  corrida_15k: "corrida_15k.jpg"
+  corrida_15k: "corrida_15k.jpg",
+  corrida_21k: "corrida_21k.jpg",
+  corrida_42k: "corrida_42k.jpg",
+  bike_20000m: "bike_20000m.jpg",
+  bike_40000m: "bike_40000m.jpg",
+  natacao_750m: "natacao_750m.jpg",
+  natacao_1500m: "natacao_1500m.jpg",
+  natacao_2000m: "natacao_2000m.jpg",
+  monte_seu_treino: "monte_seu_treino.jpg",
+  bodyinsight: "body_insight.jpg"
 };
 
 function getThumbUrl(enfase) {
   const file = CARD_THUMBS[enfase];
   if (!file) return "";
-  return new URL(`/app/css/cards/${file}`, window.location.origin).toString();
+  return FEMFLOW_assetUrl(`css/cards/${file}`);
 }
 
 /* ============================================================
@@ -766,71 +1220,87 @@ function getThumbUrl(enfase) {
 =========================================================== */
 const EBOOKS_FALLBACK_COLOR = "#fceae3";
 
-function resolveEbookUrl(path) {
-  const cleanPath = String(path || "").replace(/^\/+/, "");
-  if (!cleanPath) return "";
-  return new URL(`/app/ebooks/${cleanPath}`, window.location.origin).toString();
+function canAccessEbooks() {
+  if (typeof FEMFLOW.canAccessEbooks === "function") {
+    return FEMFLOW.canAccessEbooks();
+  }
+
+  const entitlements = getEntitlementsSnapshot();
+  const produto = String(entitlements.product || "").toLowerCase();
+  const ativa = entitlements.active;
+  const vip = entitlements.vip;
+
+  if (produto === "trial_app") return false;
+  return ativa || vip;
 }
 
-function resolveEbookLink(link) {
-  if (!link) return "";
-  if (String(link).startsWith("http")) return link;
-  return resolveEbookUrl(link);
+function getEbookLockedDescription() {
+  const lang = FEMFLOW.lang || "pt";
+  const labels = {
+    pt: "Incluso na assinatura…",
+    en: "Included with subscription…",
+    fr: "Inclus dans l’abonnement…"
+  };
+  return labels[lang] || labels.pt;
 }
 
-function formatarPrecoEbook(preco, tipo) {
-  if (tipo === "download" || preco === "0,00") return "Gratuito";
-  if (!preco) return "";
-  return `R$ ${preco}`;
+function resolveEbookAsset(path) {
+  const p = String(path || "").trim();
+  if (!p) return "";
+  if (/^https?:\/\//i.test(p)) return p;
+
+  let clean = p.replace(/^\/+/, "");
+  clean = clean.replace(/^app\//, "");
+  return FEMFLOW_assetUrl(clean);
 }
 
-function ebookCardHTML(ebook) {
-  const titulo = ebook.nome || "eBook";
-  const preco = formatarPrecoEbook(ebook.preco, ebook.tipo);
-  const acao = ebook.tipo === "download" ? "Baixar" : "Comprar";
-  const gratuito = ebook.tipo === "download" || ebook.preco === "0,00";
-  const badgeGratuito = gratuito ? '<span class="badge-free">Gratuito</span>' : "";
-  const desc = [preco, acao].filter(Boolean).join(" • ");
-  const capa = ebook.capa ? resolveEbookUrl(ebook.capa) : "";
+function getEbookTitle(ebook) {
+  const lang = FEMFLOW.lang || "pt";
+  if (typeof ebook?.nome === "object") return ebook.nome[lang] || ebook.nome.pt || "eBook";
+  return ebook?.nome || "eBook";
+}
+
+function ebookCardHTML(ebook, locked) {
+  const titulo = getEbookTitle(ebook);
+  const capa = ebook.capa ? resolveEbookAsset(`ebooks/${ebook.capa}`) : "";
   const thumbStyle = `${capa ? `--thumb-url:url('${capa}');` : ""}background-color:${EBOOKS_FALLBACK_COLOR};`;
-  const destino = resolveEbookLink(ebook.link);
+  const filePath = resolveEbookAsset(`app/ebooks/downloads/${ebook.arquivo}`);
 
   return `
-    <article class="card" data-destino="${destino}">
+    <article class="card${locked ? " locked" : ""}" data-ebook-file="${filePath}" data-locked="${locked}">
       <div class="thumb${capa ? " has-image" : ""}" style="${thumbStyle}">
-        ${badgeGratuito}
+        ${locked ? '<span class="lock-overlay" aria-hidden="true"></span>' : ""}
       </div>
       <div class="info">
         <h3 class="ttl">${titulo}</h3>
-        <p class="desc">${desc}</p>
+        <p class="desc">${locked ? getEbookLockedDescription() : ""}</p>
       </div>
     </article>`;
 }
 
-function renderEbookRail(el, lista) {
-  if (!el) return;
-  el.innerHTML = lista.map(ebookCardHTML).join("");
-  el.querySelectorAll(".card").forEach(card => {
-    card.onclick = () => {
-      if (card.dataset.destino) {
-        window.location.href = card.dataset.destino;
-      }
-    };
-  });
-}
+async function handleEbookClick(card) {
+  if (!card) return;
+  const locked = card.dataset.locked === "true";
 
-async function carregarEbooks() {
-  try {
-    const resp = await fetch(EBOOKS_DATA_URL, { cache: "no-store" });
-    if (!resp.ok) return [];
-    const data = await resp.json();
-    return Array.isArray(data) ? data : [];
-  } catch (err) {
-    console.warn("Falha ao carregar ebooks:", err);
-    return [];
+  if (locked) {
+    await openBlockedFlow();
+    return;
+  }
+
+  const file = card.dataset.ebookFile;
+  if (file) {
+    window.open(file, "_blank");
   }
 }
 
+function renderEbookRail(el, lista) {
+  if (!el) return;
+  const locked = !canAccessEbooks();
+  el.innerHTML = (Array.isArray(lista) ? lista : []).map((ebook) => ebookCardHTML(ebook, locked)).join("");
+  el.querySelectorAll(".card").forEach(card => {
+    card.onclick = () => handleEbookClick(card);
+  });
+}
 /* ============================================================
    RENDERIZAÇÃO DOS CARDS
 =========================================================== */
@@ -839,8 +1309,11 @@ function cardHTML(p) {
   const titulo = typeof p.titulo === "object" ? p.titulo[lang] : p.titulo;
   const desc = typeof p.desc === "object" ? p.desc[lang] : p.desc;
   const lockedClass = p.locked ? " locked" : "";
-  const lockOverlay = p.locked ? '<span class="lock-overlay">🔒</span>' : "";
+  const lockOverlay = p.locked ? '<span class="lock-overlay" aria-hidden="true"></span>' : "";
   const freeBadge = p.isFree ? '<span class="badge-free">Gratuito</span>' : "";
+  const emBreveBadge = p.emBreve
+    ? `<span class="badge-soon">${getComingSoonLabel()}</span>`
+    : "";
   const thumbUrl = getThumbUrl(p.enfase);
   const thumbClass = `thumb thumb-${p.enfase}${thumbUrl ? " has-image" : ""}`;
   const thumbStyle = `${thumbUrl ? `--thumb-url:url('${thumbUrl}');` : ""}background-color:${p.color};`;
@@ -849,6 +1322,7 @@ function cardHTML(p) {
     <article class="card${lockedClass}" data-enfase="${p.enfase}" data-locked="${p.locked}">
       <div class="${thumbClass}" style="${thumbStyle}">
         ${lockOverlay}
+        ${emBreveBadge}
         ${freeBadge}
       </div>
       <div class="info">
@@ -873,26 +1347,114 @@ function renderRail(el, lista) {
   );
 }
 
-function getFollowmeEmBreveMessage() {
+function getComingSoonLabel() {
   const lang = FEMFLOW.lang || "pt";
-  const mensagem = FEMFLOW.langs?.[lang]?.home?.followmeEmBreve;
-  if (mensagem) return mensagem;
-  if (lang === "en") return "Coming soon...";
-  if (lang === "fr") return "Bientôt...";
-  return "Em breve...";
+  const labels = {
+    pt: "Em breve",
+    en: "Coming soon",
+    fr: "Bientôt",
+    es: "Próximamente",
+    it: "Prossimamente",
+    de: "Demnächst"
+  };
+  return labels[lang] || labels.pt;
+}
+
+async function openBlockedFlow({ enfase = "", checkoutTipo = "app" } = {}) {
+  const produto = (localStorage.getItem("femflow_produto") || "").toLowerCase();
+  const ativa = localStorage.getItem("femflow_ativa") === "true";
+  const hasPersonal = localStorage.getItem("femflow_has_personal") === "true";
+  const categoria = inferirCategoria(enfase);
+
+  const blockedAction = FEMFLOW.blockedActionPolicy.resolveBlockedCardAction({
+    enfase,
+    categoria,
+    produto,
+    ativa,
+    hasPersonal,
+    isAccessAppIncludedContext:
+      produto === "acesso_app" &&
+      ativa &&
+      categoriaSegueRegrasAcessoApp(categoria)
+  });
+
+  void checkoutTipo;
+
+  FEMFLOW.toast(FEMFLOW.blockedActionPolicy.getBlockedActionToast(blockedAction.toastKey));
+
+  if (blockedAction.skipCheckout) return;
+
+  FEMFLOW.billing?.openPaywall?.(blockedAction.checkoutPlanId, {
+    reason: blockedAction.reasonCode || "locked_card",
+    source: "home_blocked_flow"
+  });
+}
+
+function limparEstadoCustomTreino() {
+  localStorage.removeItem(CUSTOM_TREINO_KEY);
+  localStorage.removeItem(CUSTOM_BLOCOS_KEY);
+}
+
+
+async function rerenderHomeEntitlementsUI() {
+  const catalogo = await carregarCatalogoFirebase();
+
+  const entitlements = getEntitlementsSnapshot();
+  const perfilTemPersonal = entitlements.hasPersonal;
+  const produto = String(entitlements.product || "").toLowerCase();
+  const isVip = entitlements.vip;
+
+  const perfilCardsPersonal = {
+    produto,
+    ativa: entitlements.active,
+    personal: perfilTemPersonal,
+    free_access: getEntitlementsFreeAccess()
+  };
+
+  if (catalogo.personal.length === 0) {
+    const cards = CARDS_PERSONAL_SIMBOLICOS.map(c => {
+      if (c.enfase === "personal") {
+        return { ...c, locked: !perfilTemPersonal };
+      }
+      return aplicarAcessoCards([c], perfilCardsPersonal)[0];
+    });
+    catalogo.personal.push(...cards);
+  }
+
+  catalogo.personal = [...aplicarAcessoCards(CARDS_BODYINSIGHT_SIMBOLICOS, perfilCardsPersonal), ...catalogo.personal];
+
+  if (catalogo.followme.length === 0) {
+    const cards = CARDS_FOLLOWME_SIMBOLICOS.map(c => ({
+      ...c,
+      locked: !isVip && produto !== c.enfase
+    }));
+    catalogo.followme.push(...cards);
+  }
+
+  clearHomeSkeleton();
+  renderRail(document.getElementById("railFollowMe"), catalogo.followme);
+  renderRail(document.getElementById("railMuscular"), catalogo.muscular);
+  renderRail(document.getElementById("railEsportes"), catalogo.esportes);
+  renderRail(document.getElementById("railCasa"), catalogo.casa);
+  renderRail(document.getElementById("railPersonal"), catalogo.personal);
+  renderRail(document.getElementById("railPlanilhas30Dias"), aplicarAcessoCards(CARDS_PLANILHAS_30_DIAS, perfilCardsPersonal));
+  renderEbookRail(document.getElementById("railEbooks"), EBOOKS_HOME);
+  aplicarIdiomaHome();
 }
 
 /* ============================================================
    MODAL — CONFIRMAÇÃO DE NOVO PROGRAMA
 =========================================================== */
 let novoProgramaEnfase = null;
+let novoProgramaAcaoConfirmar = null;
 let novoProgramaModal;
 let novoProgramaConfirmar;
 let novoProgramaCancelar;
 
-function abrirModalNovoPrograma(enfase) {
+function abrirModalNovoPrograma(enfase, acaoConfirmar = null) {
   if (!novoProgramaModal) return;
   novoProgramaEnfase = enfase;
+  novoProgramaAcaoConfirmar = typeof acaoConfirmar === "function" ? acaoConfirmar : null;
   novoProgramaModal.classList.remove("hidden");
   novoProgramaModal.setAttribute("aria-hidden", "false");
   document.body.classList.add("ff-modal-open");
@@ -901,6 +1463,7 @@ function abrirModalNovoPrograma(enfase) {
 function fecharModalNovoPrograma() {
   if (!novoProgramaModal) return;
   novoProgramaEnfase = null;
+  novoProgramaAcaoConfirmar = null;
   novoProgramaModal.classList.add("hidden");
   novoProgramaModal.setAttribute("aria-hidden", "true");
   document.body.classList.remove("ff-modal-open");
@@ -908,7 +1471,12 @@ function fecharModalNovoPrograma() {
 
 function confirmarNovoPrograma() {
   const enfase = novoProgramaEnfase;
+  const acaoConfirmar = novoProgramaAcaoConfirmar;
   fecharModalNovoPrograma();
+  if (acaoConfirmar) {
+    acaoConfirmar();
+    return;
+  }
   if (!enfase) return;
   if (inferirCategoria(enfase) === "followme") {
     void selecionarCoach(enfase);
@@ -917,67 +1485,300 @@ function confirmarNovoPrograma() {
   void selecionarEnfase(enfase);
 }
 
+function iniciarPlanilhaCorrida(enfase) {
+  const modalidade = enfase.replace("planilha_", "");
+
+  // Sempre iniciar um novo fluxo da planilha corrida, sem reaproveitar
+  // seleção anterior de semana/dia/estímulo salva em cache/localStorage.
+  // Mantemos estado de personal separado; aqui limpamos apenas configuração
+  // operacional da planilha pública para iniciar novo ciclo de Endurance.
+  [
+    "femflow_endurance_config",
+    "femflow_endurance_setup_done",
+    "femflow_endurance_pending",
+    "femflow_endurance_dia",
+    "femflow_endurance_semana",
+    "femflow_endurance_estimulo",
+    "femflow_treino_endurance",
+    "femflow_endurance_personal",
+    "femflow_endurance_personal_cache"
+  ].forEach((key) => localStorage.removeItem(key));
+
+  localStorage.setItem("femflow_endurance_public_intent", "true");
+  localStorage.setItem("femflow_endurance_public_enabled", "true");
+  localStorage.setItem("femflow_endurance_modalidade", modalidade);
+  FEMFLOW.toast("Configure sua planilha no Flow Center ✨");
+  FEMFLOW.router("flowcenter.html");
+}
+
+/* ============================================================
+   MODAL — MONTE SEU TREINO
+=========================================================== */
+let customTreinoConfirmModal;
+let customTreinoModal;
+let customTreinoConfirmar;
+let customTreinoConfirmCancelar;
+let customTreinoSalvar;
+let customTreinoCancelar;
+let customAquecimento;
+let customMusculo1;
+let customMusculo2;
+let customMusculo3;
+let customResfriamento;
+
+function getCustomTreinoLabels() {
+  const lang = FEMFLOW.lang || "pt";
+  return FEMFLOW.langs?.[lang]?.home?.customTreino || {};
+}
+
+function preencherSelectCustom(selectEl, opcoes, labels = {}, { includeNone = false } = {}) {
+  if (!selectEl) return;
+  const options = [];
+  if (includeNone) {
+    options.push(`<option value="">${labels.none || "Nenhum"}</option>`);
+  }
+  const list = opcoes.map(op => {
+    const fallbackLabel = String(op.value || op.key || "")
+      .replace(/^extra_/, "")
+      .replace(/_/g, " ")
+      .trim();
+    const label = labels.options?.[op.key] || fallbackLabel || op.key;
+    return `<option value="${op.value}">${label}</option>`;
+  });
+  selectEl.innerHTML = options.concat(list).join("");
+}
+
+function abrirModalCustomConfirmacao() {
+  if (!customTreinoConfirmModal) return;
+  customTreinoConfirmModal.classList.remove("hidden");
+  customTreinoConfirmModal.setAttribute("aria-hidden", "false");
+  document.body.classList.add("ff-modal-open");
+}
+
+function fecharModalCustomConfirmacao() {
+  if (!customTreinoConfirmModal) return;
+  customTreinoConfirmModal.classList.add("hidden");
+  customTreinoConfirmModal.setAttribute("aria-hidden", "true");
+  document.body.classList.remove("ff-modal-open");
+}
+
+function abrirModalCustomTreino() {
+  if (!customTreinoModal) return;
+  const labels = getCustomTreinoLabels();
+  preencherSelectCustom(customAquecimento, CUSTOM_TREINO_OPCOES.aquecimento, labels);
+  preencherSelectCustom(customMusculo1, CUSTOM_TREINO_OPCOES.musculos, labels, { includeNone: true });
+  preencherSelectCustom(customMusculo2, CUSTOM_TREINO_OPCOES.musculos, labels, { includeNone: true });
+  preencherSelectCustom(customMusculo3, CUSTOM_TREINO_OPCOES.musculos, labels, { includeNone: true });
+  preencherSelectCustom(customResfriamento, CUSTOM_TREINO_OPCOES.resfriamento, labels);
+  customTreinoModal.classList.remove("hidden");
+  customTreinoModal.setAttribute("aria-hidden", "false");
+  document.body.classList.add("ff-modal-open");
+}
+
+function fecharModalCustomTreino() {
+  if (!customTreinoModal) return;
+  customTreinoModal.classList.add("hidden");
+  customTreinoModal.setAttribute("aria-hidden", "true");
+  document.body.classList.remove("ff-modal-open");
+}
+
+function confirmarCustomTreino() {
+  const blocosSelecionados = [
+    customAquecimento?.value,
+    customMusculo1?.value,
+    customMusculo2?.value,
+    customMusculo3?.value,
+    customResfriamento?.value
+  ].filter(Boolean);
+
+  localStorage.setItem(CUSTOM_TREINO_KEY, "true");
+  localStorage.setItem(CUSTOM_BLOCOS_KEY, JSON.stringify(blocosSelecionados));
+  localStorage.setItem("femflow_diaPrograma", "1");
+  location.href = "flowcenter.html";
+}
+
+let bodyInsightAuthModal;
+let bodyInsightAuthCancelar;
+let bodyInsightAuthEntrar;
+let bodyInsightAuthEmail;
+let bodyInsightAuthSenha;
+let bodyInsightAuthError;
+
+function getBodyInsightAuthLabels() {
+  const lang = FEMFLOW.lang || "pt";
+  return FEMFLOW.langs?.[lang]?.home?.bodyInsightAuth || {};
+}
+
+function loginIndexAindaValido() {
+  const auth = localStorage.getItem("femflow_auth") === "yes";
+  const token = String(localStorage.getItem("femflow_session_token") || "").trim();
+  const expira = String(localStorage.getItem("femflow_session_expira") || "").trim();
+
+  if (!auth || !token) return false;
+  if (!expira) return true;
+
+  const expiraMs = Date.parse(expira);
+  if (!Number.isFinite(expiraMs)) return true;
+  return expiraMs > Date.now();
+}
+
+function abrirModalBodyInsightAuth() {
+  if (!bodyInsightAuthModal) return Promise.resolve(false);
+
+  const emailSalvo = String(localStorage.getItem("femflow_email") || "").trim().toLowerCase();
+  if (bodyInsightAuthEmail) bodyInsightAuthEmail.value = emailSalvo;
+  if (bodyInsightAuthSenha) bodyInsightAuthSenha.value = "";
+  if (bodyInsightAuthError) bodyInsightAuthError.textContent = "";
+
+  bodyInsightAuthModal.classList.remove("hidden");
+  bodyInsightAuthModal.setAttribute("aria-hidden", "false");
+  document.body.classList.add("ff-modal-open");
+
+  return new Promise((resolve) => {
+    bodyInsightAuthModal.dataset.resolve = "pending";
+
+    const concluir = (ok) => {
+      if (bodyInsightAuthModal.dataset.resolve !== "pending") return;
+      bodyInsightAuthModal.dataset.resolve = "done";
+      fecharModalBodyInsightAuth();
+      resolve(Boolean(ok));
+    };
+
+    bodyInsightAuthModal.dataset.onSuccess = "";
+    bodyInsightAuthModal._ffResolveAuth = concluir;
+  });
+}
+
+function fecharModalBodyInsightAuth() {
+  if (!bodyInsightAuthModal) return;
+  bodyInsightAuthModal.classList.add("hidden");
+  bodyInsightAuthModal.setAttribute("aria-hidden", "true");
+  document.body.classList.remove("ff-modal-open");
+}
+
+async function confirmarBodyInsightAuth() {
+  const labels = getBodyInsightAuthLabels();
+  const email = String(bodyInsightAuthEmail?.value || "").trim().toLowerCase();
+  const senha = String(bodyInsightAuthSenha?.value || "").trim();
+  const emailSalvo = String(localStorage.getItem("femflow_email") || "").trim().toLowerCase();
+
+  if (bodyInsightAuthError) bodyInsightAuthError.textContent = "";
+
+  if (!email || !senha) {
+    if (bodyInsightAuthError) bodyInsightAuthError.textContent = labels.camposObrigatorios || "Informe e-mail e senha.";
+    return;
+  }
+
+  if (emailSalvo && email !== emailSalvo) {
+    if (bodyInsightAuthError) bodyInsightAuthError.textContent = labels.emailDivergente || "Use o mesmo e-mail da sua conta FemFlow.";
+    return;
+  }
+
+  if (!window.firebase || !firebase.auth) {
+    if (bodyInsightAuthError) bodyInsightAuthError.textContent = labels.indisponivel || "Não foi possível validar o login agora.";
+    return;
+  }
+
+  if (bodyInsightAuthEntrar) bodyInsightAuthEntrar.disabled = true;
+
+  try {
+    await firebase.auth().signInWithEmailAndPassword(email, senha);
+    const resolver = bodyInsightAuthModal?._ffResolveAuth;
+    if (typeof resolver === "function") resolver(true);
+  } catch (error) {
+    if (bodyInsightAuthError) {
+      bodyInsightAuthError.textContent = labels.loginInvalido || "E-mail ou senha inválidos. Tente novamente.";
+    }
+  } finally {
+    if (bodyInsightAuthEntrar) bodyInsightAuthEntrar.disabled = false;
+  }
+}
+
+async function garantirAcessoBodyInsight() {
+  localStorage.setItem("femflow_mode_personal", "false");
+
+  if (!window.firebase || !firebase.auth) {
+    const msg = FEMFLOW.langs?.[FEMFLOW.lang || "pt"]?.home?.bodyInsightReloginRequired ||
+      "Desculpe, precisamos que você faça login novamente para utilizar essa função.";
+    FEMFLOW.toast(msg, true);
+    return false;
+  }
+
+  try {
+    await (window.FEMFLOW?.firebaseAuthReady || Promise.resolve());
+  } catch (error) {
+    console.warn("[FemFlow] firebaseAuthReady falhou:", error);
+  }
+
+  const user = firebase.auth().currentUser;
+  if (user && !user.isAnonymous) return true;
+
+  const labels = getBodyInsightAuthLabels();
+  const aviso =
+    labels.avisoSeguranca ||
+    "Desculpe, precisamos confirmar seu login pois temos dados e informações pessoais";
+
+  if (loginIndexAindaValido()) {
+    FEMFLOW.toast(aviso, true);
+    return true;
+  }
+
+  FEMFLOW.toast(aviso, true);
+  return abrirModalBodyInsightAuth();
+}
+
 /* ============================================================
    LÓGICA DE ACESSO POR PRODUTO
 =========================================================== */
 async function handleCardClick(enfase, locked) {
 
-  const produto = (localStorage.getItem("femflow_produto") || "").toLowerCase();
-  const ativa   = localStorage.getItem("femflow_ativa") === "true";
+  const checkoutTipo =
+    enfase === "personal" || enfase === "bodyinsight"
+      ? "personal"
+      : "app";
 
-  if (locked && produto === "acesso_app" && ativa) {
-
-    const lang = FEMFLOW.lang || "pt";
-
-    const mensagens = {
-      pt: "Selecione o novo treino em Home em Monte seu treino",
-      en: "Select your new workout in Home under Build your workout",
-      fr: "Sélectionnez votre nouvel entraînement dans Accueil → Créer votre entraînement"
-    };
-
-    FEMFLOW.toast(mensagens[lang] || mensagens.pt);
-    return;
-  }
-
-  /* =========================================
-     🔒 CARD BLOQUEADO (VITRINE COMERCIAL)
-  ========================================= */
   if (locked) {
-    const produto = String(localStorage.getItem("femflow_produto") || "").toLowerCase();
-    const isTrial = produto === "trial_app";
-    const categoria = inferirCategoria(enfase);
-    if (isTrial && ["muscular", "esportes", "casa"].includes(categoria)) {
-      FEMFLOW.openExternal(LINK_ACESSO_APP);
-      return;
-    }
-
-    // 🧠 PERSONAL — CTA dedicado (propaganda)
-    if (enfase === "personal" || enfase.startsWith("personal_")) {
-      FEMFLOW.toast("🔒 Treino Personal é um plano exclusivo.");
-      FEMFLOW.openExternal(LINK_PERSONAL);
-      return;
-    }
-
-    // ✨ FOLLOWME — programa especial
-    if (enfase.startsWith("followme_")) {
-      FEMFLOW.toast(getFollowmeEmBreveMessage());
-      return;
-    }
-
-    // 🔹 BLOQUEIO PADRÃO
-    FEMFLOW.toast("Plano necessário para acessar este treino.");
+    await openBlockedFlow({
+      enfase,
+      checkoutTipo,
+      isAccessAppIncludedContext: enfase === "monte_seu_treino"
+    });
     return;
   }
+
+  if (enfase === "bodyinsight") {
+    const canProceed = await garantirAcessoBodyInsight();
+    if (canProceed === false) return;
+    FEMFLOW.router("body_insight.html");
+    return;
+  }
+
+  if (enfase.startsWith("planilha_")) {
+    abrirModalNovoPrograma(enfase, () => iniciarPlanilhaCorrida(enfase));
+    return;
+  }
+
+  localStorage.removeItem("femflow_endurance_public_intent");
 
   const treinosOk = await garantirTreinosSemana();
   if (!treinosOk) return;
+
+  if (enfase === "monte_seu_treino") {
+    localStorage.setItem("femflow_mode_personal", "false");
+    abrirModalCustomConfirmacao();
+    return;
+  }
+
+  // Ao escolher qualquer card normal, desativa o estado do treino custom
+  // para evitar bloqueio indevido do botão principal no FlowCenter.
+  limparEstadoCustomTreino();
 
   /* =========================================
      🧭 PERSONAL DESBLOQUEADO = ativa modo e vai pro FLOWCENTER
      (NUNCA vai direto para treino)
   ========================================= */
   if (enfase === "personal") {
-    const acessoApp = localStorage.getItem("femflow_ativa") === "true";
+    const acessoApp = getEntitlementsSnapshot().active;
     if (!acessoApp) {
       localStorage.setItem("femflow_mode_personal", "false");
       FEMFLOW.toast("Plano ativo necessário para usar o Modo Personal.", true);
@@ -996,7 +1797,7 @@ async function handleCardClick(enfase, locked) {
   ========================================= */
   if (localStorage.getItem("femflow_cycle_configured") !== "yes") {
 
-    FEMFLOW.loading.show("Configurando seu ciclo…");
+    FEMFLOW.loading.show(FEMFLOW.t("geral.configuringCycle"));
 
     localStorage.setItem("femflow_enfase", enfase);
 
@@ -1069,7 +1870,7 @@ async function selecionarEnfase(enfase) {
   }
 
   // 5) seguir fluxo normal
-  FEMFLOW.router("flowcenter");
+  FEMFLOW.router("flowcenter.html");
 }
 
 /* ============================================================
@@ -1098,7 +1899,7 @@ async function selecionarCoach(coach) {
     }
   }
 
-  FEMFLOW.router("flowcenter");
+  FEMFLOW.router("flowcenter.html");
 }
 
 /* ============================================================
@@ -1109,6 +1910,24 @@ function aplicarIdiomaHome() {
   const L = FEMFLOW.langs?.[lang]?.home;
   if (!L) return;
 
+  const nomeRaw = localStorage.getItem("femflow_nome") || "Aluna";
+  const primeiroNome = nomeRaw.split(" ")[0];
+
+  // Saudação
+  const bv = document.getElementById("bvTexto");
+  if (bv) {
+    bv.textContent = "";
+    const saudacao = document.createElement("span");
+    saudacao.className = "bemvinda-texto";
+    saudacao.textContent = `${L.bemvinda}, `;
+
+    const nome = document.createElement("span");
+    nome.className = "bemvinda-nome";
+    nome.textContent = `${primeiroNome}!`;
+
+    bv.append(saudacao, nome);
+  }
+
   // Títulos das seções
   const tPersonal = document.getElementById("tituloPersonalTopo");
   const tFollowMe = document.getElementById("tituloFollowMe");
@@ -1116,6 +1935,26 @@ function aplicarIdiomaHome() {
   const tEsportes = document.getElementById("tituloEsportes");
   const tCasa = document.getElementById("tituloCasa");
   const tEbooks = document.getElementById("tituloEbooks");
+  const tPlanilhas30Dias = document.getElementById("tituloPlanilhas30Dias");
+  const btnFlow = document.getElementById("btnFlow");
+  const customTitle = document.getElementById("customTreinoTitle");
+  const customSubtitle = document.getElementById("customTreinoSubtitle");
+  const customConfirmText = document.getElementById("customTreinoConfirmText");
+  const customConfirmar = document.getElementById("customTreinoConfirmar");
+  const customConfirmCancelar = document.getElementById("customTreinoConfirmCancelar");
+  const customSalvar = document.getElementById("customTreinoSalvar");
+  const customCancelar = document.getElementById("customTreinoCancelar");
+  const customLabelAquecimento = document.getElementById("customTreinoLabelAquecimento");
+  const customLabelMusculo1 = document.getElementById("customTreinoLabelMusculo1");
+  const customLabelMusculo2 = document.getElementById("customTreinoLabelMusculo2");
+  const customLabelMusculo3 = document.getElementById("customTreinoLabelMusculo3");
+  const customLabelResfriamento = document.getElementById("customTreinoLabelResfriamento");
+
+  const novoProgramaTitulo = document.getElementById("novoProgramaTitulo");
+  const novoProgramaSubtitulo = document.getElementById("novoProgramaSubtitulo");
+  const novoProgramaNota = document.getElementById("novoProgramaNota");
+  const novoProgramaBtnCancelar = document.getElementById("novoProgramaCancelar");
+  const novoProgramaBtnConfirmar = document.getElementById("novoProgramaConfirmar");
 
   if (tPersonal) tPersonal.textContent = L.tituloPersonal;
   if (tFollowMe) tFollowMe.textContent = L.tituloFollowMe;
@@ -1123,14 +1962,98 @@ function aplicarIdiomaHome() {
   if (tEsportes) tEsportes.textContent = L.tituloEsportes;
   if (tCasa) tCasa.textContent = L.tituloCasa;
   if (tEbooks) tEbooks.textContent = L.tituloEbooks;
+  if (tPlanilhas30Dias) tPlanilhas30Dias.textContent = L.tituloPlanilhas30Dias || "Planilhas 30 Dias";
+  if (btnFlow && L.botaoFlowcenter) btnFlow.textContent = L.botaoFlowcenter;
+
+  if (L.novoProgramaModal) {
+    if (novoProgramaTitulo) novoProgramaTitulo.textContent = L.novoProgramaModal.titulo;
+    if (novoProgramaSubtitulo) novoProgramaSubtitulo.textContent = L.novoProgramaModal.subtitulo;
+    if (novoProgramaNota) {
+      novoProgramaNota.textContent = "";
+      novoProgramaNota.append(document.createTextNode(L.novoProgramaModal.notaPrefixo || ""));
+      const destaque = document.createElement("strong");
+      destaque.textContent = L.novoProgramaModal.notaDestaque || "";
+      novoProgramaNota.append(destaque, document.createTextNode(L.novoProgramaModal.notaSufixo || ""));
+    }
+    if (novoProgramaBtnCancelar) novoProgramaBtnCancelar.textContent = L.novoProgramaModal.cancelar;
+    if (novoProgramaBtnConfirmar) novoProgramaBtnConfirmar.textContent = L.novoProgramaModal.confirmar;
+  }
+
+  if (L.customTreino) {
+    if (customTitle) customTitle.textContent = L.customTreino.titulo;
+    if (customSubtitle) customSubtitle.textContent = L.customTreino.subtitulo;
+    if (customConfirmText) customConfirmText.textContent = L.customTreino.confirmarTexto;
+    if (customConfirmar) customConfirmar.textContent = L.customTreino.confirmar;
+    if (customConfirmCancelar) customConfirmCancelar.textContent = L.customTreino.cancelar;
+    if (customSalvar) customSalvar.textContent = L.customTreino.confirmar;
+    if (customCancelar) customCancelar.textContent = L.customTreino.cancelar;
+    if (customLabelAquecimento) customLabelAquecimento.textContent = L.customTreino.labels.aquecimento;
+    if (customLabelMusculo1) customLabelMusculo1.textContent = L.customTreino.labels.musculo1;
+    if (customLabelMusculo2) customLabelMusculo2.textContent = L.customTreino.labels.musculo2;
+    if (customLabelMusculo3) customLabelMusculo3.textContent = L.customTreino.labels.musculo3;
+    if (customLabelResfriamento) customLabelResfriamento.textContent = L.customTreino.labels.resfriamento;
+  }
+
+  if (L.bodyInsightAuth) {
+    const authTitle = document.getElementById("bodyInsightAuthTitle");
+    const authSub = document.getElementById("bodyInsightAuthSubtitle");
+    const authEmailLabel = document.getElementById("bodyInsightAuthEmailLabel");
+    const authPasswordLabel = document.getElementById("bodyInsightAuthPasswordLabel");
+    if (authTitle) authTitle.textContent = L.bodyInsightAuth.titulo;
+    if (authSub) authSub.textContent = L.bodyInsightAuth.subtitulo;
+    if (authEmailLabel) authEmailLabel.textContent = L.bodyInsightAuth.email;
+    if (authPasswordLabel) authPasswordLabel.textContent = L.bodyInsightAuth.senha;
+    if (bodyInsightAuthEntrar) bodyInsightAuthEntrar.textContent = L.bodyInsightAuth.entrar;
+    if (bodyInsightAuthCancelar) bodyInsightAuthCancelar.textContent = L.bodyInsightAuth.cancelar;
+  }
+
+  // 🔥 VÍDEO
+  const vTitle = document.getElementById("homeVideoTitle");
+  const vSub = document.getElementById("homeVideoSub");
+  const vPlayer = document.getElementById("homeVideoPlayer");
+  const vToggle = document.getElementById("homeVideoToggle");
+  const vToggleIcon = document.getElementById("homeVideoToggleIcon");
+
+  if (vTitle && L.videoTitulo) vTitle.textContent = L.videoTitulo;
+  if (vSub && L.videoSub) vSub.textContent = L.videoSub;
+  if (vPlayer) {
+    const novoSrc = getHomeVideoSource(lang);
+    const srcAtual = vPlayer.getAttribute("src") || "";
+    if (!srcAtual.endsWith(novoSrc)) {
+      const pausado = vPlayer.paused;
+      vPlayer.pause();
+      vPlayer.src = novoSrc;
+      vPlayer.load();
+      if (!pausado) {
+        vPlayer.play().catch(() => {});
+      } else {
+        aplicarCapaVideoInativo(vPlayer, vToggle, vToggleIcon);
+      }
+    } else if (vPlayer.paused) {
+      aplicarCapaVideoInativo(vPlayer, vToggle, vToggleIcon);
+    }
+    atualizarBotaoVideo(vPlayer, vToggle, vToggleIcon);
+  }
+
   atualizarModalTreinosSemana();
 }
+
 
 /* ============================================================
    HOME — AGORA USANDO SOMENTE VALIDAR (SEM SYNC)
 =========================================================== */
 document.addEventListener("DOMContentLoaded", async () => {
-  FEMFLOW.loading.show(FEMFLOW.t("geral.loading"));
+  requestAnimationFrame(() => {
+    document.documentElement.classList.add("ff-enter-ready");
+  });
+
+  const handoff = FEMFLOW._hasSplashHandoff?.();
+  if (!handoff) FEMFLOW.loading.show();
+  renderHomeSkeleton();
+  configurarVideoHome();
+
+  await FEMFLOW.billing?.bootstrap?.init?.();
+  await FEMFLOW.autoLoginSilencioso?.();
 
   try {
     const treinosStorage = Number(localStorage.getItem(TREINOS_SEMANA_KEY));
@@ -1188,26 +2111,103 @@ document.addEventListener("DOMContentLoaded", async () => {
       });
     }
 
+    customTreinoConfirmModal = document.getElementById("customTreinoConfirmModal");
+    customTreinoModal = document.getElementById("customTreinoModal");
+    customTreinoConfirmar = document.getElementById("customTreinoConfirmar");
+    customTreinoConfirmCancelar = document.getElementById("customTreinoConfirmCancelar");
+    customTreinoSalvar = document.getElementById("customTreinoSalvar");
+    customTreinoCancelar = document.getElementById("customTreinoCancelar");
+    customAquecimento = document.getElementById("customAquecimento");
+    customMusculo1 = document.getElementById("customMusculo1");
+    customMusculo2 = document.getElementById("customMusculo2");
+    customMusculo3 = document.getElementById("customMusculo3");
+    customResfriamento = document.getElementById("customResfriamento");
+
+    if (customTreinoConfirmar) {
+      customTreinoConfirmar.addEventListener("click", () => {
+        fecharModalCustomConfirmacao();
+        abrirModalCustomTreino();
+      });
+    }
+
+    if (customTreinoConfirmCancelar) {
+      customTreinoConfirmCancelar.addEventListener("click", fecharModalCustomConfirmacao);
+    }
+
+    if (customTreinoConfirmModal) {
+      customTreinoConfirmModal.addEventListener("click", (event) => {
+        if (event.target !== customTreinoConfirmModal) return;
+        fecharModalCustomConfirmacao();
+      });
+    }
+
+    if (customTreinoSalvar) {
+      customTreinoSalvar.addEventListener("click", confirmarCustomTreino);
+    }
+
+    if (customTreinoCancelar) {
+      customTreinoCancelar.addEventListener("click", fecharModalCustomTreino);
+    }
+
+    if (customTreinoModal) {
+      customTreinoModal.addEventListener("click", (event) => {
+        if (event.target !== customTreinoModal) return;
+        fecharModalCustomTreino();
+      });
+    }
+
+    bodyInsightAuthModal = document.getElementById("bodyInsightAuthModal");
+    bodyInsightAuthCancelar = document.getElementById("bodyInsightAuthCancelar");
+    bodyInsightAuthEntrar = document.getElementById("bodyInsightAuthEntrar");
+    bodyInsightAuthEmail = document.getElementById("bodyInsightAuthEmail");
+    bodyInsightAuthSenha = document.getElementById("bodyInsightAuthSenha");
+    bodyInsightAuthError = document.getElementById("bodyInsightAuthError");
+
+    if (bodyInsightAuthCancelar) {
+      bodyInsightAuthCancelar.addEventListener("click", () => {
+        const resolver = bodyInsightAuthModal?._ffResolveAuth;
+        if (typeof resolver === "function") resolver(false);
+      });
+    }
+
+    if (bodyInsightAuthEntrar) {
+      bodyInsightAuthEntrar.addEventListener("click", () => {
+        void confirmarBodyInsightAuth();
+      });
+    }
+
+    if (bodyInsightAuthSenha) {
+      bodyInsightAuthSenha.addEventListener("keydown", (event) => {
+        if (event.key !== "Enter") return;
+        event.preventDefault();
+        void confirmarBodyInsightAuth();
+      });
+    }
+
+    if (bodyInsightAuthModal) {
+      bodyInsightAuthModal.addEventListener("click", (event) => {
+        if (event.target !== bodyInsightAuthModal) return;
+        const resolver = bodyInsightAuthModal?._ffResolveAuth;
+        if (typeof resolver === "function") resolver(false);
+      });
+    }
+
     const perfil = await carregarPerfilEAtualizarStorage();
 
-    const acessoLivreStaging = perfil.status === "no_auth" && isStagingRuntime();
-
-    if (perfil.status !== "ok" && !acessoLivreStaging) {
-      FEMFLOW.toast("Erro ao atualizar dados. Tente novamente.");
-      FEMFLOW.loading.hide();
-      return;
-    }
+    if (FEMFLOW.handleBlockedAccount(perfil)) return;
 
     if (perfil.status === "blocked" || perfil.status === "denied") {
       FEMFLOW.toast("Sessão inválida. Faça login novamente.");
       FEMFLOW.clearSession?.();
-      FEMFLOW.loading.hide();
-      return FEMFLOW.router("index.html");
+      return FEMFLOW.navegarUltra("index.html");
     }
 
-    if (!acessoLivreStaging) {
-      persistPerfil(perfil);
+    if (perfil.status !== "ok") {
+      FEMFLOW.toast("Erro ao atualizar dados. Tente novamente.");
+      return;
     }
+
+    persistPerfil(perfil);
 
     if (localStorage.getItem("femflow_auth") === "yes") {
       setTimeout(() => FEMFLOW.push?.requestPermissionAfterLogin?.(), 800);
@@ -1218,64 +2218,31 @@ document.addEventListener("DOMContentLoaded", async () => {
       localStorage.setItem("femflow_cycle_configured", "yes");
     }
 
-    if (!localStorage.getItem("femflow_cycle_configured") && !acessoLivreStaging) {
-      FEMFLOW.loading.hide?.();
+    if (!localStorage.getItem("femflow_cycle_configured")) {
       FEMFLOW.toast("Configure seu ciclo antes de escolher o treino 🌸");
-      FEMFLOW.router("ciclo");
+      await FEMFLOW.navegarUltra("ciclo.html");
       return;
     }
 
-    const catalogo = await carregarCatalogoFirebase();
-
-    /* ============================================================
-       🧩 INJETAR VITRINE COMERCIAL (LOCAL CORRETO)
-    ============================================================ */
-    const perfilTemPersonal =
-      localStorage.getItem("femflow_has_personal") === "true";
-
-    const produto =
-      String(localStorage.getItem("femflow_produto") || "").toLowerCase();
-    const isVip = produto === "vip";
-
-    // PERSONAL — sempre aparece:
-    // - se tem personal → desbloqueado (ativa modo personal)
-    // - se não tem → locked e vira propaganda CTA
-    if (catalogo.personal.length === 0) {
-      const cards = CARDS_PERSONAL_SIMBOLICOS.map(c => ({
-        ...c,
-        locked: !perfilTemPersonal
-      }));
-      catalogo.personal.push(...cards);
-    }
-
-    // FOLLOWME — sempre aparece como vitrine
-    if (catalogo.followme.length === 0) {
-      const cards = CARDS_FOLLOWME_SIMBOLICOS.map(c => ({
-        ...c,
-        locked: !isVip && produto !== c.enfase
-      }));
-      catalogo.followme.push(...cards);
-    }
-
-    renderRail(document.getElementById("railFollowMe"), catalogo.followme);
-    renderRail(document.getElementById("railMuscular"), catalogo.muscular);
-    renderRail(document.getElementById("railEsportes"), catalogo.esportes);
-    renderRail(document.getElementById("railCasa"), catalogo.casa);
-    renderRail(document.getElementById("railPersonal"), catalogo.personal);
-    renderEbookRail(document.getElementById("railEbooks"), await carregarEbooks());
-
-    aplicarIdiomaHome();
+    await rerenderHomeEntitlementsUI();
   } catch (err) {
     console.error("HOME init erro:", err);
     FEMFLOW.toast("Falha ao carregar. Verifique internet.");
   } finally {
-    FEMFLOW.loading.hide();
+    FEMFLOW.finalizarHandoffSplash();
   }
 });
 
 /* ============================================================
    🔥 Quando o idioma mudar → traduz de novo a home
 =========================================================== */
+document.addEventListener("femflow:entitlementsUpdated", async () => {
+  try {
+    await carregarPerfilEAtualizarStorage();
+    await rerenderHomeEntitlementsUI();
+  } catch (err) {
+    console.warn("[HOME] Falha ao atualizar UI após entitlement:", err);
+  }
+});
+
 document.addEventListener("femflow:langChange", aplicarIdiomaHome);
-document.addEventListener("DOMContentLoaded", ffHeroInit);
-document.addEventListener("femflow:langChange", ffHeroInit);

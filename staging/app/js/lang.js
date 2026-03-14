@@ -20,11 +20,27 @@ window.FEMFLOW_LANG = {
       ciclo: "Ajustar ciclo",
       respiracao: "Respiração",
       treinos: "Minha evolução",
+      trocarTreino: "Trocar de treino",
       nivel: "Alterar nível",
       tema: "Tema",
       voltar: "Voltar",
       sair: "Sair",
-      sac: "Preciso de ajuda"
+      sac: "Preciso de ajuda",
+      privacy: "Política de Privacidade",
+      terms: "Termos de Uso",
+      deleteAccount: "Excluir conta"
+    },
+    deleteModal: {
+      title: "Excluir conta",
+      description: "Esta ação abre uma solicitação de exclusão da sua conta e dados associados.",
+      checkbox: "Entendi que esta solicitação pode ser irreversível.",
+      checkboxRequired: "Confirme que você entendeu antes de continuar.",
+      reasonPlaceholder: "Motivo (opcional)",
+      confirm: "Confirmar exclusão",
+      cancel: "Cancelar",
+      sending: "Enviando solicitação...",
+      success: "Solicitação enviada. Você receberá confirmação.",
+      error: "Não foi possível enviar agora. Tente novamente."
     },
     nivelModal: {
       title: "Selecione seu nível",
@@ -53,6 +69,13 @@ window.FEMFLOW_LANG = {
       erro: "Erro ao enviar. Tente novamente.",
       selecione: "Selecione uma opção",
       enviando: "Enviando…"
+    },
+    notifications: {
+      title: "Notificações",
+      openAria: "Abrir notificações",
+      openAriaUnread: "Abrir notificações. {count} não lidas",
+      closeAria: "Fechar notificações",
+      empty: "Nenhuma notificação por aqui."
     },
 
     respiracao: {
@@ -112,11 +135,27 @@ window.FEMFLOW_LANG = {
       ciclo: "Adjust cycle",
       respiracao: "Breathing",
       treinos: "My Progress",
+      trocarTreino: "Switch workout",
       nivel: "Change level",
       tema: "Theme",
       voltar: "Back",
       sair: "Logout",
-      sac: "I need help"
+      sac: "I need help",
+      privacy: "Privacy Policy",
+      terms: "Terms of Use",
+      deleteAccount: "Delete account"
+    },
+    deleteModal: {
+      title: "Delete account",
+      description: "This action sends an account deletion request for your account and related data.",
+      checkbox: "I understand this request may be irreversible.",
+      checkboxRequired: "Please confirm you understand before continuing.",
+      reasonPlaceholder: "Reason (optional)",
+      confirm: "Confirm deletion",
+      cancel: "Cancel",
+      sending: "Sending request...",
+      success: "Request sent. You will receive confirmation.",
+      error: "We could not send your request now. Please try again."
     },
     nivelModal: {
       title: "Select your level",
@@ -145,6 +184,13 @@ window.FEMFLOW_LANG = {
       erro: "Error sending message. Please try again.",
       selecione: "Select an option",
       enviando: "Sending…"
+    },
+    notifications: {
+      title: "Notifications",
+      openAria: "Open notifications",
+      openAriaUnread: "Open notifications. {count} unread",
+      closeAria: "Close notifications",
+      empty: "No notifications here yet."
     },
 
     respiracao: {
@@ -204,11 +250,27 @@ window.FEMFLOW_LANG = {
       ciclo: "Ajuster le cycle",
       respiracao: "Respiration",
       treinos: "Mon évolution",
+      trocarTreino: "Changer d’entraînement",
       nivel: "Changer de niveau",
       tema: "Thème",
       voltar: "Retour",
       sair: "Déconnexion",
-      sac: "J’ai besoin d’aide"
+      sac: "J’ai besoin d’aide",
+      privacy: "Politique de confidentialité",
+      terms: "Conditions d’utilisation",
+      deleteAccount: "Supprimer le compte"
+    },
+    deleteModal: {
+      title: "Supprimer le compte",
+      description: "Cette action envoie une demande de suppression du compte et des données associées.",
+      checkbox: "Je comprends que cette demande peut être irréversible.",
+      checkboxRequired: "Veuillez confirmer avant de continuer.",
+      reasonPlaceholder: "Motif (optionnel)",
+      confirm: "Confirmer la suppression",
+      cancel: "Annuler",
+      sending: "Envoi de la demande...",
+      success: "Demande envoyée. Vous recevrez une confirmation.",
+      error: "Impossible d'envoyer la demande pour le moment."
     },
     nivelModal: {
       title: "Sélectionnez votre niveau",
@@ -237,6 +299,13 @@ window.FEMFLOW_LANG = {
       erro: "Erreur lors de l’envoi. Réessayez.",
       selecione: "Sélectionnez une option",
       enviando: "Envoi…"
+    },
+    notifications: {
+      title: "Notifications",
+      openAria: "Ouvrir les notifications",
+      openAriaUnread: "Ouvrir les notifications. {count} non lues",
+      closeAria: "Fermer les notifications",
+      empty: "Aucune notification pour le moment."
     },
 
     respiracao: {
@@ -302,9 +371,14 @@ pt: {
 
   geral: {
     loading: "Carregando…",
+    verifying: "Verificando…",
     preparing: "Preparando…",
     preparingPanel: "Preparando seu painel…",
     preparingProgram: "Preparando novo programa…",
+    configuringCycle: "Configurando seu ciclo…",
+    loadingWorkout: "Carregando treino…",
+    loadingQuestions: "Carregando perguntas…",
+    redirectingToAnamnesis: "Redirecionando para completar sua anamnese…",
     salvar: "Salvar",
     cancelar: "Cancelar",
     voltar: "Voltar",
@@ -316,13 +390,29 @@ pt: {
     fechar: "Fechar",
     idioma: "Idioma",
     sac: "Preciso de ajuda",
+    privacy: "Política de Privacidade",
+    terms: "Termos de Uso",
+    deleteAccount: "Excluir conta",
     ciclo: "Ajustar ciclo",
     respiracao: "Respiração",
     treinos: "Minha evolução",
+    trocarTreino: "Trocar de treino",
     nivel: "Alterar nível",
     tema: "Tema",
     voltar: "Voltar",
     sair: "Sair"
+  },
+  deleteModal: {
+    title: "Excluir conta",
+    description: "Esta ação abre uma solicitação de exclusão da sua conta e dados associados.",
+    checkbox: "Entendi que esta solicitação pode ser irreversível.",
+    checkboxRequired: "Confirme que você entendeu antes de continuar.",
+    reasonPlaceholder: "Motivo (opcional)",
+    confirm: "Confirmar exclusão",
+    cancel: "Cancelar",
+    sending: "Enviando solicitação...",
+    success: "Solicitação enviada. Você receberá confirmação.",
+    error: "Não foi possível enviar agora. Tente novamente."
   },
 home: {
       bemvinda: "Bem-vinda",
@@ -334,9 +424,71 @@ home: {
       tituloPersonal:  "Personal",
       tituloFollowMe:  "Treine junto por 30 dias",
       followmeEmBreve: "Em breve...",
+      bodyInsightReloginRequired: "Desculpe, precisamos que você faça login novamente para utilizar essa função.",
+      bodyInsightAuth: {
+        titulo: "Confirme seu login",
+        subtitulo: "Para acessar o Body Insight com segurança, confirme seu e-mail e senha.",
+        email: "E-mail",
+        senha: "Senha",
+        entrar: "Entrar",
+        cancelar: "Cancelar",
+        camposObrigatorios: "Informe e-mail e senha.",
+        emailDivergente: "Use o mesmo e-mail da sua conta FemFlow.",
+        loginInvalido: "E-mail ou senha inválidos. Tente novamente.",
+        indisponivel: "Não foi possível validar o login agora.",
+        avisoSeguranca: "Desculpe, precisamos confirmar seu login pois temos dados e informações pessoais"
+      },
+      treinosSemana: {
+        titulo: "Quantos dias por semana você pretende treinar?",
+        subtitulo: "Isso ajuda a identificar descanso e ausência corretamente.",
+        opcao: "{n}x/semana",
+        cancelar: "Agora não",
+        salvar: "Salvar"
+      },
       tituloMuscular:  "Treinos por ênfase",
       tituloEsportes:  "Fortalecimento Por Esportes",
       tituloCasa:      "Treinar em casa",
+      tituloPlanilhas30Dias: "Planilhas 30 dias",
+      tituloEbooks:    "Ebooks",
+      novoProgramaModal: {
+        titulo: "Quer realmente iniciar um novo programa?",
+        subtitulo: "Ao confirmar, o programa atual será reiniciado.",
+        notaPrefixo: "Para retomar seu treino clique em \"",
+        notaDestaque: "Continue seu treino",
+        notaSufixo: "\".",
+        cancelar: "Não",
+        confirmar: "Sim, iniciar"
+      },
+      customTreino: {
+        titulo: "Monte seu treino",
+        subtitulo: "Crie um treino sob medida hoje",
+        confirmarTexto: "Deseja montar um novo treino? Isso irá zerar o dia do programa.",
+        confirmar: "Confirmar",
+        cancelar: "Cancelar",
+        labels: {
+          aquecimento: "Aquecimento",
+          musculo1: "Músculo 1",
+          musculo2: "Músculo 2",
+          musculo3: "Músculo 3",
+          resfriamento: "Resfriamento"
+        },
+        none: "Nenhum",
+        options: {
+          aquecimento_superiores: "Aquecimento superiores",
+          aquecimento_inferiores: "Aquecimento inferiores",
+          resfriamento_superiores: "Resfriamento superiores",
+          resfriamento_inferiores: "Resfriamento inferiores",
+          mobilidade: "Mobilidade",
+          biceps: "Bíceps",
+          triceps: "Tríceps",
+          ombro: "Ombro",
+          quadriceps: "Quadríceps",
+          posterior: "Posteriores",
+          peito: "Peito",
+          costas: "Costas",
+          gluteo: "Glúteo"
+        }
+      },
       cards: {
         forcaabc: "Força",
         quadriceps: "Quadríceps",
@@ -377,10 +529,12 @@ home: {
   // BOTÕES
   treino: "Treino",
   treinoExtra: "Treino extra",
+  treinoCustom: "Monte seu treino",
   evolucao: "Evolução",
   respiracao: "Respiração",
   endurance: "Endurance",
   proximoTreino: "Programa-se",
+  homeSwitch: "Home - trocar de treino",
 
   treinoExtraTitulo: "Treino Extra",
   treinoExtraSub: "Escolha a área que deseja focar hoje.",
@@ -388,7 +542,61 @@ home: {
   treinoExtraInferior: "Inferior",
   treinoExtraAbdomem: "Abdômen",
   treinoExtraMobilidade: "Mobilidade",
-  treinoExtraFechar: "Fechar"
+  treinoExtraBiceps: "Bíceps",
+  treinoExtraTriceps: "Tríceps",
+  treinoExtraOmbro: "Ombro",
+  treinoExtraQuadriceps: "Quadríceps",
+  treinoExtraPosterior: "Posteriores",
+  treinoExtraPeito: "Peito",
+  treinoExtraCostas: "Costas",
+  treinoExtraGluteo: "Glúteo",
+  treinoExtraFechar: "Fechar",
+
+  enduranceModalTitulo: "Defina seu Endurance",
+  enduranceModalSub: "Responda para personalizarmos o seu treino de cardio.",
+  enduranceModalidadeLabel: "Qual modalidade?",
+  enduranceModalidadePlaceholder: "Selecione a modalidade",
+  enduranceModalidadeGrupoCorrida: "Corrida",
+  enduranceModalidadeGrupoOutras: "Outras modalidades",
+  enduranceOptCorrida: "Corrida (geral)",
+  enduranceOptCorrida5k: "Corrida 5 km",
+  enduranceOptCorrida10k: "Corrida 10 km",
+  enduranceOptCorrida15k: "Corrida 15 km",
+  enduranceOptCorrida21k: "Corrida 21 km",
+  enduranceOptCorrida42k: "Corrida 42 km",
+  enduranceOptNatacao: "Natação",
+  enduranceOptBike: "Bike / Ciclismo",
+  enduranceOptRemo: "Remo",
+  enduranceTreinosLabel: "Quantos treinos por semana?",
+  enduranceDiasLabel: "Quais dias da semana?",
+  enduranceRitmoLabel: "Qual ritmo médio?",
+  enduranceRitmoInfo: "Minutos para cada 100m em natação, velocidade média em bike, pace em corrida.",
+  enduranceRitmoPlaceholder: "Ex: 2:10/100m, 25 km/h, 5:20 min/km",
+  enduranceCancelar: "Cancelar",
+  enduranceSalvar: "Salvar e continuar",
+  enduranceSelecaoTitulo: "Escolha sua sessão",
+  enduranceSelecaoSub: "Selecione a semana e o dia do treino que você vai realizar.",
+  enduranceSelecaoSemanaLabel: "Semana",
+  enduranceSelecaoDiaLabel: "Dia",
+  enduranceSelecaoCancelar: "Cancelar",
+  enduranceSelecaoContinuar: "Continuar",
+  enduranceBloqueado: "Selecione a planilha de treinamento Endurance na Home.",
+
+  caminhosEscolhaTitulo: "Escolha seu treino",
+  caminhosUltimoTreino: "Seu último treino foi Treino {caminho}",
+  caminhosSugerido: "Sugerimos Treino {caminho}",
+  caminhosComparativo: "Comparativo → Sugerimos Treino {caminho}",
+  caminhosFase: "Fase {fase}",
+  caminhosFasePersonalAtiva: "Plano Personal ativo • Fase {fase}",
+  caminhosLabel: "Treino {caminho}",
+  caminhosErroCarregar: "Não foi possível carregar esse treino agora.",
+  caminhosPreviewIndisponivel: "Prévia indisponível agora.",
+  caminhosEscolhaObrigatoria: "Escolha um caminho para iniciar.",
+  caminhosPreviewTitulo: "Treino {caminho} — Fase {fase}",
+  caminhosNenhumExercicio: "Nenhum exercício encontrado para este treino.",
+  caminhosFechar: "Fechar",
+  caminhosMudar: "Mudar",
+  caminhosIniciar: "Iniciar treino"
 }
 ,
 
@@ -464,10 +672,11 @@ home: {
       costas: "Costas",
       gluteo: "Glúteo"
     },
-    btnSalvar: "💾 Salvar treino",
+    btnSalvar: "Salvar treino",
     btnCancelar: "Cancelar",
     pseTitulo: "Como foi o treino?",
     pseLabel: "PSE (0 a 10)",
+    pseHint: "PSE é sua percepção de esforço no treino (0 = muito leve, 10 = máximo).",
     pseSalvar: "Salvar",
     pseCancelar: "Cancelar",
     proximoModal: {
@@ -500,27 +709,49 @@ home: {
   },
     cardio: {
     descricao:
-      "Complete {series} série(s) de {tempo} com {intervalo} de intervalo. Mantenha um ritmo confortável.",
+      "Complete {series} série(s) de {tempo} com {intervalo} de intervalo. Mantenha um ritmo constante.",
     descricaoRitmo:
-      "Complete {series} série(s) de {tempo} com {intervalo} de intervalo. Mantenha um ritmo de {ritmo} confortável.",
+      "Complete {series} série(s) de {tempo} com {intervalo} de intervalo. Mantenha um ritmo de {ritmo}.",
     fallbackTempo: "30 min",
     fallback:
       "Use este cardio como uma orientação geral e ajuste o ritmo conforme seu objetivo e condicionamento.",
+    descricaoZona:
+      "Realize o treino dentro da zona pretendida {zona}. Ajuste ritmo, inclinação e cadência para se manter na intensidade proposta.",
     seriesLabel: "Séries: {series}",
+    zonaLabel: "Zona: {zona}",
+    zonaTreinoLabel: "Zona de treino: {zona}",
     tempoOnlyLabel: "Tempo: {tempo}",
     distanciaLabel: "Distância: {distancia}",
     ritmoLabel: "Ritmo: {ritmo}",
     intervaloLabel: "Intervalo: {intervalo}",
-    iniciar: "▶️ Iniciar cardio"
+    milhasLabel: "Distância (milhas): {milhas}",
+    iniciar: "Iniciar cardio",
+    zonas: {
+      aria: "Informações sobre zonas de treino",
+      fechar: "Fechar",
+      label: "Zona de treino: {zona}",
+      titulo: "Zonas de Treinamento",
+      sub: "As zonas indicam a intensidade do seu treino e ajudam a evoluir com segurança.",
+      z1Titulo: "Zona 1 — Muito leve",
+      z1Texto: "Ritmo confortável. Ideal para aquecimento, recuperação e base aeróbica.",
+      z2Titulo: "Zona 2 — Leve",
+      z2Texto: "Respiração controlada, ainda dá para conversar. Melhora resistência e queima de gordura.",
+      z3Titulo: "Zona 3 — Moderada",
+      z3Texto: "Respiração mais intensa, conversa difícil. Desenvolve capacidade aeróbica.",
+      z4Titulo: "Zona 4 — Forte",
+      z4Texto: "Ritmo desafiador, poucas palavras por vez. Aumenta velocidade e limiar de lactato.",
+      z5Titulo: "Zona 5 — Muito forte",
+      z5Texto: "Esforço máximo ou quase máximo. Trabalha potência e explosão."
+    }
   },
      aquecimento: {
-    sugestao: "💨 Sugestão: prepare seu corpo com uma respiração consciente antes de começar.",
-    btn: "🌬️ Abrir protocolos de respiração"
+    sugestao: "Sugestão: prepare seu corpo com uma respiração consciente antes de começar.",
+    btn: "Abrir protocolos de respiração"
   },
 
   resfriamento: {
-    sugestao: "🌬️ Sugestão: finalize seu treino desacelerando com respiração suave.",
-    btn: "💗 Fazer respiração de fechamento"
+    sugestao: "Sugestão: finalize seu treino desacelerando com respiração suave.",
+    btn: "Fazer respiração de fechamento"
   }
   },
 resp: {
@@ -581,43 +812,43 @@ resp: {
 },
 series: {
   T: {
-    titulo: "🔗 Triset",
+    titulo: "Triset",
     texto: "Três exercícios combinados. Execute todos em sequência e descanse apenas ao final."
   },
   B: {
-    titulo: "🔗 Biset",
+    titulo: "Biset",
     texto: "Dois exercícios combinados. Execute ambos em sequência e descanse apenas ao final."
   },
   Q: {
-    titulo: "🔗 Quadriset",
+    titulo: "Quadriset",
     texto: "Quatro exercícios combinados. Execute todos em sequência e descanse apenas ao final."
   },
   C: {
-    titulo: "⏱️ Cluster",
+    titulo: "Cluster",
     texto: "Cada série é dividida em 4 mini-séries com pausas de 10 segundos entre elas."
   },
   I: {
-    titulo: "🧊 Isometria",
+    titulo: "Isometria",
     texto: "Permaneça com o músculo contraído por todo o tempo de execução."
   },
   CC: {
-    titulo: "🐢 Cadência Controlada",
+    titulo: "Cadência Controlada",
     texto: "Controle a fase excêntrica do movimento de forma lenta e consciente."
   },
   D: {
-    titulo: "🔥 Dropset",
+    titulo: "Dropset",
     texto: "Ao atingir a falha, reduza a carga 3 vezes consecutivas sem descanso."
   },
   RP: {
-    titulo: "⚡ Rest-Pause",
+    titulo: "Rest-Pause",
     texto: "Na última série, após a falha, reduza 50% da carga e execute 20 repetições."
   },
   AE: {
-    titulo: "👑 Advanced Elite",
+    titulo: "Advanced Elite",
     texto: "Execução livre, técnica avançada e estímulo máximo."
   },
   SM: {
-    titulo: "🟢 Submáxima",
+    titulo: "Submáxima",
     texto: "Descanso curto para estimular o músculo em ênfase."
   }
 }
@@ -631,9 +862,14 @@ en: {
 
   geral: {
     loading: "Loading…",
+    verifying: "Verifying…",
     preparing: "Preparing…",
     preparingPanel: "Preparing your dashboard…",
-    preparingProgram: "Preparing new program…",
+    preparingProgram: "Preparing your new program…",
+    configuringCycle: "Setting up your cycle…",
+    loadingWorkout: "Loading workout…",
+    loadingQuestions: "Loading questions…",
+    redirectingToAnamnesis: "Redirecting to complete your anamnesis…",
     salvar: "Save",
     cancelar: "Cancel",
     voltar: "Back",
@@ -645,9 +881,13 @@ en: {
     fechar: "Close",
     idioma: "Language",
     sac: "I need help",
+    privacy: "Privacy Policy",
+    terms: "Terms of Use",
+    deleteAccount: "Delete account",
     ciclo: "Adjust cycle",
     respiracao: "Breathing",
     treinos: "My Progress",
+    trocarTreino: "Switch workout",
     nivel: "Change level",
     tema: "Theme",
     voltar: "Back",
@@ -663,9 +903,71 @@ home: {
       tituloPersonal:  "Personal Training",
       tituloFollowMe:  "Train together for 30 days",
       followmeEmBreve: "Coming soon...",
+      bodyInsightReloginRequired: "Sorry, we need you to log in again to use this feature.",
+      bodyInsightAuth: {
+        titulo: "Confirm your login",
+        subtitulo: "To securely access Body Insight, confirm your email and password.",
+        email: "Email",
+        senha: "Password",
+        entrar: "Login",
+        cancelar: "Cancel",
+        camposObrigatorios: "Enter your email and password.",
+        emailDivergente: "Use the same email as your FemFlow account.",
+        loginInvalido: "Invalid email or password. Please try again.",
+        indisponivel: "We couldn't validate your login right now.",
+        avisoSeguranca: "Sorry, we need to confirm your login because we handle personal data and information."
+      },
+      treinosSemana: {
+        titulo: "How many days per week do you plan to train?",
+        subtitulo: "This helps us correctly identify rest days and absences.",
+        opcao: "{n}x/week",
+        cancelar: "Not now",
+        salvar: "Save"
+      },
       tituloMuscular:  "Muscle focus training",
       tituloEsportes:  "Strengthening Through Sports",
       tituloCasa:      "Home training",
+      tituloPlanilhas30Dias: "30-day plans",
+      tituloEbooks:    "Ebooks",
+      novoProgramaModal: {
+        titulo: "Do you really want to start a new program?",
+        subtitulo: "When you confirm, your current program will be restarted.",
+        notaPrefixo: "To resume your workout, tap \"",
+        notaDestaque: "Continue your workout",
+        notaSufixo: "\".",
+        cancelar: "No",
+        confirmar: "Yes, start"
+      },
+      customTreino: {
+        titulo: "Build your workout",
+        subtitulo: "Create a workout tailored for today",
+        confirmarTexto: "Do you want to build a new workout? This will reset the program day.",
+        confirmar: "Confirm",
+        cancelar: "Cancel",
+        labels: {
+          aquecimento: "Warm-up",
+          musculo1: "Muscle 1",
+          musculo2: "Muscle 2",
+          musculo3: "Muscle 3",
+          resfriamento: "Cooldown"
+        },
+        none: "None",
+        options: {
+          aquecimento_superiores: "Upper-body warm-up",
+          aquecimento_inferiores: "Lower-body warm-up",
+          resfriamento_superiores: "Upper-body cooldown",
+          resfriamento_inferiores: "Lower-body cooldown",
+          mobilidade: "Mobility",
+          biceps: "Biceps",
+          triceps: "Triceps",
+          ombro: "Shoulders",
+          quadriceps: "Quadriceps",
+          posterior: "Hamstrings",
+          peito: "Chest",
+          costas: "Back",
+          gluteo: "Glutes"
+        }
+      },
       cards: {
         forcaabc: "Strength",
         quadriceps: "Quadriceps",
@@ -703,10 +1005,12 @@ home: {
 
   treino: "Training",
   treinoExtra: "Extra training",
+  treinoCustom: "Build your workout",
   evolucao: "Progress",
   respiracao: "Breathing",
   endurance: "Endurance",
   proximoTreino: "See next workout",
+  homeSwitch: "Home - switch workout",
 
   treinoExtraTitulo: "Extra Training",
   treinoExtraSub: "Choose the area you want to focus on today.",
@@ -714,7 +1018,61 @@ home: {
   treinoExtraInferior: "Lower body",
   treinoExtraAbdomem: "Abs",
   treinoExtraMobilidade: "Mobility",
-  treinoExtraFechar: "Close"
+  treinoExtraBiceps: "Biceps",
+  treinoExtraTriceps: "Triceps",
+  treinoExtraOmbro: "Shoulders",
+  treinoExtraQuadriceps: "Quadriceps",
+  treinoExtraPosterior: "Hamstrings",
+  treinoExtraPeito: "Chest",
+  treinoExtraCostas: "Back",
+  treinoExtraGluteo: "Glutes",
+  treinoExtraFechar: "Close",
+
+  enduranceModalTitulo: "Set your Endurance",
+  enduranceModalSub: "Answer these questions so we can personalize your cardio training.",
+  enduranceModalidadeLabel: "Which modality?",
+  enduranceModalidadePlaceholder: "Select a modality",
+  enduranceModalidadeGrupoCorrida: "Running",
+  enduranceModalidadeGrupoOutras: "Other modalities",
+  enduranceOptCorrida: "Running (general)",
+  enduranceOptCorrida5k: "5K Running",
+  enduranceOptCorrida10k: "10K Running",
+  enduranceOptCorrida15k: "15K Running",
+  enduranceOptCorrida21k: "21K Running",
+  enduranceOptCorrida42k: "42K Running",
+  enduranceOptNatacao: "Swimming",
+  enduranceOptBike: "Bike / Cycling",
+  enduranceOptRemo: "Rowing",
+  enduranceTreinosLabel: "How many sessions per week?",
+  enduranceDiasLabel: "Which days of the week?",
+  enduranceRitmoLabel: "What is your average pace?",
+  enduranceRitmoInfo: "Minutes per 100m for swimming, average speed for cycling, pace for running.",
+  enduranceRitmoPlaceholder: "Ex: 2:10/100m, 25 km/h, 5:20 min/km",
+  enduranceCancelar: "Cancel",
+  enduranceSalvar: "Save and continue",
+  enduranceSelecaoTitulo: "Choose your session",
+  enduranceSelecaoSub: "Select the week and day of the workout you will do.",
+  enduranceSelecaoSemanaLabel: "Week",
+  enduranceSelecaoDiaLabel: "Day",
+  enduranceSelecaoCancelar: "Cancel",
+  enduranceSelecaoContinuar: "Continue",
+  enduranceBloqueado: "Select your Endurance training plan on Home.",
+
+  caminhosEscolhaTitulo: "Choose your workout",
+  caminhosUltimoTreino: "Your last workout was Workout {caminho}",
+  caminhosSugerido: "We suggest Workout {caminho}",
+  caminhosComparativo: "Comparison → We suggest Workout {caminho}",
+  caminhosFase: "Phase {fase}",
+  caminhosFasePersonalAtiva: "Personal Plan active • Phase {fase}",
+  caminhosLabel: "Workout {caminho}",
+  caminhosErroCarregar: "Could not load this workout right now.",
+  caminhosPreviewIndisponivel: "Preview unavailable right now.",
+  caminhosEscolhaObrigatoria: "Choose a path to start.",
+  caminhosPreviewTitulo: "Workout {caminho} — Phase {fase}",
+  caminhosNenhumExercicio: "No exercises found for this workout.",
+  caminhosFechar: "Close",
+  caminhosMudar: "Change",
+  caminhosIniciar: "Start workout"
 },
 
   ciclo: {
@@ -788,10 +1146,11 @@ home: {
       costas: "Back",
       gluteo: "Glutes"
     },
-    btnSalvar: "💾 Save workout",
+    btnSalvar: "Save workout",
     btnCancelar: "Cancel",
     pseTitulo: "How was the workout?",
     pseLabel: "RPE (0 to 10)",
+    pseHint: "RPE is your perceived effort in the workout (0 = very easy, 10 = maximum).",
     pseSalvar: "Save",
     pseCancelar: "Cancel",
     proximoModal: {
@@ -824,27 +1183,49 @@ home: {
 },
     cardio: {
   descricao:
-    "Complete {series} set(s) of {tempo} with {intervalo} of rest. Keep a comfortable pace.",
+    "Complete {series} set(s) of {tempo} with {intervalo} of rest. Keep a steady pace.",
   descricaoRitmo:
-    "Complete {series} set(s) of {tempo} with {intervalo} of rest. Keep a comfortable pace of {ritmo}.",
+    "Complete {series} set(s) of {tempo} with {intervalo} of rest. Keep a pace of {ritmo}.",
   fallbackTempo: "30 min",
   fallback:
     "Use this cardio as a general guideline and adjust the pace to your goal and fitness level.",
+  descricaoZona:
+    "Complete the workout inside target zone {zona}. Adjust pace, incline and cadence to stay within the prescribed intensity.",
   seriesLabel: "Sets: {series}",
+  zonaLabel: "Zone: {zona}",
+  zonaTreinoLabel: "Training zone: {zona}",
   tempoOnlyLabel: "Time: {tempo}",
   distanciaLabel: "Distance: {distancia}",
   ritmoLabel: "Pace: {ritmo}",
   intervaloLabel: "Rest: {intervalo}",
-  iniciar: "▶️ Start cardio"
+  milhasLabel: "Distance (miles): {milhas}",
+  iniciar: "Start cardio",
+  zonas: {
+    aria: "Training zones information",
+    fechar: "Close",
+    label: "Training zone: {zona}",
+    titulo: "Training Zones",
+    sub: "Zones show your workout intensity and help you progress safely.",
+    z1Titulo: "Zone 1 — Very light",
+    z1Texto: "Comfortable pace. Ideal for warm-up, recovery and aerobic base.",
+    z2Titulo: "Zone 2 — Light",
+    z2Texto: "Controlled breathing, you can still talk. Improves endurance and fat burn.",
+    z3Titulo: "Zone 3 — Moderate",
+    z3Texto: "Heavier breathing, talking is hard. Develops aerobic capacity.",
+    z4Titulo: "Zone 4 — Hard",
+    z4Texto: "Challenging pace, only a few words at a time. Increases speed and lactate threshold.",
+    z5Titulo: "Zone 5 — Very hard",
+    z5Texto: "Maximum or near-maximum effort. Trains power and explosiveness."
+  }
 },
   aquecimento: {
-    sugestao: "💨 Tip: prepare your body with conscious breathing before you start.",
-    btn: "🌬️ Open breathing protocols"
+    sugestao: "Tip: prepare your body with conscious breathing before you start.",
+    btn: "Open breathing protocols"
   },
 
   resfriamento: {
-    sugestao: "🌬️ Tip: finish your workout by slowing down with gentle breathing.",
-    btn: "💗 Do a closing breathing"
+    sugestao: "Tip: finish your workout by slowing down with gentle breathing.",
+    btn: "Do a closing breathing"
   }   
   },
 resp: {
@@ -906,43 +1287,43 @@ resp: {
   },
 series: {
   T: {
-    titulo: "🔗 Triset",
+    titulo: "Triset",
     texto: "Three exercises performed in sequence. Rest only after completing all."
   },
   B: {
-    titulo: "🔗 Biset",
+    titulo: "Biset",
     texto: "Two exercises performed in sequence. Rest only at the end."
   },
   Q: {
-    titulo: "🔗 Quadriset",
+    titulo: "Quadriset",
     texto: "Four exercises performed in sequence. Rest only after completing all."
   },
   C: {
-    titulo: "⏱️ Cluster",
+    titulo: "Cluster",
     texto: "Each set is divided into 4 mini-sets with 10-second pauses."
   },
   I: {
-    titulo: "🧊 Isometric",
+    titulo: "Isometric",
     texto: "Keep the muscle contracted for the entire execution time."
   },
   CC: {
-    titulo: "🐢 Controlled Tempo",
+    titulo: "Controlled Tempo",
     texto: "Slow and controlled eccentric phase."
   },
   D: {
-    titulo: "🔥 Dropset",
+    titulo: "Dropset",
     texto: "After failure, reduce load 3 consecutive times without rest."
   },
   RP: {
-    titulo: "⚡ Rest-Pause",
+    titulo: "Rest-Pause",
     texto: "On the last set, after failure, reduce load by 50% and perform 20 reps."
   },
   AE: {
-    titulo: "👑 Advanced Elite",
+    titulo: "Advanced Elite",
     texto: "Free execution, advanced technique and maximum stimulus."
   },
   SM: {
-    titulo: "🟢 Submaximal",
+    titulo: "Submaximal",
     texto: "Short rest intervals to emphasize the target muscle."
   }
 }
@@ -957,9 +1338,14 @@ fr: {
 
   geral: {
     loading: "Chargement…",
+    verifying: "Vérification…",
     preparing: "Préparation…",
     preparingPanel: "Préparation de votre tableau de bord…",
-    preparingProgram: "Préparation d’un nouveau programme…",
+    preparingProgram: "Préparation de votre nouveau programme…",
+    configuringCycle: "Configuration de votre cycle…",
+    loadingWorkout: "Chargement de l’entraînement…",
+    loadingQuestions: "Chargement des questions…",
+    redirectingToAnamnesis: "Redirection pour compléter votre anamnèse…",
     salvar: "Enregistrer",
     cancelar: "Annuler",
     voltar: "Retour",
@@ -971,9 +1357,13 @@ fr: {
     fechar: "Fermer",
     idioma: "Langue",
     sac: "J’ai besoin d’aide",
+    privacy: "Politique de confidentialité",
+    terms: "Conditions d’utilisation",
+    deleteAccount: "Supprimer le compte",
     ciclo: "Ajuster le cycle",
     respiracao: "Respiration",
     treinos: "Mon évolution",
+    trocarTreino: "Changer d’entraînement",
     nivel: "Changer de niveau",
     tema: "Thème",
     voltar: "Retour",
@@ -989,9 +1379,71 @@ fr: {
       tituloPersonal:  "Personal",
       tituloFollowMe:  "Entraînez-vous pendant 30 jours",
       followmeEmBreve: "Bientôt...",
+      bodyInsightReloginRequired: "Désolée, nous avons besoin que vous vous reconnectiez pour utiliser cette fonctionnalité.",
+      bodyInsightAuth: {
+        titulo: "Confirmez votre connexion",
+        subtitulo: "Pour accéder à Body Insight en toute sécurité, confirmez votre e-mail et mot de passe.",
+        email: "E-mail",
+        senha: "Mot de passe",
+        entrar: "Se connecter",
+        cancelar: "Annuler",
+        camposObrigatorios: "Renseignez l’e-mail et le mot de passe.",
+        emailDivergente: "Utilisez le même e-mail que votre compte FemFlow.",
+        loginInvalido: "E-mail ou mot de passe invalide. Réessayez.",
+        indisponivel: "Impossible de valider la connexion pour le moment.",
+        avisoSeguranca: "Désolée, nous devons confirmer votre connexion car nous traitons des données personnelles."
+      },
+      treinosSemana: {
+        titulo: "Combien de jours par semaine prévoyez-vous de vous entraîner ?",
+        subtitulo: "Cela nous aide à identifier correctement les jours de repos et les absences.",
+        opcao: "{n}x/semaine",
+        cancelar: "Pas maintenant",
+        salvar: "Enregistrer"
+      },
       tituloMuscular:  "Entraînements par groupe musculaire",
       tituloEsportes:  "Renforcement par le sport",
       tituloCasa:      "S'entraîner à la maison",
+      tituloPlanilhas30Dias: "Plans 30 jours",
+      tituloEbooks:    "Ebooks",
+      novoProgramaModal: {
+        titulo: "Voulez-vous vraiment démarrer un nouveau programme ?",
+        subtitulo: "En confirmant, votre programme actuel sera réinitialisé.",
+        notaPrefixo: "Pour reprendre votre entraînement, cliquez sur \"",
+        notaDestaque: "Continuez votre entraînement",
+        notaSufixo: "\".",
+        cancelar: "Non",
+        confirmar: "Oui, démarrer"
+      },
+      customTreino: {
+        titulo: "Créez votre entraînement",
+        subtitulo: "Créez un entraînement sur mesure aujourd’hui",
+        confirmarTexto: "Souhaitez-vous créer un nouvel entraînement ? Cela réinitialisera le jour du programme.",
+        confirmar: "Confirmer",
+        cancelar: "Annuler",
+        labels: {
+          aquecimento: "Échauffement",
+          musculo1: "Muscle 1",
+          musculo2: "Muscle 2",
+          musculo3: "Muscle 3",
+          resfriamento: "Retour au calme"
+        },
+        none: "Aucun",
+        options: {
+          aquecimento_superiores: "Échauffement haut du corps",
+          aquecimento_inferiores: "Échauffement bas du corps",
+          resfriamento_superiores: "Retour au calme haut du corps",
+          resfriamento_inferiores: "Retour au calme bas du corps",
+          mobilidade: "Mobilité",
+          biceps: "Biceps",
+          triceps: "Triceps",
+          ombro: "Épaules",
+          quadriceps: "Quadriceps",
+          posterior: "Ischio-jambiers",
+          peito: "Poitrine",
+          costas: "Dos",
+          gluteo: "Fessiers"
+        }
+      },
       cards: {
         forcaabc: "Force",
         quadriceps: "Quadriceps",
@@ -1029,10 +1481,12 @@ fr: {
 
   treino: "Entraînement",
   treinoExtra: "Entraînement extra",
+  treinoCustom: "Créez votre entraînement",
   evolucao: "Évolution",
   respiracao: "Respiration",
   endurance: "Endurance",
   proximoTreino: "Voir le prochain entraînement",
+  homeSwitch: "Accueil - changer d'entraînement",
 
   treinoExtraTitulo: "Entraînement extra",
   treinoExtraSub: "Choisissez la zone que vous souhaitez travailler aujourd’hui.",
@@ -1040,7 +1494,61 @@ fr: {
   treinoExtraInferior: "Bas du corps",
   treinoExtraAbdomem: "Abdos",
   treinoExtraMobilidade: "Mobilité",
-  treinoExtraFechar: "Fermer"
+  treinoExtraBiceps: "Biceps",
+  treinoExtraTriceps: "Triceps",
+  treinoExtraOmbro: "Épaules",
+  treinoExtraQuadriceps: "Quadriceps",
+  treinoExtraPosterior: "Ischio-jambiers",
+  treinoExtraPeito: "Poitrine",
+  treinoExtraCostas: "Dos",
+  treinoExtraGluteo: "Fessiers",
+  treinoExtraFechar: "Fermer",
+
+  enduranceModalTitulo: "Définissez votre Endurance",
+  enduranceModalSub: "Répondez pour que nous puissions personnaliser votre entraînement cardio.",
+  enduranceModalidadeLabel: "Quelle modalité ?",
+  enduranceModalidadePlaceholder: "Sélectionnez une modalité",
+  enduranceModalidadeGrupoCorrida: "Course",
+  enduranceModalidadeGrupoOutras: "Autres modalités",
+  enduranceOptCorrida: "Course (générale)",
+  enduranceOptCorrida5k: "Course 5 km",
+  enduranceOptCorrida10k: "Course 10 km",
+  enduranceOptCorrida15k: "Course 15 km",
+  enduranceOptCorrida21k: "Course 21 km",
+  enduranceOptCorrida42k: "Course 42 km",
+  enduranceOptNatacao: "Natation",
+  enduranceOptBike: "Vélo / Cyclisme",
+  enduranceOptRemo: "Rameur",
+  enduranceTreinosLabel: "Combien d'entraînements par semaine ?",
+  enduranceDiasLabel: "Quels jours de la semaine ?",
+  enduranceRitmoLabel: "Quel est votre rythme moyen ?",
+  enduranceRitmoInfo: "Minutes pour 100 m en natation, vitesse moyenne en vélo, allure en course.",
+  enduranceRitmoPlaceholder: "Ex : 2:10/100m, 25 km/h, 5:20 min/km",
+  enduranceCancelar: "Annuler",
+  enduranceSalvar: "Enregistrer et continuer",
+  enduranceSelecaoTitulo: "Choisissez votre session",
+  enduranceSelecaoSub: "Sélectionnez la semaine et le jour de l'entraînement que vous allez faire.",
+  enduranceSelecaoSemanaLabel: "Semaine",
+  enduranceSelecaoDiaLabel: "Jour",
+  enduranceSelecaoCancelar: "Annuler",
+  enduranceSelecaoContinuar: "Continuer",
+  enduranceBloqueado: "Sélectionnez votre plan d'entraînement Endurance sur l'accueil.",
+
+  caminhosEscolhaTitulo: "Choisissez votre entraînement",
+  caminhosUltimoTreino: "Votre dernier entraînement était Entraînement {caminho}",
+  caminhosSugerido: "Nous suggérons Entraînement {caminho}",
+  caminhosComparativo: "Comparatif → Nous suggérons Entraînement {caminho}",
+  caminhosFase: "Phase {fase}",
+  caminhosFasePersonalAtiva: "Plan Personal actif • Phase {fase}",
+  caminhosLabel: "Entraînement {caminho}",
+  caminhosErroCarregar: "Impossible de charger cet entraînement pour le moment.",
+  caminhosPreviewIndisponivel: "Aperçu indisponible pour le moment.",
+  caminhosEscolhaObrigatoria: "Choisissez un parcours pour commencer.",
+  caminhosPreviewTitulo: "Entraînement {caminho} — Phase {fase}",
+  caminhosNenhumExercicio: "Aucun exercice trouvé pour cet entraînement.",
+  caminhosFechar: "Fermer",
+  caminhosMudar: "Changer",
+  caminhosIniciar: "Commencer l’entraînement"
 },
 
   ciclo: {
@@ -1114,10 +1622,11 @@ fr: {
       costas: "Dos",
       gluteo: "Fessiers"
     },
-    btnSalvar: "💾 Enregistrer l’entraînement",
+    btnSalvar: "Enregistrer l’entraînement",
     btnCancelar: "Annuler",
     pseTitulo: "Comment était l'entraînement ?",
     pseLabel: "PSE (0 à 10)",
+    pseHint: "Le PSE est votre perception de l'effort pendant l'entraînement (0 = très facile, 10 = maximal).",
     pseSalvar: "Enregistrer",
     pseCancelar: "Annuler",
     proximoModal: {
@@ -1150,27 +1659,49 @@ fr: {
 },
     cardio: {
   descricao:
-    "Complétez {series} série(s) de {tempo} avec {intervalo} de repos. Gardez un rythme confortable.",
+    "Complétez {series} série(s) de {tempo} avec {intervalo} de repos. Gardez un rythme régulier.",
   descricaoRitmo:
-    "Complétez {series} série(s) de {tempo} avec {intervalo} de repos. Gardez un rythme confortable de {ritmo}.",
+    "Complétez {series} série(s) de {tempo} avec {intervalo} de repos. Gardez un rythme de {ritmo}.",
   fallbackTempo: "30 min",
   fallback:
     "Utilise ce cardio comme une indication générale et ajuste le rythme selon ton objectif et ta condition physique.",
+  descricaoZona:
+    "Réalisez l'entraînement dans la zone cible {zona}. Ajustez l'allure, l'inclinaison et la cadence pour rester dans l'intensité prévue.",
   seriesLabel: "Séries : {series}",
+  zonaLabel: "Zone : {zona}",
+  zonaTreinoLabel: "Training zone: {zona}",
   tempoOnlyLabel: "Temps : {tempo}",
   distanciaLabel: "Distance : {distancia}",
   ritmoLabel: "Rythme : {ritmo}",
   intervaloLabel: "Repos : {intervalo}",
-  iniciar: "▶️ Démarrer le cardio"
+  milhasLabel: "Distance (miles) : {milhas}",
+  iniciar: "Démarrer le cardio",
+  zonas: {
+    aria: "Informations sur les zones d'entraînement",
+    fechar: "Fermer",
+    label: "Zone d'entraînement : {zona}",
+    titulo: "Zones d'entraînement",
+    sub: "Les zones indiquent l'intensité de votre entraînement et vous aident à progresser en sécurité.",
+    z1Titulo: "Zone 1 — Très légère",
+    z1Texto: "Rythme confortable. Idéal pour l'échauffement, la récupération et la base aérobie.",
+    z2Titulo: "Zone 2 — Légère",
+    z2Texto: "Respiration contrôlée, vous pouvez encore parler. Améliore l'endurance et la combustion des graisses.",
+    z3Titulo: "Zone 3 — Modérée",
+    z3Texto: "Respiration plus intense, conversation difficile. Développe la capacité aérobie.",
+    z4Titulo: "Zone 4 — Forte",
+    z4Texto: "Rythme exigeant, quelques mots à la fois. Augmente la vitesse et le seuil lactique.",
+    z5Titulo: "Zone 5 — Très forte",
+    z5Texto: "Effort maximal ou quasi maximal. Travaille la puissance et l'explosivité."
+  }
 },
    aquecimento: {
-    sugestao: "💨 Astuce : prépare ton corps avec une respiration consciente avant de commencer.",
-    btn: "🌬️ Ouvrir les protocoles de respiration"
+    sugestao: "Astuce : prépare ton corps avec une respiration consciente avant de commencer.",
+    btn: "Ouvrir les protocoles de respiration"
   },
 
   resfriamento: {
-    sugestao: "🌬️ Astuce : termine ton entraînement en ralentissant avec une respiration douce.",
-    btn: "💗 Faire une respiration de fin"
+    sugestao: "Astuce : termine ton entraînement en ralentissant avec une respiration douce.",
+    btn: "Faire une respiration de fin"
   }   
  
   },
@@ -1232,49 +1763,76 @@ resp: {
   },
   series: {
   T: {
-    titulo: "🔗 Triset",
+    titulo: "Triset",
     texto: "Trois exercices enchaînés. Repos uniquement à la fin."
   },
   B: {
-    titulo: "🔗 Biset",
+    titulo: "Biset",
     texto: "Deux exercices enchaînés. Repos uniquement à la fin."
   },
   Q: {
-    titulo: "🔗 Quadriset",
+    titulo: "Quadriset",
     texto: "Quatre exercices enchaînés. Repos uniquement à la fin."
   },
   C: {
-    titulo: "⏱️ Cluster",
+    titulo: "Cluster",
     texto: "Chaque série est divisée en 4 mini-séries avec 10 secondes de pause."
   },
   I: {
-    titulo: "🧊 Isométrie",
+    titulo: "Isométrie",
     texto: "Gardez le muscle contracté pendant toute la durée d'exécution."
   },
   CC: {
-    titulo: "🐢 Cadence contrôlée",
+    titulo: "Cadence contrôlée",
     texto: "Phase excentrique lente et contrôlée."
   },
   D: {
-    titulo: "🔥 Dropset",
+    titulo: "Dropset",
     texto: "Après l’échec, réduisez la charge 3 fois sans repos."
   },
   RP: {
-    titulo: "⚡ Rest-Pause",
+    titulo: "Rest-Pause",
     texto: "À la dernière série, après l’échec, réduisez la charge de 50 % et effectuez 20 répétitions."
   },
   AE: {
-    titulo: "👑 Advanced Elite",
+    titulo: "Advanced Elite",
     texto: "Exécution libre, technique avancée et stimulus maximal."
   },
   SM: {
-    titulo: "🟢 Submaximale",
+    titulo: "Submaximale",
     texto: "Repos courts pour stimuler le muscle ciblé."
   }
 }
  }
 
 
+};
+
+/* ============================================================
+   🧍 BODY INSIGHT (strings específicas da página)
+============================================================ */
+FEMFLOW.langs.pt.bodyInsight = {
+  helpTrigger: "i",
+  waistHelpText: "Meça a parte mais fina do abdômen, após soltar o ar.",
+  hipHelpText: "Meça na parte mais larga do quadril/glúteos, fita reta.",
+  waistHelpAria: "Como medir a cintura",
+  hipHelpAria: "Como medir o quadril"
+};
+
+FEMFLOW.langs.en.bodyInsight = {
+  helpTrigger: "info",
+  waistHelpText: "Measure the narrowest point of your waist after exhaling.",
+  hipHelpText: "Measure around the widest part of your hips/glutes with the tape level.",
+  waistHelpAria: "How to measure the waist",
+  hipHelpAria: "How to measure the hips"
+};
+
+FEMFLOW.langs.fr.bodyInsight = {
+  helpTrigger: "info",
+  waistHelpText: "Mesurez la partie la plus fine de la taille après avoir expiré.",
+  hipHelpText: "Mesurez la partie la plus large des hanches/fessiers avec le ruban bien droit.",
+  waistHelpAria: "Comment mesurer la taille",
+  hipHelpAria: "Comment mesurer les hanches"
 };
 
 /* ============================================================

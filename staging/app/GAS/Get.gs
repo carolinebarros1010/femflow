@@ -1,0 +1,308 @@
+function doGet(e) {
+  const params = e && e.parameter ? e.parameter : {};
+  const action = String(params.action || "").toLowerCase().trim();
+  const admin  = String(params.admin || "").toLowerCase().trim();
+
+  /* ============================
+     🔔 PAINEL ADMIN — NOTIFICAÇÕES
+  ============================ */
+  if (admin === "notifications") {
+    return HtmlService
+      .createHtmlOutputFromFile("admin-notificacoes")
+      .setTitle("FemFlow • Admin de Notificações")
+        }
+  
+  if (params.action === "bootstrap_admin") {
+  return _json(__bootstrapAdmin__());
+}
+     if (!action) {
+    if (params.id) {
+      // NOVO PADRÃO: carregar backend completo do app
+      // (mantém compatibilidade pois sync já calcula fase/dia/treino)
+      return _json(sync(params.id));
+    }
+
+    // GETs vazios (preload, health check, cache, etc)
+     const ENV = (PropertiesService.getScriptProperties().getProperty("ENV") || "staging").toLowerCase();
+  return _json({ status: "ok", noop: true, env: ENV });
+}
+
+  if (action === "upgrade") {
+    return _json(legacyUpgrade_(params.id, params.nivel, "GET", params.token, params.platform));
+  }
+
+
+  if (action === "validar") {
+    return _json(_validarPerfil_(params));
+  }
+
+  if (action === "sync") {
+    return _json(sync(params.id));
+  }
+
+  if (action === "admin_list_alunas") {
+    return _json(adminListAlunas_(params));
+  }
+
+  if (action === "admin_get_aluna") {
+    return _json(adminGetAluna_(params));
+  }
+
+  if (action === "list_notifications") {
+    return _json({ notifications: listNotifications_() });
+  }
+
+  if (action === "entitlements_status") {
+    return _json(entitlementsStatus_(params));
+  }
+
+  return _json({ status: "ignored", msg: "unknown_action", action });
+}
+
+function _parseBooleanish_(value) {
+  if (typeof value === "boolean") return value;
+  if (value == null) return false;
+  const normalized = String(value).trim().toLowerCase();
+  return ["true", "1", "yes", "sim", "y"].includes(normalized);
+}
+
+function _parseFreeEnfases_(raw) {
+  if (!raw) return [];
+  if (Array.isArray(raw)) {
+    return raw.map(item => String(item || "").toLowerCase().trim()).filter(Boolean);
+  }
+
+  return String(raw)
+    .split(/[,\n;|]+/)
+    .map(item => item.trim().toLowerCase())
+    .filter(Boolean);
+}
+
+function _parseFreeUntil_(raw) {
+  if (!raw) return null;
+  if (raw instanceof Date && !isNaN(raw.getTime())) {
+    return Utilities.formatDate(raw, "GMT", "yyyy-MM-dd");
+  }
+
+  const text = String(raw).trim();
+  if (!text) return null;
+
+  const match = text.match(/^(\d{1,2})\/(\d{1,2})\/(\d{4})$/);
+  if (match) {
+    const [, dd, mm, yyyy] = match;
+    return `${yyyy}-${mm.padStart(2, "0")}-${dd.padStart(2, "0")}`;
+  }
+
+  return text;
+}
+
+function _buildFreeAccess_(row) {
+  const enabledRaw = row[COL_FREE_ENABLED];
+  const enfasesRaw = row[COL_FREE_ENFASES];
+  const untilRaw = row[COL_FREE_UNTIL];
+
+  if (enabledRaw == null && enfasesRaw == null && untilRaw == null) {
+    return null;
+  }
+
+  return {
+    enabled: _parseBooleanish_(enabledRaw),
+    enfases: _parseFreeEnfases_(enfasesRaw),
+    until: _parseFreeUntil_(untilRaw)
+  };
+}
+
+
+function _getDeleteRequestedCopyByLang_(langRaw) {
+  const lang = String(langRaw || "pt").slice(0, 2).toLowerCase();
+  const copy = {
+    pt: "Você solicitou exclusão da sua conta. Para reverter, contate: femflow.consultoria@gmail.com",
+    en: "You requested account deletion. To revert, contact: femflow.consultoria@gmail.com",
+    fr: "Vous avez demandé la suppression du compte. Pour annuler, contactez : femflow.consultoria@gmail.com"
+  };
+  return copy[lang] || copy.pt;
+}
+
+function _validarPerfil_(params) {
+  const sh = _sheet(SHEET_ALUNAS);
+  if (!sh) return { status: "error", msg: "sheet_not_found" };
+
+  const id = String(params.id || "").trim();
+  const email = String(params.email || "").toLowerCase().trim();
+  if (!id && !email) return { status: "error", msg: "missing_id" };
+
+  _ensureIapColumns_(sh);
+  const header = sh.getRange(1, 1, 1, sh.getLastColumn()).getValues()[0];
+  const headerMap = {
+    Produto: header.indexOf("Produto"),
+    LicencaAtiva: header.indexOf("LicencaAtiva"),
+    acesso_personal: header.indexOf("acesso_personal"),
+    IapSource: header.indexOf("IapSource"),
+    IapExpiresAt: header.indexOf("IapExpiresAt"),
+    IapPlan: header.indexOf("IapPlan")
+  };
+
+  if (headerMap.Produto < 0 || headerMap.LicencaAtiva < 0 || headerMap.acesso_personal < 0) {
+    return { status: "error", msg: "missing_required_columns" };
+  }
+
+  const rows = sh.getDataRange().getValues();
+
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i];
+    const rowId = String(row[0] || "").trim();
+    const rowEmail = String(row[2] || "").toLowerCase().trim();
+
+    if ((id && rowId === id) || (email && rowEmail === email)) {
+      const statusConta = String(row[COL_STATUS_CONTA] || "ativa").toLowerCase().trim() || "ativa";
+      if (statusConta === "delete_requested" || statusConta === "pendente_exclusao") {
+        const lang = String(params.lang || params.locale || "pt").slice(0, 2).toLowerCase();
+        return {
+          status: "blocked",
+          reason: "delete_requested",
+          isActive: false,
+          acesso_app: false,
+          modo_personal: false,
+          entitlementStatus: "blocked",
+          source: "unknown",
+          provider: "internal",
+          platform: "cross_platform",
+          plan: "access",
+          expiresAt: "",
+          sourceOfTruth: "server",
+          accountStatus: "delete_requested",
+          deleteRequestedAt: row[COL_DELETE_REQUESTED_AT] || "",
+          messageLocalized: _getDeleteRequestedCopyByLang_(lang),
+          supportEmail: "femflow.consultoria@gmail.com"
+        };
+      }
+      if (statusConta !== "ativa") {
+        return {
+          status: "blocked",
+          isActive: false,
+          acesso_app: false,
+          modo_personal: false,
+          entitlementStatus: "blocked",
+          source: "unknown",
+          provider: "internal",
+          platform: "cross_platform",
+          plan: "access",
+          expiresAt: "",
+          sourceOfTruth: "server"
+        };
+      }
+
+      const syncResult = id ? sync(rowId) : null;
+      const faseSync = syncResult && syncResult.status === "ok" ? syncResult.fase : row[13];
+      const diaCicloSync = syncResult && syncResult.status === "ok" ? syncResult.diaCiclo : row[14];
+
+      const produtoRaw = String(row[5] || "").toLowerCase().trim();
+      if (produtoRaw === "exclusao_solicitada") {
+        return {
+          status: "blocked",
+          produto: "exclusao_solicitada",
+          isActive: false,
+          acesso_app: false,
+          modo_personal: false,
+          entitlementStatus: "blocked",
+          source: "unknown",
+          provider: "internal",
+          platform: "cross_platform",
+          plan: "access",
+          expiresAt: "",
+          sourceOfTruth: "server"
+        };
+      }
+
+      const freeAccess = _buildFreeAccess_(row);
+      const unified = _computeUnifiedAccessState_(row, headerMap);
+      const entitlements = unified.entitlements;
+      const ativa = unified.ativa;
+      if (ativa !== !!entitlements.acesso_app) {
+        console.log("[ENTITLEMENT][inconsistency]" + JSON.stringify({
+          userId: rowId,
+          result: "warning",
+          reason: "ativa_differs_from_acesso_app",
+          ativa: ativa,
+          acesso_app: !!entitlements.acesso_app,
+          source: entitlements.source,
+          plan: entitlements.plan
+        }));
+      }
+
+      return {
+        perfilHormonal: _normalizarPerfilHormonal_(row[COL_PERFIL_HORMONAL] || "") || "regular",
+        status: "ok",
+        id: rowId,
+        nome: row[1] || "",
+        email: rowEmail,
+        produto: row[5] || "",
+        isActive: ativa,
+        ativa,
+        acesso_app: ativa,
+        modo_personal: entitlements.modo_personal,
+        entitlementStatus: entitlements.status,
+        expiresAt: entitlements.expiresAt,
+        source: entitlements.source,
+        provider: entitlements.provider || (entitlements.source === "apple_iap" ? "apple_iap" : (entitlements.source === "hotmart" ? "hotmart" : "internal")),
+        platform: entitlements.platform || (entitlements.source === "apple_iap" ? "ios" : "cross_platform"),
+        plan: entitlements.plan,
+        sourceOfTruth: "server",
+        nivel: String(row[8] || "iniciante").toLowerCase(),
+        enfase: String(row[12] || "nenhuma").toLowerCase(),
+        fase: String(faseSync || "follicular").toLowerCase(),
+        ultimaFase: String(faseSync || "follicular").toLowerCase(),
+        diaCiclo: Number(diaCicloSync || 1),
+        ultimoCaminho: Number(row[COL_ULTIMO_CAMINHO] || 0) || null,
+        ultimoCaminhoData: row[COL_ULTIMO_CAMINHO_DATA] || "",
+        ciclo_duracao: Number(row[9] || 28),
+        data_inicio: row[10] || "",
+        diaPrograma: Number(row[COL_DIA_PROGRAMA] || 1),
+        dataInicioPrograma: row[COL_DATA_INICIO_PROGRAMA] || "",
+        novo_treino_endurance: row[COL_NOVO_TREINO_ENDURANCE] || "",
+        acessos: {
+          personal: entitlements.modo_personal
+        },
+        free_access: freeAccess,
+        FreeEnabled: row[COL_FREE_ENABLED],
+        FreeEnfases: row[COL_FREE_ENFASES],
+        FreeUntil: row[COL_FREE_UNTIL]
+      };
+    }
+  }
+
+  return {
+    status: "notfound",
+    isActive: false,
+    acesso_app: false,
+    modo_personal: false,
+    entitlementStatus: "notfound",
+    source: "unknown",
+    provider: "internal",
+    platform: "cross_platform",
+    plan: "access",
+    expiresAt: "",
+    sourceOfTruth: "server"
+  };
+}
+
+function getEndurancePlanToken_(params) {
+  const sh = _sheet(SHEET_ALUNAS);
+  if (!sh) return { status: "error", msg: "sheet_not_found" };
+
+  const id = String(params?.id || "").trim();
+  const email = String(params?.email || "").toLowerCase().trim();
+  if (!id && !email) return { status: "error", msg: "missing_id" };
+
+  const rows = sh.getDataRange().getValues();
+  for (let i = 1; i < rows.length; i++) {
+    const row = rows[i];
+    const rowId = String(row[0] || "").trim();
+    const rowEmail = String(row[2] || "").toLowerCase().trim();
+    if ((id && rowId === id) || (email && rowEmail === email)) {
+      return { status: "ok", token: row[COL_NOVO_TREINO_ENDURANCE] || "" };
+    }
+  }
+
+  return { status: "notfound", token: "" };
+}

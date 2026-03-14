@@ -8,8 +8,8 @@
   "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
-  "theme_color": "#335953",
-  "background_color": "#FCE3D5",
+  "theme_color": "#fbf2ee",
+  "background_color": "#fbf2ee",
   "categories": ["health", "fitness", "education", "lifestyle"],
   "icons": [
     {
@@ -35,13 +35,13 @@
     {
       "src": "assets/screenshots/femflow-home.png",
       "sizes": "1080x1920",
-      "type": "image/webp",
+      "type": "image/png",
       "form_factor": "narrow"
     },
     {
       "src": "assets/screenshots/femflow-dashboard.png",
       "sizes": "1920x1080",
-      "type": "image/webp",
+      "type": "image/png",
       "form_factor": "wide"
     }
   ],

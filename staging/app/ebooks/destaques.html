@@ -20,13 +20,11 @@
       overflow-x: hidden;
     }
 
-    /* ====== CONTAINER ====== */
     .carrossel-container {
       position: relative;
       padding: 0 2.5rem;
     }
 
-    /* ====== FAIXA ====== */
     .faixa-ebooks {
       display: flex;
       gap: 1rem;
@@ -38,7 +36,6 @@
     }
     .faixa-ebooks::-webkit-scrollbar { display: none; }
 
-    /* ====== CARD ====== */
     .card {
       flex: 0 0 auto;
       width: 180px;
@@ -72,30 +69,9 @@
     .price {
       font-weight: 600;
       color: var(--texto);
-      margin-bottom: 0.4rem;
-      font-size: 0.95rem;
+      font-size: 0.9rem;
     }
 
-    .cta {
-      display: inline-block;
-      background: rgba(255,255,255,0.25);
-      border: 1px solid var(--borda);
-      border-radius: 10px;
-      padding: 0.4rem 0.8rem;
-      text-decoration: none;
-      color: var(--texto);
-      font-weight: 600;
-      font-size: 0.85rem;
-      transition: all 0.3s ease;
-    }
-
-    .cta:hover {
-      background: #fff;
-      transform: translateY(-2px);
-      box-shadow: 0 6px 16px rgba(0,0,0,0.1);
-    }
-
-    /* ====== ANIMAÇÃO ====== */
     @keyframes fadeUp {
       0% { opacity: 0; transform: translateY(20px); }
       60% { opacity: 1; transform: translateY(-3px); }
@@ -109,7 +85,6 @@
     .card:nth-child(6) { animation-delay: 0.6s; }
     .card:nth-child(7) { animation-delay: 0.7s; }
 
-    /* ====== SETAS ====== */
     .arrow {
       position: absolute;
       top: 50%;
@@ -140,13 +115,6 @@
       pointer-events: auto;
     }
 
-    .arrow:hover {
-      background: #fff;
-      transform: translateY(-50%) scale(1.1);
-      box-shadow: 0 6px 16px rgba(0,0,0,0.15);
-    }
-
-    /* ====== RESPONSIVO ====== */
     @media (max-width: 600px) {
       .card { width: 140px; }
       .arrow { width: 36px; height: 36px; font-size: 1.6rem; }
@@ -161,58 +129,37 @@
     <div class="faixa-ebooks" id="destaque">
       <article class="card">
         <div class="cover"><img src="./capahipopressivos.png" alt="Exercícios Hipopressivos"></div>
-        <div class="meta">
-          <div class="price"><small>R$</small> 19,90</div>
-          <a class="cta" href="#" onclick="return goCadastro('https://pay.hotmart.com/N102180089S','hipopressivos','premium')">Comprar</a>
-        </div>
+        <div class="meta"><div class="price">Disponível no app FemFlow</div></div>
       </article>
 
       <article class="card">
         <div class="cover"><img src="./capafemflow15.png" alt="FemFlow 15 Dias"></div>
-        <div class="meta">
-          <div class="price"><small>R$</small> 39,90</div>
-          <a class="cta" href="#" onclick="return goCadastro('https://pay.hotmart.com/O102103923F','femflow15','premium')">Comprar</a>
-        </div>
+        <div class="meta"><div class="price">Disponível no app FemFlow</div></div>
       </article>
 
       <article class="card">
         <div class="cover"><img src="./capatpmzem.png" alt="Protocolo Respiração Consciente TPM"></div>
-        <div class="meta">
-          <div class="price"><small>R$</small> 0,00</div>
-          <a class="cta" href="#" onclick="return goCadastro('downloads/protocolo_tpm_zen.pdf','tpmzen','download')">Baixar</a>
-        </div>
+        <div class="meta"><div class="price">Disponível no app FemFlow</div></div>
       </article>
 
       <article class="card">
         <div class="cover"><img src="./capaaguaequilibrio.png" alt="Guia Essencial Hidratação"></div>
-        <div class="meta">
-          <div class="price"><small>R$</small> 9,90</div>
-          <a class="cta" href="#" onclick="return goCadastro('https://pay.hotmart.com/E102161861P','aguaequilibrio','premium')">Comprar</a>
-        </div>
+        <div class="meta"><div class="price">Disponível no app FemFlow</div></div>
       </article>
 
       <article class="card">
         <div class="cover"><img src="./capafemflow4semanas.png" alt="FemFlow 4 Semanas"></div>
-        <div class="meta">
-          <div class="price"><small>R$</small> 99,90</div>
-          <a class="cta" href="#" onclick="return goCadastro('https://pay.hotmart.com/T102397575W','femflow4','premium')">Comprar</a>
-        </div>
+        <div class="meta"><div class="price">Disponível no app FemFlow</div></div>
       </article>
 
       <article class="card">
         <div class="cover"><img src="./capaefeitoEPOC.png" alt="Efeito EPOC"></div>
-        <div class="meta">
-          <div class="price"><small>R$</small> 0,00</div>
-          <a class="cta" href="#" onclick="return goCadastro('downloads/efeito_epoc.pdf','epoc','download')">Baixar</a>
-        </div>
+        <div class="meta"><div class="price">Disponível no app FemFlow</div></div>
       </article>
 
       <article class="card">
         <div class="cover"><img src="./placeholder.png" alt="Nutrição alinhada com o ciclo hormonal"></div>
-        <div class="meta">
-          <div class="price"><small>R$</small> 0,00</div>
-          <a class="cta" href="#" onclick="return goCadastro('downloads/nutricao_ciclo_hormonal.pdf','nutricao','download')">Baixar</a>
-        </div>
+        <div class="meta"><div class="price">Disponível no app FemFlow</div></div>
       </article>
     </div>
 
@@ -223,14 +170,6 @@
     const faixa = document.querySelector('.faixa-ebooks');
     document.getElementById('next').onclick = () => faixa.scrollBy({ left: 400, behavior: 'smooth' });
     document.getElementById('prev').onclick = () => faixa.scrollBy({ left: -400, behavior: 'smooth' });
-
-    function goCadastro(url, ebook, tipo) {
-      localStorage.setItem('ebook', ebook);
-      localStorage.setItem('tipo', tipo);
-      window.open(url, '_blank');
-      return false;
-    }
   </script>
 </body>
 </html>
-

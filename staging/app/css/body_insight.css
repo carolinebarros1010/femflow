@@ -1,0 +1,354 @@
+:root {
+  --bi-teal-deep: #335953;
+  --bi-teal-mid: #3f6c65;
+  --bi-terracotta: #cc6a5a;
+  --bi-peach: #efbda6;
+  --bi-text: #2a2d2c;
+  --bi-border: rgba(51, 89, 83, 0.2);
+  --bi-card: rgba(255, 255, 255, 0.66);
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  font-family: 'Lato', Arial, sans-serif;
+  color: var(--bi-text);
+  background: linear-gradient(180deg, #fce3d5 0%, #efbda6 100%);
+  padding: 76px 16px 16px;
+}
+
+.bi-header {
+  max-width: 920px;
+  margin: 0 auto 16px;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.bi-header h1 {
+  margin: 0;
+  font-family: 'Playfair Display', serif;
+  font-size: 1.8rem;
+}
+
+.bi-subtitle {
+  margin: 4px 0 0;
+  opacity: 0.85;
+}
+
+.bi-back-btn {
+  border: 0;
+  border-radius: 999px;
+  padding: 10px 14px;
+  font-weight: 700;
+  color: #2f211b;
+  background: linear-gradient(180deg, var(--bi-peach), var(--bi-terracotta));
+  cursor: pointer;
+}
+
+.bi-main {
+  max-width: 920px;
+  margin: 0 auto;
+  display: grid;
+  gap: 14px;
+}
+
+.bi-main.bi-locked {
+  opacity: 0.72;
+  pointer-events: none;
+}
+
+.bi-auth-warning {
+  margin: 0;
+  border: 1px solid var(--bi-border);
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.7);
+  padding: 10px 12px;
+}
+
+.bi-scan-container {
+  position: relative;
+  border-radius: 18px;
+  overflow: hidden;
+  border: 1px solid rgba(204, 106, 90, 0.28);
+  min-height: 340px;
+  background: linear-gradient(160deg, rgba(244, 225, 215, 0.96), rgba(239, 189, 166, 0.85));
+}
+
+.bi-preview-grid {
+  width: 100%;
+  height: 100%;
+  min-height: 340px;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 6px;
+  padding: 6px;
+}
+
+.bi-preview-slot {
+  position: relative;
+  border-radius: 14px;
+  border: 1px solid rgba(51, 89, 83, 0.18);
+  overflow: hidden;
+  background: rgba(255, 255, 255, 0.5);
+}
+
+.bi-preview-slot img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  filter: saturate(0.92) brightness(0.92);
+}
+
+.bi-preview-label {
+  position: absolute;
+  left: 10px;
+  bottom: 10px;
+  z-index: 2;
+  font-size: 0.84rem;
+  border-radius: 999px;
+  padding: 4px 10px;
+  color: #fff;
+  background: rgba(51, 89, 83, 0.78);
+}
+
+.bi-overlay {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: linear-gradient(180deg, rgba(204, 106, 90, 0.12), rgba(51, 89, 83, 0.18));
+}
+
+.bi-scan-line {
+  position: absolute;
+  left: 0;
+  right: 0;
+  top: -8px;
+  height: 5px;
+  opacity: 0;
+  pointer-events: none;
+  background: linear-gradient(90deg, rgba(204, 106, 90, 0), rgba(204, 106, 90, 0.9), rgba(204, 106, 90, 0));
+}
+
+.scanning .bi-scan-line {
+  opacity: 1;
+  animation: biScanMove 2.4s ease-in-out infinite;
+}
+
+.bi-scan-text {
+  position: absolute;
+  inset: auto 0 14px;
+  margin: 0;
+  z-index: 3;
+  text-align: center;
+  font-weight: 700;
+  color: var(--bi-teal-deep);
+  text-shadow: 0 1px 8px rgba(0, 0, 0, 0.45);
+}
+
+.bi-form-wrapper {
+  border-radius: 18px;
+  border: 1px solid var(--bi-border);
+  background: var(--bi-card);
+  box-shadow: 0 8px 24px rgba(51, 89, 83, 0.12);
+  padding: 14px;
+}
+
+.bi-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+}
+
+.bi-form label {
+  font-size: 0.92rem;
+}
+
+.bi-label-row {
+  position: relative;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+}
+
+.bi-help-trigger {
+  width: 20px;
+  height: 20px;
+  border: 1px solid rgba(51, 89, 83, 0.45);
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.8);
+  color: var(--bi-teal-deep);
+  font-size: 0.8rem;
+  font-weight: 700;
+  line-height: 1;
+  cursor: help;
+}
+
+.bi-help-tooltip {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+.bi-help-tooltip p {
+  margin: 0 0 6px;
+  font-size: 0.76rem;
+  line-height: 1.3;
+}
+
+.bi-help-modal {
+  position: fixed;
+  inset: 0;
+  z-index: 80;
+  display: grid;
+  place-items: center;
+}
+
+.bi-help-modal.hidden {
+  display: none;
+}
+
+.bi-help-modal__backdrop {
+  position: absolute;
+  inset: 0;
+  background: rgba(23, 23, 23, 0.4);
+}
+
+.bi-help-modal__dialog {
+  position: relative;
+  width: min(360px, calc(100vw - 28px));
+  border-radius: 16px;
+  border: 1px solid var(--bi-border);
+  background: #fff;
+  box-shadow: 0 12px 30px rgba(18, 35, 32, 0.24);
+  padding: 18px 16px 14px;
+}
+
+.bi-help-modal__close {
+  position: absolute;
+  top: 6px;
+  right: 8px;
+  width: 32px;
+  height: 32px;
+  border: 0;
+  border-radius: 50%;
+  background: transparent;
+  color: var(--bi-teal-deep);
+  font-size: 1.5rem;
+  line-height: 1;
+  cursor: pointer;
+}
+
+.bi-help-modal__dialog h2 {
+  margin: 0 20px 8px 0;
+  font-size: 1rem;
+}
+
+.bi-help-modal__dialog p {
+  margin: 0;
+  font-size: 0.87rem;
+  line-height: 1.35;
+}
+
+.bi-help-modal__figure {
+  margin-top: 10px;
+  min-height: 112px;
+  display: grid;
+  place-items: center;
+}
+
+.bi-help-modal__figure svg {
+  width: 110px;
+  height: 132px;
+}
+
+.bi-form input,
+#bi-calc-btn {
+  width: 100%;
+  border-radius: 12px;
+  border: 1px solid var(--bi-border);
+  padding: 10px;
+  font-size: 0.96rem;
+}
+
+.bi-form input {
+  color: var(--bi-text);
+  background: rgba(255, 255, 255, 0.82);
+}
+
+#bi-calc-btn {
+  grid-column: 1 / -1;
+  border: none;
+  cursor: pointer;
+  font-weight: 700;
+  color: #2f211b;
+  background: linear-gradient(180deg, var(--bi-peach), var(--bi-terracotta));
+}
+
+#bi-calc-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.bi-results {
+  margin-top: 12px;
+  min-height: 70px;
+  padding: 10px;
+  border-radius: 12px;
+  border: 1px dashed var(--bi-border);
+  background: rgba(255, 255, 255, 0.75);
+}
+
+.bi-indice-grande {
+  margin: 8px 0;
+  text-align: center;
+  font-size: 54px;
+  font-weight: 700;
+}
+
+.bi-fade-in {
+  animation: biFadeIn 0.38s ease;
+}
+
+.hidden {
+  display: none;
+}
+
+@keyframes biScanMove {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(170px); }
+  100% { transform: translateY(340px); }
+}
+
+@keyframes biFadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+@media (max-width: 720px) {
+  .bi-form,
+  .bi-preview-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .bi-scan-container,
+  .bi-preview-grid {
+    min-height: 400px;
+  }
+
+  @keyframes biScanMove {
+    0% { transform: translateY(0); }
+    50% { transform: translateY(200px); }
+    100% { transform: translateY(400px); }
+  }
+}

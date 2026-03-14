@@ -50,6 +50,63 @@ FEMFLOW.engineTreino.normalizarEnfaseEndurance = raw => {
     .toLowerCase();
 };
 
+FEMFLOW.engineTreino.normalizeEndurancePersonalModalidade = value => {
+  const modalidade = String(value || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase()
+    .replace(/\s+/g, "_");
+
+  const whitelist = ["corrida", "bike", "natacao", "remo"];
+  if (!whitelist.includes(modalidade)) {
+    console.warn("[ENDURANCE][PERSONAL] modalidade inválida, fallback corrida:", value);
+    return "corrida";
+  }
+
+  return modalidade;
+};
+
+FEMFLOW.engineTreino.ESTIMULOS_ENDURANCE_OFICIAIS = [
+  "volume",
+  "ritmo",
+  "vel_pura",
+  "res_vel",
+  "limiar"
+];
+
+FEMFLOW.engineTreino.normalizarEstimuloEndurance = raw => {
+  return String(raw || "")
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .trim()
+    .toLowerCase();
+};
+
+FEMFLOW.engineTreino.resolverModalidadesEndurancePublic = raw => {
+  const modalidadeNorm = FEMFLOW.engineTreino.normalizarEnfaseEndurance(raw);
+  if (!modalidadeNorm) return [];
+
+  const canonicalIds = [
+    "bike_20000m",
+    "bike_40000m",
+    "corrida_5k",
+    "corrida_10k",
+    "corrida_15k",
+    "corrida_21k",
+    "corrida_42k",
+    "natacao_750m",
+    "natacao_1500m",
+    "natacao_2000m"
+  ];
+
+  const base = modalidadeNorm.startsWith("planilha_")
+    ? modalidadeNorm.replace(/^planilha_/, "")
+    : modalidadeNorm;
+
+  return canonicalIds.includes(base) ? [base] : [];
+};
+
 FEMFLOW.engineTreino.selecionarTitulo = bloco => {
   const lang = FEMFLOW.lang || "pt";
   const key = `titulo_${lang}`;
@@ -351,10 +408,26 @@ FEMFLOW.engineTreino.carregarBlocosEndurance = async ({
     uid: authUid
   });
 
-  const enfaseNorm = FEMFLOW.engineTreino.normalizarEnfaseEndurance(enfase);
+  const enduranceMode = String(localStorage.getItem("femflow_endurance_mode") || "normal").toLowerCase();
+  let enfaseNorm = "";
+
+  if (enduranceMode === "personal") {
+    enfaseNorm = FEMFLOW.engineTreino.normalizeEndurancePersonalModalidade(
+      localStorage.getItem("femflow_endurance_modalidade")
+    );
+    console.log("[ENDURANCE][PERSONAL] modalidade usada:", enfaseNorm);
+  } else {
+    enfaseNorm = FEMFLOW.engineTreino.normalizarEnfaseEndurance(enfase);
+  }
 
   if (!id || !enfaseNorm) {
-    console.error("❌ Dados inválidos para consulta Endurance:", { id, enfase });
+    console.error("❌ Dados inválidos para consulta Endurance:", {
+      id,
+      enduranceMode,
+      enfaseParam: enfase,
+      modalidadeLS: localStorage.getItem("femflow_endurance_modalidade"),
+      enfaseNorm
+    });
     return [];
   }
 
@@ -365,10 +438,10 @@ FEMFLOW.engineTreino.carregarBlocosEndurance = async ({
   }
 
   const diaNorm = String(dia || "")
-    .toLowerCase()
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
     .trim()
-    .replace("terça", "terca")
-    .replace("sábado", "sabado");
+    .toLowerCase();
 
   if (!diaNorm) {
     console.error("❌ dia inválido. Abortando consulta Endurance:", dia);
@@ -546,7 +619,7 @@ if (b.tipo === "treino" && Number(b.boxNum) >= 900) {
       out.push({
         tipo: "aquecimentoPremium",
         box: 0,
-        titulo: "🌿 Aquecimento",
+        titulo: "Aquecimento",
         passos: b.passos || []
       });
       continue;
@@ -577,7 +650,7 @@ if (b.tipo === "treino" && Number(b.boxNum) >= 900) {
 ========================= */
 if (b.tipo === "hiit") {
   const boxBase = Number(b.boxNum || 500);
-  const titulo = FEMFLOW.engineTreino.selecionarTitulo(b) || "🔥 HIIT";
+  const titulo = FEMFLOW.engineTreino.selecionarTitulo(b) || "HIIT";
 
   const leve = Number(b.leve ?? b.fraco) || 20;
   const ciclos = Number(b.ciclos ?? b.ciclo) || 6;
@@ -608,11 +681,13 @@ if (b.tipo === "hiit") {
       out.push({
         tipo: "cardio_final",
         box: Number(b.boxNum || 900),
-        titulo: FEMFLOW.engineTreino.selecionarTitulo(b) || "💗 Cardio Final",
+        titulo: FEMFLOW.engineTreino.selecionarTitulo(b) || "Cardio Final",
         link: b.link || "",
         series: b.series ?? b.serie ?? "",
         tempo: b.tempo ?? "",
         distancia: b.distancia ?? b.reps ?? "",
+        ritmo: b.ritmo ?? "",
+        zona_treino: b.zona_treino ?? b.zonaTreino ?? "",
         intervalo: Number(b.intervalo) || 0,
         duracao: Number(b.tempo) || 0
       });
@@ -626,11 +701,13 @@ if (b.tipo === "hiit") {
       out.push({
         tipo: "cardio_intermediario",
         box: Number(b.boxNum || 0.5),
-        titulo: FEMFLOW.engineTreino.selecionarTitulo(b) || "💗 Cardio",
+        titulo: FEMFLOW.engineTreino.selecionarTitulo(b) || "Cardio",
         link: b.link || "",
         series: b.series ?? b.serie ?? "",
         tempo: b.tempo ?? "",
         distancia: b.distancia ?? b.reps ?? "",
+        ritmo: b.ritmo ?? "",
+        zona_treino: b.zona_treino ?? b.zonaTreino ?? "",
         intervalo: Number(b.intervalo) || 0,
         duracao: Number(b.tempo) || 0
       });
@@ -644,7 +721,7 @@ if (b.tipo === "hiit") {
       out.push({
         tipo: "resfriamentoPremium",
         box: Number(b.boxNum || 999),
-        titulo: "🧘 Resfriamento",
+        titulo: "Resfriamento",
         passos: b.passos || []
       });
       continue;
@@ -684,11 +761,15 @@ FEMFLOW.engineTreino.montarTreinoFinal = async ({
 
 
   let blocosRaw = [];
+  // Regra canônica: o fluxo de fase/dia já vem resolvido antes.
+  // Aqui, o único ponto de decisão é o namespace de origem do treino.
   if (isExtra) {
     blocosRaw = await FEMFLOW.engineTreino.carregarBlocosExtras({ nivel, enfase });
   } else if (personal) {
+    console.log("[engineTreino] Origem selecionada: personal_trainings", { id, fase, diaCiclo });
     blocosRaw = await FEMFLOW.engineTreino.carregarBlocosPersonal({ id, fase, diaCiclo });
    } else {
+    console.log("[engineTreino] Origem selecionada: exercicios", { nivel, enfase, fase, diaCiclo });
     blocosRaw = await FEMFLOW.engineTreino.carregarBlocosNormais({
       nivel,
       enfase,
@@ -724,6 +805,144 @@ const filtrados = comHIIT.filter(b => {
 
 return FEMFLOW.engineTreino.converterParaFront(filtrados);
 
+};
+
+/* ============================================================
+   7A) MONTAR TREINO CUSTOMIZADO
+============================================================ */
+FEMFLOW.engineTreino.montarTreinoCustomizado = async ({
+  id, diaCiclo, diaPrograma
+}) => {
+  const blocosSelecionados =
+    JSON.parse(localStorage.getItem("femflow_custom_blocos") || "[]");
+
+  if (!Array.isArray(blocosSelecionados) || blocosSelecionados.length === 0) {
+    FEMFLOW.warn("⚠️ Nenhum bloco customizado selecionado.");
+    return [];
+  }
+
+  const blocosRaw = [];
+
+  for (const [index, docIdRaw] of blocosSelecionados.entries()) {
+    const docId = String(docIdRaw || "").trim();
+    if (!docId) continue;
+
+    let snap;
+    try {
+      snap = await firebase.firestore()
+        .collection("exercicios_extra")
+        .doc(docId)
+        .collection("blocos")
+        .get();
+    } catch (err) {
+      console.error("❌ [CUSTOM] Erro ao buscar no Firebase:", err, { docId });
+      continue;
+    }
+
+    if (snap.empty) {
+      FEMFLOW.warn("⚠️ Nenhum bloco customizado encontrado:", { docId });
+      continue;
+    }
+
+    snap.forEach(d => {
+      const data = d.data();
+      if (!data.titulo && !data.titulo_pt && !data.titulo_en && !data.titulo_fr) {
+        data.titulo = d.id;
+      }
+      blocosRaw.push({
+        ...data,
+        customIndex: index
+      });
+    });
+  }
+
+  if (!blocosRaw.length) return [];
+
+  const MAX_EXERCICIOS_POR_BOX = 2;
+  const gruposPorIndex = new Map();
+  const blocosFixos = [];
+
+  for (const bloco of blocosRaw) {
+    if (bloco.tipo === "aquecimento" || bloco.tipo === "resfriamento") {
+      blocosFixos.push(bloco);
+      continue;
+    }
+
+    const index = Number(bloco.customIndex) || 0;
+    if (!gruposPorIndex.has(index)) {
+      gruposPorIndex.set(index, []);
+    }
+    gruposPorIndex.get(index).push(bloco);
+  }
+
+  let nextBox = 1;
+  const blocosOrdenados = [];
+
+  const gruposOrdenados = Array.from(gruposPorIndex.entries()).sort(
+    ([a], [b]) => a - b
+  );
+
+  for (const [, blocosGrupo] of gruposOrdenados) {
+    const ordenados = blocosGrupo
+      .slice()
+      .sort((a, b) => (Number(a.ordem) || 0) - (Number(b.ordem) || 0));
+
+    for (let i = 0; i < ordenados.length; i += MAX_EXERCICIOS_POR_BOX) {
+      const boxNum = nextBox;
+      const fatia = ordenados.slice(i, i + MAX_EXERCICIOS_POR_BOX);
+
+      for (const b of fatia) {
+        const rawLabel = String(b.box || "");
+        const serieCodigo = FEMFLOW.engineTreino.detectarSerieEspecial(rawLabel);
+        blocosOrdenados.push({
+          ...b,
+          boxNum,
+          boxKey: b.boxKey || null,
+          ordemNum: Number(b.ordem) || 0,
+          serieEspecial: serieCodigo
+        });
+      }
+
+      nextBox += 1;
+    }
+  }
+
+  for (const b of blocosFixos) {
+    const rawLabel = String(b.box || "");
+    const serieCodigo = FEMFLOW.engineTreino.detectarSerieEspecial(rawLabel);
+    const boxNum = b.tipo === "aquecimento" ? -100 : 999;
+    blocosOrdenados.push({
+      ...b,
+      boxNum,
+      boxKey: b.boxKey || null,
+      ordemNum: Number(b.ordem) || 0,
+      serieEspecial: serieCodigo
+    });
+  }
+
+  blocosOrdenados.sort((a, b) => a.boxNum - b.boxNum);
+
+  const comHIIT = FEMFLOW.engineTreino.intercalarHIIT(blocosOrdenados);
+  let aquecimentoInserido = false;
+  let resfriamentoInserido = false;
+
+  const filtrados = comHIIT.filter(b => {
+    if (b.tipo === "aquecimento") {
+      if (aquecimentoInserido) return false;
+      aquecimentoInserido = true;
+      return true;
+    }
+
+    if (b.tipo === "resfriamento") {
+      if (resfriamentoInserido) return false;
+      resfriamentoInserido = true;
+      return true;
+    }
+
+    return true;
+  });
+
+  return FEMFLOW.engineTreino.converterParaFront(filtrados);
 };
 
 /* ============================================================
@@ -767,6 +986,144 @@ FEMFLOW.engineTreino.montarTreinoEndurance = async ({
 };
 
 /* ============================================================
+   7C) FIREBASE — BLOCO ENDURANCE PÚBLICO (POR ESTÍMULO)
+============================================================ */
+FEMFLOW.engineTreino.carregarBlocosEndurancePublicByEstimulo = async ({
+  modalidade,
+  semana,
+  estimulo
+}) => {
+  const modalidadesCandidatas = FEMFLOW.engineTreino.resolverModalidadesEndurancePublic(modalidade);
+  const estimuloNorm = FEMFLOW.engineTreino.normalizarEstimuloEndurance(estimulo);
+  const semanaNum = Number(semana);
+  const semanaKey = Number.isFinite(semanaNum) && semanaNum > 0 ? String(semanaNum) : "";
+
+  if (!modalidadesCandidatas.length || !semanaKey || !estimuloNorm) {
+    console.error("❌ [ENDURANCE_PUBLIC] Dados inválidos para consulta:", {
+      modalidade,
+      semana,
+      estimulo,
+      modalidadesCandidatas,
+      semanaKey,
+      estimuloNorm
+    });
+    return [];
+  }
+
+  for (const modalidadeAtual of modalidadesCandidatas) {
+    const path = `/endurance_public/${modalidadeAtual}/treinos/base/semana/${semanaKey}/estimulos/${estimuloNorm}/blocos`;
+    console.log("🔥 FIREBASE PATH (ENDURANCE_PUBLIC):", {
+      modalidade: modalidadeAtual,
+      semana: semanaKey,
+      estimulo: estimuloNorm,
+      path
+    });
+
+    let snap;
+    try {
+      snap = await firebase.firestore()
+        .collection("endurance_public")
+        .doc(modalidadeAtual)
+        .collection("treinos")
+        .doc("base")
+        .collection("semana")
+        .doc(semanaKey)
+        .collection("estimulos")
+        .doc(estimuloNorm)
+        .collection("blocos")
+        .where("importTarget", "==", "femflow")
+        .get();
+    } catch (err) {
+      const errCode = String(err?.code || "");
+      const isPermissionDenied = errCode.includes("permission-denied");
+      if (isPermissionDenied && modalidadesCandidatas.length > 1) {
+        FEMFLOW.warn("⚠️ [ENDURANCE_PUBLIC] Permissão negada para modalidade, tentando alias:", {
+          modalidade: modalidadeAtual,
+          semana: semanaKey,
+          estimulo: estimuloNorm,
+          path,
+          errCode
+        });
+        continue;
+      }
+
+      console.error("❌ [ENDURANCE_PUBLIC] Erro ao buscar no Firebase:", {
+        modalidade: modalidadeAtual,
+        semana: semanaKey,
+        estimulo: estimuloNorm,
+        path,
+        err
+      });
+      return [];
+    }
+
+    if (snap.empty) {
+      FEMFLOW.warn("⚠️ [ENDURANCE_PUBLIC] Nenhum bloco encontrado:", {
+        modalidade: modalidadeAtual,
+        semana: semanaKey,
+        estimulo: estimuloNorm,
+        path
+      });
+      continue;
+    }
+
+    const blocos = [];
+    snap.forEach((d) => {
+      const data = d.data();
+      if (!data.titulo && !data.titulo_pt && !data.titulo_en && !data.titulo_fr) {
+        data.titulo = d.id;
+      }
+      blocos.push(data);
+    });
+
+    return blocos;
+  }
+
+  return [];
+};
+
+/* ============================================================
+   7D) MONTAR TREINO ENDURANCE PÚBLICO (POR ESTÍMULO)
+============================================================ */
+FEMFLOW.engineTreino.montarTreinoEndurancePublicByEstimulo = async ({
+  modalidade,
+  semana,
+  estimulo
+}) => {
+  const blocosRaw = await FEMFLOW.engineTreino.carregarBlocosEndurancePublicByEstimulo({
+    modalidade,
+    semana,
+    estimulo
+  });
+
+  if (!blocosRaw.length) return [];
+
+  const ordenados = FEMFLOW.engineTreino.organizarBlocosSimples(blocosRaw);
+  const comHIIT = FEMFLOW.engineTreino.intercalarHIIT(ordenados);
+
+  let aquecimentoInserido = false;
+  let resfriamentoInserido = false;
+
+  const filtrados = comHIIT.filter((b) => {
+    if (b.tipo === "aquecimento") {
+      if (aquecimentoInserido) return false;
+      aquecimentoInserido = true;
+      return true;
+    }
+
+    if (b.tipo === "resfriamento") {
+      if (resfriamentoInserido) return false;
+      resfriamentoInserido = true;
+      return true;
+    }
+
+    return true;
+  });
+
+  return FEMFLOW.engineTreino.converterParaFront(filtrados);
+};
+
+/* ============================================================
    8) LISTAR EXERCÍCIOS POR DIA (USO EM MODAL)
 ============================================================ */
 FEMFLOW.engineTreino.listarExerciciosDia = async ({
@@ -788,9 +1145,12 @@ FEMFLOW.engineTreino.listarExerciciosDia = async ({
   }
 
   let blocosRaw = [];
+  // Mesmo fluxo para preview/lista: muda apenas a origem (personal_trainings vs exercicios).
   if (personal) {
+    console.log("[engineTreino] Lista por dia usando origem personal_trainings", { id, fase, diaCiclo });
     blocosRaw = await FEMFLOW.engineTreino.carregarBlocosPersonal({ id, fase, diaCiclo });
   } else {
+    console.log("[engineTreino] Lista por dia usando origem exercicios", { nivel, enfase, fase, diaCiclo });
     blocosRaw = await FEMFLOW.engineTreino.carregarBlocosNormais({
       nivel,
       enfase,

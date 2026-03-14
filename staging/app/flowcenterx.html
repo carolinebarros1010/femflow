@@ -1,6 +1,7 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+  <base href="./" />
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
@@ -234,8 +235,8 @@ document.addEventListener("DOMContentLoaded", () => {
   document.getElementById("centerCircle").classList.add("center-active");
 
   // === Botões ===
-  document.getElementById("toBreath")?.addEventListener("click", () => FEMFLOW.router("respiracao"));
-  document.getElementById("toTrain")?.addEventListener("click", () => FEMFLOW.router("treino"));
+  document.getElementById("toBreath")?.addEventListener("click", () => FEMFLOW.router("respiracao.html"));
+  document.getElementById("toTrain")?.addEventListener("click", () => FEMFLOW.router("treino.html"));
 
   window.addEventListener("femflow:langchange", () => location.reload());
 });
@@ -304,7 +305,7 @@ document.addEventListener("DOMContentLoaded", () => {
   });
 });
 </script>
-  <script src="/staging/app/js/env-staging.js"></script>
+  <script src="js/env.js"></script>
 </body>
 </html>
 

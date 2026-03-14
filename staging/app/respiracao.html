@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+  <base href="./" />
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="format-detection" content="telephone=no" />
-  <script src="./config/config.js"></script>
+  <script src="./config/config.js" defer></script>
   <title>Respiração • FemFlow</title>
 
   <link rel="icon" href="favicon.ico">
@@ -99,23 +100,20 @@
 <!-- ============================= -->
 <!-- SCRIPTS FEMFLOW
 <!-- ============================= -->
-<script src="js/lang.js"></script>
-<script src="core/femflow-core.js"></script>
+<script src="core/femflow-core.js" defer></script>
+<script src="js/lang.js" defer></script>
 
 <script>
 document.addEventListener("DOMContentLoaded", async () => {
 
   /* ============================================================
-     🔥 PROTEÇÃO DE ACESSO → Se não tiver login ou produto, volta para HOME
+     🔥 PROTEÇÃO DE ACESSO → Respiração é livre para sessão autenticada
   ============================================================ */
-  const produto = localStorage.getItem("femflow_produto");
-  const produtoNorm = String(produto || "").toLowerCase();
-  const isVip = produtoNorm === "vip";
-  const ativa   = isVip || localStorage.getItem("femflow_ativa") === "true";
-
-  if (!produto || !ativa) {
-    FEMFLOW.toast("Acesse a Home para continuar 🌸");
-    return FEMFLOW.router("home");
+  const id = localStorage.getItem("femflow_id");
+  const email = localStorage.getItem("femflow_email");
+  if (!id && !email) {
+    FEMFLOW.toast("Faça login para continuar 🌸");
+    return FEMFLOW.router("index.html");
   }
 
   /* ============================================================
@@ -315,7 +313,7 @@ document.addEventListener("DOMContentLoaded", async () => {
      🔙 VOLTAR AO FLOWCENTER
   ============================================================ */
   document.getElementById("btnVoltarTreino").onclick =
-    () => FEMFLOW.router("flowcenter");
+    () => FEMFLOW.router("flowcenter.html");
 
   /* ============================================================
      CONTAGEM E CICLOS
@@ -395,7 +393,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 <!-- ========================= -->
 <div id="modal-nivel" class="modal-nivel oculto">
   <div class="modal-nivel-box">
-    <h2>📊 Selecione seu nível</h2>
+    <h2>Selecione seu nível</h2>
 
     <button class="nivel-btn" data-nivel="iniciante">Iniciante</button>
     <button class="nivel-btn" data-nivel="intermediaria">Intermediária</button>
@@ -410,6 +408,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 </div>
 
 
-  <script src="/staging/app/js/env-staging.js"></script>
+  <script src="js/env.js" defer></script>
 </body>
 </html>

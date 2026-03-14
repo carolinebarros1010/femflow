@@ -1,12 +1,13 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
+  <base href="./" />
   <meta charset="UTF-8"/>
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="format-detection" content="telephone=no" />
-  <script src="./config/config.js"></script>
+  <script src="./config/config.js" defer></script>
   <title>FemFlow • Minha Evolução</title>
 
   <link rel="icon" href="favicon.ico">
@@ -77,8 +78,8 @@
 
 </div>
 
-<script src="js/lang.js"></script>
-<script src="core/femflow-core.js"></script>
+<script src="core/femflow-core.js" defer></script>
+<script src="js/lang.js" defer></script>
 
 <script>
 /* ============================================================
@@ -142,7 +143,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 
   if (!id || !produto || !ativa) {
     FEMFLOW.toast("Acesse pela Home para continuar 🌸");
-    return FEMFLOW.router("home");
+    return FEMFLOW.router("home.html");
   }
 
   async function carregarEvolucaoBackend() {
@@ -179,12 +180,21 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
   function normalizarTipo(item) {
     if (!item) return "regular";
-    const tipoRaw = item.tipo || item.tipoTreino || item.origem || "";
-    const tipo = String(tipoRaw).toLowerCase();
+    const tipoRaw = [
+      item.tipo,
+      item.tipoTreino,
+      item.tipo_treino,
+      item.origem,
+      item.source,
+      item.modalidade
+    ].find((value) => value !== undefined && value !== null && value !== "");
+    const tipo = String(tipoRaw || "").toLowerCase().trim();
     if (tipo.includes("endurance")) return "endurance";
     if (tipo.includes("extra")) return "extra";
-    const treinoRaw = String(item.treino || item.treinoId || item.enfase || "");
-    const treino = treinoRaw.toLowerCase();
+    if (tipo.includes("regular") || tipo.includes("normal")) return "regular";
+
+    const treinoRaw = String(item.treino || item.treinoId || item.enfase || item.treino_nome || "");
+    const treino = treinoRaw.toLowerCase().trim();
     if (treino.includes("endurance_")) return "endurance";
     if (treino.includes("extra_")) return "extra";
     return "regular";
@@ -269,6 +279,7 @@ document.addEventListener("DOMContentLoaded", async () => {
   }
 
   hist = hist.slice(-40);
+  hist.sort((a, b) => new Date(a.data || 0) - new Date(b.data || 0));
 
   const L = (FEMFLOW.langs[FEMFLOW.lang] || FEMFLOW.langs.pt).evolucao;
   if (!hist.length && L && L.nenhumDado) {
@@ -278,16 +289,35 @@ document.addEventListener("DOMContentLoaded", async () => {
   /* ============================================================
      GRÁFICO
   ============================================================ */
-  const labels = hist.map((t, i) => i + 1);
-  const dataRegular = hist.map((item) =>
-    normalizarTipo(item) === "regular" ? normalizarPse(item) : null
-  );
-  const dataExtra = hist.map((item) =>
-    normalizarTipo(item) === "extra" ? normalizarPse(item) : null
-  );
-  const dataEndurance = hist.map((item) =>
-    normalizarTipo(item) === "endurance" ? normalizarPse(item) : null
-  );
+  function normalizarDiaPrograma(item, fallbackIndex) {
+    const diaRaw = item?.diaPrograma ?? item?.dia_treino ?? item?.diaTreino ?? item?.dia ?? null;
+    const dia = Number(diaRaw);
+    if (Number.isFinite(dia) && dia > 0) return Math.floor(dia);
+    return fallbackIndex + 1;
+  }
+
+  const diasMap = new Map();
+  hist.forEach((item, index) => {
+    const dia = normalizarDiaPrograma(item, index);
+    const tipo = normalizarTipo(item);
+    const pse = normalizarPse(item);
+
+    if (!diasMap.has(dia)) {
+      diasMap.set(dia, { regular: null, extra: null, endurance: null });
+    }
+
+    const diaData = diasMap.get(dia);
+    if (Object.prototype.hasOwnProperty.call(diaData, tipo)) {
+      // mantém o último registro por tipo dentro do mesmo dia
+      diaData[tipo] = pse;
+    }
+  });
+
+  const diasOrdenados = Array.from(diasMap.keys()).sort((a, b) => a - b);
+  const labels = diasOrdenados;
+  const dataRegular = diasOrdenados.map((dia) => diasMap.get(dia).regular);
+  const dataExtra = diasOrdenados.map((dia) => diasMap.get(dia).extra);
+  const dataEndurance = diasOrdenados.map((dia) => diasMap.get(dia).endurance);
 
   new Chart(document.getElementById("graficoPSE"), {
     type: "line",
@@ -295,7 +325,7 @@ document.addEventListener("DOMContentLoaded", async () => {
       labels,
       datasets: [
         {
-          label: "Regular",
+          label: "Normal",
           data: dataRegular,
           borderColor: "#CC6A5A",
           backgroundColor: "rgba(239,189,166,0.35)",
@@ -345,7 +375,7 @@ document.addEventListener("DOMContentLoaded", async () => {
 <!-- MODAL NÍVEL -->
 <div id="modal-nivel" class="modal-nivel oculto">
   <div class="modal-nivel-box">
-    <h2>📊 Selecione seu nível</h2>
+    <h2>Selecione seu nível</h2>
 
     <button class="nivel-btn" data-nivel="iniciante">Iniciante</button>
     <button class="nivel-btn" data-nivel="intermediaria">Intermediária</button>
@@ -360,6 +390,6 @@ document.addEventListener("DOMContentLoaded", async () => {
 </div>
 
 
-  <script src="/staging/app/js/env-staging.js"></script>
+  <script src="js/env.js" defer></script>
 </body>
 </html>
